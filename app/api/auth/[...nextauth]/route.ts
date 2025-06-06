@@ -1,13 +1,12 @@
-import NextAuth, { DefaultSession, User as NextAuthUser, Session } from 'next-auth';
-import { JWT } from 'next-auth/jwt';
-import CredentialsProvider from 'next-auth/providers/credentials';
-import { PrismaAdapter } from '@next-auth/prisma-adapter';
-import { PrismaClient, Role } from '@prisma/client';
-import bcrypt from 'bcrypt';
+import NextAuth, { User as NextAuthUser, Session } from "next-auth";
+import { JWT } from "next-auth/jwt";
+import CredentialsProvider from "next-auth/providers/credentials";
+import { PrismaClient, Role } from "@prisma/client";
+import bcrypt from "bcrypt";
 
 const prisma = new PrismaClient();
 
-declare module 'next-auth' {
+declare module "next-auth" {
   interface Session {
     user: {
       id: string;
@@ -27,7 +26,7 @@ declare module 'next-auth' {
   }
 }
 
-declare module 'next-auth/jwt' {
+declare module "next-auth/jwt" {
   interface JWT {
     id: string;
     role: Role;
@@ -37,14 +36,14 @@ declare module 'next-auth/jwt' {
 export const authOptions = {
   providers: [
     CredentialsProvider({
-      name: 'Credentials',
+      name: "Credentials",
       credentials: {
-        email: { label: 'Email', type: 'email' },
-        password: { label: 'Password', type: 'password' },
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
-          throw new Error('Please enter email and password');
+          throw new Error("Please enter email and password");
         }
 
         const user = await prisma.user.findUnique({
@@ -52,12 +51,16 @@ export const authOptions = {
         });
 
         if (!user || !user.password) {
-          throw new Error('No user found with this email');
+          throw new Error("No user found with this email");
         }
 
-        const isValid = await bcrypt.compare(credentials.password, user.password);
+        const isValid = await bcrypt.compare(
+          credentials.password,
+          user.password,
+        );
+
         if (!isValid) {
-          throw new Error('Invalid password');
+          throw new Error("Invalid password");
         }
 
         // Return user object that matches NextAuth User interface
@@ -77,6 +80,7 @@ export const authOptions = {
         token.id = user.id;
         token.role = user.role;
       }
+
       return token;
     },
     async session({ session, token }: { session: Session; token: JWT }) {
@@ -89,11 +93,12 @@ export const authOptions = {
           role: token.role,
         };
       }
+
       return session;
     },
   },
   session: {
-    strategy: 'jwt' as const,
+    strategy: "jwt" as const,
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   jwt: {
@@ -102,9 +107,9 @@ export const authOptions = {
   },
   secret: process.env.NEXTAUTH_SECRET,
   pages: {
-    signIn: '/login',
+    signIn: "/login",
   },
-  debug: process.env.NODE_ENV === 'development',
+  debug: process.env.NODE_ENV === "development",
 };
 
 const handler = NextAuth(authOptions);

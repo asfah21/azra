@@ -1,113 +1,96 @@
-'use client';
+"use client";
 
-import { useSession, signOut } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useSession, signOut } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 export default function DashboardPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
 
   useEffect(() => {
-    if (status === 'loading') return; // Still loading
+    if (status === "loading") return;
     if (!session) {
-      router.push('/login');
-      return;
+      router.push("/login");
     }
   }, [session, status, router]);
 
-  if (status === 'loading') {
+  const handleTestApi = async () => {
+    try {
+      const response = await fetch("/api/data");
+      const data = await response.json();
+
+      // For development debugging only
+      if (process.env.NODE_ENV === "development") {
+        console.log("API Response:", data);
+      }
+
+      alert("API call successful");
+    } catch (error) {
+      console.error("API Error:", error);
+      alert("API Error occurred");
+    }
+  };
+
+  if (status === "loading") {
     return (
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        height: '100vh' 
-      }}>
+      <div className="flex justify-center items-center h-screen">
         <p>Loading...</p>
       </div>
     );
   }
 
   if (!session) {
-    return null; // Will redirect to login
+    return null;
   }
 
   return (
-    <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'space-between', 
-        alignItems: 'center',
-        marginBottom: '30px',
-        borderBottom: '1px solid #eee',
-        paddingBottom: '20px'
-      }}>
-        <h1>Dashboard</h1>
+    <div className="p-5 max-w-4xl mx-auto">
+      {/* Header Section */}
+      <header className="flex justify-between items-center mb-8 pb-4 border-b border-gray-200">
+        <h1 className="text-2xl font-bold">Dashboard</h1>
         <button
-          onClick={() => signOut({ callbackUrl: '/login' })}
-          style={{
-            padding: '8px 16px',
-            backgroundColor: '#dc3545',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer'
-          }}
+          className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+          onClick={() => signOut({ callbackUrl: "/login" })}
         >
           Logout
         </button>
-      </div>
+      </header>
 
-      <div style={{ 
-        backgroundColor: '#f8f9fa',
-        padding: '20px',
-        borderRadius: '8px',
-        marginBottom: '20px'
-      }}>
-        <h2>Welcome, {session.user.name || session.user.email}!</h2>
-        <div style={{ marginTop: '15px' }}>
-          <p><strong>Email:</strong> {session.user.email}</p>
-          <p><strong>Role:</strong> {session.user.role}</p>
-          <p><strong>User ID:</strong> {session.user.id}</p>
+      {/* User Profile Section */}
+      <section className="bg-gray-50 p-5 rounded-lg mb-6">
+        <h2 className="text-xl font-semibold mb-4">
+          Welcome, {session.user.name || session.user.email}!
+        </h2>
+        <div className="space-y-2">
+          <p>
+            <span className="font-medium">Email:</span> {session.user.email}
+          </p>
+          <p>
+            <span className="font-medium">Role:</span> {session.user.role}
+          </p>
+          <p>
+            <span className="font-medium">User ID:</span> {session.user.id}
+          </p>
         </div>
-      </div>
+      </section>
 
-      <div style={{ 
-        backgroundColor: 'white',
-        padding: '20px',
-        border: '1px solid #dee2e6',
-        borderRadius: '8px'
-      }}>
-        <h3>Dashboard Content</h3>
-        <p>This is your protected dashboard area. You can add your application content here.</p>
-        
-        {/* Contoh button untuk test API */}
+      {/* Main Content Section */}
+      <section className="bg-white p-5 border border-gray-200 rounded-lg">
+        <h3 className="text-lg font-semibold mb-3">Dashboard Content</h3>
+        <p className="mb-4">
+          This is your protected dashboard area. You can add your application
+          content here.
+        </p>
+
+        {/* API Test Button */}
         <button
-          onClick={async () => {
-            try {
-              const response = await fetch('/api/data');
-              const data = await response.json();
-              console.log('API Response:', data);
-              alert('Check console for API response');
-            } catch (error) {
-              console.error('API Error:', error);
-              alert('API Error - check console');
-            }
-          }}
-          style={{
-            marginTop: '15px',
-            padding: '10px 20px',
-            backgroundColor: '#007bff',
-            color: 'white',
-            border: 'none',
-            borderRadius: '4px',
-            cursor: 'pointer'
-          }}
+          className="px-5 py-2.5 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+          onClick={handleTestApi}
         >
           Test API Call
         </button>
-      </div>
+      </section>
     </div>
   );
 }

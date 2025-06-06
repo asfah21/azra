@@ -1,23 +1,32 @@
-'use client';
+"use client";
 
-import { signIn, getSession } from 'next-auth/react';
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { signIn, getSession } from "next-auth/react";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@heroui/button";
+import { Input } from "@heroui/input";
+import { Card, CardHeader, CardBody, CardFooter } from "@heroui/card";
+import { Alert } from "@heroui/alert";
+import { Divider } from "@heroui/divider";
+import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [isVisible, setIsVisible] = useState(false);
   const router = useRouter();
+
+  const toggleVisibility = () => setIsVisible(!isVisible);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
     setLoading(true);
 
     try {
-      const result = await signIn('credentials', {
+      const result = await signIn("credentials", {
         email,
         password,
         redirect: false,
@@ -26,106 +35,110 @@ export default function LoginPage() {
       if (result?.error) {
         setError(result.error);
       } else if (result?.ok) {
-        // Pastikan session sudah terupdate sebelum redirect
         const session = await getSession();
+
         if (session) {
-          router.push('/dashboard');
-          router.refresh(); // Force refresh untuk memastikan session terupdate
+          router.push("/dashboard");
+          router.refresh();
         } else {
-          setError('Login failed. Please try again.');
+          setError("Login failed. Please try again.");
         }
       } else {
-        setError('An unexpected error occurred. Please try again.');
+        setError("An unexpected error occurred. Please try again.");
       }
     } catch (err) {
-      console.error('Login error:', err);
-      setError('An error occurred during login. Please try again.');
+      console.error("Login error:", err);
+      setError("An error occurred during login. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div style={{ maxWidth: '400px', margin: '50px auto', padding: '20px' }}>
-      <h1 style={{ textAlign: 'center', marginBottom: '30px' }}>Login</h1>
-      
-      {error && (
-        <div style={{ 
-          color: 'red', 
-          textAlign: 'center', 
-          backgroundColor: '#fee', 
-          padding: '10px', 
-          borderRadius: '4px',
-          marginBottom: '20px',
-          border: '1px solid #fcc'
-        }}>
-          {error}
-        </div>
-      )}
-      
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-        <div>
-          <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-            Email
-          </label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            disabled={loading}
-            style={{ 
-              width: '100%', 
-              padding: '10px', 
-              border: '1px solid #ddd',
-              borderRadius: '4px',
-              fontSize: '16px',
-              opacity: loading ? 0.6 : 1
-            }}
-            placeholder="Enter your email"
-          />
-        </div>
-        
-        <div>
-          <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-            Password
-          </label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            disabled={loading}
-            style={{ 
-              width: '100%', 
-              padding: '10px', 
-              border: '1px solid #ddd',
-              borderRadius: '4px',
-              fontSize: '16px',
-              opacity: loading ? 0.6 : 1
-            }}
-            placeholder="Enter your password"
-          />
-        </div>
-        
-        <button
-          type="submit"
-          disabled={loading}
-          style={{ 
-            padding: '12px', 
-            backgroundColor: loading ? '#ccc' : '#0070f3', 
-            color: 'white', 
-            border: 'none', 
-            borderRadius: '4px',
-            cursor: loading ? 'not-allowed' : 'pointer',
-            fontSize: '16px',
-            fontWeight: 'bold',
-            marginTop: '10px'
-          }}
-        >
-          {loading ? 'Logging in...' : 'Login'}
-        </button>
-      </form>
+    <div className="absolute inset-0 flex items-center justify-center bg-white dark:bg-black p-6">
+      {/* <div className="flex items-center justify-center bg-white dark:bg-black p-4 md:mt-10"> */}
+      <Card className="w-full max-w-md shadow-lg">
+        <CardHeader className="flex flex-col gap-3 text-center">
+          <div className="flex flex-col">
+            <h1 className="text-2xl font-bold">Login</h1>
+            <p className="text-sm text-gray-500">
+              Sign in to your account to continue
+            </p>
+          </div>
+        </CardHeader>
+
+        <Divider className="my-2" />
+
+        <CardBody className="flex flex-col gap-4">
+          {error && (
+            <Alert className="mb-4" color="danger" variant="faded">
+              {error}
+            </Alert>
+          )}
+
+          <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+            <Input
+              isRequired
+              className="w-full"
+              isDisabled={loading}
+              label="Email"
+              placeholder="Enter your email"
+              type="email"
+              value={email}
+              variant="bordered"
+              onChange={(e) => setEmail(e.target.value)}
+            />
+
+            <Input
+              isRequired
+              className="w-full"
+              endContent={
+                <button
+                  className="focus:outline-none"
+                  type="button"
+                  onClick={toggleVisibility}
+                >
+                  {isVisible ? (
+                    <EyeSlashIcon className="w-5 h-5 text-gray-400" />
+                  ) : (
+                    <EyeIcon className="w-5 h-5 text-gray-400" />
+                  )}
+                </button>
+              }
+              isDisabled={loading}
+              label="Password"
+              placeholder="Enter your password"
+              type={isVisible ? "text" : "password"}
+              value={password}
+              variant="bordered"
+              onChange={(e) => setPassword(e.target.value)}
+            />
+
+            <Button
+              className="w-full mt-2"
+              color="primary"
+              disabled={loading || !email || !password}
+              isLoading={loading}
+              size="lg"
+              type="submit"
+            >
+              {loading ? "Signing in..." : "Sign In"}
+            </Button>
+          </form>
+        </CardBody>
+
+        <CardFooter className="flex justify-center">
+          <p className="text-sm text-gray-500">
+            Don&apos;t have an account?{" "}
+            <a
+              className="text-blue-600 hover:underline font-medium"
+              href="/register"
+            >
+              Sign up
+            </a>
+          </p>
+        </CardFooter>
+      </Card>
     </div>
   );
 }

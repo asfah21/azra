@@ -21,7 +21,6 @@ import {
   TwitterIcon,
   GithubIcon,
   DiscordIcon,
-  HeartFilledIcon,
   SearchIcon,
   Logo,
 } from "@/components/icons";
@@ -97,9 +96,8 @@ export const Navbar = () => {
             isExternal
             as={Link}
             className="text-sm font-normal text-default-600 bg-default-100"
-            href={siteConfig.links.sponsor}
             color="secondary"
-            // startContent={<HeartFilledIcon className="text-danger" />}
+            href={siteConfig.links.sponsor}
             variant="ghost"
           >
             Login
