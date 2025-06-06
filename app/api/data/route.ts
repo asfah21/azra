@@ -1,37 +1,18 @@
+// app/api/data/route.ts
+import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
-import { Session } from "next-auth";
 
-import { authOptions } from "../auth/[...nextauth]/route";
-
-import { supabase } from "@/lib/supabase";
+import { authOptions } from "@/lib/auth";
 
 export async function GET() {
-  const session = (await getServerSession(authOptions)) as Session | null;
+  const session = await getServerSession(authOptions);
 
-  if (!session || !session.user) {
-    return new Response(
-      JSON.stringify({ error: { message: "Unauthorized" } }),
-      {
-        status: 401,
-        headers: { "Content-Type": "application/json" },
-      },
-    );
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { data: breakdowns, error } = await supabase
-    .from("Breakdown")
-    .select("*")
-    .eq("reportedById", session.user.id);
+  // Your data fetching logic here
+  const data = { message: "Protected data" };
 
-  if (error) {
-    return new Response(JSON.stringify({ error }), {
-      status: 500,
-      headers: { "Content-Type": "application/json" },
-    });
-  }
-
-  return new Response(JSON.stringify({ breakdowns }), {
-    status: 200,
-    headers: { "Content-Type": "application/json" },
-  });
+  return NextResponse.json(data);
 }

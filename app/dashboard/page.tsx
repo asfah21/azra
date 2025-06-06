@@ -20,7 +20,6 @@ export default function DashboardPage() {
       const response = await fetch("/api/data");
       const data = await response.json();
 
-      // For development debugging only
       if (process.env.NODE_ENV === "development") {
         console.log("API Response:", data);
       }
@@ -40,9 +39,11 @@ export default function DashboardPage() {
     );
   }
 
-  if (!session) {
+  if (!session?.user) {
     return null;
   }
+
+  const { user } = session;
 
   return (
     <div className="p-5 max-w-4xl mx-auto">
@@ -60,17 +61,17 @@ export default function DashboardPage() {
       {/* User Profile Section */}
       <section className="bg-gray-50 p-5 rounded-lg mb-6">
         <h2 className="text-xl font-semibold mb-4">
-          Welcome, {session.user.name || session.user.email}!
+          Welcome, {user.name || user.email}!
         </h2>
         <div className="space-y-2">
           <p>
-            <span className="font-medium">Email:</span> {session.user.email}
+            <span className="font-medium">Email:</span> {user.email}
           </p>
           <p>
-            <span className="font-medium">Role:</span> {session.user.role}
+            <span className="font-medium">Role:</span> {user.role}
           </p>
           <p>
-            <span className="font-medium">User ID:</span> {session.user.id}
+            <span className="font-medium">User ID:</span> {user.id}
           </p>
         </div>
       </section>
