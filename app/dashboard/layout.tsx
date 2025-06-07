@@ -1,6 +1,7 @@
 import { Metadata } from "next";
 
 import { siteConfig } from "@/config/site";
+import UIDashboardLayout from "@/components/ui/DashboardLayout";
 
 export const metadata: Metadata = {
   title: {
@@ -9,15 +10,10 @@ export const metadata: Metadata = {
   },
 };
 
-export default function DashboardLayout({
+export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  return (
-    <div className="flex min-h-screen bg-gray-50">
-      {/* This layout will completely override the main layout structure */}
-      {children}
-    </div>
-  );
+  return <UIDashboardLayout>{children}</UIDashboardLayout>;
 }
