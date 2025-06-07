@@ -97,7 +97,7 @@ export const Navbar = () => {
             as={Link}
             className="text-sm font-normal text-default-600 bg-default-100"
             color="secondary"
-            href={siteConfig.links.sponsor}
+            href={siteConfig.links.login}
             variant="ghost"
           >
             Login
