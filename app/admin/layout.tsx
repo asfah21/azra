@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 
-import UIAdminLayout from "@/components/ui/AdminLayout";
+import UIAdminLayout from "@/components/ui/admin/AdminLayout";
 
 export const metadata: Metadata = {
   title: "Admin Dashboard",

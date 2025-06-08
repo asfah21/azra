@@ -26,8 +26,8 @@ import { Divider } from "@heroui/divider";
 import { Avatar } from "@heroui/avatar";
 import { Tooltip } from "@heroui/tooltip";
 
-import { ThemeSwitch } from "../theme-switch";
-import { SearchIcon } from "../icons";
+import { ThemeSwitch } from "@/components/theme-switch";
+import { SearchIcon } from "@/components/icons";
 
 interface Tab {
   id: string;

@@ -1,7 +1,7 @@
 import { Metadata } from "next";
 
 import { siteConfig } from "@/config/site";
-import UIDashboardLayout from "@/components/ui/DashboardLayout";
+import UIDashboardLayout from "@/components/ui/dashboard/DashboardLayout";
 
 export const metadata: Metadata = {
   title: {
