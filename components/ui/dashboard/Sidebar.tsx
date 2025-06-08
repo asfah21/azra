@@ -24,7 +24,7 @@ interface SidebarProps {
 
 export function Sidebar({
   sidebarCollapsed,
-  setSidebarCollapsed,
+  setSidebarCollapsed: _setSidebarCollapsed,
   navItems,
   activeTab,
   openNewTab,

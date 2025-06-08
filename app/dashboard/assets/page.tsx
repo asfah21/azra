@@ -107,9 +107,6 @@ export default function Assets() {
           <h1 className="text-3xl font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent">
             Dashboard Profile
           </h1>
-          <p className="text-default-500 mt-1">
-            Monitor system performance and user activities
-          </p>
         </div>
       </div>
 
