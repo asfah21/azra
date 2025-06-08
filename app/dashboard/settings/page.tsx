@@ -1,25 +1,3 @@
-// export default function Settings() {
-//   return (
-//     <div className="p-6">
-//       <h1 className="text-2xl font-bold mb-4">Dashboard Profile</h1>
-//       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-//         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow p-4">
-//           <h2 className="font-semibold text-lg mb-2">Statistik</h2>
-//           <p>Konten statistik atau metrik di sini.</p>
-//         </div>
-//         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow p-4">
-//           <h2 className="font-semibold text-lg mb-2">Pengguna</h2>
-//           <p>Informasi pengguna aktif, baru, dll.</p>
-//         </div>
-//         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow p-4">
-//           <h2 className="font-semibold text-lg mb-2">Log Aktivitas</h2>
-//           <p>Aktivitas terbaru admin atau pengguna.</p>
-//         </div>
-//       </div>
-//     </div>
-//   );
-// }
-"use client";
 "use client";
 
 import {
@@ -74,7 +52,8 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="p-4 sm:p-6 max-w-6xl mx-auto">
+    <div className="p-6 max-w-7xl mx-auto">
+      {/* <div className="p-4 sm:p-6 max-w-6xl mx-auto"> */}
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
         <div className="flex items-center gap-3">
@@ -85,9 +64,6 @@ export default function SettingsPage() {
             <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent">
               Settings
             </h1>
-            <p className="text-default-500 mt-1 text-sm sm:text-base">
-              Manage your account and system preferences
-            </p>
           </div>
         </div>
         <div className="flex gap-2">

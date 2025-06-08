@@ -6,6 +6,8 @@ import { Tooltip } from "@heroui/tooltip";
 import { Button } from "@heroui/button";
 import { Card, CardBody } from "@heroui/card";
 
+import { VersionApp } from "../ChipVersion";
+
 import { Logo } from "@/components/icons";
 
 interface SidebarProps {
@@ -45,9 +47,7 @@ export function Sidebar({
               <Logo />
             </span>
           </div>
-          {!sidebarCollapsed && (
-            <span className="text-lg font-bold text-foreground">AZRA</span>
-          )}
+          {!sidebarCollapsed && <VersionApp />}
         </div>
       </div>
 

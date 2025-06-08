@@ -307,9 +307,6 @@ export default function WorkOrdersPage() {
             <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent">
               Work Orders
             </h1>
-            <p className="text-default-500 mt-1 text-sm sm:text-base">
-              Manage maintenance tasks, repairs, and inspections
-            </p>
           </div>
         </div>
         <div className="flex flex-wrap gap-2">

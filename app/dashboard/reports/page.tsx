@@ -1,5 +1,4 @@
 "use client";
-
 import {
   Card,
   CardHeader,
@@ -13,158 +12,85 @@ import {
   User,
 } from "@heroui/react";
 import {
-  Package,
-  Wrench,
-  AlertCircle,
+  BarChart3,
+  Users,
+  Activity,
   TrendingUp,
   Clock,
   CheckCircle2,
   AlertTriangle,
-  Settings as SettingsIcon,
-  Zap,
-  Calendar,
-  MapPin,
-  Filter,
-  Search,
-  Plus,
+  BarChart2,
 } from "lucide-react";
 
-export default function AssetsPage() {
-  // Mock data untuk assets
-  const assetsStats = {
-    totalAssets: 847,
-    activeAssets: 723,
-    maintenanceAssets: 89,
-    criticalAssets: 35,
-    availabilityRate: 92.3,
+export default function Assets() {
+  // Mock data untuk demo
+  const stats = {
+    totalUsers: 1247,
+    activeUsers: 892,
+    newUsersToday: 23,
+    growthRate: 12.5,
   };
 
-  const recentAssetActivities = [
+  const recentActivities = [
     {
       id: 1,
-      assetName: "Compressor Unit A-101",
-      action: "Scheduled maintenance completed",
-      technician: "Ahmad Ridwan",
-      time: "30 minutes ago",
+      user: "Ahmad Ridwan",
+      action: "Created new work order",
+      time: "2 minutes ago",
       avatar: "https://i.pravatar.cc/150?u=1",
-      type: "maintenance",
-      location: "Plant A - Floor 2",
+      type: "create",
     },
     {
       id: 2,
-      assetName: "Generator B-205",
-      action: "Emergency repair initiated",
-      technician: "Siti Nurhaliza",
-      time: "1 hour ago",
+      user: "Siti Nurhaliza",
+      action: "Completed maintenance task",
+      time: "15 minutes ago",
       avatar: "https://i.pravatar.cc/150?u=2",
-      type: "emergency",
-      location: "Plant B - Basement",
+      type: "complete",
     },
     {
       id: 3,
-      assetName: "Conveyor Belt C-301",
-      action: "Performance inspection done",
-      technician: "Budi Santoso",
-      time: "2 hours ago",
+      user: "Budi Santoso",
+      action: "Updated asset status",
+      time: "1 hour ago",
       avatar: "https://i.pravatar.cc/150?u=3",
-      type: "inspection",
-      location: "Plant C - Floor 1",
+      type: "update",
     },
     {
       id: 4,
-      assetName: "Pump System D-102",
-      action: "Calibration completed",
-      technician: "Maya Sari",
-      time: "3 hours ago",
+      user: "Maya Sari",
+      action: "Generated monthly report",
+      time: "2 hours ago",
       avatar: "https://i.pravatar.cc/150?u=4",
-      type: "calibration",
-      location: "Plant D - Floor 3",
-    },
-  ];
-
-  const criticalAssets = [
-    {
-      id: 1,
-      name: "Boiler System A-001",
-      status: "Critical",
-      lastMaintenance: "2 days ago",
-      nextMaintenance: "Overdue",
-      location: "Plant A",
-      priority: "High",
-    },
-    {
-      id: 2,
-      name: "Cooling Tower B-003",
-      status: "Warning",
-      lastMaintenance: "1 week ago",
-      nextMaintenance: "Tomorrow",
-      location: "Plant B",
-      priority: "Medium",
-    },
-    {
-      id: 3,
-      name: "Electrical Panel C-025",
-      status: "Maintenance",
-      lastMaintenance: "Today",
-      nextMaintenance: "Next week",
-      location: "Plant C",
-      priority: "Low",
+      type: "report",
     },
   ];
 
   const getActivityIcon = (type: string) => {
     switch (type) {
-      case "maintenance":
-        return <Wrench className="w-4 h-4 text-primary" />;
-      case "emergency":
-        return <AlertTriangle className="w-4 h-4 text-danger" />;
-      case "inspection":
+      case "create":
         return <CheckCircle2 className="w-4 h-4 text-success" />;
-      case "calibration":
-        return <SettingsIcon className="w-4 h-4 text-secondary" />;
+      case "complete":
+        return <CheckCircle2 className="w-4 h-4 text-primary" />;
+      case "update":
+        return <AlertTriangle className="w-4 h-4 text-warning" />;
+      case "report":
+        return <BarChart3 className="w-4 h-4 text-secondary" />;
       default:
-        return <Package className="w-4 h-4 text-default" />;
+        return <Activity className="w-4 h-4 text-default" />;
     }
   };
 
   const getActivityColor = (type: string) => {
     switch (type) {
-      case "maintenance":
-        return "primary";
-      case "emergency":
-        return "danger";
-      case "inspection":
+      case "create":
         return "success";
-      case "calibration":
+      case "complete":
+        return "primary";
+      case "update":
+        return "warning";
+      case "report":
         return "secondary";
-      default:
-        return "default";
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "Critical":
-        return "danger";
-      case "Warning":
-        return "warning";
-      case "Maintenance":
-        return "primary";
-      case "Operational":
-        return "success";
-      default:
-        return "default";
-    }
-  };
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case "High":
-        return "danger";
-      case "Medium":
-        return "warning";
-      case "Low":
-        return "success";
       default:
         return "default";
     }
@@ -173,362 +99,154 @@ export default function AssetsPage() {
   return (
     <div className="p-6 max-w-7xl mx-auto">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-gradient-to-br from-primary-100 to-primary-50 rounded-xl">
-            <Package className="w-6 h-6 text-primary-600" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent">
-              Asset Management
-            </h1>
-            <p className="text-default-500 mt-1">
-              Monitor and manage all system assets and equipment
-            </p>
-          </div>
+      <div className="flex items-center gap-3 mb-8">
+        <div className="p-2 bg-gradient-to-br from-primary-100 to-primary-50 rounded-xl">
+          <BarChart2 className="w-6 h-6 text-primary-600" />
         </div>
-        <div className="flex gap-2">
-          <Button
-            color="default"
-            size="sm"
-            startContent={<Filter className="w-4 h-4" />}
-            variant="flat"
-          >
-            Filter
-          </Button>
-          <Button
-            color="default"
-            size="sm"
-            startContent={<Search className="w-4 h-4" />}
-            variant="flat"
-          >
-            Search
-          </Button>
-          <Button
-            color="primary"
-            size="sm"
-            startContent={<Plus className="w-4 h-4" />}
-          >
-            Add Asset
-          </Button>
+        <div>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent">
+            Report Activity
+          </h1>
         </div>
       </div>
 
       {/* Stats Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {/* Total Assets Card */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        {/* Statistik Card */}
         <Card className="bg-gradient-to-br from-primary-50 to-primary-100 border-primary-200">
           <CardHeader className="flex gap-3">
             <div className="p-2 bg-primary-500 rounded-lg">
-              <Package className="w-6 h-6 text-white" />
+              <BarChart3 className="w-6 h-6 text-white" />
             </div>
             <div className="flex flex-col">
               <p className="text-lg font-semibold text-primary-800">
-                Total Assets
+                Statistik Sistem
               </p>
-              <p className="text-small text-primary-600">All Equipment</p>
+              <p className="text-small text-primary-600">
+                Performance Overview
+              </p>
             </div>
           </CardHeader>
           <Divider className="bg-primary-200" />
           <CardBody className="px-6 py-4">
-            <div className="space-y-3">
+            <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <span className="text-2xl font-bold text-primary-700">
-                  {assetsStats.totalAssets}
-                </span>
+                <span className="text-default-700">Total Work Orders</span>
                 <Chip color="primary" size="sm" variant="flat">
-                  <TrendingUp className="w-3 h-3 mr-1" />
-                  +5.2%
+                  342
                 </Chip>
               </div>
-              <p className="text-small text-default-600">Equipment inventory</p>
-            </div>
-          </CardBody>
-        </Card>
-
-        {/* Active Assets Card */}
-        <Card className="bg-gradient-to-br from-success-50 to-success-100 border-success-200">
-          <CardHeader className="flex gap-3">
-            <div className="p-2 bg-success-500 rounded-lg">
-              <Zap className="w-6 h-6 text-white" />
-            </div>
-            <div className="flex flex-col">
-              <p className="text-lg font-semibold text-success-800">
-                Active Assets
-              </p>
-              <p className="text-small text-success-600">Operational</p>
-            </div>
-          </CardHeader>
-          <Divider className="bg-success-200" />
-          <CardBody className="px-6 py-4">
-            <div className="space-y-3">
               <div className="flex justify-between items-center">
-                <span className="text-2xl font-bold text-success-700">
-                  {assetsStats.activeAssets}
-                </span>
-                <Badge color="success" content="Live" variant="flat">
-                  <div className="w-4 h-4 bg-success-500 rounded-full animate-pulse" />
-                </Badge>
+                <span className="text-default-700">Completed Today</span>
+                <Chip color="success" size="sm" variant="flat">
+                  28
+                </Chip>
               </div>
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span className="text-small text-default-600">
-                    Availability
+                    Completion Rate
                   </span>
-                  <span className="text-small font-medium">
-                    {assetsStats.availabilityRate}%
-                  </span>
+                  <span className="text-small font-medium">87%</span>
                 </div>
                 <Progress
                   className="max-w-full"
-                  color="success"
+                  color="primary"
                   size="sm"
-                  value={assetsStats.availabilityRate}
+                  value={87}
                 />
               </div>
             </div>
           </CardBody>
         </Card>
 
-        {/* Maintenance Assets Card */}
+        {/* Pengguna Card */}
+        <Card className="bg-gradient-to-br from-success-50 to-success-100 border-success-200">
+          <CardHeader className="flex gap-3">
+            <div className="p-2 bg-success-500 rounded-lg">
+              <Users className="w-6 h-6 text-white" />
+            </div>
+            <div className="flex flex-col">
+              <p className="text-lg font-semibold text-success-800">
+                Pengguna Aktif
+              </p>
+              <p className="text-small text-success-600">User Management</p>
+            </div>
+          </CardHeader>
+          <Divider className="bg-success-200" />
+          <CardBody className="px-6 py-4">
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <span className="text-default-700">Total Users</span>
+                <span className="text-xl font-bold text-success-700">
+                  {stats.totalUsers}
+                </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-default-700">Active Now</span>
+                <Badge
+                  color="success"
+                  content={stats.activeUsers}
+                  variant="flat"
+                >
+                  <div className="w-4 h-4 bg-success-500 rounded-full animate-pulse" />
+                </Badge>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-default-700">New Today</span>
+                <Chip
+                  color="success"
+                  size="sm"
+                  startContent={<TrendingUp className="w-3 h-3" />}
+                  variant="flat"
+                >
+                  +{stats.newUsersToday}
+                </Chip>
+              </div>
+            </div>
+          </CardBody>
+        </Card>
+
+        {/* Log Aktivitas Card */}
         <Card className="bg-gradient-to-br from-warning-50 to-warning-100 border-warning-200">
           <CardHeader className="flex gap-3">
             <div className="p-2 bg-warning-500 rounded-lg">
-              <Wrench className="w-6 h-6 text-white" />
+              <Activity className="w-6 h-6 text-white" />
             </div>
             <div className="flex flex-col">
               <p className="text-lg font-semibold text-warning-800">
-                In Maintenance
+                Log Aktivitas
               </p>
-              <p className="text-small text-warning-600">Under Service</p>
+              <p className="text-small text-warning-600">Recent Activities</p>
             </div>
           </CardHeader>
           <Divider className="bg-warning-200" />
           <CardBody className="px-6 py-4">
             <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-2xl font-bold text-warning-700">
-                  {assetsStats.maintenanceAssets}
-                </span>
-                <Chip
-                  color="warning"
-                  size="sm"
-                  startContent={<Calendar className="w-3 h-3" />}
-                  variant="flat"
-                >
-                  Scheduled
-                </Chip>
-              </div>
-              <p className="text-small text-default-600">
-                Active maintenance tasks
-              </p>
-            </div>
-          </CardBody>
-        </Card>
-
-        {/* Critical Assets Card */}
-        <Card className="bg-gradient-to-br from-danger-50 to-danger-100 border-danger-200">
-          <CardHeader className="flex gap-3">
-            <div className="p-2 bg-danger-500 rounded-lg">
-              <AlertCircle className="w-6 h-6 text-white" />
-            </div>
-            <div className="flex flex-col">
-              <p className="text-lg font-semibold text-danger-800">
-                Critical Assets
-              </p>
-              <p className="text-small text-danger-600">Need Attention</p>
-            </div>
-          </CardHeader>
-          <Divider className="bg-danger-200" />
-          <CardBody className="px-6 py-4">
-            <div className="space-y-3">
-              <div className="flex justify-between items-center">
-                <span className="text-2xl font-bold text-danger-700">
-                  {assetsStats.criticalAssets}
-                </span>
-                <Chip
-                  color="danger"
-                  size="sm"
-                  startContent={<AlertTriangle className="w-3 h-3" />}
-                  variant="flat"
-                >
-                  Urgent
-                </Chip>
-              </div>
-              <p className="text-small text-default-600">
-                Requires immediate action
-              </p>
-            </div>
-          </CardBody>
-        </Card>
-      </div>
-
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-        {/* Recent Asset Activities */}
-        <Card className="bg-gradient-to-br from-default-50 to-default-100">
-          <CardHeader className="flex gap-3">
-            <div className="p-2 bg-default-500 rounded-lg">
-              <Clock className="w-6 h-6 text-white" />
-            </div>
-            <div className="flex flex-col flex-1">
-              <p className="text-xl font-semibold text-default-800">
-                Recent Activities
-              </p>
-              <p className="text-small text-default-600">
-                Latest asset maintenance and operations
-              </p>
-            </div>
-            <Button
-              color="primary"
-              endContent={<Package className="w-4 h-4" />}
-              size="sm"
-              variant="flat"
-            >
-              View All
-            </Button>
-          </CardHeader>
-          <Divider />
-          <CardBody className="px-6 py-4">
-            <div className="space-y-4">
-              {recentAssetActivities.map((activity) => (
-                <div
-                  key={activity.id}
-                  className="flex items-start gap-4 p-3 rounded-xl hover:bg-default-100 transition-colors"
-                >
+              {recentActivities.slice(0, 3).map((activity) => (
+                <div key={activity.id} className="flex items-center gap-3">
                   <Avatar
-                    isBordered
-                    color={getActivityColor(activity.type) as any}
-                    size="md"
+                    className="flex-shrink-0"
+                    size="sm"
                     src={activity.avatar}
                   />
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <p className="font-semibold text-default-700 truncate">
-                        {activity.assetName}
-                      </p>
-                      <Chip
-                        color={getActivityColor(activity.type) as any}
-                        size="sm"
-                        variant="dot"
-                      >
-                        {activity.type}
-                      </Chip>
-                    </div>
-                    <p className="text-small text-default-600 mb-1">
+                    <p className="text-small font-medium text-default-700 truncate">
+                      {activity.user}
+                    </p>
+                    <p className="text-tiny text-default-500 truncate">
                       {activity.action}
                     </p>
-                    <div className="flex items-center gap-2 text-tiny text-default-500">
-                      <User
-                        classNames={{
-                          name: "text-tiny text-default-500",
-                        }}
-                        name={activity.technician}
-                      />
-                      <span>•</span>
-                      <div className="flex items-center gap-1">
-                        <MapPin className="w-3 h-3" />
-                        {activity.location}
-                      </div>
-                    </div>
                   </div>
-                  <div className="flex items-center gap-2 flex-shrink-0">
+                  <div className="flex items-center gap-1">
                     {getActivityIcon(activity.type)}
-                    <span className="text-tiny text-default-500">
-                      {activity.time}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </CardBody>
-        </Card>
-
-        {/* Critical Assets Table */}
-        <Card className="bg-gradient-to-br from-danger-50 to-danger-100 border-danger-200">
-          <CardHeader className="flex gap-3">
-            <div className="p-2 bg-danger-500 rounded-lg">
-              <AlertCircle className="w-6 h-6 text-white" />
-            </div>
-            <div className="flex flex-col flex-1">
-              <p className="text-xl font-semibold text-danger-800">
-                Critical Assets
-              </p>
-              <p className="text-small text-danger-600">
-                Assets requiring immediate attention
-              </p>
-            </div>
-            <Button
-              color="danger"
-              endContent={<AlertTriangle className="w-4 h-4" />}
-              size="sm"
-              variant="flat"
-            >
-              Manage
-            </Button>
-          </CardHeader>
-          <Divider className="bg-danger-200" />
-          <CardBody className="px-6 py-4">
-            <div className="space-y-4">
-              {criticalAssets.map((asset) => (
-                <div
-                  key={asset.id}
-                  className="p-4 bg-white rounded-lg border border-danger-200 hover:border-danger-300 transition-colors"
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <h4 className="font-semibold text-default-800">
-                      {asset.name}
-                    </h4>
-                    <div className="flex gap-2">
-                      <Chip
-                        color={getStatusColor(asset.status) as any}
-                        size="sm"
-                        variant="flat"
-                      >
-                        {asset.status}
-                      </Chip>
-                      <Chip
-                        color={getPriorityColor(asset.priority) as any}
-                        size="sm"
-                        variant="dot"
-                      >
-                        {asset.priority}
-                      </Chip>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-2 gap-4 text-small">
-                    <div>
-                      <span className="text-default-500">Location:</span>
-                      <p className="font-medium text-default-700">
-                        {asset.location}
-                      </p>
-                    </div>
-                    <div>
-                      <span className="text-default-500">
-                        Last Maintenance:
-                      </span>
-                      <p className="font-medium text-default-700">
-                        {asset.lastMaintenance}
-                      </p>
-                    </div>
-                    <div>
-                      <span className="text-default-500">
-                        Next Maintenance:
-                      </span>
-                      <p className="font-medium text-default-700">
-                        {asset.nextMaintenance}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        color="primary"
-                        size="sm"
-                        startContent={<Wrench className="w-3 h-3" />}
-                        variant="flat"
-                      >
-                        Schedule
-                      </Button>
-                    </div>
+                    <Chip
+                      color={getActivityColor(activity.type) as any}
+                      size="sm"
+                      variant="dot"
+                    >
+                      {activity.time.split(" ")[0]}
+                    </Chip>
                   </div>
                 </div>
               ))}
@@ -536,6 +254,70 @@ export default function AssetsPage() {
           </CardBody>
         </Card>
       </div>
+
+      {/* Recent Activities Detail */}
+      <Card className="bg-gradient-to-br from-default-50 to-default-100">
+        <CardHeader className="flex gap-3">
+          <div className="p-2 bg-default-500 rounded-lg">
+            <Clock className="w-6 h-6 text-white" />
+          </div>
+          <div className="flex flex-col flex-1">
+            <p className="text-xl font-semibold text-default-800">
+              Recent Activities
+            </p>
+            <p className="text-small text-default-600">
+              Latest system activities and user actions
+            </p>
+          </div>
+          <Button
+            color="primary"
+            endContent={<Activity className="w-4 h-4" />}
+            size="sm"
+            variant="flat"
+          >
+            View All
+          </Button>
+        </CardHeader>
+        <Divider />
+        <CardBody className="px-6 py-4">
+          <div className="space-y-4">
+            {recentActivities.map((activity) => (
+              <div
+                key={activity.id}
+                className="flex items-center gap-4 p-3 rounded-xl hover:bg-default-100 transition-colors"
+              >
+                <Avatar
+                  isBordered
+                  color={getActivityColor(activity.type) as any}
+                  size="md"
+                  src={activity.avatar}
+                />
+                <div className="flex-1">
+                  <User
+                    classNames={{
+                      name: "font-semibold text-default-700",
+                      description: "text-default-500",
+                    }}
+                    description={activity.action}
+                    name={activity.user}
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  {getActivityIcon(activity.type)}
+                  <Chip
+                    color={getActivityColor(activity.type) as any}
+                    size="sm"
+                    startContent={<Clock className="w-3 h-3" />}
+                    variant="flat"
+                  >
+                    {activity.time}
+                  </Chip>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardBody>
+      </Card>
     </div>
   );
 }

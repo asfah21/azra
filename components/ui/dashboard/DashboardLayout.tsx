@@ -3,14 +3,9 @@
 import { useSession, signOut } from "next-auth/react";
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import {
-  FiHome,
-  FiSettings,
-  FiPlus,
-  FiTruck,
-  FiBarChart2,
-  FiUsers,
-} from "react-icons/fi";
+import { FiSettings, FiPackage, FiBarChart2, FiUsers } from "react-icons/fi";
+import { PiWrench } from "react-icons/pi";
+import { LuLayoutDashboard } from "react-icons/lu";
 
 import { LoadingSpinner } from "../skeleton";
 
@@ -43,19 +38,19 @@ export default function UIDashboardLayout({
       id: "dashboard",
       title: "Dashboard",
       path: "/dashboard",
-      icon: <FiHome />,
+      icon: <LuLayoutDashboard />,
     },
     {
       id: "workorders",
       title: "Work Orders",
       path: "/dashboard/workorders",
-      icon: <FiPlus />,
+      icon: <PiWrench />,
     },
     {
       id: "assets",
       title: "Assets",
       path: "/dashboard/assets",
-      icon: <FiTruck />,
+      icon: <FiPackage />,
     },
     {
       id: "reports",

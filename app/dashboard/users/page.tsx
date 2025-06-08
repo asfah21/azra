@@ -259,9 +259,6 @@ export default function UsersPage() {
             <h1 className="text-3xl font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent">
               User Management
             </h1>
-            <p className="text-default-500 mt-1">
-              Monitor and manage user accounts, roles, and activities
-            </p>
           </div>
         </div>
         <div className="flex gap-2">
