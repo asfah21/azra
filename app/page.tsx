@@ -1,62 +1,29 @@
-import { Link } from "@heroui/link";
-import { Snippet } from "@heroui/snippet";
-import { Code } from "@heroui/code";
-import { button as buttonStyles } from "@heroui/theme";
-
-import { siteConfig } from "@/config/site";
-import { title, subtitle } from "@/components/primitives";
-import { GithubIcon } from "@/components/icons";
 import { Navbar } from "@/components/navbar";
 import Footer from "@/components/Footer";
+import Hero from "@/components/home/Hero";
+import { HeroBgAtas } from "@/components/home/HeroBg";
+import BuildWith from "@/components/home/BuildWith";
+import Cards from "@/components/home/Card";
+import HeroAlpha from "@/components/home/HeroAlpha";
+import HeroGamma from "@/components/home/HeroGamma";
+import HeroDelta from "@/components/home/HeroDelta";
+import FooterBefore from "@/components/home/FooterBefore";
+import WithLove from "@/components/home/WithLove";
 
 export default function Home() {
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
       <main className="flex-1">
-        <section className="flex flex-col items-center justify-center gap-4 py-8 md:py-10">
-          <div className="inline-block max-w-xl text-center justify-center">
-            <span className={title()}>Make&nbsp;</span>
-            <span className={title({ color: "violet" })}>beautiful&nbsp;</span>
-            <br />
-            <span className={title()}>
-              websites regardless of your design experience.
-            </span>
-            <div className={subtitle({ class: "mt-4" })}>
-              Beautiful, fast and modern React UI library.
-            </div>
-          </div>
-
-          <div className="flex gap-3">
-            <Link
-              isExternal
-              className={buttonStyles({
-                color: "primary",
-                radius: "full",
-                variant: "shadow",
-              })}
-              href={siteConfig.links.docs}
-            >
-              Documentation
-            </Link>
-            <Link
-              isExternal
-              className={buttonStyles({ variant: "bordered", radius: "full" })}
-              href={siteConfig.links.github}
-            >
-              <GithubIcon size={20} />
-              GitHub
-            </Link>
-          </div>
-
-          <div className="mt-8">
-            <Snippet hideCopyButton hideSymbol variant="bordered">
-              <span>
-                Get started by editing <Code color="primary">app/page.tsx</Code>
-              </span>
-            </Snippet>
-          </div>
-        </section>
+        <Hero />
+        <HeroBgAtas />
+        <Cards />
+        <BuildWith />
+        <HeroAlpha />
+        <HeroGamma />
+        <WithLove />
+        <HeroDelta />
+        <FooterBefore />
       </main>
       <Footer />
     </div>

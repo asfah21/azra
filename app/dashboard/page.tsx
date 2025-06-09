@@ -35,11 +35,13 @@ export default function DashboardPage() {
       const data = await response.json();
 
       if (process.env.NODE_ENV === "development") {
+        /* eslint-disable no-console */
         console.log("API Response:", data);
       }
 
       alert("API call successful");
     } catch (error) {
+      /* eslint-disable no-console */
       console.error("API Error:", error);
       alert("API Error occurred");
     }

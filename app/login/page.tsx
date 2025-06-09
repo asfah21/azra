@@ -193,6 +193,7 @@ export default function LoginPage() {
         setError("An unexpected error occurred. Please try again.");
       }
     } catch (err) {
+      /* eslint-disable no-console */
       console.error("Login error:", err);
       setError("An error occurred during login. Please try again.");
     } finally {

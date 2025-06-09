@@ -102,6 +102,7 @@ export default function UIDashboardLayout({
       localStorage.setItem(ACTIVE_TABS_KEY, JSON.stringify(tabsForStorage));
       localStorage.setItem(ACTIVE_TAB_KEY, currentActiveTab);
     } catch (error) {
+      /* eslint-disable no-console */
       console.error("Error saving tabs to storage:", error);
     }
   };
@@ -141,6 +142,7 @@ export default function UIDashboardLayout({
           return true;
         }
       }
+      /* eslint-disable no-console */
     } catch (error) {
       console.error("Error loading tabs from storage:", error);
     }

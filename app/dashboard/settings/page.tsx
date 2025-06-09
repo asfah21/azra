@@ -105,7 +105,7 @@ export default function SettingsPage() {
             <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
               <Avatar
                 className="w-16 h-16 sm:w-20 sm:h-20"
-                src="https://i.pravatar.cc/150?u=admin"
+                src="https://i.pravatar.cc/150?img=12"
               />
               <div className="flex-1 space-y-3">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">

@@ -25,7 +25,7 @@ async function main() {
     },
   });
 }
-
+/* eslint-disable no-console */
 main()
   .catch((e) => {
     console.error("Seed error:", e);
