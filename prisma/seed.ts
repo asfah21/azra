@@ -22,10 +22,16 @@ async function main() {
       email: "asfah21@gmail.com",
       password: hashedPassword,
       role: "super_admin",
+      department: "IT Operations",
+      avatar: "https://i.pravatar.cc/150?u=1",
+      status: "online",
+      lastActive: new Date(),
+      tasksCompleted: 145,
+      joinDate: new Date(),
     },
   });
 }
-/* eslint-disable no-console */
+
 main()
   .catch((e) => {
     console.error("Seed error:", e);

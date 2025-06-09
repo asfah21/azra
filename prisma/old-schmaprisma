@@ -10,24 +10,16 @@ datasource db {
 }
 
 model User {
-  id               String   @id @default(uuid())
-  name             String
-  email            String   @unique
-  password         String
-  role             Role
-  createdAt        DateTime @default(now())
-  
-  department       String?
-  avatar           String?
-  status           String?
-  lastActive       DateTime?
-  tasksCompleted   Int?
-  joinDate         DateTime?
+  id        String    @id @default(uuid())
+  name      String
+  email     String    @unique
+  password  String
+  role      Role
+  createdAt DateTime  @default(now())
 
-  reportedBreakdowns Breakdown[] @relation("ReportedBy")
-  resolvedRFUs       RFUReport[] @relation("ResolvedBy")
-  createdUnits       Unit[] @relation("CreatedBy")
-  assignedUnits      Unit[] @relation("AssignedTo")
+  reportedBreakdowns  Breakdown[] @relation("ReportedBy")
+  resolvedRFUs        RFUReport[] @relation("ResolvedBy")
+  createdUnits        Unit[]      @relation("CreatedBy")
 }
 
 model Category {
@@ -38,34 +30,20 @@ model Category {
 }
 
 model Unit {
-  id               String       @id @default(uuid())
-  assetTag         String       @unique
-  name             String
-  description      String?
-  category         Category     @relation(fields: [categoryId], references: [id])
-  categoryId       Int
-  status           String       @default("operational")
-  condition        String?
-  serialNumber     String?
-  location         String
-  department       String?
-  manufacturer     String?
-  installDate      DateTime?
-  warrantyExpiry   DateTime?
-  lastMaintenance  DateTime?
-  nextMaintenance  DateTime?
-  assetValue       Float?
-  utilizationRate  Int?
+  id          String      @id @default(uuid())
+  name        String
+  serialNumber String?
+  location    String
+  createdAt   DateTime    @default(now())
 
-  createdAt        DateTime     @default(now())
-  createdBy        User         @relation("CreatedBy", fields: [createdById], references: [id])
-  createdById      String
+  category   Category     @relation(fields: [categoryId], references: [id])
+  categoryId Int
 
-  assignedTo       User?        @relation("AssignedTo", fields: [assignedToId], references: [id])
-  assignedToId     String?
+  createdBy   User        @relation("CreatedBy", fields: [createdById], references: [id])
+  createdById String
 
-  breakdowns       Breakdown[]
-  histories        UnitHistory[]
+  breakdowns Breakdown[]
+  histories  UnitHistory[]
 }
 
 model Breakdown {
