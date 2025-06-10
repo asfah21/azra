@@ -1,58 +1,114 @@
-import prisma from "@/lib/prisma";
+// Gak boleh export langsung ke Server Component page.tsx harus pakai wrapper agar tidak Prerender Error 
+"use client";
 
-export default async function UserTable() {
-  try {
-    const users = await prisma.user.findMany({
-      orderBy: { createdAt: "desc" },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        department: true,
-        createdAt: true,
-      },
-    });
+import { Modal, ModalContent, Button, useDisclosure } from "@heroui/react";
+import { useRouter } from "next/navigation";
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableColumn,
+  TableRow,
+  TableCell,
+  Chip,
+} from "@heroui/react";
 
-    return (
+import { AddUserForm } from "./AddUserForm";
+
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  department: string | null;
+  createdAt: Date;
+}
+
+interface UserManagementClientProps {
+  users: User[];
+}
+
+export function UserTables({ users }: UserManagementClientProps) {
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  const router = useRouter();
+
+  const handleUserAdded = () => {
+    // Refresh halaman untuk update data setelah user ditambah
+    router.refresh();
+    onOpenChange();
+  };
+
+  return (
+    <div className="container mx-auto px-4 mt-10">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">User Management</h1>
+        <Button color="primary" onPress={onOpen}>
+          Add User
+        </Button>
+      </div>
+
+      {/* Table */}
       <div className="overflow-x-auto mt-6">
-        <table className="min-w-full table-auto border border-gray-300 text-sm">
-          <thead className="bg-gray-100">
-            <tr>
-              <th className="px-3 py-2 border">Name</th>
-              <th className="px-3 py-2 border">Email</th>
-              <th className="px-3 py-2 border">Role</th>
-              <th className="px-3 py-2 border">Department</th>
-              <th className="px-3 py-2 border">Created</th>
-            </tr>
-          </thead>
-          <tbody>
+        <Table fullWidth aria-label="Users table" className="w-full">
+          <TableHeader>
+            <TableColumn>NAME</TableColumn>
+            <TableColumn>EMAIL</TableColumn>
+            <TableColumn>ROLE</TableColumn>
+            <TableColumn>DEPARTMENT</TableColumn>
+            <TableColumn>JOINED</TableColumn>
+            <TableColumn>TASKS</TableColumn>
+          </TableHeader>
+          <TableBody>
             {users.map((user) => (
-              <tr key={user.id} className="hover:bg-gray-50">
-                <td className="px-3 py-2 border">{user.name}</td>
-                <td className="px-3 py-2 border">{user.email}</td>
-                <td className="px-3 py-2 border">{user.role}</td>
-                <td className="px-3 py-2 border">{user.department ?? "-"}</td>
-                <td className="px-3 py-2 border">
-                  {new Date(user.createdAt).toLocaleDateString()}
-                </td>
-              </tr>
+              <TableRow key={user.id}>
+                <TableCell>
+                  <div className="font-semibold">{user.name}</div>
+                </TableCell>
+                <TableCell>
+                  <div className="text-gray-600">{user.email}</div>
+                </TableCell>
+                <TableCell>
+                  <Chip color="primary" size="sm" variant="flat">
+                    {user.role}
+                  </Chip>
+                </TableCell>
+                <TableCell>
+                  <div className="text-sm">{user.department ?? "N/A"}</div>
+                </TableCell>
+                <TableCell>
+                  <Chip color="default" size="sm" variant="flat">
+                    {new Date(user.createdAt).toLocaleDateString("id-ID")}
+                    {/* {user.status ?? "Unknown"} */}
+                  </Chip>
+                </TableCell>
+                <TableCell>
+                  <Chip color="secondary" variant="flat">
+                    <div className="">0</div>
+                  </Chip>
+                </TableCell>
+              </TableRow>
             ))}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
 
         {users.length === 0 && (
           <p className="text-center text-gray-500 mt-4">No users found.</p>
         )}
       </div>
-    );
-  } catch (error) {
-    console.error("Database error:", error);
 
-    return (
-      <div className="mt-6 p-4 bg-red-50 text-red-600 rounded border border-red-200">
-        Unable to load users. Please try again later.
-      </div>
-    );
-  }
+      {/* Modal */}
+      <Modal
+        isOpen={isOpen}
+        placement="top-center"
+        size="2xl"
+        onOpenChange={onOpenChange}
+      >
+        <ModalContent>
+          {(onClose) => (
+            <AddUserForm onClose={onClose} onUserAdded={handleUserAdded} />
+          )}
+        </ModalContent>
+      </Modal>
+    </div>
+  );
 }
