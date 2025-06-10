@@ -3,7 +3,7 @@
 import { useActionState, useEffect } from "react";
 import { ModalHeader, ModalBody, ModalFooter, Button } from "@heroui/react";
 
-import { addUser } from "./action";
+import { addUser } from "../actions/action";
 
 interface AddUserFormProps {
   onClose: () => void;

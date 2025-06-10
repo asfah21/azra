@@ -1,4 +1,4 @@
-import { UserMgc } from "./UserManagement";
+import { UserMgc } from "./components/UserManagement";
 
 import prisma from "@/lib/prisma";
 import { title } from "@/components/primitives";
