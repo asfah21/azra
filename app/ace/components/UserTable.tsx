@@ -1,4 +1,4 @@
-// Gak boleh export langsung ke Server Component page.tsx harus pakai wrapper agar tidak Prerender Error 
+// Gak boleh export langsung ke Server Component page.tsx harus pakai wrapper agar tidak Prerender Error
 "use client";
 
 import { Modal, ModalContent, Button, useDisclosure } from "@heroui/react";

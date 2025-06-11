@@ -1,6 +1,8 @@
+export const dynamic = 'force-dynamic';
+
+import UserTableWrapper from "./components/UserTableWrapper"; //Ini import wrapper, tidak boleh langsung import Client Component UserTable.tsx
 import prisma from "@/lib/prisma";
 import { title } from "@/components/primitives";
-import UserTableWrapper from "./components/UserTableWrapper"; //Ini import wrapper, tidak boleh langsung import Client Component UserTable.tsx
 
 export default async function UsersPage() {
   // Fetch data di server component
@@ -20,7 +22,7 @@ export default async function UsersPage() {
     <section className="flex flex-col items-center justify-center gap-4 py-8 md:py-10">
       <div className="inline-block text-center justify-center">
         <h1 className={title()}>Ace</h1>
-        <UserTableWrapper users={users} /> 
+        <UserTableWrapper users={users} />
       </div>
     </section>
   );
