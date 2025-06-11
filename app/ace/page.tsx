@@ -18,6 +18,8 @@ type UserSelect = Prisma.UserGetPayload<{
   };
 }>;
 
+export const dynamic = 'force-dynamic'
+
 export default async function UsersPage() {
   let users: UserSelect[] = [];
 
