@@ -1,8 +1,10 @@
 // app/ace/page.tsx
+import type { Prisma } from "@prisma/client";
+
+import UserTableWrapper from "./components/UserTableWrapper";
+
 import prisma from "@/lib/prisma";
 import { title } from "@/components/primitives";
-import type { Prisma } from '@prisma/client';
-import { UserTables } from "./components/UserTable";
 
 // Gunakan Prisma generated type
 type UserSelect = Prisma.UserGetPayload<{
@@ -18,10 +20,10 @@ type UserSelect = Prisma.UserGetPayload<{
 
 export default async function UsersPage() {
   let users: UserSelect[] = [];
-  
+
   try {
     await prisma.$disconnect();
-    
+
     users = await prisma.user.findMany({
       orderBy: { createdAt: "desc" },
       select: {
@@ -34,7 +36,7 @@ export default async function UsersPage() {
       },
     });
   } catch (error) {
-    console.error('Database connection error during build:', error);
+    console.error("Database connection error during build:", error);
     users = [];
   } finally {
     await prisma.$disconnect();
@@ -44,7 +46,7 @@ export default async function UsersPage() {
     <section className="flex flex-col items-center justify-center gap-4 py-8 md:py-10">
       <div className="inline-block text-center justify-center">
         <h1 className={title()}>Ace</h1>
-        <UserTables users={users} />
+        <UserTableWrapper users={users} />
       </div>
     </section>
   );
