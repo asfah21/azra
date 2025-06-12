@@ -11,7 +11,7 @@ async function getTotalUsers(): Promise<number> {
 
     return totalUsers;
   } catch (error) {
-    console.error("Error fetching total users:", error);
+    // console.error("Error fetching total users:", error);
     throw error;
   }
 }
@@ -34,18 +34,21 @@ async function getNewUsers(): Promise<number> {
 
     return newUsers;
   } catch (error) {
-    console.error("Error fetching new users:", error);
-
+    // console.error("Error fetching new users:", error);
     throw error;
   }
 }
 
 export default async function UsersPage() {
-  // Fetch semua data secara parallel
-  const [totalUsers, newUsers] = await Promise.all([
-    getTotalUsers(),
-    getNewUsers(),
-  ]);
+  // // Fetch semua data secara parallel
+  // const [totalUsers, newUsers] = await Promise.all([
+  //   getTotalUsers(),
+  //   getNewUsers(),
+  // ]);
+
+  // Fetch data sequentially
+  const totalUsers = await getTotalUsers();
+  const newUsers = await getNewUsers();
 
   const userStats = {
     total: totalUsers,

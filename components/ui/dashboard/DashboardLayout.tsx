@@ -3,7 +3,13 @@
 import { useSession, signOut } from "next-auth/react";
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { FiSettings, FiPackage, FiBarChart2, FiUsers, FiPower, FiCodesandbox } from "react-icons/fi";
+import {
+  FiSettings,
+  FiPackage,
+  FiBarChart2,
+  FiUsers,
+  FiCodesandbox,
+} from "react-icons/fi";
 import { PiWrench } from "react-icons/pi";
 import { LuLayoutDashboard } from "react-icons/lu";
 
