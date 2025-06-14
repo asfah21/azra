@@ -18,7 +18,7 @@ export const SparklesIcon = ({ size = 20, ...props }) => {
 
 export default function HeroDelta() {
   return (
-    <section className="px-6 md:px-20 relative z-10 flex-col gap-2 bg-transparent dark:bg-transparent before:bg-background/10 before:content-[''] before:block before:z-[-1] before:absolute before:inset-0 before:backdrop-blur-md before:backdrop-saturate-200 border-t border-b border-divider px-8 w-full flex justify-center items-center mt-16 lg:mt-44">
+    <section className="px-6 md:px-20 relative z-10 flex-col gap-2 bg-transparent dark:bg-transparent before:bg-background/10 before:content-[''] before:block before:z-[-1] before:absolute before:inset-0 before:backdrop-blur-md before:backdrop-saturate-200 border-t border-b border-divider w-full flex justify-center items-center mt-16 lg:mt-44">
       <div className=" w-full max-w-7xl py-10 grid grid-cols-12 gap-6 md:gap-0 z-20">
         <div className="flex flex-col gap-2 col-span-12 md:col-span-6">
           <div className="flex flex-col">

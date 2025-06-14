@@ -47,14 +47,6 @@ export default function DashboardPage() {
     }
   };
 
-  // Mock data untuk demo
-  const stats = {
-    totalUsers: 1247,
-    activeUsers: 892,
-    newUsersToday: 23,
-    growthRate: 12.5,
-  };
-
   const recentActivities = [
     {
       id: 1,

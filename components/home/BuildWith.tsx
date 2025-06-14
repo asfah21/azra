@@ -9,12 +9,13 @@ import {
 
 export default function BuildWith() {
   return (
+    // <section className="px-6 md:px-20 relative z-10 flex flex-col text-center w-full mt-16 lg:mt-44 overflow-hidden">
     <section className="relative z-10 flex flex-col gap-2 w-full text-center mt-24 lg:mt-32">
       <h3 className="mb-8 text-large text-default-500">
         A full-stack application built with
       </h3>
       <div className="w-full flex flex-wrap gap-x-5 gap-y-3 justify-center items-center">
-        <div className="flex items-center justify-center gap-8">
+        <div className="flex flex-wrap justify-center gap-x-5 gap-y-4 sm:flex-nowrap sm:gap-x-8">
           {/* Next.js - Black theme */}
           <a
             className="relative tap-highlight-transparent outline-none data-[focus-visible=true]:z-10 data-[focus-visible=true]:outline-2 data-[focus-visible=true]:outline-focus data-[focus-visible=true]:outline-offset-2 no-underline transition-all duration-300 flex flex-col items-center justify-center p-4 rounded-xl hover:bg-black/5 hover:shadow-lg hover:scale-105 group"

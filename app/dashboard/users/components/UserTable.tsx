@@ -1,5 +1,7 @@
 "use client";
 
+import { Modal, ModalContent, useDisclosure } from "@heroui/react";
+import { useRouter } from "next/navigation";
 import {
   Card,
   CardHeader,
@@ -30,125 +32,86 @@ import {
   Trash2,
 } from "lucide-react";
 
-export default function UserTables() {
-  // Mock data untuk users
-  const userStats = {
-    totalUsers: 1247,
-    activeUsers: 892,
-    newUsersToday: 23,
-    inactiveUsers: 355,
-    growthRate: 12.5,
-    onlineNow: 156,
-  };
+import { AddUserForms } from "./AddUserForm";
 
-  const topUsers = [
-    {
-      id: 1,
-      name: "Ahmad Ridwan",
-      email: "ahmad.ridwan@company.com",
-      role: "Admin",
-      department: "IT Operations",
-      avatar: "https://i.pravatar.cc/150?u=1",
-      status: "online",
-      lastActive: "Active now",
-      tasksCompleted: 145,
-      joinDate: "Jan 2023",
-    },
-    {
-      id: 2,
-      name: "Siti Nurhaliza",
-      email: "siti.nurhaliza@company.com",
-      role: "Technician",
-      department: "Maintenance",
-      avatar: "https://i.pravatar.cc/150?u=2",
-      status: "online",
-      lastActive: "2 minutes ago",
-      tasksCompleted: 132,
-      joinDate: "Mar 2023",
-    },
-    {
-      id: 3,
-      name: "Budi Santoso",
-      email: "budi.santoso@company.com",
-      role: "Supervisor",
-      department: "Production",
-      avatar: "https://i.pravatar.cc/150?u=3",
-      status: "away",
-      lastActive: "15 minutes ago",
-      tasksCompleted: 98,
-      joinDate: "Jun 2022",
-    },
-    {
-      id: 4,
-      name: "Maya Sari",
-      email: "maya.sari@company.com",
-      role: "Manager",
-      department: "Quality Control",
-      avatar: "https://i.pravatar.cc/150?u=4",
-      status: "offline",
-      lastActive: "3 hours ago",
-      tasksCompleted: 87,
-      joinDate: "Sep 2022",
-    },
-    {
-      id: 5,
-      name: "Indra Kusuma",
-      email: "indra.kusuma@company.com",
-      role: "Operator",
-      department: "Manufacturing",
-      avatar: "https://i.pravatar.cc/150?u=5",
-      status: "online",
-      lastActive: "Just now",
-      tasksCompleted: 76,
-      joinDate: "Nov 2023",
-    },
-  ];
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  department: string | null;
+  createdAt: Date;
+}
+
+interface UserManagementClientProps {
+  usersTable: User[];
+}
+
+export default function UserTables({ usersTable }: UserManagementClientProps) {
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  const router = useRouter();
+
+  const handleUserAdded = () => {
+    // Refresh halaman untuk update data setelah user ditambah
+    router.refresh();
+    onOpenChange();
+  };
 
   const getRoleColor = (role: string) => {
     switch (role) {
-      case "Admin":
+      case "admin_elec":
         return "danger";
-      case "Manager":
+      case "admin_heavy":
         return "warning";
-      case "Supervisor":
+      case "pengawas":
         return "secondary";
-      case "Technician":
+      case "mekanik":
         return "primary";
-      case "Operator":
+      case "super_admin":
         return "success";
       default:
         return "default";
     }
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "online":
-        return "success";
-      case "away":
-        return "warning";
-      case "offline":
-        return "default";
+  // Label yang akan ditampilkan
+  const getRoleLabel = (role: string): string => {
+    switch (role) {
+      case "super_admin":
+        return "Super Admin";
+      case "pengawas":
+        return "Foreman";
+      case "mekanik":
+        return "Mekanik";
+      case "admin_heavy":
+        return "Admin PAM";
+      case "admin_elec":
+        return "Admin";
       default:
-        return "default";
+        return role;
     }
   };
 
   return (
     <>
       <Card>
-        <CardHeader className="flex gap-3">
-          <div className="p-2 bg-default-500 rounded-lg">
-            <Users className="w-6 h-6 text-white" />
+        <CardHeader className="flex flex-col gap-3 sm:flex-row">
+          <div className="flex items-center gap-3 flex-1 justify-start self-start">
+            <div className="p-2 bg-default-500 rounded-lg flex-shrink-0">
+              <Users className="w-6 h-6 text-white" />
+            </div>
+            <div className="flex flex-col flex-1 text-left">
+              <p className="text-xl font-semibold text-default-800 text-left">
+                All Users
+              </p>
+              <p className="text-small text-default-600 text-left">
+                Complete user management
+              </p>
+            </div>
           </div>
-          <div className="flex flex-col flex-1">
-            <p className="text-xl font-semibold text-default-800">All Users</p>
-            <p className="text-small text-default-600">
-              Complete user directory and management
-            </p>
-          </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 w-full sm:w-auto">
             <Button
+              className="flex-1 sm:flex-none"
               color="default"
               size="sm"
               startContent={<Filter className="w-4 h-4" />}
@@ -157,9 +120,11 @@ export default function UserTables() {
               Filter
             </Button>
             <Button
+              className="flex-1 sm:flex-none"
               color="primary"
               size="sm"
               startContent={<UserPlus className="w-4 h-4" />}
+              onPress={onOpen}
             >
               Add User
             </Button>
@@ -178,13 +143,13 @@ export default function UserTables() {
               <TableColumn>ACTIONS</TableColumn>
             </TableHeader>
             <TableBody>
-              {topUsers.map((user) => (
+              {usersTable.map((user) => (
                 <TableRow key={user.id}>
                   <TableCell>
                     <User
                       avatarProps={{
                         radius: "lg",
-                        src: user.avatar,
+                        // src: user.avatar,
                         size: "sm",
                       }}
                       classNames={{
@@ -200,7 +165,7 @@ export default function UserTables() {
                       size="sm"
                       variant="flat"
                     >
-                      {user.role}
+                      {getRoleLabel(user.role)}
                     </Chip>
                   </TableCell>
                   <TableCell>
@@ -210,22 +175,22 @@ export default function UserTables() {
                   </TableCell>
                   <TableCell>
                     <Chip
-                      color={getStatusColor(user.status) as any}
+                      // color={getStatusColor(user.status) as any}
                       size="sm"
                       variant="dot"
                     >
-                      {user.status}
+                      {/* {user.status} */}
                     </Chip>
                   </TableCell>
                   <TableCell>
                     <div className="text-small">
-                      <p className="font-medium">{user.tasksCompleted}</p>
+                      {/* <p className="font-medium">{user.tasksCompleted}</p> */}
                       <p className="text-default-500">completed</p>
                     </div>
                   </TableCell>
                   <TableCell>
                     <div className="text-small">
-                      <p>{user.joinDate}</p>
+                      {new Date(user.createdAt).toLocaleDateString("id-ID")}
                     </div>
                   </TableCell>
                   <TableCell>
@@ -273,6 +238,19 @@ export default function UserTables() {
           </Table>
         </CardBody>
       </Card>
+      {/* Modal */}
+      <Modal
+        isOpen={isOpen}
+        placement="top-center"
+        size="2xl"
+        onOpenChange={onOpenChange}
+      >
+        <ModalContent>
+          {(onClose) => (
+            <AddUserForms onClose={onClose} onUserAdded={handleUserAdded} />
+          )}
+        </ModalContent>
+      </Modal>
     </>
   );
 }

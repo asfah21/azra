@@ -9,7 +9,7 @@ import { GoSidebarExpand, GoSidebarCollapse } from "react-icons/go";
 import { FiXCircle } from "react-icons/fi";
 
 import { ThemeSwitch } from "@/components/theme-switch";
-import { SearchIcon } from "@/components/icons";
+import { Logo, SearchIcon } from "@/components/icons";
 
 interface TopbarProps {
   menuOpen: boolean;
@@ -73,7 +73,15 @@ export function Topbar({
         >
           {menuOpen ? <FiX size={20} /> : <FiMenu size={20} />}
         </Button>
-        <h1 className="text-xl font-bold text-foreground">TailAdmin</h1>
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center">
+            <span className="text-white font-bold text-sm">
+              <Logo />
+            </span>
+          </div>
+          <h1 className="text-xl font-bold text-foreground">AZRA</h1>
+        </div>
+
         <Button isIconOnly variant="light">
           <FiBell size={18} />
         </Button>

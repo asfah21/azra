@@ -17,7 +17,14 @@ import clsx from "clsx";
 
 import { siteConfig } from "@/config/site";
 import { ThemeSwitch } from "@/components/theme-switch";
-import { GithubIcon, SearchIcon, Logo } from "@/components/icons";
+import {
+  TwitterIcon,
+  GithubIcon,
+  DiscordIcon,
+  HeartFilledIcon,
+  SearchIcon,
+  Logo,
+} from "@/components/icons";
 
 export const Navbar = () => {
   const searchInput = (
@@ -42,14 +49,30 @@ export const Navbar = () => {
   );
 
   return (
-    <HeroUINavbar className="px-0 md:px-12" maxWidth="2xl" position="sticky">
+    <HeroUINavbar maxWidth="xl" position="sticky">
       <NavbarContent className="basis-1/5 sm:basis-full" justify="start">
         <NavbarBrand as="li" className="gap-3 max-w-fit">
           <NextLink className="flex justify-start items-center gap-1" href="/">
             <Logo />
-            <p className="font-bold text-inherit">AZRA</p>
+            <p className="font-bold text-inherit">ACME</p>
           </NextLink>
         </NavbarBrand>
+        <ul className="hidden lg:flex gap-4 justify-start ml-2">
+          {siteConfig.navItems.map((item) => (
+            <NavbarItem key={item.href}>
+              <NextLink
+                className={clsx(
+                  linkStyles({ color: "foreground" }),
+                  "data-[active=true]:text-primary data-[active=true]:font-medium",
+                )}
+                color="foreground"
+                href={item.href}
+              >
+                {item.label}
+              </NextLink>
+            </NavbarItem>
+          ))}
+        </ul>
       </NavbarContent>
 
       <NavbarContent
@@ -57,23 +80,12 @@ export const Navbar = () => {
         justify="end"
       >
         <NavbarItem className="hidden sm:flex gap-2">
-          <ul className="hidden lg:flex gap-4 justify-start mx-4 text-xs">
-            {siteConfig.navItems.map((item) => (
-              <NavbarItem key={item.href}>
-                <NextLink
-                  className={clsx(
-                    "text-sm", // ← Tambahkan ini di sini
-                    linkStyles({ color: "foreground" }),
-                    "data-[active=true]:text-primary data-[active=true]:font-medium",
-                  )}
-                  color="foreground"
-                  href={item.href}
-                >
-                  {item.label}
-                </NextLink>
-              </NavbarItem>
-            ))}
-          </ul>
+          <Link isExternal aria-label="Twitter" href={siteConfig.links.twitter}>
+            <TwitterIcon className="text-default-500" />
+          </Link>
+          <Link isExternal aria-label="Discord" href={siteConfig.links.discord}>
+            <DiscordIcon className="text-default-500" />
+          </Link>
           <Link isExternal aria-label="Github" href={siteConfig.links.github}>
             <GithubIcon className="text-default-500" />
           </Link>
@@ -85,11 +97,11 @@ export const Navbar = () => {
             isExternal
             as={Link}
             className="text-sm font-normal text-default-600 bg-default-100"
-            color="secondary"
             href={siteConfig.links.login}
-            variant="ghost"
+            startContent={<HeartFilledIcon className="text-danger" />}
+            variant="flat"
           >
-            Login
+            Sponsor
           </Button>
         </NavbarItem>
       </NavbarContent>

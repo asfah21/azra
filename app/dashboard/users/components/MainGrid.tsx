@@ -1,3 +1,5 @@
+"use client";
+
 import {
   Avatar,
   Button,
@@ -19,7 +21,7 @@ import {
   UserCheck,
 } from "lucide-react";
 
-export default function MainGrid() {
+export default function UserMainGrid() {
   const recentUserActivities = [
     {
       id: 1,
@@ -202,153 +204,148 @@ export default function MainGrid() {
 
   return (
     <>
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-        {/* Recent User Activities */}
-        <Card className="lg:col-span-2 bg-gradient-to-br from-default-50 to-default-100">
-          <CardHeader className="flex gap-3">
-            <div className="p-2 bg-default-500 rounded-lg">
-              <Activity className="w-6 h-6 text-white" />
-            </div>
-            <div className="flex flex-col flex-1">
-              <p className="text-xl font-semibold text-default-800">
-                Recent Activities
-              </p>
-              <p className="text-small text-default-600">
-                Latest user actions and system interactions
-              </p>
-            </div>
-            <Button
-              color="primary"
-              endContent={<Eye className="w-4 h-4" />}
-              size="sm"
-              variant="flat"
-            >
-              View All
-            </Button>
-          </CardHeader>
-          <Divider />
-          <CardBody className="px-6 py-4">
-            <div className="space-y-4">
-              {recentUserActivities.map((activity) => (
-                <div
-                  key={activity.id}
-                  className="flex items-start gap-4 p-3 rounded-xl hover:bg-default-100 transition-colors"
-                >
-                  <Avatar
-                    isBordered
-                    color={getActivityColor(activity.type) as any}
-                    size="md"
-                    src={activity.avatar}
-                  />
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <p className="font-semibold text-default-700">
-                        {activity.user}
-                      </p>
-                      <Chip
-                        color={getActivityColor(activity.type) as any}
-                        size="sm"
-                        variant="dot"
-                      >
-                        {activity.type}
-                      </Chip>
-                    </div>
-                    <p className="text-small text-default-600 mb-2">
-                      {activity.action}
+      {/* Recent User Activities */}
+      <Card className="lg:col-span-2 bg-gradient-to-br from-default-50 to-default-100">
+        <CardHeader className="flex gap-3">
+          <div className="p-2 bg-default-500 rounded-lg">
+            <Activity className="w-6 h-6 text-white" />
+          </div>
+          <div className="flex flex-col flex-1">
+            <p className="text-xl font-semibold text-default-800">
+              Recent Activities
+            </p>
+            <p className="text-small text-default-600">
+              Latest user actions and system interactions
+            </p>
+          </div>
+          <Button
+            color="primary"
+            endContent={<Eye className="w-4 h-4" />}
+            size="sm"
+            variant="flat"
+          >
+            View All
+          </Button>
+        </CardHeader>
+        <Divider />
+        <CardBody className="px-6 py-4">
+          <div className="space-y-4">
+            {recentUserActivities.map((activity) => (
+              <div
+                key={activity.id}
+                className="flex items-start gap-4 p-3 rounded-xl hover:bg-default-100 transition-colors"
+              >
+                <Avatar
+                  isBordered
+                  color={getActivityColor(activity.type) as any}
+                  size="md"
+                  src={activity.avatar}
+                />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <p className="font-semibold text-default-700">
+                      {activity.user}
                     </p>
-                    <div className="flex items-center gap-4 text-tiny text-default-500">
-                      <div className="flex items-center gap-1">
-                        <MapPin className="w-3 h-3" />
-                        {activity.location}
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <span>{getDeviceIcon(activity.device)}</span>
-                        {activity.device}
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <Clock className="w-3 h-3" />
-                        {activity.time}
-                      </div>
+                    <Chip
+                      color={getActivityColor(activity.type) as any}
+                      size="sm"
+                      variant="dot"
+                    >
+                      {activity.type}
+                    </Chip>
+                  </div>
+                  <p className="text-small text-default-600 mb-2">
+                    {activity.action}
+                  </p>
+                  <div className="flex items-center gap-4 text-tiny text-default-500">
+                    <div className="flex items-center gap-1">
+                      <MapPin className="w-3 h-3" />
+                      {activity.location}
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span>{getDeviceIcon(activity.device)}</span>
+                      {activity.device}
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Clock className="w-3 h-3" />
+                      {activity.time}
                     </div>
                   </div>
-                  <div className="flex items-center gap-2 flex-shrink-0">
-                    {getActivityIcon(activity.type)}
-                  </div>
                 </div>
-              ))}
-            </div>
-          </CardBody>
-        </Card>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  {getActivityIcon(activity.type)}
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardBody>
+      </Card>
 
-        {/* Top Users */}
-        <Card className="bg-gradient-to-br from-primary-50 to-primary-100 border-primary-200">
-          <CardHeader className="flex gap-3">
-            <div className="p-2 bg-primary-500 rounded-lg">
-              <TrendingUp className="w-6 h-6 text-white" />
-            </div>
-            <div className="flex flex-col flex-1">
-              <p className="text-xl font-semibold text-primary-800">
-                Top Users
-              </p>
-              <p className="text-small text-primary-600">
-                Most active users this month
-              </p>
-            </div>
-          </CardHeader>
-          <Divider className="bg-primary-200" />
-          <CardBody className="px-6 py-4">
-            <div className="space-y-4">
-              {topUsers.slice(0, 5).map((user, index) => (
-                <div
-                  key={user.id}
-                  className="flex items-center gap-3 p-3 bg-white rounded-lg hover:shadow-sm transition-shadow"
-                >
-                  <div className="flex items-center gap-3 flex-1">
-                    <div className="relative">
-                      <Avatar size="sm" src={user.avatar} />
-                      <div
-                        className={`absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2 border-white ${
-                          user.status === "online"
-                            ? "bg-success-500"
-                            : user.status === "away"
-                              ? "bg-warning-500"
-                              : "bg-default-300"
-                        }`}
-                      />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-medium text-default-700 truncate">
-                        {user.name}
-                      </p>
-                      <div className="flex items-center gap-2">
-                        <Chip
-                          color={getRoleColor(user.role) as any}
-                          size="sm"
-                          variant="flat"
-                        >
-                          {user.role}
-                        </Chip>
-                        <span className="text-tiny text-default-500">
-                          {user.tasksCompleted} tasks
-                        </span>
-                      </div>
-                    </div>
+      {/* Top Users */}
+      <Card className="bg-gradient-to-br from-primary-50 to-primary-100 border-primary-200">
+        <CardHeader className="flex gap-3">
+          <div className="p-2 bg-primary-500 rounded-lg">
+            <TrendingUp className="w-6 h-6 text-white" />
+          </div>
+          <div className="flex flex-col flex-1">
+            <p className="text-xl font-semibold text-primary-800">Top Users</p>
+            <p className="text-small text-primary-600">
+              Most active users this month
+            </p>
+          </div>
+        </CardHeader>
+        <Divider className="bg-primary-200" />
+        <CardBody className="px-6 py-4">
+          <div className="space-y-4">
+            {topUsers.slice(0, 5).map((user, index) => (
+              <div
+                key={user.id}
+                className="flex items-center gap-3 p-3 bg-white rounded-lg hover:shadow-sm transition-shadow"
+              >
+                <div className="flex items-center gap-3 flex-1">
+                  <div className="relative">
+                    <Avatar size="sm" src={user.avatar} />
+                    <div
+                      className={`absolute -bottom-1 -right-1 w-3 h-3 rounded-full border-2 border-white ${
+                        user.status === "online"
+                          ? "bg-success-500"
+                          : user.status === "away"
+                            ? "bg-warning-500"
+                            : "bg-default-300"
+                      }`}
+                    />
                   </div>
-                  <div className="text-right">
-                    <div className="text-small font-bold text-primary-600">
-                      #{index + 1}
-                    </div>
-                    <div className="text-tiny text-default-500">
-                      {user.lastActive}
+                  <div className="flex-1 min-w-0">
+                    <p className="font-medium text-default-700 truncate">
+                      {user.name}
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <Chip
+                        color={getRoleColor(user.role) as any}
+                        size="sm"
+                        variant="flat"
+                      >
+                        {user.role}
+                      </Chip>
+                      <span className="text-tiny text-default-500">
+                        {user.tasksCompleted} tasks
+                      </span>
                     </div>
                   </div>
                 </div>
-              ))}
-            </div>
-          </CardBody>
-        </Card>
-      </div>
+                <div className="text-right">
+                  <div className="text-small font-bold text-primary-600">
+                    #{index + 1}
+                  </div>
+                  <div className="text-tiny text-default-500">
+                    {user.lastActive}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardBody>
+      </Card>
     </>
   );
 }

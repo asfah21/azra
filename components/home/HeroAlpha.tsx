@@ -1,6 +1,6 @@
 export default function HeroAlpha() {
   return (
-    <section className="px-6 md:px-20 relative flex flex-col gap-2 w-full z-20 mt-16 lg:mt-44">
+    <section className="px-6 md:px-20 relative flex flex-col gap-2 w-full z-20 mt-16 lg:mt-32">
       <div className="flex flex-col gap-8">
         <div aria-hidden="true">
           <div className="flex flex-col gap-2 items-start justify-center w-full">

@@ -1,201 +1,184 @@
 "use client";
 
 import {
+  Badge,
   Card,
   CardBody,
   CardHeader,
   Chip,
-  Divider,
   Progress,
 } from "@heroui/react";
 import {
+  Activity,
+  AlertTriangle,
   Calendar,
   Clock,
+  FileText,
   TrendingUp,
-  UserCheck,
-  UserPlus,
-  UserX,
-  Users,
-  UsersRoundIcon,
+  UserIcon,
 } from "lucide-react";
 
-interface UserStats {
-  total: number;
-  new: number;
-}
+export default function WoCardGrid() {
+  // Mock data untuk work orders
+  const workOrderStats = {
+    totalOrders: 847,
+    pendingOrders: 156,
+    inProgressOrders: 98,
+    completedToday: 34,
+    overdueOrders: 23,
+    completionRate: 89.2,
+    avgCompletionTime: 4.2,
+  };
 
-interface UserStatsCardsProps {
-  stats: UserStats;
-}
-
-export default function UserCardGrids({ stats }: UserStatsCardsProps) {
   return (
     <>
-      {/* Total Users Card */}
+      {/* Total Orders Card */}
       <Card className="bg-gradient-to-br from-primary-50 to-primary-100 border-primary-200">
         <CardHeader className="flex gap-2 sm:gap-3 pb-2">
           <div className="p-1.5 sm:p-2 bg-primary-500 rounded-lg">
-            <Users className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
+            <FileText className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
           </div>
           <div className="flex flex-col min-w-0">
             <p className="text-sm sm:text-lg font-semibold text-primary-800 truncate">
-              Total Users
+              Total Orders
             </p>
             <p className="text-xs sm:text-small text-primary-600">
-              All Accounts
+              All Work Orders
             </p>
           </div>
         </CardHeader>
-        <Divider className="bg-primary-200" />
         <CardBody className="px-3 sm:px-6 py-2 sm:py-4">
           <div className="space-y-2 sm:space-y-3">
             <div className="flex justify-between items-center">
               <span className="text-xl sm:text-2xl font-bold text-primary-700">
-                {stats.total}
+                {workOrderStats.totalOrders}
               </span>
-              <Chip
-                color="primary"
-                size="sm"
-                startContent={<TrendingUp className="w-3 h-3" />}
-                variant="flat"
-              >
-                +1 {/* {userStats.growthRate} */}
+              <Chip color="primary" size="sm" variant="flat">
+                <TrendingUp className="w-3 h-3 mr-1" />
+                Active
               </Chip>
             </div>
             <p className="text-xs sm:text-small text-default-600">
-              Registered users
+              Total requests
             </p>
           </div>
         </CardBody>
       </Card>
 
-      {/* Active Users Card */}
+      {/* In Progress Orders Card */}
       <Card className="bg-gradient-to-br from-success-50 to-success-100 border-success-200">
         <CardHeader className="flex gap-2 sm:gap-3 pb-2">
           <div className="p-1.5 sm:p-2 bg-success-500 rounded-lg">
-            <UserCheck className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
+            <Activity className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
           </div>
           <div className="flex flex-col min-w-0">
             <p className="text-sm sm:text-lg font-semibold text-success-800 truncate">
-              Active Users
+              In Progress
             </p>
             <p className="text-xs sm:text-small text-success-600">
-              Last 30 Days
+              Active Tasks
             </p>
           </div>
         </CardHeader>
-        <Divider className="bg-success-200" />
         <CardBody className="px-3 sm:px-6 py-2 sm:py-4">
           <div className="space-y-2 sm:space-y-3">
             <div className="flex justify-between items-center">
               <span className="text-xl sm:text-2xl font-bold text-success-700">
-                {/* {userStats.activeUsers} */} N/A
+                {workOrderStats.inProgressOrders}
               </span>
-              <Chip
+              <Badge
                 color="success"
-                size="sm"
-                startContent={<UsersRoundIcon className="w-3 h-3" />}
+                content={workOrderStats.completedToday}
                 variant="flat"
               >
-                On
-              </Chip>
-              {/* <Badge
-                color="success"
-                content="on"
-                //   content={userStats.onlineNow}
-                variant="flat"
-                
-              >
-                <div className="w-4 h-4 bg-success-500 rounded-full animate-pulse" />
-              </Badge> */}
+                <div className="w-3 h-3 sm:w-4 sm:h-4 bg-success-500 rounded-full animate-pulse" />
+              </Badge>
             </div>
             <div className="space-y-1 sm:space-y-2">
               <div className="flex justify-between">
                 <span className="text-xs sm:text-small text-default-600">
-                  Activity Rate
+                  Progress
                 </span>
-                <span className="text-xs sm:text-small font-medium">71.5%</span>
+                <span className="text-xs sm:text-small font-medium">
+                  {workOrderStats.completionRate}%
+                </span>
               </div>
               <Progress
                 className="max-w-full"
                 color="success"
                 size="sm"
-                value={71.5}
+                value={workOrderStats.completionRate}
               />
             </div>
           </div>
         </CardBody>
       </Card>
 
-      {/* New Users Card */}
-      <Card className="bg-gradient-to-br from-secondary-50 to-secondary-100 border-secondary-200">
+      {/* Pending Orders Card */}
+      <Card className="bg-gradient-to-br from-warning-50 to-warning-100 border-warning-200">
         <CardHeader className="flex gap-2 sm:gap-3 pb-2">
-          <div className="p-1.5 sm:p-2 bg-secondary-500 rounded-lg">
-            <UserPlus className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
+          <div className="p-1.5 sm:p-2 bg-warning-500 rounded-lg">
+            <Clock className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
           </div>
           <div className="flex flex-col min-w-0">
-            <p className="text-sm sm:text-lg font-semibold text-secondary-800 truncate">
-              New Users
+            <p className="text-sm sm:text-lg font-semibold text-warning-800 truncate">
+              Pending
             </p>
-            <p className="text-xs sm:text-small text-secondary-600">
-              This Month
-            </p>
+            <p className="text-xs sm:text-small text-warning-600">Awaiting</p>
           </div>
         </CardHeader>
-        <Divider className="bg-secondary-200" />
         <CardBody className="px-3 sm:px-6 py-2 sm:py-4">
           <div className="space-y-2 sm:space-y-3">
             <div className="flex justify-between items-center">
-              <span className="text-xl sm:text-2xl font-bold text-secondary-700">
-                {stats.new}
+              <span className="text-xl sm:text-2xl font-bold text-warning-700">
+                {workOrderStats.pendingOrders}
               </span>
               <Chip
-                color="secondary"
+                color="warning"
                 size="sm"
-                startContent={<Calendar className="w-3 h-3" />}
+                startContent={<UserIcon className="w-3 h-3" />}
                 variant="flat"
               >
-                30d
+                Queue
               </Chip>
             </div>
             <p className="text-xs sm:text-small text-default-600">
-              New registrations
+              Need assignment
             </p>
           </div>
         </CardBody>
       </Card>
 
-      {/* Inactive Users Card */}
-      <Card className="bg-gradient-to-br from-warning-50 to-warning-100 border-warning-200">
+      {/* Overdue Orders Card */}
+      <Card className="bg-gradient-to-br from-danger-50 to-danger-100 border-danger-200">
         <CardHeader className="flex gap-2 sm:gap-3 pb-2">
-          <div className="p-1.5 sm:p-2 bg-warning-500 rounded-lg">
-            <UserX className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
+          <div className="p-1.5 sm:p-2 bg-danger-500 rounded-lg">
+            <AlertTriangle className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
           </div>
           <div className="flex flex-col min-w-0">
-            <p className="text-sm sm:text-lg font-semibold text-warning-800 truncate">
-              Inactive Users
+            <p className="text-sm sm:text-lg font-semibold text-danger-800 truncate">
+              Overdue
             </p>
-            <p className="text-xs sm:text-small text-warning-600">30 Days</p>
+            <p className="text-xs sm:text-small text-danger-600">Past Due</p>
           </div>
         </CardHeader>
-        <Divider className="bg-warning-200" />
         <CardBody className="px-3 sm:px-6 py-2 sm:py-4">
           <div className="space-y-2 sm:space-y-3">
             <div className="flex justify-between items-center">
-              <span className="text-xl sm:text-2xl font-bold text-warning-700">
-                {/* {userStats.inactiveUsers} */} N/A
+              <span className="text-xl sm:text-2xl font-bold text-danger-700">
+                {workOrderStats.overdueOrders}
               </span>
               <Chip
-                color="warning"
+                color="danger"
                 size="sm"
-                startContent={<Clock className="w-3 h-3" />}
+                startContent={<Calendar className="w-3 h-3" />}
                 variant="flat"
               >
-                Stale
+                Late
               </Chip>
             </div>
             <p className="text-xs sm:text-small text-default-600">
-              Need re-engagement
+              Need attention
             </p>
           </div>
         </CardBody>

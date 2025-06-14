@@ -13,7 +13,7 @@ export default function Hero() {
               href="/blog/v2.7.0"
             >
               <span className="flex-1 px-2 font-semibold text-foreground text-xs">
-                MyApp v0.1.0 (beta)&nbsp;
+                Azra v0.3.1 (beta)&nbsp;
                 <span aria-label="emoji" role="img">
                   🔥
                 </span>
