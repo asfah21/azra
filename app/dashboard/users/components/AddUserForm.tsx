@@ -62,7 +62,7 @@ export function AddUserForms({ onClose, onUserAdded }: AddUserFormProps) {
               ],
               innerWrapper: "bg-transparent",
               inputWrapper: [
-                "shadow-xl",
+                // "shadow-xl",
                 "bg-default-200/50",
                 "dark:bg-default/60",
                 "backdrop-blur-xl",
@@ -91,7 +91,7 @@ export function AddUserForms({ onClose, onUserAdded }: AddUserFormProps) {
               ],
               innerWrapper: "bg-transparent",
               inputWrapper: [
-                "shadow-xl",
+                // "shadow-xl",
                 "bg-default-200/50",
                 "dark:bg-default/60",
                 "backdrop-blur-xl",
@@ -121,7 +121,7 @@ export function AddUserForms({ onClose, onUserAdded }: AddUserFormProps) {
               ],
               innerWrapper: "bg-transparent",
               inputWrapper: [
-                "shadow-xl",
+                // "shadow-xl",
                 "bg-default-200/50",
                 "dark:bg-default/60",
                 "backdrop-blur-xl",
@@ -145,7 +145,7 @@ export function AddUserForms({ onClose, onUserAdded }: AddUserFormProps) {
             classNames={{
               label: "text-black/50 dark:text-white/90",
               trigger: [
-                "shadow-xl",
+                // "shadow-xl",
                 "bg-default-200/50",
                 "dark:bg-default/60",
                 "backdrop-blur-xl",
@@ -179,7 +179,7 @@ export function AddUserForms({ onClose, onUserAdded }: AddUserFormProps) {
               ],
               innerWrapper: "bg-transparent",
               inputWrapper: [
-                "shadow-xl",
+                // "shadow-xl",
                 "bg-default-200/50",
                 "dark:bg-default/60",
                 "backdrop-blur-xl",

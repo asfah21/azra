@@ -239,18 +239,20 @@ export default function UserTables({ usersTable }: UserManagementClientProps) {
         </CardBody>
       </Card>
       {/* Modal */}
-      <Modal
-        isOpen={isOpen}
-        placement="top-center"
-        size="2xl"
-        onOpenChange={onOpenChange}
-      >
-        <ModalContent>
-          {(onClose) => (
-            <AddUserForms onClose={onClose} onUserAdded={handleUserAdded} />
-          )}
-        </ModalContent>
-      </Modal>
+      <div className="mx-4">
+        <Modal
+          isOpen={isOpen}
+          placement="top-center"
+          size="2xl"
+          onOpenChange={onOpenChange}
+        >
+          <ModalContent>
+            {(onClose) => (
+              <AddUserForms onClose={onClose} onUserAdded={handleUserAdded} />
+            )}
+          </ModalContent>
+        </Modal>
+      </div>
     </>
   );
 }

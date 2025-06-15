@@ -83,7 +83,8 @@ export function Topbar({
         </div>
 
         <Button isIconOnly variant="light">
-          <FiBell size={18} />
+          <ThemeSwitch />
+          {/* <FiBell size={18} /> */}
         </Button>
       </header>
 

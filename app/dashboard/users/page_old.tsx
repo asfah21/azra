@@ -91,32 +91,17 @@ async function getUsersTable(): Promise<UserListItem[]> {
 
 export default async function UsersPage() {
   try {
-    // Fetch data secara parallel dengan error handling yang lebih robust
-    const [totalUsersResult, newUsersResult, usersTableResult] =
-      await Promise.allSettled([
-        getTotalUsers(),
-        getNewUsers(),
-        getUsersTable(),
-      ]);
+    // Fetch semua data secara parallel untuk performance yang lebih baik
+    // const [totalUsers, newUsers, usersTable] = await Promise.all([
+    //   getTotalUsers(),
+    //   getNewUsers(),
+    //   getUsersTable(),
+    // ]);
 
-    // Extract hasil dengan fallback values
-    const totalUsers =
-      totalUsersResult.status === "fulfilled" ? totalUsersResult.value : 0;
-    const newUsers =
-      newUsersResult.status === "fulfilled" ? newUsersResult.value : 0;
-    const usersTable =
-      usersTableResult.status === "fulfilled" ? usersTableResult.value : [];
-
-    // Log jika ada yang gagal
-    if (totalUsersResult.status === "rejected") {
-      console.error("Failed to fetch total users:", totalUsersResult.reason);
-    }
-    if (newUsersResult.status === "rejected") {
-      console.error("Failed to fetch new users:", newUsersResult.reason);
-    }
-    if (usersTableResult.status === "rejected") {
-      console.error("Failed to fetch users table:", usersTableResult.reason);
-    }
+    // Fetch data secara berurutan (sequential)
+    const totalUsers = await getTotalUsers();
+    const newUsers = await getNewUsers();
+    const usersTable = await getUsersTable();
 
     const userStats = {
       total: totalUsers,
@@ -139,21 +124,6 @@ export default async function UsersPage() {
           </div>
           {/* <div className="flex gap-2"><RightButtonList /></div> */}
         </div>
-
-        {/* Error indicator jika ada data yang gagal dimuat */}
-        {(totalUsersResult.status === "rejected" ||
-          newUsersResult.status === "rejected" ||
-          usersTableResult.status === "rejected") && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-yellow-500 rounded-full" />
-              <p className="text-yellow-800 text-sm font-medium">
-                Some data may be incomplete due to loading issues. The page will
-                continue to function with available data.
-              </p>
-            </div>
-          </div>
-        )}
 
         {/* Stats Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
