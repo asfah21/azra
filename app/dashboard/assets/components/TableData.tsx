@@ -22,7 +22,6 @@ import {
   DropdownItem,
 } from "@heroui/react";
 import {
-  Users,
   UserPlus,
   Filter,
   MoreVertical,
@@ -32,20 +31,11 @@ import {
   MapPin,
   Wrench,
   Activity,
+  Package,
 } from "lucide-react";
 
+import { UserName } from "./UserName";
 import { AddForms } from "./AddForm";
-
-// import { AddUserForms } from "./AddUserForm";
-
-// interface User {
-//   id: string;
-//   name: string;
-//   email: string;
-//   role: string;
-//   department: string | null;
-//   createdAt: Date;
-// }
 
 // Interface untuk Unit
 interface Unit {
@@ -85,18 +75,24 @@ export default function TableDatas({ dataTable }: ManagementClientProps) {
     onOpenChange();
   };
 
-  const getRoleColor = (role: string) => {
-    switch (role) {
-      case "admin_elec":
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "Critical":
         return "danger";
-      case "admin_heavy":
+      case "Warning":
         return "warning";
-      case "pengawas":
-        return "secondary";
-      case "mekanik":
+      case "Maintenance":
         return "primary";
-      case "super_admin":
+      case "Operational":
         return "success";
+      case "operational":
+        return "success";
+      case "maintenance":
+        return "warning";
+      case "standby":
+        return "secondary";
+      case "critical":
+        return "danger";
       default:
         return "default";
     }
@@ -110,6 +106,17 @@ export default function TableDatas({ dataTable }: ManagementClientProps) {
         return "💻";
       default:
         return "📦";
+    }
+  };
+
+  const getCategoryName = (category: number) => {
+    switch (category) {
+      case 1:
+        return "Alat Berat";
+      case 2:
+        return "Elektronik";
+      default:
+        return "Lainnya";
     }
   };
 
@@ -137,14 +144,14 @@ export default function TableDatas({ dataTable }: ManagementClientProps) {
         <CardHeader className="flex flex-col gap-3 sm:flex-row">
           <div className="flex items-center gap-3 flex-1 justify-start self-start">
             <div className="p-2 bg-default-500 rounded-lg flex-shrink-0">
-              <Users className="w-6 h-6 text-white" />
+              <Package className="w-6 h-6 text-white" />
             </div>
             <div className="flex flex-col flex-1 text-left">
               <p className="text-xl font-semibold text-default-800 text-left">
-                All Users
+                Asset Inventory
               </p>
               <p className="text-small text-default-600 text-left">
-                Complete user management
+                Asset management system
               </p>
             </div>
           </div>
@@ -165,7 +172,7 @@ export default function TableDatas({ dataTable }: ManagementClientProps) {
               startContent={<UserPlus className="w-4 h-4" />}
               onPress={onOpen}
             >
-              Add User
+              Add Asset
             </Button>
           </div>
         </CardHeader>
@@ -216,7 +223,8 @@ export default function TableDatas({ dataTable }: ManagementClientProps) {
                           description: "text-xs text-default-500",
                         }}
                         description={asset.department}
-                        name={asset.assignedToId}
+                        name={<UserName userId={asset.assignedToId} />}
+                        // name=<UserName userId={asset.assignedToId} />
                       />
                     </TableCell>
                     <TableCell>
@@ -226,13 +234,13 @@ export default function TableDatas({ dataTable }: ManagementClientProps) {
                         size="sm"
                         variant="flat"
                       >
-                        {asset.categoryId}
+                        {getCategoryName(asset.categoryId)}
                       </Chip>
                     </TableCell>
                     <TableCell>
                       <Chip
-                        // color={getStatusColor(asset.status) as any}
-                        color="danger"
+                        color={getStatusColor(asset.status) as any}
+                        // color="danger"
                         size="sm"
                         variant="dot"
                       >
@@ -249,7 +257,7 @@ export default function TableDatas({ dataTable }: ManagementClientProps) {
                       <div className="flex items-center gap-2">
                         <Chip
                           // color={getConditionColor(asset.condition) as any}
-                          color="default"
+                          color="success"
                           size="sm"
                           variant="flat"
                         >
@@ -258,16 +266,17 @@ export default function TableDatas({ dataTable }: ManagementClientProps) {
                         <Progress
                           aria-label="Utilization rate"
                           className="max-w-16"
-                          color="danger"
-                          // color={
-                          //   asset.utilizationRate > 90
-                          //     ? "danger"
-                          //     : asset.utilizationRate > 70
-                          //       ? "warning"
-                          //       : "success"
-                          // }
+                          color={
+                            asset.utilizationRate === null
+                              ? "success"
+                              : asset.utilizationRate > 90
+                                ? "danger"
+                                : asset.utilizationRate > 70
+                                  ? "warning"
+                                  : "success"
+                          }
                           size="sm"
-                          // value={asset.utilizationRate}
+                          value={asset.utilizationRate as number}
                         />
                       </div>
                     </TableCell>
@@ -330,7 +339,7 @@ export default function TableDatas({ dataTable }: ManagementClientProps) {
         >
           <ModalContent>
             {(onClose) => (
-              <AddForms onClose={onClose} onUserAdded={handleUserAdded} />
+              <AddForms onClose={onClose} onUnitAdded={handleUserAdded} />
             )}
           </ModalContent>
         </Modal>

@@ -1,9 +1,7 @@
 "use client";
 import { Package } from "lucide-react";
 
-import AssetRightButton from "./components/RightButtonList";
 import AssetCardGrid from "./components/CardGris";
-import MainGridAsset from "./components/MainGrid";
 import TableAssets from "./components/TableAsset";
 
 export default function AssetsPage() {
@@ -24,9 +22,9 @@ export default function AssetsPage() {
           </div>
         </div>
 
-        <div className="flex flex-wrap gap-2">
+        {/* <div className="flex flex-wrap gap-2">
           <AssetRightButton />
-        </div>
+        </div> */}
       </div>
 
       {/* Stats Cards Grid */}
@@ -36,9 +34,9 @@ export default function AssetsPage() {
 
       {/* Main Content Grid */}
 
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 sm:gap-8 mb-6 sm:mb-8">
+      {/* <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 sm:gap-8 mb-6 sm:mb-8">
         <MainGridAsset />
-      </div>
+      </div> */}
 
       {/* Asset Inventory Table */}
       <TableAssets />

@@ -1,8 +1,7 @@
 "use client";
 
 import { useActionState } from "react";
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+// import { useRouter } from "next/navigation";
 import {
   Input,
   Textarea,
@@ -24,18 +23,18 @@ export default function DocsPage() {
     success: false,
     message: "",
   });
-  const router = useRouter();
+  // const router = useRouter();
 
   // Optional: Redirect on successful creation
-  useEffect(() => {
-    if (state.success) {
-      const timer = setTimeout(() => {
-        router.push("/units");
-      }, 2000);
+  // useEffect(() => {
+  //   if (state.success) {
+  //     const timer = setTimeout(() => {
+  //       router.push("/units");
+  //     }, 2000);
 
-      return () => clearTimeout(timer);
-    }
-  }, [state.success, router]);
+  //     return () => clearTimeout(timer);
+  //   }
+  // }, [state.success, router]);
 
   const statusOptions = [
     { key: "operational", label: "Operational" },

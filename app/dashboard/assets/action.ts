@@ -1,72 +1,134 @@
 "use server";
 
-import bcrypt from "bcrypt";
 import { revalidatePath } from "next/cache";
-import { Role } from "@prisma/client";
 
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 
-// Tambahkan tipe return yang sesuai
-export type FormState = {
-  message?: string;
-  errors?: Record<string, string>;
-} | null;
-
-export async function addUsers(
-  prevState: FormState,
-  formData: FormData,
-): Promise<FormState> {
+export async function createUnit(prevState: any, formData: FormData) {
   try {
+    // Required fields
+    const assetTag = formData.get("assetTag") as string;
     const name = formData.get("name") as string;
-    const email = formData.get("email") as string;
-    const password = formData.get("password") as string;
-    const role = formData.get("role") as Role;
-    const department = formData.get("department") as string;
+    const location = formData.get("location") as string;
+    const categoryId = Number(formData.get("categoryId"));
+    const createdById = formData.get("createdById") as string;
 
-    // Validasi
-    if (!name || !email || !password || !role) {
-      return {
-        errors: {
-          general: "Semua field wajib diisi.",
-        },
-      };
+    // Optional fields
+    const description = (formData.get("description") as string) || null;
+    const status = (formData.get("status") as string) || "operational";
+    const condition = (formData.get("condition") as string) || null;
+    const serialNumber = (formData.get("serialNumber") as string) || null;
+    const department = (formData.get("department") as string) || null;
+    const manufacturer = (formData.get("manufacturer") as string) || null;
+    const assignedToId = (formData.get("assignedToId") as string) || null;
+
+    // Date fields - convert empty strings to null
+    const installDate = formData.get("installDate") as string;
+    const warrantyExpiry = formData.get("warrantyExpiry") as string;
+    const lastMaintenance = formData.get("lastMaintenance") as string;
+    const nextMaintenance = formData.get("nextMaintenance") as string;
+
+    // Numeric fields
+    const assetValue = formData.get("assetValue") as string;
+    const utilizationRate = formData.get("utilizationRate") as string;
+
+    // Validation
+    if (!assetTag || !name || !location || !categoryId || !createdById) {
+      return { success: false, message: "Field wajib harus diisi!" };
     }
 
-    // Cek email
-    const existingUser = await prisma.user.findUnique({ where: { email } });
+    // Check if assetTag already exists
+    const existingUnit = await prisma.unit.findUnique({
+      where: { assetTag },
+    });
 
-    if (existingUser) {
-      return {
-        errors: {
-          email: "Email sudah digunakan.",
-        },
-      };
+    if (existingUnit) {
+      return { success: false, message: "Asset Tag sudah digunakan!" };
     }
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // Check if category exists
+    const categoryExists = await prisma.category.findUnique({
+      where: { id: categoryId },
+    });
 
-    // Simpan user
-    await prisma.user.create({
+    if (!categoryExists) {
+      return { success: false, message: "Category tidak ditemukan!" };
+    }
+
+    // Check if createdById user exists
+    const userExists = await prisma.user.findUnique({
+      where: { id: createdById },
+    });
+
+    if (!userExists) {
+      return { success: false, message: "User pembuat tidak ditemukan!" };
+    }
+
+    // Check if assignedToId user exists (if provided)
+    if (assignedToId) {
+      const assignedUserExists = await prisma.user.findUnique({
+        where: { id: assignedToId },
+      });
+
+      if (!assignedUserExists) {
+        return {
+          success: false,
+          message: "User yang ditugaskan tidak ditemukan!",
+        };
+      }
+    }
+
+    const newUnit = await prisma.unit.create({
       data: {
+        assetTag,
         name,
-        email,
-        password: hashedPassword,
-        role,
+        description,
+        categoryId,
+        status,
+        condition,
+        serialNumber,
+        location,
         department,
+        manufacturer,
+        installDate: installDate ? new Date(installDate) : null,
+        warrantyExpiry: warrantyExpiry ? new Date(warrantyExpiry) : null,
+        lastMaintenance: lastMaintenance ? new Date(lastMaintenance) : null,
+        nextMaintenance: nextMaintenance ? new Date(nextMaintenance) : null,
+        assetValue: assetValue ? parseFloat(assetValue) : null,
+        utilizationRate: utilizationRate ? parseInt(utilizationRate) : null,
+        createdById,
+        assignedToId: assignedToId || null,
       },
     });
 
-    revalidatePath("/users");
-
-    return { message: "User berhasil ditambahkan!" };
-  } catch (error) {
-    console.error("Error adding user:", error);
+    revalidatePath("/units"); // revalidate list page
+    revalidatePath("/docs"); // revalidate current page
 
     return {
-      errors: {
-        general: "Terjadi kesalahan saat menambahkan user.",
-      },
+      success: true,
+      message: `Unit ${newUnit.name} berhasil ditambahkan dengan Asset Tag: ${newUnit.assetTag}!`,
+    };
+  } catch (error: unknown) {
+    console.error("Error creating unit:", error);
+
+    // Type guard to check if error is an object with a code property
+    if (error instanceof Error) {
+      // Handle specific Prisma errors
+      if ("code" in error && error.code === "P2002") {
+        return { success: false, message: "Asset Tag sudah digunakan!" };
+      }
+
+      if ("code" in error && error.code === "P2003") {
+        return {
+          success: false,
+          message: "Referensi kategori atau user tidak valid!",
+        };
+      }
+    }
+
+    return {
+      success: false,
+      message: "Gagal menambahkan unit. Silakan coba lagi.",
     };
   }
 }
