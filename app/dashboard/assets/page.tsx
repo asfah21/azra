@@ -4,7 +4,6 @@ import { Prisma } from "@prisma/client";
 
 import UserCardGrids from "./components/CardGrid";
 import TableDatas from "./components/TableData";
-import ErrorBoundaryWrapper from "./components/ErrorBoundaryWrapper";
 
 import { prisma } from "@/lib/prisma";
 
@@ -25,16 +24,13 @@ async function getTotal(): Promise<number> {
   } catch (error) {
     console.error("Error fetching total users:", error);
 
-    // Throw error dengan type information untuk error handling yang lebih baik
-    const err = new Error("Failed to fetch total users");
-
-    (err as any).type = "database";
-    throw err;
+    return 0;
   }
 }
 
 async function getNew(): Promise<number> {
   try {
+    // Assets yang register bulan ini
     const startOfMonth = new Date();
 
     startOfMonth.setDate(1);
@@ -54,10 +50,7 @@ async function getNew(): Promise<number> {
   } catch (error) {
     console.error("Error fetching new users:", error);
 
-    const err = new Error("Failed to fetch new users");
-
-    (err as any).type = "database";
-    throw err;
+    return 0;
   }
 }
 
@@ -121,88 +114,8 @@ async function getTable(): Promise<UnitListItem[]> {
   } catch (error) {
     console.error("Error fetching users table:", error);
 
-    const err = new Error("Failed to fetch users table");
-
-    (err as any).type = "database";
-    throw err;
+    return []; // Return empty array instead of throwing
   }
-}
-
-interface AssetsPageContentProps {
-  initialData?: {
-    totalAssets: number;
-    newAssets: number;
-    dataTable: UnitListItem[];
-  };
-  hasErrors?: boolean;
-  errorTypes?: Array<"database" | "network" | "general">;
-}
-
-function AssetsPageContent({
-  initialData,
-  hasErrors = false,
-  errorTypes = [],
-}: AssetsPageContentProps) {
-  if (!initialData) {
-    // Fallback UI jika tidak ada data sama sekali
-    return (
-      <div className="p-4 sm:p-6 max-w-7xl mx-auto">
-        <div className="flex flex-col items-center justify-center min-h-[400px] text-center">
-          <div className="p-4 bg-red-50 rounded-xl mb-4">
-            <Users className="w-12 h-12 text-red-500 mx-auto" />
-          </div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">
-            Unable to Load User Data
-          </h2>
-          <p className="text-gray-600 mb-4">
-            There was an error loading the user management page.
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  const { totalAssets, newAssets, dataTable } = initialData;
-  const cardStats = { total: totalAssets, new: newAssets };
-
-  return (
-    <div className="p-4 sm:p-6 max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-gradient-to-br from-primary-100 to-primary-50 rounded-xl">
-            <Users className="w-6 h-6 text-primary-600" />
-          </div>
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent">
-              User Management
-            </h1>
-          </div>
-        </div>
-      </div>
-
-      {/* Error indicator jika ada data yang gagal dimuat */}
-      {hasErrors && (
-        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-yellow-500 rounded-full" />
-            <p className="text-yellow-800 text-sm font-medium">
-              Some data may be incomplete due to loading issues. The page will
-              continue to function with available data.
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
-        <UserCardGrids stats={cardStats} />
-      </div>
-
-      {/* Users Table */}
-      <TableDatas dataTable={dataTable} />
-    </div>
-  );
 }
 
 export default async function AssetsPage() {
@@ -214,50 +127,12 @@ export default async function AssetsPage() {
       getTable(),
     ]);
 
-    // Check for critical errors (semua gagal)
-    const allFailed = [totalResult, newResult, tableResult].every(
-      (result) => result.status === "rejected",
-    );
-
-    if (allFailed) {
-      // Jika semua gagal, kemungkinan masalah database/network yang serius
-      const firstError =
-        totalResult.status === "rejected"
-          ? totalResult.reason
-          : new Error("Unknown error");
-      const errorType = (firstError as any)?.type || "database";
-
-      return (
-        <ErrorBoundaryWrapper errorType={errorType} hasError={true}>
-          <AssetsPageContent />
-        </ErrorBoundaryWrapper>
-      );
-    }
-
     // Extract hasil dengan fallback values
     const totalAssets =
       totalResult.status === "fulfilled" ? totalResult.value : 0;
     const newAssets = newResult.status === "fulfilled" ? newResult.value : 0;
     const dataTable =
       tableResult.status === "fulfilled" ? tableResult.value : [];
-
-    // Check apakah ada error
-    const hasErrors = [totalResult, newResult, tableResult].some(
-      (result) => result.status === "rejected",
-    );
-
-    // Collect error types
-    const errorTypes: Array<"database" | "network" | "general"> = [];
-
-    [totalResult, newResult, tableResult].forEach((result) => {
-      if (result.status === "rejected") {
-        const errorType = (result.reason as any)?.type || "general";
-
-        if (!errorTypes.includes(errorType)) {
-          errorTypes.push(errorType);
-        }
-      }
-    });
 
     // Log jika ada yang gagal
     if (totalResult.status === "rejected") {
@@ -270,26 +145,82 @@ export default async function AssetsPage() {
       console.error("Failed to fetch users table:", tableResult.reason);
     }
 
+    const cardStats = {
+      total: totalAssets,
+      new: newAssets,
+    };
+
     return (
-      <ErrorBoundaryWrapper
-        errorType={errorTypes[0]} // Use first error type
-        hasError={hasErrors && errorTypes.length > 0}
-      >
-        <AssetsPageContent
-          errorTypes={errorTypes}
-          hasErrors={hasErrors}
-          initialData={{ totalAssets, newAssets, dataTable }}
-        />
-      </ErrorBoundaryWrapper>
+      <div className="p-4 sm:p-6 max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-gradient-to-br from-primary-100 to-primary-50 rounded-xl">
+              <Users className="w-6 h-6 text-primary-600" />
+            </div>
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent">
+                User Management
+              </h1>
+            </div>
+          </div>
+          {/* <div className="flex gap-2"><RightButtons /></div> */}
+        </div>
+
+        {/* Error indicator jika ada data yang gagal dimuat */}
+        {(totalResult.status === "rejected" ||
+          newResult.status === "rejected" ||
+          tableResult.status === "rejected") && (
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-yellow-500 rounded-full" />
+              <p className="text-yellow-800 text-sm font-medium">
+                Some data may be incomplete due to loading issues. The page will
+                continue to function with available data.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
+          <UserCardGrids stats={cardStats} />
+        </div>
+
+        {/* Main Grid */}
+        {/* <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 mb-6 sm:mb-8">
+          <UserMainGrid />
+        </div> */}
+
+        {/* Users Table */}
+        <TableDatas dataTable={dataTable} />
+      </div>
     );
   } catch (error) {
-    console.error("Critical error in AssetsPage:", error);
+    console.error("Error in UsersPage:", error);
 
-    // Critical error fallback
+    // Fallback UI jika ada error major
     return (
-      <ErrorBoundaryWrapper errorType="general" hasError={true}>
-        <AssetsPageContent />
-      </ErrorBoundaryWrapper>
+      <div className="p-4 sm:p-6 max-w-7xl mx-auto">
+        <div className="flex flex-col items-center justify-center min-h-[400px] text-center">
+          <div className="p-4 bg-red-50 rounded-xl mb-4">
+            <Users className="w-12 h-12 text-red-500 mx-auto" />
+          </div>
+          <h2 className="text-xl font-semibold text-gray-900 mb-2">
+            Unable to Load User Data
+          </h2>
+          <p className="text-gray-600 mb-4">
+            There was an error loading the user management page. Please try
+            refreshing the page.
+          </p>
+          <button
+            className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+            onClick={() => window.location.reload()}
+          >
+            Refresh Page
+          </button>
+        </div>
+      </div>
     );
   }
 }
