@@ -3,7 +3,7 @@ import { Metadata } from "next";
 import { Prisma } from "@prisma/client";
 
 import UserCardGrids from "./components/CardGrid";
-import UserTables from "./components/UserTable";
+// import UserTables from "./components/UserTable";
 
 import { prisma } from "@/lib/prisma";
 
@@ -136,7 +136,7 @@ export default async function UsersPage() {
         </div> */}
 
         {/* Users Table */}
-        <UserTables usersTable={usersTable} />
+        {/* <UserTables usersTable={usersTable} /> */}
       </div>
     );
   } catch (error) {
