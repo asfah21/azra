@@ -85,6 +85,7 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
   useEffect(() => {
     async function fetchBreakdownNumber() {
       const number = await getNextBreakdownNumber(userRole);
+
       setBreakdownNumber(number);
     }
     if (userRole) {

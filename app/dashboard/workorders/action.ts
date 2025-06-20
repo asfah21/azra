@@ -29,7 +29,8 @@ export async function getUnits() {
 
 // Fungsi untuk generate nomor breakdown berikutnya
 export async function getNextBreakdownNumber(role: string) {
-  const prefix = (role === "super_admin" || role === "admin_elec") ? "WOIT-" : "WO-";
+  const prefix =
+    role === "super_admin" || role === "admin_elec" ? "WOIT-" : "WO-";
   // Cari nomor terakhir dengan prefix yang sesuai
   const last = await prisma.breakdown.findFirst({
     where: {
@@ -43,9 +44,11 @@ export async function getNextBreakdownNumber(role: string) {
   });
 
   let nextNumber = 1;
+
   if (last && last.breakdownNumber) {
     // Ambil angka di belakang prefix, misal dari WOIT-0005 ambil 5
     const match = last.breakdownNumber.match(/\d+$/);
+
     if (match) {
       nextNumber = parseInt(match[0], 10) + 1;
     }
@@ -53,6 +56,7 @@ export async function getNextBreakdownNumber(role: string) {
 
   // Format dengan leading zero, misal 6 jadi 0006
   const nextBreakdownNumber = `${prefix}${nextNumber.toString().padStart(4, "0")}`;
+
   return nextBreakdownNumber;
 }
 
