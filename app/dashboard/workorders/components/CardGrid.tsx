@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  Badge,
   Card,
   CardBody,
   CardHeader,
@@ -19,7 +18,6 @@ import {
   UserIcon,
 } from "lucide-react";
 import { GoTasklist } from "react-icons/go";
-import { SiProgress, SiTask } from "react-icons/si";
 
 interface WoStats {
   total: number;

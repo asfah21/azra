@@ -1,13 +1,12 @@
 import { Users, Wrench } from "lucide-react";
 import { Metadata } from "next";
 import { Prisma } from "@prisma/client";
+import { BreakdownStatus } from "@prisma/client";
 
 import WoCardGrid from "./components/CardGrid";
 import WoUserTable from "./components/TableData";
 
 import { prisma } from "@/lib/prisma";
-
-import { BreakdownStatus } from "@prisma/client";
 
 export const metadata: Metadata = {
   title: "Work Order",
@@ -41,6 +40,7 @@ async function getInProgressWo(): Promise<number> {
     return inProgressWo;
   } catch (error) {
     console.error("Error fetching pending breakdowns:", error);
+
     return 0;
   }
 }
@@ -56,6 +56,7 @@ async function getPendingWo(): Promise<number> {
     return pendingWo;
   } catch (error) {
     console.error("Error fetching pending breakdowns:", error);
+
     return 0;
   }
 }
@@ -71,6 +72,7 @@ async function getOverdueWo(): Promise<number> {
     return overdueWo;
   } catch (error) {
     console.error("Error fetching pending breakdowns:", error);
+
     return 0;
   }
 }
@@ -189,6 +191,7 @@ async function getTable(): Promise<BreakdownPayload[]> {
     return dataTable;
   } catch (error) {
     console.error("Error fetching breakdown data:", error);
+
     // throw new Error("Failed to fetch breakdown data");
     return [];
   }
@@ -197,7 +200,13 @@ async function getTable(): Promise<BreakdownPayload[]> {
 export default async function WorkOrdersPage() {
   try {
     // Fetch data secara parallel dengan error handling yang lebih robust
-    const [totalResult, inProgressResult, pendingResult, overdueResult, tableResult] = await Promise.allSettled([
+    const [
+      totalResult,
+      inProgressResult,
+      pendingResult,
+      overdueResult,
+      tableResult,
+    ] = await Promise.allSettled([
       getTotal(),
       getInProgressWo(),
       getPendingWo(),
@@ -207,10 +216,14 @@ export default async function WorkOrdersPage() {
 
     // Extract hasil dengan fallback values
     const totalWos = totalResult.status === "fulfilled" ? totalResult.value : 0;
-    const inProgressWos = inProgressResult.status === "fulfilled" ? inProgressResult.value:0;
-    const pendingWos = pendingResult.status === "fulfilled" ? pendingResult.value : 0;
-    const overdueWos = overdueResult.status === "fulfilled" ? overdueResult.value : 0;
-    const dataTable = tableResult.status === "fulfilled" ? tableResult.value : [];
+    const inProgressWos =
+      inProgressResult.status === "fulfilled" ? inProgressResult.value : 0;
+    const pendingWos =
+      pendingResult.status === "fulfilled" ? pendingResult.value : 0;
+    const overdueWos =
+      overdueResult.status === "fulfilled" ? overdueResult.value : 0;
+    const dataTable =
+      tableResult.status === "fulfilled" ? tableResult.value : [];
 
     // Log jika ada yang gagal
     if (totalResult.status === "rejected") {
@@ -279,7 +292,7 @@ export default async function WorkOrdersPage() {
         <WoMainGrid />
       </div> */}
 
-        <WoUserTable dataTable={dataTable}/>
+        <WoUserTable dataTable={dataTable} />
       </div>
     );
   } catch (error) {

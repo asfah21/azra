@@ -1,10 +1,9 @@
 import { Button } from "@heroui/button";
 import { ArrowRightCircleIcon as Azvan } from "@heroicons/react/24/outline";
-
-import { HeroBgBawah } from "./HeroBg";
-import { RiCheckFill, RiCheckLine, RiTimerFlashFill } from "react-icons/ri";
 import { HiOutlineCheck } from "react-icons/hi";
 import Link from "next/link";
+
+import { HeroBgBawah } from "./HeroBg";
 
 export const ArrowRightCircleIcon = ({ size = 24, ...props }) => {
   return <Azvan height={size} width={size} {...props} />;
@@ -12,11 +11,23 @@ export const ArrowRightCircleIcon = ({ size = 24, ...props }) => {
 
 export default function HeroGamma() {
   const features = [
-    {title: "Asset Tracking", icon: <HiOutlineCheck size={24} color="#006FEE" />},
-    {title: "Equipment Maintenance", icon: <HiOutlineCheck size={24} color="#006FEE" />},
-    {title: "Preventive Maintenance", icon: <HiOutlineCheck size={24} color="#006FEE" />},
-    {title: "Asset Reporting", icon: <HiOutlineCheck size={24} color="#006FEE" />},
-  ]
+    {
+      title: "Asset Tracking",
+      icon: <HiOutlineCheck color="#006FEE" size={24} />,
+    },
+    {
+      title: "Equipment Maintenance",
+      icon: <HiOutlineCheck color="#006FEE" size={24} />,
+    },
+    {
+      title: "Preventive Maintenance",
+      icon: <HiOutlineCheck color="#006FEE" size={24} />,
+    },
+    {
+      title: "Asset Reporting",
+      icon: <HiOutlineCheck color="#006FEE" size={24} />,
+    },
+  ];
 
   return (
     <section className="px-6 md:px-20 relative z-10 flex flex-col gap-2 w-full mt-16 lg:mt-44 overflow-hidden">
@@ -44,15 +55,15 @@ export default function HeroGamma() {
             </div>
           </div>
           <p className="w-full md:w-1/2 my-2 text-medium lg:text-large font-normal block max-w-full pr-12 text-foreground-500">
-          Track assets, log equipment issues, plan preventive maintenance, 
-          and generate insightful reports — all in one intuitive platform.
+            Track assets, log equipment issues, plan preventive maintenance, and
+            generate insightful reports — all in one intuitive platform.
           </p>
           <div className="mt-4 text-foreground-600 font-medium">
             {features.map((feature, index) => (
               <div key={index} className="flex gap-x-4 items-center">
                 {feature.icon}
                 {feature.title}
-            </div>
+              </div>
             ))}
           </div>
           <div className="mt-4">
@@ -65,7 +76,6 @@ export default function HeroGamma() {
                 Explore More
               </Button>
             </Link>
-            
           </div>
         </div>
         <HeroBgBawah />

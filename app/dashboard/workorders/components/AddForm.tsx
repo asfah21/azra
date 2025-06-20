@@ -56,6 +56,7 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
     const fetchUnits = async () => {
       try {
         const unitsData = await getUnits();
+
         setUnits(unitsData);
         setLoadingUnits(false);
       } catch (error) {
@@ -105,6 +106,7 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
 
   const removeComponent = (index: number) => {
     const newComponents = [...components];
+
     newComponents.splice(index, 1);
     setComponents(newComponents);
   };
@@ -117,7 +119,7 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
       </div>
     );
   }
-  
+
   return (
     <>
       <ModalHeader className="flex flex-col gap-1">
@@ -131,19 +133,20 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
           {components.map((comp, index) => (
             <div key={`component-group-${index}`}>
               <input
-                type="hidden"
                 name={`components[${index}][component]`}
+                type="hidden"
                 value={comp.component}
               />
               <input
-                type="hidden"
                 name={`components[${index}][subcomponent]`}
+                type="hidden"
                 value={comp.subcomponent}
               />
             </div>
           ))}
 
           <Input
+            isReadOnly
             isRequired
             classNames={{
               label: "text-black/50 dark:text-white/90",
@@ -168,9 +171,8 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
             label="Breakdown Number"
             name="breakdownNumber"
             type="text"
-            variant="bordered"
             value={breakdownNumber}
-            isReadOnly
+            variant="bordered"
           />
 
           {/* Required Fields */}
@@ -193,17 +195,19 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
             label="Unit"
             name="unitId"
             placeholder={loadingUnits ? "Loading units..." : "Select unit"}
-            variant="bordered"
-            selectedKeys={selectedUnitId ? [selectedUnitId] : []}
-            onSelectionChange={(keys) => {
-              const keyArray = Array.from(keys);
-              setSelectedUnitId(keyArray[0]?.toString() || "");
-            }}
             renderValue={(items) => {
               return items.map((item) => {
                 const unit = units.find((u) => u.id === item.key);
+
                 return unit ? `${unit.name} (${unit.assetTag})` : "";
               });
+            }}
+            selectedKeys={selectedUnitId ? [selectedUnitId] : []}
+            variant="bordered"
+            onSelectionChange={(keys) => {
+              const keyArray = Array.from(keys);
+
+              setSelectedUnitId(keyArray[0]?.toString() || "");
             }}
           >
             {units.map((unit) => (
@@ -264,11 +268,11 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
                   "!cursor-text",
                 ],
               }}
+              defaultValue={new Date().toISOString().slice(0, 16)}
               label="Breakdown Time"
               name="breakdownTime"
               type="datetime-local"
               variant="bordered"
-              defaultValue={new Date().toISOString().slice(0, 16)}
             />
 
             <Input
@@ -333,10 +337,10 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
                   ],
                 }}
                 label="Component"
-                value={componentInput}
-                onChange={(e) => setComponentInput(e.target.value)}
                 placeholder="Enter component name"
+                value={componentInput}
                 variant="bordered"
+                onChange={(e) => setComponentInput(e.target.value)}
               />
 
               <Input
@@ -360,19 +364,19 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
                   ],
                 }}
                 label="Subcomponent"
-                value={subcomponentInput}
-                onChange={(e) => setSubcomponentInput(e.target.value)}
                 placeholder="Enter subcomponent name"
+                value={subcomponentInput}
                 variant="bordered"
+                onChange={(e) => setSubcomponentInput(e.target.value)}
               />
             </div>
 
             <Button
-              size="sm"
               color="primary"
+              isDisabled={!componentInput || !subcomponentInput}
+              size="sm"
               variant="bordered"
               onPress={addComponent}
-              isDisabled={!componentInput || !subcomponentInput}
             >
               Add Component
             </Button>
@@ -381,8 +385,8 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
               {components.map((comp, index) => (
                 <Chip
                   key={index}
-                  onClose={() => removeComponent(index)}
                   variant="bordered"
+                  onClose={() => removeComponent(index)}
                 >
                   {comp.component} - {comp.subcomponent}
                 </Chip>
@@ -433,8 +437,8 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
           className="font-medium bg-gradient-to-r from-blue-500 to-purple-600 text-white"
           color="primary"
           form="addBreakdownForm"
-          type="submit"
           isDisabled={components.length === 0 || !selectedUnitId}
+          type="submit"
         >
           Report Breakdown
         </Button>

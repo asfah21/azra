@@ -4,19 +4,20 @@ import { Card, CardHeader, CardBody, Link } from "@heroui/react";
 import { FaMountainCity, FaWandMagicSparkles } from "react-icons/fa6";
 
 export default function CardBawah() {
-
   const features = [
     {
-      title: "Built for Efficiency", 
-      description: "An internal tool developed with focus and functionality to manage assets reliably and effectively.",
-      icon: <FaWandMagicSparkles size={24}/>
+      title: "Built for Efficiency",
+      description:
+        "An internal tool developed with focus and functionality to manage assets reliably and effectively.",
+      icon: <FaWandMagicSparkles size={24} />,
     },
-    { 
+    {
       title: "Optimized for the Field",
-      description: "Engineered by IT Site to simplify asset tracking, maintenance, and decision-making on the ground.",
-      icon: <FaMountainCity size={24}/> 
+      description:
+        "Engineered by IT Site to simplify asset tracking, maintenance, and decision-making on the ground.",
+      icon: <FaMountainCity size={24} />,
     },
-  ]
+  ];
 
   return (
     <div className="mx-8 px-4 justify-center mt-8 md:mt-14 grid grid-cols-1 md:grid-cols-2 gap-4 lg:grid-cols-2">

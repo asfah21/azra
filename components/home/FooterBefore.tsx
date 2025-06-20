@@ -1,21 +1,28 @@
 import { Card, CardHeader, CardBody } from "@heroui/card";
 // import { Link } from "@heroui/link";
-import { TbAffiliateFilled, TbChartBubbleFilled, TbExternalLink, TbHelpHexagonFilled } from "react-icons/tb";
+import {
+  TbAffiliateFilled,
+  TbChartBubbleFilled,
+  TbExternalLink,
+  TbHelpHexagonFilled,
+} from "react-icons/tb";
 
 const cards = [
   {
     title: "Collaboration",
-    description:"Work better together — transparent, organized, and always accessible.",
+    description:
+      "Work better together — transparent, organized, and always accessible.",
     // href: "http://gsi.db-ku.com",
     iconLeft: <TbAffiliateFilled size={30} />,
     iconRight: <TbExternalLink />,
   },
   {
     title: "Build to Improve",
-    description: "Designed with adaptability in mind, evolving to support operational excellence.",
+    description:
+      "Designed with adaptability in mind, evolving to support operational excellence.",
     // href: "http://laravel-site.com",
     iconLeft: <TbChartBubbleFilled size={30} />,
-    iconRight: <TbExternalLink/>,
+    iconRight: <TbExternalLink />,
   },
   {
     title: "Need Help?",
@@ -37,7 +44,8 @@ export default function FooterBefore() {
             </h1>
           </div>
           <p className="w-full my-2 text-medium lg:text-large font-normal text-default-500 max-w-full md:w-full text-center flex justify-center items-center">
-          We’re committed to helping you manage assets efficiently and securely.
+            We’re committed to helping you manage assets efficiently and
+            securely.
           </p>
           <div className="mb-12" />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:grid-cols-3">

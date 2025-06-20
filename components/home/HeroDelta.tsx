@@ -5,10 +5,9 @@ import {
 } from "@heroicons/react/24/outline";
 import { Card, CardHeader, CardBody } from "@heroui/card";
 import { Link } from "@heroui/link";
+import { SiSmart, SiViaplay } from "react-icons/si";
 
 import { HeroBgDelta } from "./HeroBg";
-import { FaMountainCity, FaWandMagicSparkles } from "react-icons/fa6";
-import { SiSmart, SiViaplay } from "react-icons/si";
 
 export const ArrowRightEndOnRectangleIcon = ({ size = 20, ...props }) => {
   return <Azvan height={size} width={size} {...props} />;
@@ -22,22 +21,25 @@ export default function HeroDelta() {
   const features = [
     {
       title: "Let's Begin",
-      description: "Track, organize, and optimize your assets with a modern, and intuitive apps. No prior experience needed.",
-      icon: <SiViaplay size={20} />
+      description:
+        "Track, organize, and optimize your assets with a modern, and intuitive apps. No prior experience needed.",
+      icon: <SiViaplay size={20} />,
     },
     {
       title: "Smart Asset Management",
-      description: "Easily monitor asset conditions, locations, and usage — all in one place.",
-      icon: <SiSmart size={20} />
+      description:
+        "Easily monitor asset conditions, locations, and usage — all in one place.",
+      icon: <SiSmart size={20} />,
     },
-  ]
+  ];
+
   return (
     <section className="px-6 md:px-20 relative z-10 flex-col gap-2 bg-transparent dark:bg-transparent before:bg-background/10 before:content-[''] before:block before:z-[-1] before:absolute before:inset-0 before:backdrop-blur-md before:backdrop-saturate-200 border-t border-b border-divider w-full flex justify-center items-center mt-16 lg:mt-44">
       <div className=" w-full max-w-7xl py-10 grid grid-cols-12 gap-6 md:gap-0 z-20">
         <div className="flex flex-col gap-2 col-span-12 md:col-span-6">
           <div className="flex flex-col">
             <h1 className="tracking-tight font-semibold text-[clamp(1rem,10vw,2rem)] sm:text-[clamp(1rem,10vw,3rem)] lg:text-5xl inline">
-              Let's Manage
+              Let&apos;s Manage
             </h1>
             <div>
               <h1 className="tracking-tight inline font-semibold text-[clamp(1rem,10vw,2rem)] sm:text-[clamp(1rem,10vw,3rem)] lg:text-5xl">
@@ -62,11 +64,9 @@ export default function HeroDelta() {
               Get Started
             </Button>
           </div>
-
         </div>
         <div className="col-span-12 md:col-span-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:grid-cols-2">
-
             {features.map((feature, index) => (
               <div key={index} className="flex gap-x-4 items-center">
                 <Card
@@ -85,9 +85,7 @@ export default function HeroDelta() {
                     </div>
                   </CardHeader>
                   <CardBody>
-                    <p>
-                      {feature.description}
-                    </p>
+                    <p>{feature.description}</p>
                   </CardBody>
                 </Card>
               </div>

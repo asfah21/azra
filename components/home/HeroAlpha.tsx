@@ -1,16 +1,22 @@
 // import { Zap } from "lucide-react";
-import { RiAdminFill, RiAedFill, RiBlueskyFill, RiFeedbackFill, RiFocus2Fill, RiGlobalFill, RiTimeFill, RiTimerFlashFill,  } from "react-icons/ri";
+import {
+  RiAdminFill,
+  RiAedFill,
+  RiBlueskyFill,
+  RiFocus2Fill,
+  RiGlobalFill,
+  RiTimerFlashFill,
+} from "react-icons/ri";
 
 export default function HeroAlpha() {
-
   const features = [
-    {title: "Managed focus", icon: <RiFocus2Fill size={24} />},
-    {title: "Real-time data", icon: <RiTimerFlashFill size={24} />},
-    {title: "Optimize Performance", icon: <RiAedFill size={24} />},
-    {title: "Role-based access", icon: <RiAdminFill size={24} />},
-    {title: "Consistent UI patterns", icon: <RiBlueskyFill size={24} />},
-    {title: "Accessible from everywhere", icon: <RiGlobalFill size={24} />},
-  ]
+    { title: "Managed focus", icon: <RiFocus2Fill size={24} /> },
+    { title: "Real-time data", icon: <RiTimerFlashFill size={24} /> },
+    { title: "Optimize Performance", icon: <RiAedFill size={24} /> },
+    { title: "Role-based access", icon: <RiAdminFill size={24} /> },
+    { title: "Consistent UI patterns", icon: <RiBlueskyFill size={24} /> },
+    { title: "Accessible from everywhere", icon: <RiGlobalFill size={24} /> },
+  ];
 
   return (
     <section className="px-6 md:px-20 relative flex flex-col gap-2 w-full z-20 mt-16 lg:mt-32">
@@ -31,7 +37,8 @@ export default function HeroAlpha() {
           </div>
           <p className="w-full md:w-1/2 my-2 text-medium lg:text-large font-normal text-default-500 block max-w-full">
             Our asset management app is built with accessibility in mind,
-            &nbsp;ensuring users of all abilities can interact with the system effortlessly.
+            &nbsp;ensuring users of all abilities can interact with the system
+            effortlessly.
             {/* &nbsp;ensuring exceptional accessibility support as a top priority. */}
           </p>
         </div>
@@ -39,10 +46,11 @@ export default function HeroAlpha() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div aria-hidden="true" className="flex flex-col mt-8 lg:mt-16 gap-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
-
               {features.map((feature, index) => (
-
-                <div key={index} className="flex flex-col relative overflow-hidden h-auto text-foreground box-border outline-none data-[focus-visible=true]:z-10 data-[focus-visible=true]:outline-2 data-[focus-visible=true]:outline-focus data-[focus-visible=true]:outline-offset-2 shadow-medium rounded-large transition-transform-background motion-reduce:transition-none border-transparent backdrop-blur-lg backdrop-saturate-[1.8] bg-white dark:bg-default-400/10">
+                <div
+                  key={index}
+                  className="flex flex-col relative overflow-hidden h-auto text-foreground box-border outline-none data-[focus-visible=true]:z-10 data-[focus-visible=true]:outline-2 data-[focus-visible=true]:outline-focus data-[focus-visible=true]:outline-offset-2 shadow-medium rounded-large transition-transform-background motion-reduce:transition-none border-transparent backdrop-blur-lg backdrop-saturate-[1.8] bg-white dark:bg-default-400/10"
+                >
                   <div className="flex p-3 z-10 w-full justify-start items-center shrink-0 overflow-inherit color-inherit subpixel-antialiased rounded-t-large gap-2 pb-3">
                     <div className="flex justify-center p-2 rounded-full items-center bg-default-100 dark:bg-transparent text-default-500/50">
                       {feature.icon}
@@ -50,9 +58,7 @@ export default function HeroAlpha() {
                     <p className="text-base font-semibold">{feature.title}</p>
                   </div>
                 </div>
-
               ))}
-
             </div>
             <a
               aria-label="Learn more about accessibility"
@@ -65,7 +71,6 @@ export default function HeroAlpha() {
           </div>
           <div className="flex relative w-full bg-gradient-to-r from-[#4ADE80] to-[#06B6D4] rounded-2xl h-full min-h-[200px] lg:min-h-[390px] max-h-[300px] lg:pt-8 items-center lg:items-start justify-center" />
         </div>
-
       </div>
     </section>
   );
