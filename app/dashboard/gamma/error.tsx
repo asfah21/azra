@@ -1,9 +1,20 @@
-// app/dashboard/gamma/error.tsx
 "use client";
 
 import { Users } from "lucide-react";
+import { useEffect } from 'react'
 
-export default function Error({ error, reset }: { error: Error; reset: () => void }) {
+export default function Error({
+  error,
+  reset,
+}: {
+  error: Error & { digest?: string }
+  reset: () => void
+}) {
+  useEffect(() => {
+    // Log the error to an error reporting service
+    console.error(error)
+  }, [error])
+  
   return (
     <div className="p-4 sm:p-6 max-w-7xl mx-auto">
       <div className="flex flex-col items-center justify-center min-h-[400px] text-center">
