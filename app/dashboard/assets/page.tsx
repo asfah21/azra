@@ -128,11 +128,9 @@ export default async function AssetsPage() {
     ]);
 
     // Extract hasil dengan fallback values
-    const totalAssets =
-      totalResult.status === "fulfilled" ? totalResult.value : 0;
+    const totalAssets = totalResult.status === "fulfilled" ? totalResult.value : 0;
     const newAssets = newResult.status === "fulfilled" ? newResult.value : 0;
-    const dataTable =
-      tableResult.status === "fulfilled" ? tableResult.value : [];
+    const dataTable = tableResult.status === "fulfilled" ? tableResult.value : [];
 
     // Log jika ada yang gagal
     if (totalResult.status === "rejected") {

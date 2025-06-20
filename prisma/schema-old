@@ -62,19 +62,18 @@ model Unit {
 }
 
 model Breakdown {
-  id              String               @id @default(uuid())
-  breakdownNumber String?
-  description     String
-  breakdownTime   DateTime
-  workingHours    Float
-  status          BreakdownStatus      @default(pending)
-  createdAt       DateTime             @default(now())
-  unitId          String
-  reportedById    String
-  reportedBy      User                 @relation("ReportedBy", fields: [reportedById], references: [id])
-  unit            Unit                 @relation(fields: [unitId], references: [id])
-  components      BreakdownComponent[]
-  rfuReport       RFUReport?
+  id            String               @id @default(uuid())
+  description   String
+  breakdownTime DateTime
+  workingHours  Float
+  status        BreakdownStatus      @default(pending)
+  createdAt     DateTime             @default(now())
+  unitId        String
+  reportedById  String
+  reportedBy    User                 @relation("ReportedBy", fields: [reportedById], references: [id])
+  unit          Unit                 @relation(fields: [unitId], references: [id])
+  components    BreakdownComponent[]
+  rfuReport     RFUReport?
 }
 
 model BreakdownComponent {
@@ -117,5 +116,4 @@ enum BreakdownStatus {
   pending
   in_progress
   rfu
-  overdue
 }

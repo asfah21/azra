@@ -6,6 +6,7 @@ import {
   CardBody,
   CardHeader,
   Chip,
+  Divider,
   Progress,
 } from "@heroui/react";
 import {
@@ -17,8 +18,21 @@ import {
   TrendingUp,
   UserIcon,
 } from "lucide-react";
+import { GoTasklist } from "react-icons/go";
+import { SiProgress, SiTask } from "react-icons/si";
 
-export default function WoCardGrid() {
+interface WoStats {
+  total: number;
+  progress: number;
+  pending: number;
+  overdue: number;
+}
+
+interface WoStatsCardsProps {
+  stats: WoStats;
+}
+
+export default function WoCardGrid({ stats }: WoStatsCardsProps) {
   // Mock data untuk work orders
   const workOrderStats = {
     totalOrders: 847,
@@ -47,15 +61,20 @@ export default function WoCardGrid() {
             </p>
           </div>
         </CardHeader>
+        <Divider className="bg-primary-200" />
         <CardBody className="px-3 sm:px-6 py-2 sm:py-4">
           <div className="space-y-2 sm:space-y-3">
             <div className="flex justify-between items-center">
               <span className="text-xl sm:text-2xl font-bold text-primary-700">
-                {workOrderStats.totalOrders}
+                {stats.total}
               </span>
-              <Chip color="primary" size="sm" variant="flat">
-                <TrendingUp className="w-3 h-3 mr-1" />
-                Active
+              <Chip
+                color="primary"
+                size="sm"
+                startContent={<TrendingUp className="w-3 h-3" />}
+                variant="flat"
+              >
+                Active {/* {userStats.growthRate} */}
               </Chip>
             </div>
             <p className="text-xs sm:text-small text-default-600">
@@ -80,19 +99,21 @@ export default function WoCardGrid() {
             </p>
           </div>
         </CardHeader>
+        <Divider className="bg-success-200" />
         <CardBody className="px-3 sm:px-6 py-2 sm:py-4">
           <div className="space-y-2 sm:space-y-3">
             <div className="flex justify-between items-center">
               <span className="text-xl sm:text-2xl font-bold text-success-700">
-                {workOrderStats.inProgressOrders}
+                {stats.progress}
               </span>
-              <Badge
+              <Chip
                 color="success"
-                content={workOrderStats.completedToday}
+                size="sm"
+                startContent={<GoTasklist className="w-3.5 h-3.5" />}
                 variant="flat"
               >
-                <div className="w-3 h-3 sm:w-4 sm:h-4 bg-success-500 rounded-full animate-pulse" />
-              </Badge>
+                Task
+              </Chip>
             </div>
             <div className="space-y-1 sm:space-y-2">
               <div className="flex justify-between">
@@ -127,11 +148,12 @@ export default function WoCardGrid() {
             <p className="text-xs sm:text-small text-warning-600">Awaiting</p>
           </div>
         </CardHeader>
+        <Divider className="bg-warning-200" />
         <CardBody className="px-3 sm:px-6 py-2 sm:py-4">
           <div className="space-y-2 sm:space-y-3">
             <div className="flex justify-between items-center">
               <span className="text-xl sm:text-2xl font-bold text-warning-700">
-                {workOrderStats.pendingOrders}
+                {stats.pending}
               </span>
               <Chip
                 color="warning"
@@ -162,11 +184,12 @@ export default function WoCardGrid() {
             <p className="text-xs sm:text-small text-danger-600">Past Due</p>
           </div>
         </CardHeader>
+        <Divider className="bg-danger-200" />
         <CardBody className="px-3 sm:px-6 py-2 sm:py-4">
           <div className="space-y-2 sm:space-y-3">
             <div className="flex justify-between items-center">
               <span className="text-xl sm:text-2xl font-bold text-danger-700">
-                {workOrderStats.overdueOrders}
+                {stats.overdue}
               </span>
               <Chip
                 color="danger"

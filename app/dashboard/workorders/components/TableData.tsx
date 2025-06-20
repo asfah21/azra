@@ -19,6 +19,9 @@ import {
   DropdownTrigger,
   DropdownMenu,
   DropdownItem,
+  useDisclosure,
+  Modal,
+  ModalContent,
 } from "@heroui/react";
 import {
   Wrench,
@@ -34,9 +37,66 @@ import {
   Zap,
   Settings,
   CheckSquare,
+  PlusIcon,
 } from "lucide-react";
 
-export default function WoUserTable() {
+import { useRouter } from "next/navigation";
+import { AddWoForm } from "./AddForm";
+
+interface BreakdownPayload {
+  id: string;
+  breakdownNumber: string;
+  description: string;
+  breakdownTime: Date;
+  workingHours: number;
+  status: 'pending' | 'in_progress' | 'rfu' | 'overdue';
+  createdAt: Date;
+  unitId: string;
+  reportedById: string;
+  unit: {
+    id: string;
+    assetTag: string;
+    name: string;
+    location: string;
+    department: string | null;  // Updated to allow null
+    categoryId: number;
+  };
+  reportedBy: {
+    id: string;
+    name: string;
+    email: string;
+  };
+  components: {
+    id: string;
+    component: string;
+    subcomponent: string;
+  }[];
+  rfuReport?: {
+    id: string;
+    solution: string;
+    resolvedAt: Date;
+    resolvedById: string;
+    resolvedBy: {
+      id: string;
+      name: string;
+    };
+  } | null;
+}
+
+interface ManagementClientProps {
+  dataTable: BreakdownPayload[];
+}
+
+export default function WoUserTable({dataTable}: ManagementClientProps) {
+  const { isOpen, onOpen, onOpenChange } = useDisclosure();
+  const router = useRouter();
+
+  const handleUserAdded = () => {
+    // Refresh halaman untuk update data setelah user ditambah
+    router.refresh();
+    onOpenChange();
+  };
+
   const recentWorkOrders = [
     {
       id: "WO-2024-001",
@@ -201,6 +261,7 @@ export default function WoUserTable() {
   };
 
   return (
+    <>
     <Card>
       <CardHeader className="flex gap-3">
         <div className="p-2 bg-default-500 rounded-lg">
@@ -225,12 +286,14 @@ export default function WoUserTable() {
             Filter
           </Button>
           <Button
-            color="primary"
-            size="sm"
-            startContent={<Plus className="w-4 h-4" />}
-          >
-            New Order
-          </Button>
+              className="flex-1 sm:flex-none"
+              color="primary"
+              size="sm"
+              startContent={<PlusIcon className="w-4 h-4" />}
+              onPress={onOpen}
+            >
+              Add WO
+            </Button>
         </div>
       </CardHeader>
       <Divider />
@@ -247,21 +310,21 @@ export default function WoUserTable() {
               <TableColumn>ACTIONS</TableColumn>
             </TableHeader>
             <TableBody>
-              {recentWorkOrders.map((order) => (
+              {dataTable.map((order) => (
                 <TableRow key={order.id}>
                   <TableCell>
                     <div className="flex flex-col gap-1">
                       <div className="flex items-center gap-2">
-                        <span className="font-medium text-sm">{order.id}</span>
+                        <span className="font-medium text-sm">{order.breakdownNumber ?? "Not Found!"}</span>
                         <span className="text-xs">
-                          {getTypeIcon(order.type)}
+                          {getTypeIcon(order.unit.assetTag)}
                         </span>
                       </div>
                       <p className="text-xs text-default-600 line-clamp-1">
-                        {order.title}
+                        {order.unit.name}
                       </p>
                       <p className="text-xs text-default-500">
-                        Equipment: {order.equipment}
+                        Asset ID: {order.unit.assetTag}
                       </p>
                     </div>
                   </TableCell>
@@ -269,24 +332,25 @@ export default function WoUserTable() {
                     <User
                       avatarProps={{
                         radius: "lg",
-                        src: order.assigneeAvatar,
+                        // src: order.assigneeAvatar,
                         size: "sm",
                       }}
                       classNames={{
                         description: "text-default-500",
                       }}
-                      description={order.department}
-                      name={order.assignee}
+                      description={order.unit.department}
+                      name={order.reportedBy.name}
                     />
                   </TableCell>
                   <TableCell>
                     <Chip
-                      color={getPriorityColor(order.priority) as any}
+                      // color={getPriorityColor(order.priority) as any}
+                      color="primary"
                       size="sm"
-                      startContent={getPriorityIcon(order.priority)}
+                      // startContent={getPriorityIcon(order.priority)}
                       variant="flat"
                     >
-                      {order.priority}
+                      {/* {order.priority} */} <p>RFU</p>
                     </Chip>
                   </TableCell>
                   <TableCell>
@@ -298,7 +362,7 @@ export default function WoUserTable() {
                       >
                         {order.status}
                       </Chip>
-                      {order.status === "in-progress" && (
+                      {/* {order.status === "in-progress" && (
                         <Progress
                           className="max-w-20"
                           color="primary"
@@ -308,22 +372,22 @@ export default function WoUserTable() {
                             order.estimatedHours,
                           )}
                         />
-                      )}
+                      )} */} <p>Est</p>
                     </div>
                   </TableCell>
                   <TableCell>
                     <div className="text-small">
-                      <p className="font-medium">{order.location}</p>
+                      {/* <p className="font-medium">{order.location}</p> */}<p>Location</p>
                       <p className="text-default-500 text-xs">
-                        {order.equipment}
+                        {/* {order.equipment} */} Equipment
                       </p>
                     </div>
                   </TableCell>
                   <TableCell>
                     <div className="text-small">
-                      <p className="font-medium">{order.dueDate}</p>
+                      {/* <p className="font-medium">{order.dueDate}</p> */}<p>Order</p>
                       <p className="text-default-500 text-xs">
-                        {order.estimatedHours}h est.
+                        {/* {order.estimatedHours}h est. */}est.
                       </p>
                     </div>
                   </TableCell>
@@ -379,5 +443,21 @@ export default function WoUserTable() {
         </div>
       </CardBody>
     </Card>
+    {/* Modal */}
+    <div className="mx-4">
+        <Modal
+          isOpen={isOpen}
+          placement="top-center"
+          size="2xl"
+          onOpenChange={onOpenChange}
+        >
+          <ModalContent>
+            {(onClose) => (
+              <AddWoForm onClose={onClose} onBreakdownAdded={handleUserAdded} />
+            )}
+          </ModalContent>
+        </Modal>
+      </div>
+    </>
   );
 }
