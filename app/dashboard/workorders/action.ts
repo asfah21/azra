@@ -27,37 +27,33 @@ export async function getUnits() {
   }
 }
 
-async function getNextBreakdownNumber(prefix: string) {
-  try {
-    // Cari breakdown terakhir dengan prefix yang sama
-    const lastBreakdown = await prisma.breakdown.findFirst({
-      where: {
-        breakdownNumber: {
-          startsWith: prefix,
-        },
+// Fungsi untuk generate nomor breakdown berikutnya
+export async function getNextBreakdownNumber(role: string) {
+  const prefix = (role === "super_admin" || role === "admin_elec") ? "WOIT-" : "WO-";
+  // Cari nomor terakhir dengan prefix yang sesuai
+  const last = await prisma.breakdown.findFirst({
+    where: {
+      breakdownNumber: {
+        startsWith: prefix,
       },
-      orderBy: {
-        breakdownNumber: "desc",
-      },
-    });
+    },
+    orderBy: {
+      breakdownNumber: "desc",
+    },
+  });
 
-    if (!lastBreakdown) {
-      // Jika belum ada breakdown dengan prefix ini, mulai dari 0001
-      return `${prefix}-0001`;
+  let nextNumber = 1;
+  if (last && last.breakdownNumber) {
+    // Ambil angka di belakang prefix, misal dari WOIT-0005 ambil 5
+    const match = last.breakdownNumber.match(/\d+$/);
+    if (match) {
+      nextNumber = parseInt(match[0], 10) + 1;
     }
-
-    // Ambil angka dari breakdown number terakhir
-    const lastNumber = lastBreakdown.breakdownNumber
-      ? parseInt(lastBreakdown.breakdownNumber.split("-")[1])
-      : 0;
-    // Tambah 1 dan format dengan leading zeros
-    const nextNumber = (lastNumber + 1).toString().padStart(4, "0");
-
-    return `${prefix}-${nextNumber}`;
-  } catch (error) {
-    console.error("Error getting next breakdown number:", error);
-    throw error;
   }
+
+  // Format dengan leading zero, misal 6 jadi 0006
+  const nextBreakdownNumber = `${prefix}${nextNumber.toString().padStart(4, "0")}`;
+  return nextBreakdownNumber;
 }
 
 export async function createBreakdown(prevState: any, formData: FormData) {

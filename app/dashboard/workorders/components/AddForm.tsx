@@ -16,7 +16,7 @@ import {
   Chip,
 } from "@heroui/react";
 
-import { createBreakdown, getUnits } from "../action";
+import { createBreakdown, getUnits, getNextBreakdownNumber } from "../action";
 
 interface AddWoFormProps {
   onClose: () => void;
@@ -83,10 +83,12 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
   }, [state?.success, state?.message, onClose, onBreakdownAdded]);
 
   useEffect(() => {
-    if (userRole === "super_admin" || userRole === "admin_elec") {
-      setBreakdownNumber("WOIT-0001");
-    } else {
-      setBreakdownNumber("WO-0001");
+    async function fetchBreakdownNumber() {
+      const number = await getNextBreakdownNumber(userRole);
+      setBreakdownNumber(number);
+    }
+    if (userRole) {
+      fetchBreakdownNumber();
     }
   }, [userRole]);
 
