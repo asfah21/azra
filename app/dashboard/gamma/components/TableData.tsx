@@ -22,6 +22,9 @@ import {
   Modal,
   ModalContent,
   Progress,
+  Pagination,
+  getKeyValue,
+  Input,
 } from "@heroui/react";
 import {
   Wrench,
@@ -36,9 +39,10 @@ import {
   Settings,
   CheckSquare,
   PlusIcon,
+  Search,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useSession } from "next-auth/react";
 
 import { deleteBreakdown, updateBreakdownStatus } from "../action";
@@ -102,6 +106,50 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
   const [selectedBreakdown, setSelectedBreakdown] =
     useState<BreakdownPayload | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+
+  // State untuk pagination
+  const [page, setPage] = useState(1);
+  const rowsPerPage = 10;
+
+  // State untuk search
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Filter data berdasarkan search query
+  const filteredData = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return dataTable;
+    }
+
+    const query = searchQuery.toLowerCase();
+    return dataTable.filter((item) => {
+      return (
+        item.breakdownNumber?.toLowerCase().includes(query) ||
+        item.unit.name.toLowerCase().includes(query) ||
+        item.unit.assetTag.toLowerCase().includes(query) ||
+        item.reportedBy.name.toLowerCase().includes(query) ||
+        item.unit.department?.toLowerCase().includes(query) ||
+        item.description.toLowerCase().includes(query) ||
+        item.status.toLowerCase().includes(query) ||
+        item.priority?.toLowerCase().includes(query)
+      );
+    });
+  }, [dataTable, searchQuery]);
+
+  // Hitung data yang akan ditampilkan berdasarkan halaman
+  const pages = Math.ceil(filteredData.length / rowsPerPage);
+  
+  const items = useMemo(() => {
+    const start = (page - 1) * rowsPerPage;
+    const end = start + rowsPerPage;
+    
+    return filteredData.slice(start, end);
+  }, [page, filteredData]);
+
+  // Reset page ketika search berubah
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    setPage(1); // Reset ke halaman pertama ketika search berubah
+  };
 
   const handleAction = async (action: () => Promise<any>) => {
     try {
@@ -290,6 +338,15 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
             </p>
           </div>
           <div className="flex gap-2">
+            <Input
+              className="hidden sm:flex w-64"
+              placeholder="Search work orders..."
+              size="sm"
+              startContent={<Search className="w-4 h-4 text-default-400" />}
+              value={searchQuery}
+              onValueChange={handleSearchChange}
+              variant="flat"
+            />
             <Button
               className="hidden sm:flex"
               color="default"
@@ -312,8 +369,34 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
         </CardHeader>
         <Divider />
         <CardBody className="px-0">
+          {/* Search input untuk mobile */}
+          <div className="px-6 pb-4 sm:hidden">
+            <Input
+              placeholder="Search work orders..."
+              size="sm"
+              startContent={<Search className="w-4 h-4 text-default-400" />}
+              value={searchQuery}
+              onValueChange={handleSearchChange}
+              variant="flat"
+            />
+          </div>
           <div className="overflow-x-auto">
-            <Table aria-label="Work orders table">
+            <Table 
+              aria-label="Work orders table"
+              bottomContent={
+                <div className="flex w-full justify-center">
+                  <Pagination
+                    isCompact
+                    showControls
+                    showShadow
+                    color="primary"
+                    page={page}
+                    total={pages}
+                    onChange={(page) => setPage(page)}
+                  />
+                </div>
+              }
+            >
               <TableHeader>
                 <TableColumn>ORDER</TableColumn>
                 <TableColumn>ASSIGNEE</TableColumn>
@@ -324,7 +407,7 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
                 <TableColumn>ACTIONS</TableColumn>
               </TableHeader>
               <TableBody>
-                {dataTable.map((order) => (
+                {items.map((order) => (
                   <TableRow key={order.id}>
                     <TableCell>
                       <div className="flex flex-col gap-1">
