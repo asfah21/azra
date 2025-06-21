@@ -1,9 +1,9 @@
-import { Users } from "lucide-react";
 
 import GammaCardGrid from "./components/CardGrid";
 
 import { prisma } from "@/lib/prisma";
 import { PaperClipIcon } from "@heroicons/react/24/outline";
+import GammaTableData from "./components/TableData";
 
 export default async function GammaPage() {
   const allBreakdowns = await prisma.breakdown.findMany({
@@ -18,11 +18,24 @@ export default async function GammaPage() {
       unit: {
         select: {
           id: true,
+          assetTag: true,
           name: true,
+          location: true,
+          department: true,
+          categoryId: true,
         },
       },
       components: true,
-      rfuReport: true,
+      rfuReport: {
+        include: {
+          resolvedBy: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+      },
     },
     orderBy: {
       createdAt: "desc",
@@ -50,7 +63,9 @@ export default async function GammaPage() {
         <GammaCardGrid stats={allBreakdowns} />
       </div>
 
-      <h1>Daftar Breakdown</h1>
+      <GammaTableData dataTable={allBreakdowns} />
+
+      {/* <h1>Daftar Breakdown</h1>
       <div className="grid gap-4">
         {allBreakdowns.map((breakdown) => (
           <div key={breakdown.id} className="border p-4 rounded">
@@ -81,7 +96,7 @@ export default async function GammaPage() {
             )}
           </div>
         ))}
-      </div>
+      </div> */}
     </div>
   );
 
