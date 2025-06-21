@@ -64,6 +64,7 @@ model Unit {
 model Breakdown {
   id              String               @id @default(uuid())
   breakdownNumber String?
+  priority        String?
   description     String
   breakdownTime   DateTime
   workingHours    Float

@@ -291,6 +291,9 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
               variant="bordered"
             />
 
+            {/* Hidden priority input with default value "medium" */}
+            <input name="priority" type="hidden" value="medium" />
+
             <Input
               isRequired
               classNames={{
@@ -453,7 +456,9 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
           className="font-medium bg-gradient-to-r from-blue-500 to-purple-600 text-white"
           color="primary"
           form="addBreakdownForm"
-          isDisabled={components.length === 0 || !selectedUnitId || isSubmitting}
+          isDisabled={
+            components.length === 0 || !selectedUnitId || isSubmitting
+          }
           isLoading={isSubmitting}
           spinner={
             <svg

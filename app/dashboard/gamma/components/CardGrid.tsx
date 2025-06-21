@@ -12,10 +12,8 @@ import {
   Activity,
   AlertTriangle,
   Calendar,
-  CircleCheckBig,
   Clock,
   FileText,
-  LaptopMinimalCheck,
   SquareCheckBig,
   TrendingUp,
   UserIcon,
@@ -38,16 +36,16 @@ export default function GammaCardGrid({ stats }: WoStatsCardsProps) {
   const total = stats.length;
   const progress = stats.filter((b) => b.status === "in_progress").length;
   const rfu = stats.filter((b) => b.status === "rfu").length;
-  
+
   // Hitung overdue: status pending yang sudah lebih dari 30 hari sejak created
   const thirtyDaysAgo = new Date();
+
   thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 3);
-  
-  const overdue = stats.filter((b) => 
-    b.status === "pending" && 
-    new Date(b.createdAt) < thirtyDaysAgo
+
+  const overdue = stats.filter(
+    (b) => b.status === "pending" && new Date(b.createdAt) < thirtyDaysAgo,
   ).length;
-  
+
   // Hitung pending: semua status pending dikurangi dengan yang overdue
   const allPending = stats.filter((b) => b.status === "pending").length;
   const pending = allPending - overdue;

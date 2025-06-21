@@ -27,37 +27,41 @@ export async function getUnits() {
   }
 }
 
-// Fungsi untuk generate nomor breakdown berikutnya
+// Fungsi untuk generate nomor breakdown berikutnya dengan transaction
 export async function getNextBreakdownNumber(role: string) {
   const prefix =
     role === "super_admin" || role === "admin_elec" ? "WOIT-" : "WO-";
-  // Cari nomor terakhir dengan prefix yang sesuai
-  const last = await prisma.breakdown.findFirst({
-    where: {
-      breakdownNumber: {
-        startsWith: prefix,
+
+  // Gunakan transaction untuk memastikan atomicity
+  return await prisma.$transaction(async (tx) => {
+    // Lock dan cari nomor terakhir dengan prefix yang sesuai
+    const last = await tx.breakdown.findFirst({
+      where: {
+        breakdownNumber: {
+          startsWith: prefix,
+        },
       },
-    },
-    orderBy: {
-      breakdownNumber: "desc",
-    },
-  });
+      orderBy: {
+        breakdownNumber: "desc",
+      },
+    });
 
-  let nextNumber = 1;
+    let nextNumber = 1;
 
-  if (last && last.breakdownNumber) {
-    // Ambil angka di belakang prefix, misal dari WOIT0005 ambil 5
-    const match = last.breakdownNumber.match(/\d+$/);
+    if (last && last.breakdownNumber) {
+      // Ambil angka di belakang prefix, misal dari WOIT0005 ambil 5
+      const match = last.breakdownNumber.match(/\d+$/);
 
-    if (match) {
-      nextNumber = parseInt(match[0], 10) + 1;
+      if (match) {
+        nextNumber = parseInt(match[0], 10) + 1;
+      }
     }
-  }
 
-  // Format dengan leading zero, misal 6 jadi 0006
-  const nextBreakdownNumber = `${prefix}${nextNumber.toString().padStart(4, "0")}`;
+    // Format dengan leading zero, misal 6 jadi 0006
+    const nextBreakdownNumber = `${prefix}${nextNumber.toString().padStart(4, "0")}`;
 
-  return nextBreakdownNumber;
+    return nextBreakdownNumber;
+  });
 }
 
 export async function createBreakdown(prevState: any, formData: FormData) {
@@ -69,6 +73,7 @@ export async function createBreakdown(prevState: any, formData: FormData) {
     const workingHours = parseFloat(formData.get("workingHours") as string);
     const unitId = formData.get("unitId") as string;
     const reportedById = formData.get("reportedById") as string;
+    const priority = formData.get("priority") as string;
 
     // Get components from form data
     const components: Array<{ component: string; subcomponent: string }> = [];
@@ -90,7 +95,8 @@ export async function createBreakdown(prevState: any, formData: FormData) {
       !breakdownTime ||
       isNaN(workingHours) ||
       !unitId ||
-      !reportedById
+      !reportedById ||
+      !priority
     ) {
       return { success: false, message: "All required fields must be filled!" };
     }
@@ -100,6 +106,13 @@ export async function createBreakdown(prevState: any, formData: FormData) {
         success: false,
         message: "At least one component must be added!",
       };
+    }
+
+    // Validate priority value
+    const validPriorities = ["medium", "high", "urgent"];
+
+    if (!validPriorities.includes(priority)) {
+      return { success: false, message: "Invalid priority value!" };
     }
 
     // Check if unit exists
@@ -139,6 +152,7 @@ export async function createBreakdown(prevState: any, formData: FormData) {
         description,
         breakdownTime: new Date(breakdownTime),
         workingHours,
+        priority,
         status: BreakdownStatus.pending,
         unitId,
         reportedById,

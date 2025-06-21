@@ -1,9 +1,9 @@
+import { PaperClipIcon } from "@heroicons/react/24/outline";
 
 import GammaCardGrid from "./components/CardGrid";
+import GammaTableData from "./components/TableData";
 
 import { prisma } from "@/lib/prisma";
-import { PaperClipIcon } from "@heroicons/react/24/outline";
-import GammaTableData from "./components/TableData";
 
 export default async function GammaPage() {
   const allBreakdowns = await prisma.breakdown.findMany({
@@ -99,5 +99,4 @@ export default async function GammaPage() {
       </div> */}
     </div>
   );
-
 }
