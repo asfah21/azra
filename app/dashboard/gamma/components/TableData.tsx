@@ -38,7 +38,13 @@ import {
     PlusIcon,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { AddWoForm } from "./AddForm";
+import { deleteBreakdown, updateBreakdownStatus } from "../action";
+import BreakdownDetailModal from "./BreakdownDetailModal";
+
+// Tambahkan import untuk mendapatkan current user
+import { useSession } from "next-auth/react";
 
 interface BreakdownPayload {
     id: string;
@@ -87,12 +93,74 @@ interface WoStatsCardsProps {
 export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
     const { isOpen, onOpen, onOpenChange } = useDisclosure();
     const router = useRouter();
+    const { data: session } = useSession();
+    
+    // State untuk modal detail
+    const [selectedBreakdown, setSelectedBreakdown] = useState<BreakdownPayload | null>(null);
+    const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+
+    const handleAction = async (action: () => Promise<any>) => {
+        try {
+            const result = await action();
+
+            if (result.success) {
+                // Mungkin bisa ditambahkan notifikasi sukses di sini
+                console.log(result.message);
+            } else {
+                // Mungkin bisa ditambahkan notifikasi error di sini
+                console.error(result.message);
+            }
+        } catch (error) {
+            console.error("An unexpected error occurred:", error);
+        }
+    };
+
+    const handleMarkAsRfu = (id: string) => {
+        if (window.confirm("Are you sure you want to mark this as RFU?")) {
+            // Gunakan ID user yang sedang login
+            const currentUserId = session?.user?.id;
+            if (currentUserId) {
+                handleAction(() => updateBreakdownStatus(id, "rfu", currentUserId));
+            } else {
+                handleAction(() => updateBreakdownStatus(id, "rfu"));
+            }
+        }
+    };
+
+    const handleMarkAsInProgress = (id: string) => {
+        if (window.confirm("Are you sure you want to mark this as In Progress?")) {
+            // Gunakan ID user yang sedang login
+            const currentUserId = session?.user?.id;
+            if (currentUserId) {
+                handleAction(() => updateBreakdownStatus(id, "in_progress", currentUserId));
+            } else {
+                handleAction(() => updateBreakdownStatus(id, "in_progress"));
+            }
+        }
+    };
+
+    const handleDelete = (id: string) => {
+        if (window.confirm("Are you sure you want to delete this order?")) {
+            handleAction(() => deleteBreakdown(id));
+        }
+    };
 
     const handleUserAdded = () => {
         // Refresh halaman untuk update data setelah user ditambah
         router.refresh();
         onOpenChange();
     };
+
+    const handleViewDetails = (breakdown: BreakdownPayload) => {
+        setSelectedBreakdown(breakdown);
+        setIsDetailModalOpen(true);
+    };
+
+    const handleCloseDetailModal = () => {
+        setIsDetailModalOpen(false);
+        setSelectedBreakdown(null);
+    };
+
     const getStatusColor = (status: string) => {
         switch (status) {
             case "completed":
@@ -265,34 +333,50 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
                                                         <DropdownItem
                                                             key="details"
                                                             startContent={<Eye className="w-4 h-4" />}
+                                                            onPress={() => handleViewDetails(order)}
                                                         >
                                                             View Details
                                                         </DropdownItem>
                                                         <DropdownItem
                                                             key="edit"
                                                             startContent={<Edit className="w-4 h-4" />}
+                                                            onPress={() => router.push(`/dashboard/gamma/${order.id}/edit`)}
                                                         >
                                                             Edit Order
                                                         </DropdownItem>
-                                                        <DropdownItem
-                                                            key="completed"
-                                                            startContent={<CheckSquare className="w-4 h-4" />}
-                                                        >
-                                                            Mark Complete
-                                                        </DropdownItem>
-                                                        <DropdownItem
+                                                        {order.status === "in_progress" ? (
+                                                            <DropdownItem
+                                                                key="completed"
+                                                                startContent={<CheckSquare className="w-4 h-4" />}
+                                                                onPress={() => handleMarkAsRfu(order.id)}
+                                                            >
+                                                                Mark as RFU
+                                                            </DropdownItem>
+                                                        ) : null}
+                                                        {order.status === "pending" ? (
+                                                            <DropdownItem
+                                                                key="in-progress"
+                                                                startContent={<Clock className="w-4 h-4" />}
+                                                                onPress={() => handleMarkAsInProgress(order.id)}
+                                                            >
+                                                                Mark as In Progress
+                                                            </DropdownItem>
+                                                        ) : null}
+                                                        {/* <DropdownItem
                                                             key="reassign"
                                                             startContent={<UserIcon className="w-4 h-4" />}
+                                                            isDisabled
                                                         >
                                                             Reassign
-                                                        </DropdownItem>
+                                                        </DropdownItem> */}
                                                         <DropdownItem
                                                             key="cancel"
                                                             className="text-danger"
                                                             color="danger"
                                                             startContent={<Trash2 className="w-4 h-4" />}
+                                                            onPress={() => handleDelete(order.id)}
                                                         >
-                                                            Cancel Order
+                                                            Delete Order
                                                         </DropdownItem>
                                                     </DropdownMenu>
                                                 </Dropdown>
@@ -320,6 +404,13 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
                     </ModalContent>
                 </Modal>
             </div>
+
+            {/* Modal untuk Detail Breakdown */}
+            <BreakdownDetailModal
+                isOpen={isDetailModalOpen}
+                onClose={handleCloseDetailModal}
+                breakdown={selectedBreakdown}
+            />
         </div>
     );
 }

@@ -165,8 +165,7 @@ export async function createBreakdown(prevState: any, formData: FormData) {
       },
     });
 
-    revalidatePath("/units");
-    revalidatePath("/docs");
+    revalidatePath("/dashboard/gamma");
 
     return {
       success: true,
@@ -188,5 +187,132 @@ export async function createBreakdown(prevState: any, formData: FormData) {
       success: false,
       message: "Failed to report breakdown. Please try again.",
     };
+  }
+}
+
+export async function updateBreakdownStatus(
+  id: string,
+  status: BreakdownStatus,
+  resolvedById?: string, // Tambahkan parameter untuk user yang menandai RFU
+) {
+  try {
+    const updatedBreakdown = await prisma.breakdown.update({
+      where: { id },
+      data: { status },
+      include: { unit: true },
+    });
+
+    // Jika status adalah RFU dan ada resolvedById, buat RFUReport
+    if (status === "rfu" && resolvedById) {
+      await prisma.rFUReport.create({
+        data: {
+          solution: "Marked as RFU by user", // Default solution
+          breakdownId: id,
+          resolvedById: resolvedById,
+        },
+      });
+    }
+
+    await prisma.unitHistory.create({
+      data: {
+        logType: "status_update",
+        referenceId: updatedBreakdown.id,
+        message: `Status for breakdown ${updatedBreakdown.breakdownNumber} on unit ${updatedBreakdown.unit.name} updated to ${status}.`,
+        unitId: updatedBreakdown.unitId,
+      },
+    });
+
+    revalidatePath("/dashboard/gamma");
+
+    return { success: true, message: "Breakdown status updated." };
+  } catch (error) {
+    console.error("Error updating breakdown status:", error);
+
+    return { success: false, message: "Failed to update status." };
+  }
+}
+
+export async function deleteBreakdown(id: string) {
+  try {
+    const breakdownToDelete = await prisma.breakdown.findUnique({
+      where: { id },
+      select: {
+        unitId: true,
+        breakdownNumber: true,
+        unit: {
+          select: {
+            name: true,
+            assetTag: true,
+          },
+        },
+      },
+    });
+
+    if (!breakdownToDelete) {
+      return { success: false, message: "Breakdown not found!" };
+    }
+
+    await prisma.$transaction([
+      prisma.rFUReport.deleteMany({
+        where: { breakdownId: id },
+      }),
+      prisma.breakdownComponent.deleteMany({
+        where: { breakdownId: id },
+      }),
+      prisma.breakdown.delete({
+        where: { id },
+      }),
+    ]);
+
+    await prisma.unitHistory.create({
+      data: {
+        logType: "breakdown_deleted",
+        referenceId: id,
+        message: `Breakdown report ${breakdownToDelete.breakdownNumber} for ${breakdownToDelete.unit.name} deleted.`,
+        unitId: breakdownToDelete.unitId,
+      },
+    });
+
+    revalidatePath("/dashboard/gamma");
+
+    return { success: true, message: "Breakdown deleted successfully!" };
+  } catch (error) {
+    console.error("Error deleting breakdown:", error);
+
+    return { success: false, message: "Failed to delete breakdown." };
+  }
+}
+
+export async function getBreakdownById(id: string) {
+  try {
+    const breakdown = await prisma.breakdown.findUnique({
+      where: { id },
+      include: {
+        unit: true,
+        reportedBy: {
+          select: {
+            name: true,
+            email: true,
+            id: true,
+          },
+        },
+        components: true,
+        rfuReport: {
+          include: {
+            resolvedBy: true,
+          },
+        },
+      },
+    });
+
+    if (!breakdown) {
+      return null;
+    }
+
+    return breakdown;
+  } catch (error) {
+    console.error("Error fetching breakdown:", error);
+
+    return null;
   }
 }

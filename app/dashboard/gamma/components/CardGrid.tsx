@@ -12,8 +12,11 @@ import {
   Activity,
   AlertTriangle,
   Calendar,
+  CircleCheckBig,
   Clock,
   FileText,
+  LaptopMinimalCheck,
+  SquareCheckBig,
   TrendingUp,
   UserIcon,
 } from "lucide-react";
@@ -22,6 +25,7 @@ import { GoTasklist } from "react-icons/go";
 // Breakdown type minimal agar type-safe
 interface Breakdown {
   status: string;
+  createdAt: Date;
   // tambahkan field lain jika perlu
 }
 
@@ -33,8 +37,20 @@ export default function GammaCardGrid({ stats }: WoStatsCardsProps) {
   // Hitung statistik dari array breakdowns
   const total = stats.length;
   const progress = stats.filter((b) => b.status === "in_progress").length;
-  const pending = stats.filter((b) => b.status === "pending").length;
-  const overdue = stats.filter((b) => b.status === "overdue").length;
+  const rfu = stats.filter((b) => b.status === "rfu").length;
+  
+  // Hitung overdue: status pending yang sudah lebih dari 30 hari sejak created
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 3);
+  
+  const overdue = stats.filter((b) => 
+    b.status === "pending" && 
+    new Date(b.createdAt) < thirtyDaysAgo
+  ).length;
+  
+  // Hitung pending: semua status pending dikurangi dengan yang overdue
+  const allPending = stats.filter((b) => b.status === "pending").length;
+  const pending = allPending - overdue;
 
   // Mock data untuk work orders
   const workOrderStats = {
@@ -74,9 +90,19 @@ export default function GammaCardGrid({ stats }: WoStatsCardsProps) {
                 Active {/* {userStats.growthRate} */}
               </Chip>
             </div>
-            <p className="text-xs sm:text-small text-default-600">
-              Total requests
-            </p>
+            <div className="flex justify-between items-center">
+              <span className="text-xl sm:text-2xl font-bold text-primary-700">
+                {rfu}
+              </span>
+              <Chip
+                color="primary"
+                size="sm"
+                startContent={<SquareCheckBig className="w-3 h-3" />}
+                variant="flat"
+              >
+                Completed {/* {userStats.growthRate} */}
+              </Chip>
+            </div>
           </div>
         </CardBody>
       </Card>
