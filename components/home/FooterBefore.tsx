@@ -13,7 +13,7 @@ const cards = [
     description:
       "Work better together — transparent, organized, and always accessible.",
     // href: "http://gsi.db-ku.com",
-    iconLeft: <TbAffiliateFilled size={30} />,
+    iconLeft: <TbAffiliateFilled size={30} className="text-primary-500"/>,
     iconRight: <TbExternalLink />,
   },
   {
@@ -21,14 +21,14 @@ const cards = [
     description:
       "Designed with adaptability in mind, evolving to support operational excellence.",
     // href: "http://laravel-site.com",
-    iconLeft: <TbChartBubbleFilled size={30} />,
+    iconLeft: <TbChartBubbleFilled size={30} className="text-warning-500"/>,
     iconRight: <TbExternalLink />,
   },
   {
     title: "Need Help?",
     description: "Reach out to our support team for assistance or feedback.",
     // href: "http://react-tailwind.com",
-    iconLeft: <TbHelpHexagonFilled size={30} />,
+    iconLeft: <TbHelpHexagonFilled size={30} className="text-success-500"/>,
     iconRight: <TbExternalLink />,
   },
 ];

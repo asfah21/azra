@@ -284,11 +284,17 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
                   "!cursor-text",
                 ],
               }}
-              defaultValue={new Date().toISOString().slice(0, 16)}
+              defaultValue={new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString().slice(0, 16)}
               label="Breakdown Time"
               name="breakdownTime"
               type="datetime-local"
               variant="bordered"
+
+              // defaultValue={new Date().toISOString().slice(0, 16)}
+              // label="Breakdown Time"
+              // name="breakdownTime"
+              // type="datetime-local"
+              // variant="bordered"
             />
 
             {/* Hidden priority input with default value "medium" */}

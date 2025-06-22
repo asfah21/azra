@@ -1,5 +1,3 @@
-import CardBawah from "./CardBawah";
-
 export default function WithLove() {
   return (
     <section className="px-6 md:px-20 relative gap-2 w-full flex flex-col items-center z-20 mt-16 lg:mt-44">
@@ -33,8 +31,6 @@ export default function WithLove() {
             Crafted with precision and care by the IT Department team to
             streamline asset management across operations.
           </p>
-
-          <CardBawah />
           <div />
         </div>
       </div>

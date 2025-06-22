@@ -65,6 +65,7 @@ model Breakdown {
   id              String               @id @default(uuid())
   breakdownNumber String?
   priority        String?
+  shift           String?
   description     String
   breakdownTime   DateTime
   workingHours    Float

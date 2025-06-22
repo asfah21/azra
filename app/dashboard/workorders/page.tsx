@@ -250,7 +250,7 @@ export default async function WorkOrdersPage() {
     };
 
     return (
-      <div className="p-4 sm:p-6 max-w-7xl mx-auto">
+      <div className="p-0 md:p-5 max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
           <div className="flex items-center gap-3">
@@ -300,7 +300,7 @@ export default async function WorkOrdersPage() {
 
     // Fallback UI jika ada error major
     return (
-      <div className="p-4 sm:p-6 max-w-7xl mx-auto">
+      <div className="p-0 md:p-5 max-w-7xl mx-auto">
         <div className="flex flex-col items-center justify-center min-h-[400px] text-center">
           <div className="p-4 bg-red-50 rounded-xl mb-4">
             <Users className="w-12 h-12 text-red-500 mx-auto" />

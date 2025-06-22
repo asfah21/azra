@@ -8,7 +8,7 @@ export default function AssetsPage() {
   // Mock data untuk assets
 
   return (
-    <div className="p-3 sm:p-6 max-w-7xl mx-auto">
+    <div className="p-0 md:p-5 max-w-7xl mx-auto">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 sm:mb-8 gap-4">
         <div className="flex items-center gap-3">

@@ -40,6 +40,9 @@ import {
   CheckSquare,
   PlusIcon,
   Search,
+  LocateIcon,
+  LocationEditIcon,
+  MapPin,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useMemo } from "react";
@@ -70,6 +73,7 @@ interface BreakdownPayload {
     location: string;
     department: string | null; // Updated to allow null
     categoryId: number;
+    status: string;
   };
   reportedBy: {
     id: string;
@@ -281,27 +285,27 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
     }
   };
 
-  const getProgressValue = (status: string) => {
+  const getProgressColor = (status: string) => {
     switch (status) {
-      case "rfu":
-        return 100;
-      case "in_progress":
-        return 50;
-      case "pending":
-        return 10;
+      case "operational":
+        return "success";
+      case "standby":
+        return "warning";
+      case "breakdown":
+        return "danger";
       default:
-        return 0;
+        return "default";
     }
   };
 
-  const getProgressColor = (status: string) => {
+  const getProgressLabel = (status: string) => {
     switch (status) {
-      case "rfu":
-        return "primary";
-      case "in_progress":
-        return "success";
-      case "pending":
-        return "warning";
+      case "operational":
+        return (<p className="flex items-center text-xs text-success">Operational</p>);
+      case "standby":
+        return (<p className="flex items-center text-xs text-warning">Standby</p>);
+      case "breakdown":
+        return (<p className="flex items-center text-xs text-danger">Breakdown</p>);
       default:
         return "default";
     }
@@ -403,9 +407,9 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
                 <TableColumn>ORDER</TableColumn>
                 <TableColumn>ASSIGNEE</TableColumn>
                 <TableColumn>PRIORITY</TableColumn>
+                <TableColumn>SHIFT | LOCATION</TableColumn>
                 <TableColumn>STATUS</TableColumn>
-                <TableColumn>LOCATION</TableColumn>
-                <TableColumn>DUE DATE</TableColumn>
+                <TableColumn>CREATED AT</TableColumn>
                 <TableColumn>ACTIONS</TableColumn>
               </TableHeader>
               <TableBody>
@@ -425,7 +429,7 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
                           {order.unit.name}
                         </p>
                         <p className="text-xs text-default-500">
-                          Asset ID: {order.unit.assetTag}
+                          ID: {order.unit.assetTag}
                         </p>
                       </div>
                     </TableCell>
@@ -454,6 +458,14 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
                       </Chip>
                     </TableCell>
                     <TableCell>
+                      <div className="text-small">
+                        {/* <p className="font-medium">{order.unit.location}</p> */}<p>Siang</p>
+                        <p className="flex items-center mr-2 text-default-500 text-xs">
+                          <MapPin className="text-red-500 w-3 h-3" />{order.unit.location}
+                        </p>
+                      </div>
+                    </TableCell>
+                    <TableCell>
                       <div className="flex flex-col gap-1">
                         <Chip
                           color={getStatusColor(order.status) as any}
@@ -465,30 +477,33 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
                         {(order.status === "in_progress" ||
                           order.status === "rfu" ||
                           order.status === "pending") && (
-                          <Progress
-                            className="max-w-20"
-                            color={getProgressColor(order.status) as any}
-                            size="sm"
-                            value={getProgressValue(order.status)}
-                          />
+                          <div className="flex items-center gap-1">
+                            <Progress
+                              className="max-w-3"
+                              color={getProgressColor(order.unit.status) as any}
+                              size="sm"
+                              value={100}
+                            /><div className="text-xs text-default-500">{getProgressLabel(order.unit.status)}</div>
+                          </div>
                         )}
                       </div>
-                    </TableCell>
+                    </TableCell>                    
                     <TableCell>
                       <div className="text-small">
-                        {/* <p className="font-medium">{order.location}</p> */}
-                        <p>Location</p>
-                        <p className="text-default-500 text-xs">
-                          {/* {order.equipment} */} Equipment
+                        {/* <p className="font-medium">{order.dueDate}</p> */}                        
+                        <p>
+                          {order.breakdownTime.toLocaleDateString("en-GB", {
+                            day: "numeric",
+                            month: "short",
+                            year: "2-digit",
+                          })}
                         </p>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-small">
-                        {/* <p className="font-medium">{order.dueDate}</p> */}
-                        <p>Order</p>
                         <p className="text-default-500 text-xs">
-                          {/* {order.estimatedHours}h est. */}est.
+                          {order.breakdownTime.toLocaleTimeString("en-GB", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            hour12: false,
+                          })}
                         </p>
                       </div>
                     </TableCell>
@@ -514,6 +529,7 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
                               onPress={() =>
                                 router.push(`/dashboard/gamma/${order.id}/edit`)
                               }
+                              isDisabled
                             >
                               Edit Order
                             </DropdownItem>

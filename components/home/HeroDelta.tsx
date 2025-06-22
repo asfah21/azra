@@ -39,19 +39,19 @@ export default function HeroDelta() {
         <div className="flex flex-col gap-2 col-span-12 md:col-span-6">
           <div className="flex flex-col">
             <h1 className="tracking-tight font-semibold text-[clamp(1rem,10vw,2rem)] sm:text-[clamp(1rem,10vw,3rem)] lg:text-5xl inline">
-              Let&apos;s Manage
+              Streamline Your
             </h1>
             <div>
               <h1 className="tracking-tight inline font-semibold text-[clamp(1rem,10vw,2rem)] sm:text-[clamp(1rem,10vw,3rem)] lg:text-5xl">
                 Assets&nbsp;
               </h1>
               <h1 className="tracking-tight font-semibold from-[#FF1CF7] to-[#b249f8] text-[clamp(1rem,10vw,2rem)] sm:text-[clamp(1rem,10vw,3rem)] lg:text-5xl bg-clip-text text-transparent bg-gradient-to-b inline">
-                Better
+                Management
               </h1>
             </div>
           </div>
           <p className="w-full my-2 font-normal text-default-500 block max-w-full md:w-full text-base lg:text-lg">
-            Experience it firsthand and streamline your asset operations!
+            Experience it firsthand and take full control of your operations.
           </p>
 
           <div className="flex flex-row gap-3 justify-start">

@@ -17,7 +17,8 @@ import clsx from "clsx";
 
 import { siteConfig } from "@/config/site";
 import { ThemeSwitch } from "@/components/theme-switch";
-import { GithubIcon, SearchIcon, Logo } from "@/components/icons";
+import { GithubIcon, SearchIcon, Logo } from "@/components/icons"
+import { BsFillLayersFill } from "react-icons/bs";
 
 export const Navbar = () => {
   const searchInput = (
@@ -74,8 +75,8 @@ export const Navbar = () => {
               </NavbarItem>
             ))}
           </ul>
-          <Link isExternal aria-label="Github" href={siteConfig.links.github}>
-            <GithubIcon className="text-default-500" />
+          <Link isExternal aria-label="Github" href={siteConfig.links.formine}>
+            <BsFillLayersFill size={21} className="text-default-500"/>
           </Link>
           <ThemeSwitch />
         </NavbarItem>
@@ -95,8 +96,8 @@ export const Navbar = () => {
       </NavbarContent>
 
       <NavbarContent className="sm:hidden basis-1 pl-4" justify="end">
-        <Link isExternal aria-label="Github" href={siteConfig.links.github}>
-          <GithubIcon className="text-default-500" />
+        <Link isExternal aria-label="Github" href={siteConfig.links.formine}>
+          <BsFillLayersFill size={21} className="text-default-500" />
         </Link>
         <ThemeSwitch />
         <NavbarMenuToggle />
@@ -115,7 +116,7 @@ export const Navbar = () => {
                       ? "danger"
                       : "foreground"
                 }
-                href="#"
+                href={item.href}
                 size="lg"
               >
                 {item.label}

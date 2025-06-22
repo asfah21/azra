@@ -60,16 +60,16 @@ export default function Hero() {
 
         <div className="hidden lg:flex flex-col relative z-20 w-1/2">
           <div className="absolute z-10 -top-[120px] -right-[1px] animate-[levitate_14s_ease_infinite_1s]">
-            <Card isFooterBlurred className="border-none" radius="lg">
+            <Card isFooterBlurred className="border-none animate-float priority opacity-85" radius="lg">
               <Image
-                alt="Woman listening to music"
+                alt="Azra Management Assets"
                 className="object-cover"
-                height={200}
-                src="https://heroui.com/images/hero-card.jpeg"
-                width={200}
+                height={300}
+                src="/hero-v2.svg"
+                width={450}
               />
               <CardFooter className="justify-between before:bg-white/10 border-white/20 border-1 overflow-hidden py-1 absolute before:rounded-xl rounded-large bottom-1 w-[calc(100%_-_8px)] shadow-small ml-1 z-10">
-                <p className="text-tiny text-white/80">Available soon.</p>
+                <p className="text-tiny text-white/80">Currently in Beta</p>
                 <Button
                   className="text-tiny text-white bg-black/20"
                   color="default"

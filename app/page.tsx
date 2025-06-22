@@ -9,6 +9,7 @@ import HeroGamma from "@/components/home/HeroGamma";
 import HeroDelta from "@/components/home/HeroDelta";
 import FooterBefore from "@/components/home/FooterBefore";
 import WithLove from "@/components/home/WithLove";
+import CardBawah from "@/components/home/CardBawah";
 
 export default function Home() {
   return (
@@ -22,6 +23,7 @@ export default function Home() {
         <HeroAlpha />
         <HeroGamma />
         <WithLove />
+        <CardBawah />
         <HeroDelta />
         <FooterBefore />
       </main>

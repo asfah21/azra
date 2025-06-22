@@ -97,7 +97,7 @@ export default function Assets() {
   };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
+    <div className="p-0 md:p-5 max-w-7xl mx-auto">
       {/* Header */}
       <div className="flex items-center gap-3 mb-8">
         <div className="p-2 bg-gradient-to-br from-primary-100 to-primary-50 rounded-xl">

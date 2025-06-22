@@ -7,7 +7,7 @@ export default function Footer() {
     <footer className="flex items-center w-full border-t p-5 text-default-600 justify-center">
       <Link
         isExternal
-        className="flex items-center gap-1 text-current"
+        className="flex items-center gap-1 text-current text-xs md:text-base"
         href="/about"
         title="AZRA - About Us"
       >
