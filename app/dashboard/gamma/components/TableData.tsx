@@ -325,19 +325,21 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
   return (
     <div>
       <Card>
-        <CardHeader className="flex gap-3">
-          <div className="p-2 bg-default-500 rounded-lg">
-            <Wrench className="w-6 h-6 text-white" />
+        <CardHeader className="flex flex-col gap-3 sm:flex-row">
+          <div className="flex items-center gap-3 flex-1 justify-start self-start">
+            <div className="p-2 bg-default-500 rounded-lg flex-shrink-0">
+              <Wrench className="w-6 h-6 text-white" />
+            </div>
+            <div className="flex flex-col flex-1 min-w-0">
+              <p className="text-xl font-semibold text-default-800 text-left">
+                All Work Orders
+              </p>
+              <p className="text-xs sm:text-small text-default-600">
+                Complete work order management
+              </p>
+            </div>
           </div>
-          <div className="flex flex-col flex-1 min-w-0">
-            <p className="text-lg sm:text-xl font-semibold text-default-800">
-              All Work Orders
-            </p>
-            <p className="text-xs sm:text-small text-default-600">
-              Complete work order management and tracking
-            </p>
-          </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 w-full sm:w-auto">
             <Input
               className="hidden sm:flex w-64"
               placeholder="Search work orders..."
@@ -348,7 +350,7 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
               variant="flat"
             />
             <Button
-              className="hidden sm:flex"
+              className="flex-1 sm:flex-none"
               color="default"
               size="sm"
               startContent={<Filter className="w-4 h-4" />}

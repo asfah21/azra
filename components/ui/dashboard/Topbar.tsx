@@ -65,11 +65,12 @@ export function Topbar({
   return (
     <>
       {/* Mobile Topbar */}
-      <header className="w-full md:hidden bg-content1 shadow-small p-4 flex justify-between items-center border-b border-divider">
+      <header className="w-full md:hidden bg-content1 shadow-small p-4 flex justify-between items-center border-b border-divider relative">
         <Button
           isIconOnly
           variant="light"
           onPress={() => setMenuOpen(!menuOpen)}
+          className="touch-manipulation"
         >
           {menuOpen ? <FiX size={20} /> : <FiMenu size={20} />}
         </Button>
@@ -90,7 +91,7 @@ export function Topbar({
 
       {/* Mobile Dropdown */}
       {menuOpen && (
-        <Card className="md:hidden absolute top-16 left-0 right-0 z-50 shadow-large rounded-none">
+        <Card className="md:hidden absolute top-16 left-0 right-0 z-[9999] shadow-large rounded-none">
           <CardBody className="p-4 space-y-2">
             {navItems.map((item) => {
               const isActive = activeTab === item.id;
@@ -98,11 +99,11 @@ export function Topbar({
               return (
                 <Button
                   key={item.id}
-                  className="w-full justify-start h-12"
+                  className="w-full justify-start h-12 touch-manipulation"
                   color={isActive ? "primary" : "default"}
                   startContent={<span className="text-lg">{item.icon}</span>}
                   variant={isActive ? "flat" : "light"}
-                  onClick={() => {
+                  onPress={() => {
                     openNewTab(item);
                     setMenuOpen(false);
                   }}

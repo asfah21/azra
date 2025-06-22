@@ -67,7 +67,7 @@ export default function GammaCardGrid({ stats }: WoStatsCardsProps) {
             <p className="text-sm sm:text-lg font-semibold text-primary-800 truncate">
               Total Orders
             </p>
-            <p className="text-xs sm:text-small text-primary-600">
+            <p className="text-xs sm:text-small text-primary-600 truncate">
               All Work Orders
             </p>
           </div>
@@ -115,7 +115,7 @@ export default function GammaCardGrid({ stats }: WoStatsCardsProps) {
             <p className="text-sm sm:text-lg font-semibold text-success-800 truncate">
               In Progress
             </p>
-            <p className="text-xs sm:text-small text-success-600">
+            <p className="text-xs sm:text-small text-success-600 truncate">
               Active Tasks
             </p>
           </div>
@@ -166,7 +166,7 @@ export default function GammaCardGrid({ stats }: WoStatsCardsProps) {
             <p className="text-sm sm:text-lg font-semibold text-warning-800 truncate">
               Pending
             </p>
-            <p className="text-xs sm:text-small text-warning-600">Awaiting</p>
+            <p className="text-xs sm:text-small text-warning-600 truncate">Awaiting</p>
           </div>
         </CardHeader>
         <Divider className="bg-warning-200" />
@@ -202,7 +202,7 @@ export default function GammaCardGrid({ stats }: WoStatsCardsProps) {
             <p className="text-sm sm:text-lg font-semibold text-danger-800 truncate">
               Overdue
             </p>
-            <p className="text-xs sm:text-small text-danger-600">Past Due</p>
+            <p className="text-xs sm:text-small text-danger-600 truncate">Past Due</p>
           </div>
         </CardHeader>
         <Divider className="bg-danger-200" />
