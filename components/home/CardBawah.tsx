@@ -2,7 +2,6 @@
 
 import { Card, CardHeader, CardBody, Link } from "@heroui/react";
 import { FaMountainCity, FaWandMagicSparkles } from "react-icons/fa6";
-import { TbExternalLink } from "react-icons/tb";
 
 export default function CardBawah() {
   const features = [

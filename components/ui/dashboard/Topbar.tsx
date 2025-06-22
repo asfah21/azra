@@ -68,9 +68,9 @@ export function Topbar({
       <header className="w-full md:hidden bg-content1 shadow-small p-4 flex justify-between items-center border-b border-divider relative">
         <Button
           isIconOnly
+          className="touch-manipulation"
           variant="light"
           onPress={() => setMenuOpen(!menuOpen)}
-          className="touch-manipulation"
         >
           {menuOpen ? <FiX size={20} /> : <FiMenu size={20} />}
         </Button>

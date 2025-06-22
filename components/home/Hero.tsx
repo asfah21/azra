@@ -60,7 +60,11 @@ export default function Hero() {
 
         <div className="hidden lg:flex flex-col relative z-20 w-1/2">
           <div className="absolute z-10 -top-[120px] -right-[1px] animate-[levitate_14s_ease_infinite_1s]">
-            <Card isFooterBlurred className="border-none animate-float priority opacity-85" radius="lg">
+            <Card
+              isFooterBlurred
+              className="border-none animate-float priority opacity-85"
+              radius="lg"
+            >
               <Image
                 alt="Azra Management Assets"
                 className="object-cover"

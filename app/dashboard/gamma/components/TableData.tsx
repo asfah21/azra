@@ -23,7 +23,6 @@ import {
   ModalContent,
   Progress,
   Pagination,
-  getKeyValue,
   Input,
 } from "@heroui/react";
 import {
@@ -40,8 +39,6 @@ import {
   CheckSquare,
   PlusIcon,
   Search,
-  LocateIcon,
-  LocationEditIcon,
   MapPin,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -125,6 +122,7 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
     }
 
     const query = searchQuery.toLowerCase();
+
     return dataTable.filter((item) => {
       return (
         item.breakdownNumber?.toLowerCase().includes(query) ||
@@ -141,11 +139,11 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
 
   // Hitung data yang akan ditampilkan berdasarkan halaman
   const pages = Math.ceil(filteredData.length / rowsPerPage);
-  
+
   const items = useMemo(() => {
     const start = (page - 1) * rowsPerPage;
     const end = start + rowsPerPage;
-    
+
     return filteredData.slice(start, end);
   }, [page, filteredData]);
 
@@ -301,11 +299,17 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
   const getProgressLabel = (status: string) => {
     switch (status) {
       case "operational":
-        return (<p className="flex items-center text-xs text-success">Operational</p>);
+        return (
+          <p className="flex items-center text-xs text-success">Operational</p>
+        );
       case "standby":
-        return (<p className="flex items-center text-xs text-warning">Standby</p>);
+        return (
+          <p className="flex items-center text-xs text-warning">Standby</p>
+        );
       case "breakdown":
-        return (<p className="flex items-center text-xs text-danger">Breakdown</p>);
+        return (
+          <p className="flex items-center text-xs text-danger">Breakdown</p>
+        );
       default:
         return "default";
     }
@@ -350,8 +354,8 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
               size="sm"
               startContent={<Search className="w-4 h-4 text-default-400" />}
               value={searchQuery}
-              onValueChange={handleSearchChange}
               variant="flat"
+              onValueChange={handleSearchChange}
             />
             <Button
               className="flex-1 sm:flex-none"
@@ -382,12 +386,12 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
               size="sm"
               startContent={<Search className="w-4 h-4 text-default-400" />}
               value={searchQuery}
-              onValueChange={handleSearchChange}
               variant="flat"
+              onValueChange={handleSearchChange}
             />
           </div>
           <div className="overflow-x-auto">
-            <Table 
+            <Table
               aria-label="Work orders table"
               bottomContent={
                 <div className="flex w-full justify-center">
@@ -459,9 +463,11 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
                     </TableCell>
                     <TableCell>
                       <div className="text-small">
-                        {/* <p className="font-medium">{order.unit.location}</p> */}<p>Siang</p>
+                        {/* <p className="font-medium">{order.unit.location}</p> */}
+                        <p>Siang</p>
                         <p className="flex items-center mr-2 text-default-500 text-xs">
-                          <MapPin className="text-red-500 w-3 h-3" />{order.unit.location}
+                          <MapPin className="text-red-500 w-3 h-3" />
+                          {order.unit.location}
                         </p>
                       </div>
                     </TableCell>
@@ -483,14 +489,17 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
                               color={getProgressColor(order.unit.status) as any}
                               size="sm"
                               value={100}
-                            /><div className="text-xs text-default-500">{getProgressLabel(order.unit.status)}</div>
+                            />
+                            <div className="text-xs text-default-500">
+                              {getProgressLabel(order.unit.status)}
+                            </div>
                           </div>
                         )}
                       </div>
-                    </TableCell>                    
+                    </TableCell>
                     <TableCell>
                       <div className="text-small">
-                        {/* <p className="font-medium">{order.dueDate}</p> */}                        
+                        {/* <p className="font-medium">{order.dueDate}</p> */}
                         <p>
                           {order.breakdownTime.toLocaleDateString("en-GB", {
                             day: "numeric",
@@ -525,11 +534,11 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
                             </DropdownItem>
                             <DropdownItem
                               key="edit"
+                              isDisabled
                               startContent={<Edit className="w-4 h-4" />}
                               onPress={() =>
                                 router.push(`/dashboard/gamma/${order.id}/edit`)
                               }
-                              isDisabled
                             >
                               Edit Order
                             </DropdownItem>

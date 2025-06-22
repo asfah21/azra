@@ -14,11 +14,11 @@ import { Input } from "@heroui/input";
 import { link as linkStyles } from "@heroui/theme";
 import NextLink from "next/link";
 import clsx from "clsx";
+import { BsFillLayersFill } from "react-icons/bs";
 
 import { siteConfig } from "@/config/site";
 import { ThemeSwitch } from "@/components/theme-switch";
-import { GithubIcon, SearchIcon, Logo } from "@/components/icons"
-import { BsFillLayersFill } from "react-icons/bs";
+import { SearchIcon, Logo } from "@/components/icons";
 
 export const Navbar = () => {
   const searchInput = (
@@ -76,7 +76,7 @@ export const Navbar = () => {
             ))}
           </ul>
           <Link isExternal aria-label="Github" href={siteConfig.links.formine}>
-            <BsFillLayersFill size={21} className="text-default-500"/>
+            <BsFillLayersFill className="text-default-500" size={21} />
           </Link>
           <ThemeSwitch />
         </NavbarItem>
@@ -97,7 +97,7 @@ export const Navbar = () => {
 
       <NavbarContent className="sm:hidden basis-1 pl-4" justify="end">
         <Link isExternal aria-label="Github" href={siteConfig.links.formine}>
-          <BsFillLayersFill size={21} className="text-default-500" />
+          <BsFillLayersFill className="text-default-500" size={21} />
         </Link>
         <ThemeSwitch />
         <NavbarMenuToggle />

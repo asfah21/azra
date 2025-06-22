@@ -17,7 +17,7 @@ export const siteConfig = {
       href: "/about",
     },
   ],
-  navMenuItems: [ 
+  navMenuItems: [
     {
       label: "Docs",
       href: "/docs",
@@ -30,7 +30,6 @@ export const siteConfig = {
       label: "Dashboard",
       href: "/dashboard",
     },
-    
   ],
   links: {
     github: "https://github.com/heroui-inc/heroui",
@@ -38,6 +37,6 @@ export const siteConfig = {
     docs: "https://heroui.com",
     discord: "https://discord.gg/9b6yyZKmH4",
     login: "/login",
-    formine:"https://gsi.db-ku.com"
+    formine: "https://gsi.db-ku.com",
   },
 };
