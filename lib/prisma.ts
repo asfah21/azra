@@ -31,7 +31,8 @@ export const prisma =
     },
   });
 
-if (process.env.NODE_ENV !== "production") {
+// Simpan di global scope untuk semua environment
+if (!globalForPrisma.prisma) {
   globalForPrisma.prisma = prisma;
 }
 
