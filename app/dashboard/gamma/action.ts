@@ -74,6 +74,7 @@ export async function createBreakdown(prevState: any, formData: FormData) {
     const unitId = formData.get("unitId") as string;
     const reportedById = formData.get("reportedById") as string;
     const priority = formData.get("priority") as string;
+    const shift = formData.get("shift") as string;
 
     // Get components from form data
     const components: Array<{ component: string; subcomponent: string }> = [];
@@ -96,7 +97,8 @@ export async function createBreakdown(prevState: any, formData: FormData) {
       isNaN(workingHours) ||
       !unitId ||
       !reportedById ||
-      !priority
+      !priority ||
+      !shift
     ) {
       return { success: false, message: "All required fields must be filled!" };
     }
@@ -113,6 +115,13 @@ export async function createBreakdown(prevState: any, formData: FormData) {
 
     if (!validPriorities.includes(priority)) {
       return { success: false, message: "Invalid priority value!" };
+    }
+
+    // Validate shift value
+    const validShifts = ["siang", "malam"];
+
+    if (!validShifts.includes(shift)) {
+      return { success: false, message: "Invalid shift value!" };
     }
 
     // Check if unit exists
@@ -153,6 +162,7 @@ export async function createBreakdown(prevState: any, formData: FormData) {
         breakdownTime: new Date(breakdownTime),
         workingHours,
         priority,
+        shift,
         status: BreakdownStatus.pending,
         unitId,
         reportedById,

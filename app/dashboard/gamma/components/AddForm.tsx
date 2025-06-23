@@ -43,6 +43,7 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
   const [componentInput, setComponentInput] = useState("");
   const [subcomponentInput, setSubcomponentInput] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedShift, setSelectedShift] = useState<string>("");
 
   const [units, setUnits] = useState<Unit[]>([]);
   const [selectedUnitId, setSelectedUnitId] = useState<string>("");
@@ -139,7 +140,7 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
   return (
     <>
       <ModalHeader className="flex flex-col gap-1">
-        <h2 className="text-xl font-semibold">Report New Breakdown</h2>
+        <h2 className="text-xl font-semibold">New Work Order</h2>
       </ModalHeader>
 
       <ModalBody className="max-h-[60vh] overflow-y-auto">
@@ -261,7 +262,7 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
             variant="bordered"
           />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <Input
               isRequired
               classNames={{
@@ -291,16 +292,38 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
               name="breakdownTime"
               type="datetime-local"
               variant="bordered"
-
-              // defaultValue={new Date().toISOString().slice(0, 16)}
-              // label="Breakdown Time"
-              // name="breakdownTime"
-              // type="datetime-local"
-              // variant="bordered"
             />
 
-            {/* Hidden priority input with default value "medium" */}
-            <input name="priority" type="hidden" value="medium" />
+            <Select
+              isRequired
+              classNames={{
+                label: "text-black/50 dark:text-white/90",
+                trigger: [
+                  "bg-default-200/50",
+                  "dark:bg-default/60",
+                  "backdrop-blur-xl",
+                  "backdrop-saturate-200",
+                  "hover:bg-default-200/70",
+                  "dark:hover:bg-default/70",
+                  "group-data-[focused=true]:bg-default-200/50",
+                  "dark:group-data-[focused=true]:bg-default/60",
+                ],
+                value: "text-black/90 dark:text-white/90",
+              }}
+              label="Shift"
+              name="shift"
+              placeholder="Select shift"
+              selectedKeys={selectedShift ? [selectedShift] : []}
+              variant="bordered"
+              onSelectionChange={(keys) => {
+                const keyArray = Array.from(keys);
+
+                setSelectedShift(keyArray[0]?.toString() || "");
+              }}
+            >
+              <SelectItem key="siang">Siang</SelectItem>
+              <SelectItem key="malam">Malam</SelectItem>
+            </Select>
 
             <Input
               isRequired
@@ -338,6 +361,9 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
               variant="bordered"
             />
           </div>
+
+          {/* Hidden priority input with default value "medium" */}
+          <input name="priority" type="hidden" value="medium" />
 
           {/* Components Section */}
           <div className="space-y-2">
@@ -465,7 +491,10 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
           color="primary"
           form="addBreakdownForm"
           isDisabled={
-            components.length === 0 || !selectedUnitId || isSubmitting
+            components.length === 0 ||
+            !selectedUnitId ||
+            !selectedShift ||
+            isSubmitting
           }
           isLoading={isSubmitting}
           spinner={
