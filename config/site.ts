@@ -1,8 +1,8 @@
 export type SiteConfig = typeof siteConfig;
 
 export const siteConfig = {
-  name: "Next.js + HeroUI",
-  description: "Make beautiful websites regardless of your design experience.",
+  name: "AZRA - PT GSI",
+  description: "Discover AZRA a stunning asset management apps designed for simplicity.",
   navItems: [
     {
       label: "Home",

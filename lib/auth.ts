@@ -43,29 +43,34 @@ export const authOptions: NextAuthOptions = {
           throw new Error("Please enter email and password");
         }
 
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email },
-        });
+        try {
+          const user = await prisma.user.findUnique({
+            where: { email: credentials.email },
+          });
 
-        if (!user || !user.password) {
-          throw new Error("No user found with this email");
+          if (!user || !user.password) {
+            throw new Error("No user found with this email");
+          }
+
+          const isValid = await bcrypt.compare(
+            credentials.password,
+            user.password,
+          );
+
+          if (!isValid) {
+            throw new Error("Invalid password");
+          }
+
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            role: user.role,
+          };
+        } catch (error) {
+          console.error("Auth error:", error);
+          throw new Error("Database connection error. Please try again.");
         }
-
-        const isValid = await bcrypt.compare(
-          credentials.password,
-          user.password,
-        );
-
-        if (!isValid) {
-          throw new Error("Invalid password");
-        }
-
-        return {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          role: user.role,
-        };
       },
     }),
   ],
