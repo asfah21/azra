@@ -40,7 +40,6 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
   const userRole = session?.user?.role || "";
 
   const [components, setComponents] = useState<Component[]>([]);
-  const [componentInput, setComponentInput] = useState("");
   const [subcomponentInput, setSubcomponentInput] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedShift, setSelectedShift] = useState<string>("");
@@ -96,24 +95,27 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
   }, [userRole]);
 
   const addComponent = () => {
-    if (componentInput.trim() && subcomponentInput.trim()) {
+    if (subcomponentInput.trim()) {
       setComponents([
         ...components,
         {
-          component: componentInput,
+          component: `${components.length + 1}.`,
           subcomponent: subcomponentInput,
         },
       ]);
-      setComponentInput("");
       setSubcomponentInput("");
     }
   };
 
   const removeComponent = (index: number) => {
     const newComponents = [...components];
-
     newComponents.splice(index, 1);
-    setComponents(newComponents);
+    // Re-index nomor komponen setelah penghapusan
+    const reIndexed = newComponents.map((comp, idx) => ({
+      ...comp,
+      component: `${idx + 1}.`,
+    }));
+    setComponents(reIndexed);
   };
 
   // Handle form submission dengan loading state
@@ -368,7 +370,7 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
           {/* Components Section */}
           <div className="space-y-2">
             <h3 className="text-sm font-medium">Components Affected</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4">
               <Input
                 classNames={{
                   input: [
@@ -389,51 +391,22 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
                     "!cursor-text",
                   ],
                 }}
-                label="Component"
-                placeholder="Enter component name"
-                value={componentInput}
-                variant="bordered"
-                onChange={(e) => setComponentInput(e.target.value)}
-              />
-
-              <Input
-                classNames={{
-                  input: [
-                    "bg-transparent",
-                    "text-black/90 dark:text-white/90",
-                    "placeholder:text-default-700/50 dark:placeholder:text-white/60",
-                  ],
-                  innerWrapper: "bg-transparent",
-                  inputWrapper: [
-                    "bg-default-200/50",
-                    "dark:bg-default/60",
-                    "backdrop-blur-xl",
-                    "backdrop-saturate-200",
-                    "hover:bg-default-200/70",
-                    "dark:hover:bg-default/70",
-                    "group-data-[focused=true]:bg-default-200/50",
-                    "dark:group-data-[focused=true]:bg-default/60",
-                    "!cursor-text",
-                  ],
-                }}
-                label="Subcomponent"
-                placeholder="Enter subcomponent name"
+                label="Component Description"
+                placeholder="Masukkan deskripsi komponen (misal: Kerusakan Tyre, Kerusakan Hidrolik)"
                 value={subcomponentInput}
                 variant="bordered"
                 onChange={(e) => setSubcomponentInput(e.target.value)}
               />
             </div>
-
             <Button
               color="primary"
-              isDisabled={!componentInput || !subcomponentInput}
+              isDisabled={!subcomponentInput}
               size="sm"
               variant="bordered"
               onPress={addComponent}
             >
               Add Component
             </Button>
-
             <div className="flex flex-wrap gap-2">
               {components.map((comp, index) => (
                 <Chip
@@ -441,7 +414,7 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
                   variant="bordered"
                   onClose={() => removeComponent(index)}
                 >
-                  {comp.component} - {comp.subcomponent}
+                  {`${index + 1}. ${comp.subcomponent}`}
                 </Chip>
               ))}
             </div>

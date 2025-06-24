@@ -340,3 +340,58 @@ export async function getBreakdownById(id: string) {
     return null;
   }
 }
+
+export async function updateBreakdownStatusWithActions(
+  id: string,
+  status: BreakdownStatus,
+  solution: string,
+  actions: Array<{ action: string; description: string }>,
+  resolvedById?: string,
+) {
+  try {
+    const updatedBreakdown = await prisma.breakdown.update({
+      where: { id },
+      data: { status },
+      include: { unit: true },
+    });
+
+    // Jika status adalah RFU dan ada resolvedById, buat RFUReport dengan actions
+    if (status === "rfu" && resolvedById) {
+      const rfuReport = await prisma.rFUReport.create({
+        data: {
+          solution: solution,
+          breakdownId: id,
+          resolvedById: resolvedById,
+        },
+      });
+
+      // Buat actions untuk RFU report
+      if (actions.length > 0) {
+        await prisma.rFUReportAction.createMany({
+          data: actions.map((action) => ({
+            action: action.action,
+            description: action.description || null,
+            rfuReportId: rfuReport.id,
+          })),
+        });
+      }
+    }
+
+    await prisma.unitHistory.create({
+      data: {
+        logType: "status_update",
+        referenceId: updatedBreakdown.id,
+        message: `Status for breakdown ${updatedBreakdown.breakdownNumber} on unit ${updatedBreakdown.unit.name} updated to ${status} with ${actions.length} actions.`,
+        unitId: updatedBreakdown.unitId,
+      },
+    });
+
+    revalidatePath("/dashboard/gamma");
+
+    return { success: true, message: "Breakdown status updated with actions." };
+  } catch (error) {
+    console.error("Error updating breakdown status with actions:", error);
+
+    return { success: false, message: "Failed to update status with actions." };
+  }
+}

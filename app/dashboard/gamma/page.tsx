@@ -34,6 +34,12 @@ export default async function GammaPage() {
             select: {
               id: true,
               name: true,
+              email: true,
+            },
+          },
+          actions: {
+            orderBy: {
+              actionTime: "asc",
             },
           },
         },

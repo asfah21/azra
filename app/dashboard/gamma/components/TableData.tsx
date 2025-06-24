@@ -45,10 +45,11 @@ import { useRouter } from "next/navigation";
 import { useState, useMemo } from "react";
 import { useSession } from "next-auth/react";
 
-import { deleteBreakdown, updateBreakdownStatus } from "../action";
+import { deleteBreakdown, updateBreakdownStatus, updateBreakdownStatusWithActions } from "../action";
 
 import { AddWoForm } from "./AddForm";
 import BreakdownDetailModal from "./BreakdownDetailModal";
+import RFUReportActionModal from "./RFUReportActionModal";
 
 // Tambahkan import untuk mendapatkan current user
 
@@ -92,6 +93,7 @@ interface BreakdownPayload {
     resolvedBy: {
       id: string;
       name: string;
+      email: string;
     };
   } | null;
 }
@@ -109,6 +111,10 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
   const [selectedBreakdown, setSelectedBreakdown] =
     useState<BreakdownPayload | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+
+  // State untuk modal RFU
+  const [isRFUModalOpen, setIsRFUModalOpen] = useState(false);
+  const [selectedBreakdownForRFU, setSelectedBreakdownForRFU] = useState<BreakdownPayload | null>(null);
 
   // State untuk pagination
   const [page, setPage] = useState(1);
@@ -171,16 +177,37 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
     }
   };
 
-  const handleMarkAsRfu = (id: string) => {
-    if (window.confirm("Are you sure you want to mark this as RFU?")) {
-      // Gunakan ID user yang sedang login
-      const currentUserId = session?.user?.id;
+  const handleMarkAsRfu = (breakdown: BreakdownPayload) => {
+    setSelectedBreakdownForRFU(breakdown);
+    setIsRFUModalOpen(true);
+  };
 
-      if (currentUserId) {
-        handleAction(() => updateBreakdownStatus(id, "rfu", currentUserId));
+  const handleRFUComplete = async (solution: string, actions: Array<{ action: string; description: string }>) => {
+    if (!selectedBreakdownForRFU) return;
+
+    const currentUserId = session?.user?.id;
+    if (!currentUserId) {
+      console.error("User ID not found");
+      return;
+    }
+
+    try {
+      const result = await updateBreakdownStatusWithActions(
+        selectedBreakdownForRFU.id,
+        "rfu",
+        solution,
+        actions,
+        currentUserId
+      );
+
+      if (result.success) {
+        console.log(result.message);
+        router.refresh(); // Refresh halaman untuk update data
       } else {
-        handleAction(() => updateBreakdownStatus(id, "rfu"));
+        console.error(result.message);
       }
+    } catch (error) {
+      console.error("An unexpected error occurred:", error);
     }
   };
 
@@ -190,9 +217,7 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
       const currentUserId = session?.user?.id;
 
       if (currentUserId) {
-        handleAction(() =>
-          updateBreakdownStatus(id, "in_progress", currentUserId),
-        );
+        handleAction(() => updateBreakdownStatus(id, "in_progress", currentUserId));
       } else {
         handleAction(() => updateBreakdownStatus(id, "in_progress"));
       }
@@ -219,6 +244,11 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
   const handleCloseDetailModal = () => {
     setIsDetailModalOpen(false);
     setSelectedBreakdown(null);
+  };
+
+  const handleCloseRFUModal = () => {
+    setIsRFUModalOpen(false);
+    setSelectedBreakdownForRFU(null);
   };
 
   const getStatusColor = (status: string) => {
@@ -546,10 +576,12 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
                             {order.status === "in_progress" ? (
                               <DropdownItem
                                 key="completed"
+                                color="primary"
+                                className="text-primary"
                                 startContent={
                                   <CheckSquare className="w-4 h-4" />
                                 }
-                                onPress={() => handleMarkAsRfu(order.id)}
+                                onPress={() => handleMarkAsRfu(order)}
                               >
                                 Mark as RFU
                               </DropdownItem>
@@ -557,20 +589,28 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
                             {order.status === "pending" ? (
                               <DropdownItem
                                 key="in-progress"
+                                color="success"
+                                className="text-success"
                                 startContent={<Clock className="w-4 h-4" />}
                                 onPress={() => handleMarkAsInProgress(order.id)}
                               >
                                 Mark as In Progress
                               </DropdownItem>
                             ) : null}
+
+                            {session?.user?.role === "super_admin" ? (
+                              <DropdownItem
+                                key="cancel"
+                                className="text-danger"
+                                color="danger"
+                                startContent={<Trash2 className="w-4 h-4" />}
+                                onPress={() => handleDelete(order.id)}
+                              >
+                                Delete Order
+                              </DropdownItem>
+                            ) : null}
+                            
                             {/* <DropdownItem
-                                                            key="reassign"
-                                                            startContent={<UserIcon className="w-4 h-4" />}
-                                                            isDisabled
-                                                        >
-                                                            Reassign
-                                                        </DropdownItem> */}
-                            <DropdownItem
                               key="cancel"
                               className="text-danger"
                               color="danger"
@@ -578,7 +618,7 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
                               onPress={() => handleDelete(order.id)}
                             >
                               Delete Order
-                            </DropdownItem>
+                            </DropdownItem> */}
                           </DropdownMenu>
                         </Dropdown>
                       </div>
@@ -611,6 +651,15 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
         breakdown={selectedBreakdown}
         isOpen={isDetailModalOpen}
         onClose={handleCloseDetailModal}
+      />
+
+      {/* RFU Report Action Modal */}
+      <RFUReportActionModal
+        isOpen={isRFUModalOpen}
+        onClose={handleCloseRFUModal}
+        breakdownId={selectedBreakdownForRFU?.id || ""}
+        breakdownNumber={selectedBreakdownForRFU?.breakdownNumber || ""}
+        onRFUComplete={handleRFUComplete}
       />
     </div>
   );
