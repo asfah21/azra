@@ -63,6 +63,7 @@ interface BreakdownPayload {
   createdAt: Date;
   unitId: string;
   reportedById: string;
+  shift: string | null;
   unit: {
     id: string;
     assetTag: string;
@@ -76,6 +77,7 @@ interface BreakdownPayload {
     id: string;
     name: string;
     email: string;
+    department: string | null;
   };
   components: {
     id: string;
@@ -411,7 +413,7 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
                 <TableColumn>ORDER</TableColumn>
                 <TableColumn>ASSIGNEE</TableColumn>
                 <TableColumn>PRIORITY</TableColumn>
-                <TableColumn>SHIFT | LOCATION</TableColumn>
+                <TableColumn>LOCATION</TableColumn>
                 <TableColumn>STATUS</TableColumn>
                 <TableColumn>CREATED AT</TableColumn>
                 <TableColumn>ACTIONS</TableColumn>
@@ -447,7 +449,7 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
                         classNames={{
                           description: "text-default-500",
                         }}
-                        description={order.unit.department}
+                        description={order.reportedBy.department}
                         name={order.reportedBy.name}
                       />
                     </TableCell>
@@ -462,13 +464,12 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
                       </Chip>
                     </TableCell>
                     <TableCell>
-                      <div className="text-small">
-                        {/* <p className="font-medium">{order.unit.location}</p> */}
-                        <p>Siang</p>
-                        <p className="flex items-center mr-2 text-default-500 text-xs">
+                      <div className="">                        
+                        <p className="flex items-center gap-1">
                           <MapPin className="text-red-500 w-3 h-3" />
                           {order.unit.location}
                         </p>
+                        <p className="capitalize text-default-500 text-xs pl-4 ">Shift {order.shift ?? "n/a"}</p>
                       </div>
                     </TableCell>
                     <TableCell>

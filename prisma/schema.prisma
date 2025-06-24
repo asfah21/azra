@@ -63,9 +63,6 @@ model Unit {
 
 model Breakdown {
   id              String               @id @default(uuid())
-  breakdownNumber String?
-  priority        String?
-  shift           String?
   description     String
   breakdownTime   DateTime
   workingHours    Float
@@ -73,6 +70,9 @@ model Breakdown {
   createdAt       DateTime             @default(now())
   unitId          String
   reportedById    String
+  breakdownNumber String?
+  priority        String?
+  shift           String?
   reportedBy      User                 @relation("ReportedBy", fields: [reportedById], references: [id])
   unit            Unit                 @relation(fields: [unitId], references: [id])
   components      BreakdownComponent[]
@@ -88,13 +88,24 @@ model BreakdownComponent {
 }
 
 model RFUReport {
-  id           String    @id @default(uuid())
+  id           String            @id @default(uuid())
   solution     String
-  resolvedAt   DateTime  @default(now())
-  breakdownId  String    @unique
+  resolvedAt   DateTime          @default(now())
+  breakdownId  String            @unique
   resolvedById String
-  breakdown    Breakdown @relation(fields: [breakdownId], references: [id])
-  resolvedBy   User      @relation("ResolvedBy", fields: [resolvedById], references: [id])
+  workDetails  String?
+  breakdown    Breakdown         @relation(fields: [breakdownId], references: [id])
+  resolvedBy   User              @relation("ResolvedBy", fields: [resolvedById], references: [id])
+  actions      RFUReportAction[]
+}
+
+model RFUReportAction {
+  id          String    @id @default(uuid())
+  action      String
+  description String?
+  actionTime  DateTime  @default(now())
+  rfuReportId String
+  rfuReport   RFUReport @relation(fields: [rfuReportId], references: [id])
 }
 
 model UnitHistory {

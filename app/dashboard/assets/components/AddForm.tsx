@@ -404,16 +404,16 @@ export function AddForms({
               ],
               value: "text-black/90 dark:text-white/90",
             }}
-            defaultSelectedKeys={["2e6964d4-82d7-40a3-9b5c-9f29f8e0c5b5"]}
             label="Assigned To"
             name="assignedToId"
             placeholder="Select user (optional)"
             variant="bordered"
           >
-            <SelectItem key="2e6964d4-82d7-40a3-9b5c-9f29f8e0c5b5">
-              Muh. Al Asfahani
-            </SelectItem>
-            <SelectItem key="">Super Admin</SelectItem>
+            {users.map((user) => (
+              <SelectItem key={user.id}>
+                {user.name}
+              </SelectItem>
+            ))}
           </Select>
 
           {/* Date Fields */}

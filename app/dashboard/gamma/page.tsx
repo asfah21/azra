@@ -13,6 +13,7 @@ export default async function GammaPage() {
           id: true,
           name: true,
           email: true,
+          department: true,
         },
       },
       unit: {

@@ -118,13 +118,34 @@ async function getTable(): Promise<UnitListItem[]> {
   }
 }
 
+// Tambahkan fungsi untuk mengambil data user
+async function getUsers(): Promise<Array<{ id: string; name: string }>> {
+  try {
+    const users = await prisma.user.findMany({
+      select: {
+        id: true,
+        name: true,
+      },
+      orderBy: { name: 'asc' },
+    });
+
+    console.log(`Successfully fetched ${users.length} users for dropdown`);
+
+    return users;
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    return [];
+  }
+}
+
 export default async function AssetsPage() {
   try {
     // Fetch data secara parallel dengan error handling yang lebih robust
-    const [totalResult, newResult, tableResult] = await Promise.allSettled([
+    const [totalResult, newResult, tableResult, usersResult] = await Promise.allSettled([
       getTotal(),
       getNew(),
       getTable(),
+      getUsers(),
     ]);
 
     // Extract hasil dengan fallback values
@@ -133,6 +154,7 @@ export default async function AssetsPage() {
     const newAssets = newResult.status === "fulfilled" ? newResult.value : 0;
     const dataTable =
       tableResult.status === "fulfilled" ? tableResult.value : [];
+    const users = usersResult.status === "fulfilled" ? usersResult.value : [];
 
     // Log jika ada yang gagal
     if (totalResult.status === "rejected") {
@@ -193,7 +215,7 @@ export default async function AssetsPage() {
         </div> */}
 
         {/* Users Table */}
-        <TableDatas dataTable={dataTable} />
+        <TableDatas dataTable={dataTable} users={users} />
       </div>
     );
   } catch (error) {

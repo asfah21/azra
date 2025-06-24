@@ -34,7 +34,6 @@ import {
   Package,
 } from "lucide-react";
 
-import { UserName } from "./UserName";
 import { AddForms } from "./AddForm";
 
 // Interface untuk Unit
@@ -63,9 +62,10 @@ interface Unit {
 
 interface ManagementClientProps {
   dataTable: Unit[];
+  users: Array<{ id: string; name: string }>;
 }
 
-export default function TableDatas({ dataTable }: ManagementClientProps) {
+export default function TableDatas({ dataTable, users }: ManagementClientProps) {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const router = useRouter();
 
@@ -136,6 +136,14 @@ export default function TableDatas({ dataTable }: ManagementClientProps) {
       default:
         return role;
     }
+  };
+
+  // Fungsi untuk mendapatkan nama user dari array users
+  const getUserName = (userId: string | null): string => {
+    if (!userId) return "Unassigned";
+    
+    const user = users.find(u => u.id === userId);
+    return user?.name || userId;
   };
 
   return (
@@ -215,7 +223,6 @@ export default function TableDatas({ dataTable }: ManagementClientProps) {
                       <User
                         avatarProps={{
                           radius: "lg",
-                          // src: asset.assignedAvatar,
                           size: "sm",
                         }}
                         classNames={{
@@ -223,8 +230,7 @@ export default function TableDatas({ dataTable }: ManagementClientProps) {
                           description: "text-xs text-default-500",
                         }}
                         description={asset.department}
-                        name={<UserName userId={asset.assignedToId} />}
-                        // name=<UserName userId={asset.assignedToId} />
+                        name={getUserName(asset.assignedToId)}
                       />
                     </TableCell>
                     <TableCell>
@@ -339,7 +345,11 @@ export default function TableDatas({ dataTable }: ManagementClientProps) {
         >
           <ModalContent>
             {(onClose) => (
-              <AddForms onClose={onClose} onUnitAdded={handleUserAdded} />
+              <AddForms 
+                onClose={onClose} 
+                onUnitAdded={handleUserAdded} 
+                users={users}
+              />
             )}
           </ModalContent>
         </Modal>
