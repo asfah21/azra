@@ -2,7 +2,8 @@ export type SiteConfig = typeof siteConfig;
 
 export const siteConfig = {
   name: "AZRA - PT GSI",
-  description: "Discover AZRA a stunning asset management apps designed for simplicity.",
+  description:
+    "Discover AZRA a stunning asset management apps designed for simplicity.",
   navItems: [
     {
       label: "Home",

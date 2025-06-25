@@ -14,32 +14,45 @@ import {
   Calendar,
   Clock,
   FileText,
+  SquareCheckBig,
   TrendingUp,
   UserIcon,
 } from "lucide-react";
 import { GoTasklist } from "react-icons/go";
 
-interface WoStats {
-  total: number;
-  progress: number;
-  pending: number;
-  overdue: number;
+// Breakdown type minimal agar type-safe
+interface Breakdown {
+  status: string;
+  createdAt: Date;
+  // tambahkan field lain jika perlu
 }
 
 interface WoStatsCardsProps {
-  stats: WoStats;
+  stats: Breakdown[];
 }
 
-export default function WoCardGrid({ stats }: WoStatsCardsProps) {
+export default function GammaCardGrid({ stats }: WoStatsCardsProps) {
+  // Hitung statistik dari array breakdowns
+  const total = stats.length;
+  const progress = stats.filter((b) => b.status === "in_progress").length;
+  const rfu = stats.filter((b) => b.status === "rfu").length;
+
+  // Hitung overdue: status pending yang sudah lebih dari 30 hari sejak created
+  const thirtyDaysAgo = new Date();
+
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 3);
+
+  const overdue = stats.filter(
+    (b) => b.status === "pending" && new Date(b.createdAt) < thirtyDaysAgo,
+  ).length;
+
+  // Hitung pending: semua status pending dikurangi dengan yang overdue
+  const allPending = stats.filter((b) => b.status === "pending").length;
+  const pending = allPending - overdue;
+
   // Mock data untuk work orders
   const workOrderStats = {
-    totalOrders: 847,
-    pendingOrders: 156,
-    inProgressOrders: 98,
-    completedToday: 34,
-    overdueOrders: 23,
     completionRate: 89.2,
-    avgCompletionTime: 4.2,
   };
 
   return (
@@ -54,7 +67,7 @@ export default function WoCardGrid({ stats }: WoStatsCardsProps) {
             <p className="text-sm sm:text-lg font-semibold text-primary-800 truncate">
               Total Orders
             </p>
-            <p className="text-xs sm:text-small text-primary-600">
+            <p className="text-xs sm:text-small text-primary-600 truncate">
               All Work Orders
             </p>
           </div>
@@ -64,7 +77,7 @@ export default function WoCardGrid({ stats }: WoStatsCardsProps) {
           <div className="space-y-2 sm:space-y-3">
             <div className="flex justify-between items-center">
               <span className="text-xl sm:text-2xl font-bold text-primary-700">
-                {stats.total}
+                {total}
               </span>
               <Chip
                 color="primary"
@@ -75,9 +88,19 @@ export default function WoCardGrid({ stats }: WoStatsCardsProps) {
                 Active {/* {userStats.growthRate} */}
               </Chip>
             </div>
-            <p className="text-xs sm:text-small text-default-600">
-              Total requests
-            </p>
+            <div className="flex justify-between items-center">
+              <span className="text-xl sm:text-2xl font-bold text-primary-700">
+                {rfu}
+              </span>
+              <Chip
+                color="primary"
+                size="sm"
+                startContent={<SquareCheckBig className="w-3 h-3" />}
+                variant="flat"
+              >
+                Completed {/* {userStats.growthRate} */}
+              </Chip>
+            </div>
           </div>
         </CardBody>
       </Card>
@@ -92,7 +115,7 @@ export default function WoCardGrid({ stats }: WoStatsCardsProps) {
             <p className="text-sm sm:text-lg font-semibold text-success-800 truncate">
               In Progress
             </p>
-            <p className="text-xs sm:text-small text-success-600">
+            <p className="text-xs sm:text-small text-success-600 truncate">
               Active Tasks
             </p>
           </div>
@@ -102,7 +125,7 @@ export default function WoCardGrid({ stats }: WoStatsCardsProps) {
           <div className="space-y-2 sm:space-y-3">
             <div className="flex justify-between items-center">
               <span className="text-xl sm:text-2xl font-bold text-success-700">
-                {stats.progress}
+                {progress}
               </span>
               <Chip
                 color="success"
@@ -143,7 +166,9 @@ export default function WoCardGrid({ stats }: WoStatsCardsProps) {
             <p className="text-sm sm:text-lg font-semibold text-warning-800 truncate">
               Pending
             </p>
-            <p className="text-xs sm:text-small text-warning-600">Awaiting</p>
+            <p className="text-xs sm:text-small text-warning-600 truncate">
+              Awaiting
+            </p>
           </div>
         </CardHeader>
         <Divider className="bg-warning-200" />
@@ -151,7 +176,7 @@ export default function WoCardGrid({ stats }: WoStatsCardsProps) {
           <div className="space-y-2 sm:space-y-3">
             <div className="flex justify-between items-center">
               <span className="text-xl sm:text-2xl font-bold text-warning-700">
-                {stats.pending}
+                {pending}
               </span>
               <Chip
                 color="warning"
@@ -179,7 +204,9 @@ export default function WoCardGrid({ stats }: WoStatsCardsProps) {
             <p className="text-sm sm:text-lg font-semibold text-danger-800 truncate">
               Overdue
             </p>
-            <p className="text-xs sm:text-small text-danger-600">Past Due</p>
+            <p className="text-xs sm:text-small text-danger-600 truncate">
+              Past Due
+            </p>
           </div>
         </CardHeader>
         <Divider className="bg-danger-200" />
@@ -187,7 +214,7 @@ export default function WoCardGrid({ stats }: WoStatsCardsProps) {
           <div className="space-y-2 sm:space-y-3">
             <div className="flex justify-between items-center">
               <span className="text-xl sm:text-2xl font-bold text-danger-700">
-                {stats.overdue}
+                {overdue}
               </span>
               <Chip
                 color="danger"

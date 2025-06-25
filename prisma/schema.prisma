@@ -22,6 +22,7 @@ model User {
   tasksCompleted     Int?
   joinDate           DateTime?
   reportedBreakdowns Breakdown[] @relation("ReportedBy")
+  inProgressBreakdowns Breakdown[] @relation("InProgressBy")
   resolvedRFUs       RFUReport[] @relation("ResolvedBy")
   assignedUnits      Unit[]      @relation("AssignedTo")
   createdUnits       Unit[]      @relation("CreatedBy")
@@ -73,7 +74,10 @@ model Breakdown {
   breakdownNumber String?
   priority        String?
   shift           String?
+  inProgressById  String?
+  inProgressAt    DateTime?
   reportedBy      User                 @relation("ReportedBy", fields: [reportedById], references: [id])
+  inProgressBy    User?                @relation("InProgressBy", fields: [inProgressById], references: [id])
   unit            Unit                 @relation(fields: [unitId], references: [id])
   components      BreakdownComponent[]
   rfuReport       RFUReport?

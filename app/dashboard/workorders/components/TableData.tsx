@@ -21,6 +21,9 @@ import {
   useDisclosure,
   Modal,
   ModalContent,
+  Pagination,
+  Input,
+  Progress,
 } from "@heroui/react";
 import {
   Wrench,
@@ -31,15 +34,31 @@ import {
   Eye,
   Edit,
   Trash2,
-  User as UserIcon,
   Zap,
   Settings,
   CheckSquare,
   PlusIcon,
+  Search,
+  MapPin,
+  CircleCheckBig,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useState, useMemo } from "react";
+import { useSession } from "next-auth/react";
+
+import {
+  deleteBreakdown,
+  updateBreakdownStatus,
+  updateBreakdownStatusWithActions,
+} from "../action";
 
 import { AddWoForm } from "./AddForm";
+import BreakdownDetailModal from "./BreakdownDetailModal";
+import RFUReportActionModal from "./RFUReportActionModal";
+import { PiLetterCircleHBold, PiLetterCircleHFill } from "react-icons/pi";
+import { TbCircleDashedLetterH, TbCircleDashedLetterL, TbCircleDashedLetterM, TbCircleDashedLetterO, TbCircleLetterHFilled, TbHexagonLetterHFilled } from "react-icons/tb";
+
+// Tambahkan import untuk mendapatkan current user
 
 interface BreakdownPayload {
   id: string;
@@ -48,9 +67,11 @@ interface BreakdownPayload {
   breakdownTime: Date;
   workingHours: number;
   status: "pending" | "in_progress" | "rfu" | "overdue";
+  priority: string | null;
   createdAt: Date;
   unitId: string;
   reportedById: string;
+  shift: string | null;
   unit: {
     id: string;
     assetTag: string;
@@ -58,11 +79,13 @@ interface BreakdownPayload {
     location: string;
     department: string | null; // Updated to allow null
     categoryId: number;
+    status: string;
   };
   reportedBy: {
     id: string;
     name: string;
     email: string;
+    department: string | null;
   };
   components: {
     id: string;
@@ -77,17 +100,157 @@ interface BreakdownPayload {
     resolvedBy: {
       id: string;
       name: string;
+      email: string;
     };
+  } | null;
+  inProgressById: string | null;
+  inProgressAt: Date | null;
+  inProgressBy?: {
+    id: string;
+    name: string;
+    email: string;
   } | null;
 }
 
-interface ManagementClientProps {
+interface WoStatsCardsProps {
   dataTable: BreakdownPayload[];
 }
 
-export default function WoUserTable({ dataTable }: ManagementClientProps) {
+export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const router = useRouter();
+  const { data: session } = useSession();
+
+  // State untuk modal detail
+  const [selectedBreakdown, setSelectedBreakdown] =
+    useState<BreakdownPayload | null>(null);
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+
+  // State untuk modal RFU
+  const [isRFUModalOpen, setIsRFUModalOpen] = useState(false);
+  const [selectedBreakdownForRFU, setSelectedBreakdownForRFU] =
+    useState<BreakdownPayload | null>(null);
+
+  // State untuk pagination
+  const [page, setPage] = useState(1);
+  const rowsPerPage = 10;
+
+  // State untuk search
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Filter data berdasarkan search query
+  const filteredData = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return dataTable;
+    }
+
+    const query = searchQuery.toLowerCase();
+
+    return dataTable.filter((item) => {
+      return (
+        item.breakdownNumber?.toLowerCase().includes(query) ||
+        item.unit.name.toLowerCase().includes(query) ||
+        item.unit.assetTag.toLowerCase().includes(query) ||
+        item.reportedBy.name.toLowerCase().includes(query) ||
+        item.unit.department?.toLowerCase().includes(query) ||
+        item.description.toLowerCase().includes(query) ||
+        item.status.toLowerCase().includes(query) ||
+        item.priority?.toLowerCase().includes(query)
+      );
+    });
+  }, [dataTable, searchQuery]);
+
+  // Hitung data yang akan ditampilkan berdasarkan halaman
+  const pages = Math.ceil(filteredData.length / rowsPerPage);
+
+  const items = useMemo(() => {
+    const start = (page - 1) * rowsPerPage;
+    const end = start + rowsPerPage;
+
+    return filteredData.slice(start, end);
+  }, [page, filteredData]);
+
+  // Reset page ketika search berubah
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    setPage(1); // Reset ke halaman pertama ketika search berubah
+  };
+
+  const handleAction = async (action: () => Promise<any>) => {
+    try {
+      const result = await action();
+
+      if (result.success) {
+        // Mungkin bisa ditambahkan notifikasi sukses di sini
+        console.log(result.message);
+      } else {
+        // Mungkin bisa ditambahkan notifikasi error di sini
+        console.error(result.message);
+      }
+    } catch (error) {
+      console.error("An unexpected error occurred:", error);
+    }
+  };
+
+  const handleMarkAsRfu = (breakdown: BreakdownPayload) => {
+    setSelectedBreakdownForRFU(breakdown);
+    setIsRFUModalOpen(true);
+  };
+
+  const handleRFUComplete = async (
+    solution: string,
+    actions: Array<{ action: string; description: string }>,
+  ) => {
+    if (!selectedBreakdownForRFU) return;
+
+    const currentUserId = session?.user?.id;
+
+    if (!currentUserId) {
+      console.error("User ID not found");
+
+      return;
+    }
+
+    try {
+      const result = await updateBreakdownStatusWithActions(
+        selectedBreakdownForRFU.id,
+        "rfu",
+        solution,
+        actions,
+        currentUserId,
+      );
+
+      if (result.success) {
+        console.log(result.message);
+        router.refresh(); // Refresh halaman untuk update data
+      } else {
+        console.error(result.message);
+      }
+    } catch (error) {
+      console.error("An unexpected error occurred:", error);
+    }
+  };
+
+  const handleMarkAsInProgress = (id: string) => {
+    if (window.confirm("Are you sure you want to mark this as In Progress?")) {
+      // Gunakan ID user yang sedang login
+      const currentUserId = session?.user?.id;
+
+      if (currentUserId) {
+        handleAction(() =>
+          updateBreakdownStatus(id, "in_progress", currentUserId),
+        );
+      } else {
+        handleAction(() => updateBreakdownStatus(id, "in_progress"));
+      }
+    }
+  };
+
+  const handleDelete = (id: string) => {
+    if (window.confirm("Are you sure you want to delete this order?")) {
+      handleAction(() => deleteBreakdown(id));
+    }
+  };
 
   const handleUserAdded = () => {
     // Refresh halaman untuk update data setelah user ditambah
@@ -95,135 +258,27 @@ export default function WoUserTable({ dataTable }: ManagementClientProps) {
     onOpenChange();
   };
 
-  const recentWorkOrders = [
-    {
-      id: "WO-2024-001",
-      title: "AC Unit Maintenance - Building A",
-      description: "Routine maintenance and filter replacement for HVAC system",
-      priority: "medium",
-      status: "in-progress",
-      assignee: "Ahmad Ridwan",
-      assigneeAvatar: "https://i.pravatar.cc/150?u=1",
-      location: "Building A - Floor 3",
-      department: "Maintenance",
-      createdBy: "Facility Manager",
-      createdAt: "2 hours ago",
-      dueDate: "Dec 15, 2024",
-      estimatedHours: 3,
-      completedHours: 1.5,
-      equipment: "HVAC-001",
-      type: "preventive",
-    },
-    {
-      id: "WO-2024-002",
-      title: "Electrical Panel Inspection",
-      description: "Monthly safety inspection of main electrical panel",
-      priority: "high",
-      status: "pending",
-      assignee: "Siti Nurhaliza",
-      assigneeAvatar: "https://i.pravatar.cc/150?u=2",
-      location: "Main Building - Basement",
-      department: "Electrical",
-      createdBy: "Safety Officer",
-      createdAt: "4 hours ago",
-      dueDate: "Dec 14, 2024",
-      estimatedHours: 2,
-      completedHours: 0,
-      equipment: "EL-PANEL-01",
-      type: "inspection",
-    },
-    {
-      id: "WO-2024-003",
-      title: "Pump Repair - Water System",
-      description: "Emergency repair for water circulation pump malfunction",
-      priority: "urgent",
-      status: "in-progress",
-      assignee: "Budi Santoso",
-      assigneeAvatar: "https://i.pravatar.cc/150?u=3",
-      location: "Utility Room - Block C",
-      department: "Mechanical",
-      createdBy: "Operations Manager",
-      createdAt: "6 hours ago",
-      dueDate: "Dec 13, 2024",
-      estimatedHours: 6,
-      completedHours: 4,
-      equipment: "PUMP-WS-03",
-      type: "corrective",
-    },
-    {
-      id: "WO-2024-004",
-      title: "Fire Safety System Check",
-      description: "Weekly testing of fire suppression and alarm systems",
-      priority: "high",
-      status: "completed",
-      assignee: "Maya Sari",
-      assigneeAvatar: "https://i.pravatar.cc/150?u=4",
-      location: "All Buildings",
-      department: "Safety",
-      createdBy: "Safety Manager",
-      createdAt: "1 day ago",
-      dueDate: "Dec 12, 2024",
-      estimatedHours: 4,
-      completedHours: 4,
-      equipment: "FIRE-SYS-ALL",
-      type: "inspection",
-    },
-    {
-      id: "WO-2024-005",
-      title: "Generator Maintenance",
-      description: "Quarterly maintenance for backup power generator",
-      priority: "medium",
-      status: "scheduled",
-      assignee: "Indra Kusuma",
-      assigneeAvatar: "https://i.pravatar.cc/150?u=5",
-      location: "Generator Room",
-      department: "Electrical",
-      createdBy: "Facility Manager",
-      createdAt: "2 days ago",
-      dueDate: "Dec 20, 2024",
-      estimatedHours: 5,
-      completedHours: 0,
-      equipment: "GEN-001",
-      type: "preventive",
-    },
-  ];
-
-  const getPriorityIcon = (priority: string) => {
-    switch (priority) {
-      case "urgent":
-        return <AlertTriangle className="w-4 h-4 text-danger" />;
-      case "high":
-        return <Zap className="w-4 h-4 text-warning" />;
-      case "medium":
-        return <Clock className="w-4 h-4 text-primary" />;
-      case "low":
-        return <Settings className="w-4 h-4 text-success" />;
-      default:
-        return <Settings className="w-4 h-4 text-default" />;
-    }
+  const handleViewDetails = (breakdown: BreakdownPayload) => {
+    setSelectedBreakdown(breakdown);
+    setIsDetailModalOpen(true);
   };
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case "urgent":
-        return "danger";
-      case "high":
-        return "warning";
-      case "medium":
-        return "primary";
-      case "low":
-        return "success";
-      default:
-        return "default";
-    }
+  const handleCloseDetailModal = () => {
+    setIsDetailModalOpen(false);
+    setSelectedBreakdown(null);
+  };
+
+  const handleCloseRFUModal = () => {
+    setIsRFUModalOpen(false);
+    setSelectedBreakdownForRFU(null);
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "completed":
-        return "success";
-      case "in-progress":
+      case "rfu":
         return "primary";
+      case "in_progress":
+        return "success";
       case "pending":
         return "warning";
       case "scheduled":
@@ -252,30 +307,102 @@ export default function WoUserTable({ dataTable }: ManagementClientProps) {
     }
   };
 
-  const calculateProgress = (completed: number, estimated: number) => {
-    if (estimated === 0) return 0;
+  const getPriorityIcon = (priority: string | null) => {
+    switch (priority) {
+      case "high":
+        return <TbCircleDashedLetterH className="w-4 h-4 text-danger" />;
+      case "medium":
+        return <TbCircleDashedLetterM className="w-4 h-4 text-warning" />;
+      case "low":
+        return <TbCircleDashedLetterL className="w-4 h-4 text-success" />;
+      default:
+        return <TbCircleDashedLetterL className="w-4 h-4 text-success" />;
+    }
+  };
 
-    return Math.min((completed / estimated) * 100, 100);
+  const getWoIcon = (status: string | null) => {
+    switch (status) {
+      case "rfu":
+        return <CircleCheckBig className="w-3 h-3 text-primary" />;
+      case "in_progress":
+        return <Zap className="w-3 h-3 text-success" />;
+      case "pending":
+        return <Clock className="w-3 h-3 text-warning" />;
+      default:
+        return <Clock className="w-3 h-3 text-danger" />;
+    }
+  };
+
+  const getPriorityColor = (priority: string | null) => {
+    switch (priority) {
+      case "high":
+        return "danger";
+      case "medium":
+        return "warning";
+      case "low":
+        return "success";
+      default:
+        return "success";
+    }
+  };
+
+  const getColorStatus = (status: string) => {
+    switch (status) {
+      case "operational":
+        return "success";
+      case "standby":
+        return "warning";
+      case "breakdown":
+        return "danger";
+      default:
+        return "default";
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case "rfu":
+        return  <span className="text-primary">completed</span>;
+      case "in_progress":
+        return <span className="text-success">in-progress</span>;
+      case "pending":
+        return <span className="text-warning">pending</span>;
+      case "overdue":
+        return <span className="text-danger">overdue</span>;
+      default:
+        return status;
+    }
   };
 
   return (
-    <>
+    <div>
       <Card>
-        <CardHeader className="flex gap-3">
-          <div className="p-2 bg-default-500 rounded-lg">
-            <Wrench className="w-6 h-6 text-white" />
+        <CardHeader className="flex flex-col gap-3 sm:flex-row">
+          <div className="flex items-center gap-3 flex-1 justify-start self-start">
+            <div className="p-2 bg-default-500 rounded-lg flex-shrink-0">
+              <Wrench className="w-6 h-6 text-white" />
+            </div>
+            <div className="flex flex-col flex-1 min-w-0">
+              <p className="text-xl font-semibold text-default-800 text-left">
+                All Work Orders
+              </p>
+              <p className="text-xs sm:text-small text-default-600">
+                Complete work order management
+              </p>
+            </div>
           </div>
-          <div className="flex flex-col flex-1 min-w-0">
-            <p className="text-lg sm:text-xl font-semibold text-default-800">
-              All Work Orders
-            </p>
-            <p className="text-xs sm:text-small text-default-600">
-              Complete work order management and tracking
-            </p>
-          </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 w-full sm:w-auto">
+            <Input
+              className="hidden sm:flex w-64"
+              placeholder="Search work orders..."
+              size="sm"
+              startContent={<Search className="w-4 h-4 text-default-400" />}
+              value={searchQuery}
+              variant="flat"
+              onValueChange={handleSearchChange}
+            />
             <Button
-              className="hidden sm:flex"
+              className="flex-1 sm:flex-none"
               color="default"
               size="sm"
               startContent={<Filter className="w-4 h-4" />}
@@ -296,19 +423,46 @@ export default function WoUserTable({ dataTable }: ManagementClientProps) {
         </CardHeader>
         <Divider />
         <CardBody className="px-0">
+          {/* Search input untuk mobile */}
+          <div className="px-6 pb-4 sm:hidden">
+            <Input
+              placeholder="Search work orders..."
+              size="sm"
+              startContent={<Search className="w-4 h-4 text-default-400" />}
+              value={searchQuery}
+              variant="flat"
+              onValueChange={handleSearchChange}
+            />
+          </div>
           <div className="overflow-x-auto">
-            <Table aria-label="Work orders table">
+            <Table
+              aria-label="Work orders table"
+              bottomContent={
+                <div className="flex w-full justify-center">
+                  <Pagination
+                    isCompact
+                    showControls
+                    showShadow
+                    color="primary"
+                    page={page}
+                    total={pages}
+                    onChange={(page) => setPage(page)}
+                  />
+                </div>
+              }
+            >
               <TableHeader>
                 <TableColumn>ORDER</TableColumn>
-                <TableColumn>ASSIGNEE</TableColumn>
+                <TableColumn>SUBMITTER</TableColumn>
                 <TableColumn>PRIORITY</TableColumn>
-                <TableColumn>STATUS</TableColumn>
+                <TableColumn>STATUS UNIT</TableColumn>
                 <TableColumn>LOCATION</TableColumn>
-                <TableColumn>DUE DATE</TableColumn>
+                <TableColumn>STATUS WO</TableColumn>
+                <TableColumn>DATE</TableColumn>
                 <TableColumn>ACTIONS</TableColumn>
               </TableHeader>
               <TableBody>
-                {dataTable.map((order) => (
+                {items.map((order) => (
                   <TableRow key={order.id}>
                     <TableCell>
                       <div className="flex flex-col gap-1">
@@ -324,7 +478,7 @@ export default function WoUserTable({ dataTable }: ManagementClientProps) {
                           {order.unit.name}
                         </p>
                         <p className="text-xs text-default-500">
-                          Asset ID: {order.unit.assetTag}
+                          ID: {order.unit.assetTag}
                         </p>
                       </div>
                     </TableCell>
@@ -338,59 +492,83 @@ export default function WoUserTable({ dataTable }: ManagementClientProps) {
                         classNames={{
                           description: "text-default-500",
                         }}
-                        description={order.unit.department}
+                        description={order.reportedBy.department}
                         name={order.reportedBy.name}
                       />
                     </TableCell>
                     <TableCell>
                       <Chip
-                        // color={getPriorityColor(order.priority) as any}
-                        color="primary"
+                        color={getPriorityColor(order.priority) as any}
                         size="sm"
-                        // startContent={getPriorityIcon(order.priority)}
+                        startContent={getPriorityIcon(order.priority)}
                         variant="flat"
                       >
-                        {/* {order.priority} */} <p>RFU</p>
+                        {order.priority ?? "low"}
                       </Chip>
+                    </TableCell>
+                    <TableCell>
+                      <Chip
+                        color={getColorStatus(order.unit.status) as any}
+                        size="sm"                        
+                        variant="dot"
+                      >
+                        {order.unit.status ?? "n/a"}
+                      </Chip>
+                    </TableCell>
+                    <TableCell>
+                      <div className="">
+                        <p className="flex items-center gap-1">
+                          <MapPin className="text-red-500 w-3 h-3" />
+                          {order.unit.location}
+                        </p>
+                        <p className="capitalize text-default-500 text-xs pl-4 ">
+                          Shift {order.shift ?? "n/a"}
+                        </p>
+                      </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex flex-col gap-1">
                         <Chip
                           color={getStatusColor(order.status) as any}
+                          startContent={getWoIcon(order.status)}
                           size="sm"
                           variant="dot"
                         >
-                          {order.status}
+                          {getStatusLabel(order.status)}
                         </Chip>
-                        {/* {order.status === "in-progress" && (
-                        <Progress
-                          className="max-w-20"
-                          color="primary"
-                          size="sm"
-                          value={calculateProgress(
-                            order.completedHours,
-                            order.estimatedHours,
+                        {order.status === "in_progress" &&
+                          order.inProgressBy && (
+                            <div className="ml-2 text-xs text-default-500">
+                              By {order.inProgressBy.name}
+                              {/* {order.inProgressAt && (
+                              <span className="ml-2">
+                                {new Date(order.inProgressAt).toLocaleDateString("en-GB", {
+                                  day: "numeric",
+                                  month: "2-digit",
+                                  year: "2-digit",
+                                })}
+                              </span>
+                            )} */}
+                            </div>
                           )}
-                        />
-                      )} */}{" "}
-                        <p>Est</p>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-small">
-                        {/* <p className="font-medium">{order.location}</p> */}
-                        <p>Location</p>
-                        <p className="text-default-500 text-xs">
-                          {/* {order.equipment} */} Equipment
-                        </p>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="text-small">
                         {/* <p className="font-medium">{order.dueDate}</p> */}
-                        <p>Order</p>
+                        <p>
+                          {order.breakdownTime.toLocaleDateString("en-GB", {
+                            day: "numeric",
+                            month: "short",
+                            year: "2-digit",
+                          })}
+                        </p>
                         <p className="text-default-500 text-xs">
-                          {/* {order.estimatedHours}h est. */}est.
+                          {order.breakdownTime.toLocaleTimeString("en-GB", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            hour12: false,
+                          })}
                         </p>
                       </div>
                     </TableCell>
@@ -406,35 +584,66 @@ export default function WoUserTable({ dataTable }: ManagementClientProps) {
                             <DropdownItem
                               key="details"
                               startContent={<Eye className="w-4 h-4" />}
+                              onPress={() => handleViewDetails(order)}
                             >
                               View Details
                             </DropdownItem>
                             <DropdownItem
                               key="edit"
+                              isDisabled
                               startContent={<Edit className="w-4 h-4" />}
+                              onPress={() =>
+                                router.push(`/dashboard/gamma/${order.id}/edit`)
+                              }
                             >
                               Edit Order
                             </DropdownItem>
-                            <DropdownItem
-                              key="completed"
-                              startContent={<CheckSquare className="w-4 h-4" />}
-                            >
-                              Mark Complete
-                            </DropdownItem>
-                            <DropdownItem
-                              key="reassign"
-                              startContent={<UserIcon className="w-4 h-4" />}
-                            >
-                              Reassign
-                            </DropdownItem>
-                            <DropdownItem
+                            {order.status === "in_progress" ? (
+                              <DropdownItem
+                                key="completed"
+                                className="text-primary"
+                                color="primary"
+                                startContent={
+                                  <CheckSquare className="w-4 h-4" />
+                                }
+                                onPress={() => handleMarkAsRfu(order)}
+                              >
+                                Mark as RFU
+                              </DropdownItem>
+                            ) : null}
+                            {order.status === "pending" ? (
+                              <DropdownItem
+                                key="in-progress"
+                                className="text-success"
+                                color="success"
+                                startContent={<Clock className="w-4 h-4" />}
+                                onPress={() => handleMarkAsInProgress(order.id)}
+                              >
+                                Mark as In Progress
+                              </DropdownItem>
+                            ) : null}
+
+                            {session?.user?.role === "super_admin" ? (
+                              <DropdownItem
+                                key="cancel"
+                                className="text-danger"
+                                color="danger"
+                                startContent={<Trash2 className="w-4 h-4" />}
+                                onPress={() => handleDelete(order.id)}
+                              >
+                                Delete Order
+                              </DropdownItem>
+                            ) : null}
+
+                            {/* <DropdownItem
                               key="cancel"
                               className="text-danger"
                               color="danger"
                               startContent={<Trash2 className="w-4 h-4" />}
+                              onPress={() => handleDelete(order.id)}
                             >
-                              Cancel Order
-                            </DropdownItem>
+                              Delete Order
+                            </DropdownItem> */}
                           </DropdownMenu>
                         </Dropdown>
                       </div>
@@ -461,6 +670,22 @@ export default function WoUserTable({ dataTable }: ManagementClientProps) {
           </ModalContent>
         </Modal>
       </div>
-    </>
+
+      {/* Modal untuk Detail Breakdown */}
+      <BreakdownDetailModal
+        breakdown={selectedBreakdown}
+        isOpen={isDetailModalOpen}
+        onClose={handleCloseDetailModal}
+      />
+
+      {/* RFU Report Action Modal */}
+      <RFUReportActionModal
+        breakdownId={selectedBreakdownForRFU?.id || ""}
+        breakdownNumber={selectedBreakdownForRFU?.breakdownNumber || ""}
+        isOpen={isRFUModalOpen}
+        onClose={handleCloseRFUModal}
+        onRFUComplete={handleRFUComplete}
+      />
+    </div>
   );
 }

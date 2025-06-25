@@ -410,9 +410,7 @@ export function AddForms({
             variant="bordered"
           >
             {users.map((user) => (
-              <SelectItem key={user.id}>
-                {user.name}
-              </SelectItem>
+              <SelectItem key={user.id}>{user.name}</SelectItem>
             ))}
           </Select>
 

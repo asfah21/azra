@@ -40,8 +40,10 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
   const userRole = session?.user?.role || "";
 
   const [components, setComponents] = useState<Component[]>([]);
-  const [componentInput, setComponentInput] = useState("");
   const [subcomponentInput, setSubcomponentInput] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [selectedShift, setSelectedShift] = useState<string>("");
+  const [selectedPriority, setSelectedPriority] = useState<string>("medium");
 
   const [units, setUnits] = useState<Unit[]>([]);
   const [selectedUnitId, setSelectedUnitId] = useState<string>("");
@@ -94,15 +96,14 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
   }, [userRole]);
 
   const addComponent = () => {
-    if (componentInput.trim() && subcomponentInput.trim()) {
+    if (subcomponentInput.trim()) {
       setComponents([
         ...components,
         {
-          component: componentInput,
+          component: `${components.length + 1}.`,
           subcomponent: subcomponentInput,
         },
       ]);
-      setComponentInput("");
       setSubcomponentInput("");
     }
   };
@@ -111,7 +112,25 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
     const newComponents = [...components];
 
     newComponents.splice(index, 1);
-    setComponents(newComponents);
+    // Re-index nomor komponen setelah penghapusan
+    const reIndexed = newComponents.map((comp, idx) => ({
+      ...comp,
+      component: `${idx + 1}.`,
+    }));
+
+    setComponents(reIndexed);
+  };
+
+  // Handle form submission dengan loading state
+  const handleSubmit = async (formData: FormData) => {
+    setIsSubmitting(true);
+    try {
+      await formAction(formData);
+    } catch (error) {
+      console.error("Error submitting form:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Tampilkan error jika tidak ada userId
@@ -126,11 +145,11 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
   return (
     <>
       <ModalHeader className="flex flex-col gap-1">
-        <h2 className="text-xl font-semibold">Report New Breakdown</h2>
+        <h2 className="text-xl font-semibold">New Work Order</h2>
       </ModalHeader>
 
       <ModalBody className="max-h-[60vh] overflow-y-auto">
-        <form action={formAction} className="space-y-4" id="addBreakdownForm">
+        <form action={handleSubmit} className="space-y-4" id="addBreakdownForm">
           {/* Hidden fields */}
           <input name="reportedById" type="hidden" value={currentUserId} />
           {components.map((comp, index) => (
@@ -249,76 +268,145 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
           />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input
-              isRequired
-              classNames={{
-                label: "text-black/50 dark:text-white/90",
-                input: [
-                  "bg-transparent",
-                  "text-black/90 dark:text-white/90",
-                  "placeholder:text-default-700/50 dark:placeholder:text-white/60",
-                ],
-                innerWrapper: "bg-transparent",
-                inputWrapper: [
-                  "bg-default-200/50",
-                  "dark:bg-default/60",
-                  "backdrop-blur-xl",
-                  "backdrop-saturate-200",
-                  "hover:bg-default-200/70",
-                  "dark:hover:bg-default/70",
-                  "group-data-[focused=true]:bg-default-200/50",
-                  "dark:group-data-[focused=true]:bg-default/60",
-                  "!cursor-text",
-                ],
-              }}
-              defaultValue={new Date().toISOString().slice(0, 16)}
-              label="Breakdown Time"
-              name="breakdownTime"
-              type="datetime-local"
-              variant="bordered"
-            />
+            <div className="space-y-4">
+              <Input
+                isRequired
+                classNames={{
+                  label: "text-black/50 dark:text-white/90",
+                  input: [
+                    "bg-transparent",
+                    "text-black/90 dark:text-white/90",
+                    "placeholder:text-default-700/50 dark:placeholder:text-white/60",
+                  ],
+                  innerWrapper: "bg-transparent",
+                  inputWrapper: [
+                    "bg-default-200/50",
+                    "dark:bg-default/60",
+                    "backdrop-blur-xl",
+                    "backdrop-saturate-200",
+                    "hover:bg-default-200/70",
+                    "dark:hover:bg-default/70",
+                    "group-data-[focused=true]:bg-default-200/50",
+                    "dark:group-data-[focused=true]:bg-default/60",
+                    "!cursor-text",
+                  ],
+                }}
+                defaultValue={new Date(Date.now() + 8 * 60 * 60 * 1000)
+                  .toISOString()
+                  .slice(0, 16)}
+                label="Breakdown Time"
+                name="breakdownTime"
+                type="datetime-local"
+                variant="bordered"
+              />
 
-            <Input
-              isRequired
-              classNames={{
-                label: "text-black/50 dark:text-white/90",
-                input: [
-                  "bg-transparent",
-                  "text-black/90 dark:text-white/90",
-                  "placeholder:text-default-700/50 dark:placeholder:text-white/60",
-                ],
-                innerWrapper: "bg-transparent",
-                inputWrapper: [
-                  "bg-default-200/50",
-                  "dark:bg-default/60",
-                  "backdrop-blur-xl",
-                  "backdrop-saturate-200",
-                  "hover:bg-default-200/70",
-                  "dark:hover:bg-default/70",
-                  "group-data-[focused=true]:bg-default-200/50",
-                  "dark:group-data-[focused=true]:bg-default/60",
-                  "!cursor-text",
-                ],
-              }}
-              endContent={
-                <div className="pointer-events-none flex items-center">
-                  <span className="text-default-400 text-small">hours</span>
-                </div>
-              }
-              label="Working Hours"
-              min="0"
-              name="workingHours"
-              placeholder="Enter working hours"
-              step="0.1"
-              type="number"
-              variant="bordered"
-            />
+              <Select
+                isRequired
+                classNames={{
+                  label: "text-black/50 dark:text-white/90",
+                  trigger: [
+                    "bg-default-200/50",
+                    "dark:bg-default/60",
+                    "backdrop-blur-xl",
+                    "backdrop-saturate-200",
+                    "hover:bg-default-200/70",
+                    "dark:hover:bg-default/70",
+                    "group-data-[focused=true]:bg-default-200/50",
+                    "dark:group-data-[focused=true]:bg-default/60",
+                  ],
+                  value: "text-black/90 dark:text-white/90",
+                }}
+                label="Shift"
+                name="shift"
+                placeholder="Select shift"
+                selectedKeys={selectedShift ? [selectedShift] : []}
+                variant="bordered"
+                onSelectionChange={(keys) => {
+                  const keyArray = Array.from(keys);
+
+                  setSelectedShift(keyArray[0]?.toString() || "");
+                }}
+              >
+                <SelectItem key="siang">Siang</SelectItem>
+                <SelectItem key="malam">Malam</SelectItem>
+              </Select>
+            </div>
+
+            <div className="space-y-4">
+              <Select
+                isRequired
+                classNames={{
+                  label: "text-black/50 dark:text-white/90",
+                  trigger: [
+                    "bg-default-200/50",
+                    "dark:bg-default/60",
+                    "backdrop-blur-xl",
+                    "backdrop-saturate-200",
+                    "hover:bg-default-200/70",
+                    "dark:hover:bg-default/70",
+                    "group-data-[focused=true]:bg-default-200/50",
+                    "dark:group-data-[focused=true]:bg-default/60",
+                  ],
+                  value: "text-black/90 dark:text-white/90",
+                }}
+                label="Priority"
+                name="priority"
+                placeholder="Select priority"
+                selectedKeys={selectedPriority ? [selectedPriority] : []}
+                variant="bordered"
+                onSelectionChange={(keys) => {
+                  const keyArray = Array.from(keys);
+
+                  setSelectedPriority(keyArray[0]?.toString() || "");
+                }}
+              >
+                <SelectItem key="low">Low</SelectItem>
+                <SelectItem key="medium">Medium</SelectItem>
+                <SelectItem key="high">High</SelectItem>
+              </Select>
+
+              <Input
+                isRequired
+                classNames={{
+                  label: "text-black/50 dark:text-white/90",
+                  input: [
+                    "bg-transparent",
+                    "text-black/90 dark:text-white/90",
+                    "placeholder:text-default-700/50 dark:placeholder:text-white/60",
+                  ],
+                  innerWrapper: "bg-transparent",
+                  inputWrapper: [
+                    "bg-default-200/50",
+                    "dark:bg-default/60",
+                    "backdrop-blur-xl",
+                    "backdrop-saturate-200",
+                    "hover:bg-default-200/70",
+                    "dark:hover:bg-default/70",
+                    "group-data-[focused=true]:bg-default-200/50",
+                    "dark:group-data-[focused=true]:bg-default/60",
+                    "!cursor-text",
+                  ],
+                }}
+                endContent={
+                  <div className="pointer-events-none flex items-center">
+                    <span className="text-default-400 text-small">hours</span>
+                  </div>
+                }
+                label="Working Hours"
+                min="0"
+                name="workingHours"
+                placeholder="Enter working hours"
+                step="0.1"
+                type="number"
+                variant="bordered"
+              />
+            </div>
           </div>
 
           {/* Components Section */}
           <div className="space-y-2">
             <h3 className="text-sm font-medium">Components Affected</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-1 gap-4">
               <Input
                 classNames={{
                   input: [
@@ -339,51 +427,22 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
                     "!cursor-text",
                   ],
                 }}
-                label="Component"
-                placeholder="Enter component name"
-                value={componentInput}
-                variant="bordered"
-                onChange={(e) => setComponentInput(e.target.value)}
-              />
-
-              <Input
-                classNames={{
-                  input: [
-                    "bg-transparent",
-                    "text-black/90 dark:text-white/90",
-                    "placeholder:text-default-700/50 dark:placeholder:text-white/60",
-                  ],
-                  innerWrapper: "bg-transparent",
-                  inputWrapper: [
-                    "bg-default-200/50",
-                    "dark:bg-default/60",
-                    "backdrop-blur-xl",
-                    "backdrop-saturate-200",
-                    "hover:bg-default-200/70",
-                    "dark:hover:bg-default/70",
-                    "group-data-[focused=true]:bg-default-200/50",
-                    "dark:group-data-[focused=true]:bg-default/60",
-                    "!cursor-text",
-                  ],
-                }}
-                label="Subcomponent"
-                placeholder="Enter subcomponent name"
+                label="Component Description"
+                placeholder="Masukkan deskripsi komponen (misal: Kerusakan Tyre, Kerusakan Hidrolik)"
                 value={subcomponentInput}
                 variant="bordered"
                 onChange={(e) => setSubcomponentInput(e.target.value)}
               />
             </div>
-
             <Button
               color="primary"
-              isDisabled={!componentInput || !subcomponentInput}
+              isDisabled={!subcomponentInput}
               size="sm"
               variant="bordered"
               onPress={addComponent}
             >
               Add Component
             </Button>
-
             <div className="flex flex-wrap gap-2">
               {components.map((comp, index) => (
                 <Chip
@@ -391,7 +450,7 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
                   variant="bordered"
                   onClose={() => removeComponent(index)}
                 >
-                  {comp.component} - {comp.subcomponent}
+                  {`${index + 1}. ${comp.subcomponent}`}
                 </Chip>
               ))}
             </div>
@@ -440,10 +499,39 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
           className="font-medium bg-gradient-to-r from-blue-500 to-purple-600 text-white"
           color="primary"
           form="addBreakdownForm"
-          isDisabled={components.length === 0 || !selectedUnitId}
+          isDisabled={
+            components.length === 0 ||
+            !selectedUnitId ||
+            !selectedShift ||
+            !selectedPriority ||
+            isSubmitting
+          }
+          isLoading={isSubmitting}
+          spinner={
+            <svg
+              className="animate-spin h-5 w-5 text-current"
+              fill="none"
+              viewBox="0 0 24 24"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <circle
+                className="opacity-25"
+                cx="12"
+                cy="12"
+                r="10"
+                stroke="currentColor"
+                strokeWidth="4"
+              />
+              <path
+                className="opacity-75"
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                fill="currentColor"
+              />
+            </svg>
+          }
           type="submit"
         >
-          Report Breakdown
+          {isSubmitting ? "Reporting..." : "Report Breakdown"}
         </Button>
       </ModalFooter>
     </>

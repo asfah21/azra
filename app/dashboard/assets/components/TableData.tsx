@@ -65,7 +65,10 @@ interface ManagementClientProps {
   users: Array<{ id: string; name: string }>;
 }
 
-export default function TableDatas({ dataTable, users }: ManagementClientProps) {
+export default function TableDatas({
+  dataTable,
+  users,
+}: ManagementClientProps) {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const router = useRouter();
 
@@ -141,8 +144,9 @@ export default function TableDatas({ dataTable, users }: ManagementClientProps) 
   // Fungsi untuk mendapatkan nama user dari array users
   const getUserName = (userId: string | null): string => {
     if (!userId) return "Unassigned";
-    
-    const user = users.find(u => u.id === userId);
+
+    const user = users.find((u) => u.id === userId);
+
     return user?.name || userId;
   };
 
@@ -345,10 +349,10 @@ export default function TableDatas({ dataTable, users }: ManagementClientProps) 
         >
           <ModalContent>
             {(onClose) => (
-              <AddForms 
-                onClose={onClose} 
-                onUnitAdded={handleUserAdded} 
+              <AddForms
                 users={users}
+                onClose={onClose}
+                onUnitAdded={handleUserAdded}
               />
             )}
           </ModalContent>

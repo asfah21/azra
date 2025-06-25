@@ -126,7 +126,7 @@ async function getUsers(): Promise<Array<{ id: string; name: string }>> {
         id: true,
         name: true,
       },
-      orderBy: { name: 'asc' },
+      orderBy: { name: "asc" },
     });
 
     console.log(`Successfully fetched ${users.length} users for dropdown`);
@@ -134,6 +134,7 @@ async function getUsers(): Promise<Array<{ id: string; name: string }>> {
     return users;
   } catch (error) {
     console.error("Error fetching users:", error);
+
     return [];
   }
 }
@@ -141,12 +142,8 @@ async function getUsers(): Promise<Array<{ id: string; name: string }>> {
 export default async function AssetsPage() {
   try {
     // Fetch data secara parallel dengan error handling yang lebih robust
-    const [totalResult, newResult, tableResult, usersResult] = await Promise.allSettled([
-      getTotal(),
-      getNew(),
-      getTable(),
-      getUsers(),
-    ]);
+    const [totalResult, newResult, tableResult, usersResult] =
+      await Promise.allSettled([getTotal(), getNew(), getTable(), getUsers()]);
 
     // Extract hasil dengan fallback values
     const totalAssets =

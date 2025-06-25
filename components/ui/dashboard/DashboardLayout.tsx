@@ -9,7 +9,6 @@ import {
   FiBarChart2,
   FiUsers,
   FiCodesandbox,
-  FiPaperclip,
 } from "react-icons/fi";
 import { PiWrench } from "react-icons/pi";
 import { LuLayoutDashboard } from "react-icons/lu";
@@ -82,12 +81,6 @@ export default function UIDashboardLayout({
       title: "Beta",
       path: "/dashboard/beta",
       icon: <FiCodesandbox />,
-    },
-    {
-      id: "gamma",
-      title: "Gamma",
-      path: "/dashboard/gamma",
-      icon: <FiPaperclip />,
     },
   ];
 
