@@ -23,19 +23,16 @@ import {
   ModalContent,
   Pagination,
   Input,
-  Progress,
 } from "@heroui/react";
 import {
   Wrench,
   Clock,
-  AlertTriangle,
   Filter,
   MoreVertical,
   Eye,
   Edit,
   Trash2,
   Zap,
-  Settings,
   CheckSquare,
   PlusIcon,
   Search,
@@ -45,18 +42,22 @@ import {
 import { useRouter } from "next/navigation";
 import { useState, useMemo } from "react";
 import { useSession } from "next-auth/react";
+import {
+  TbCircleDashedLetterH,
+  TbCircleDashedLetterL,
+  TbCircleDashedLetterM,
+} from "react-icons/tb";
 
 import {
   deleteBreakdown,
-  updateBreakdownStatus,
   updateBreakdownStatusWithActions,
+  updateBreakdownStatusWithUnitStatus,
 } from "../action";
 
 import { AddWoForm } from "./AddForm";
 import BreakdownDetailModal from "./BreakdownDetailModal";
 import RFUReportActionModal from "./RFUReportActionModal";
-import { PiLetterCircleHBold, PiLetterCircleHFill } from "react-icons/pi";
-import { TbCircleDashedLetterH, TbCircleDashedLetterL, TbCircleDashedLetterM, TbCircleDashedLetterO, TbCircleLetterHFilled, TbHexagonLetterHFilled } from "react-icons/tb";
+import InProgressModal from "./InProgressModal";
 
 // Tambahkan import untuk mendapatkan current user
 
@@ -137,6 +138,11 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
 
   // State untuk search
   const [searchQuery, setSearchQuery] = useState("");
+
+  // State untuk modal In Progress
+  const [isInProgressModalOpen, setIsInProgressModalOpen] = useState(false);
+  const [selectedBreakdownForInProgress, setSelectedBreakdownForInProgress] =
+    useState<BreakdownPayload | null>(null);
 
   // Filter data berdasarkan search query
   const filteredData = useMemo(() => {
@@ -231,19 +237,44 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
     }
   };
 
-  const handleMarkAsInProgress = (id: string) => {
-    if (window.confirm("Are you sure you want to mark this as In Progress?")) {
-      // Gunakan ID user yang sedang login
-      const currentUserId = session?.user?.id;
+  const handleMarkAsInProgress = (breakdown: BreakdownPayload) => {
+    setSelectedBreakdownForInProgress(breakdown);
+    setIsInProgressModalOpen(true);
+  };
 
-      if (currentUserId) {
-        handleAction(() =>
-          updateBreakdownStatus(id, "in_progress", currentUserId),
-        );
-      } else {
-        handleAction(() => updateBreakdownStatus(id, "in_progress"));
-      }
+  const handleInProgressComplete = async (
+    unitStatus: string,
+    notes?: string,
+  ) => {
+    if (!selectedBreakdownForInProgress) return;
+
+    const currentUserId = session?.user?.id;
+
+    if (currentUserId) {
+      await handleAction(() =>
+        updateBreakdownStatusWithUnitStatus(
+          selectedBreakdownForInProgress.id,
+          "in_progress",
+          unitStatus,
+          notes,
+          currentUserId,
+        ),
+      );
+    } else {
+      await handleAction(() =>
+        updateBreakdownStatusWithUnitStatus(
+          selectedBreakdownForInProgress.id,
+          "in_progress",
+          unitStatus,
+          notes,
+        ),
+      );
     }
+  };
+
+  const handleCloseInProgressModal = () => {
+    setIsInProgressModalOpen(false);
+    setSelectedBreakdownForInProgress(null);
   };
 
   const handleDelete = (id: string) => {
@@ -362,7 +393,7 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
   const getStatusLabel = (status: string) => {
     switch (status) {
       case "rfu":
-        return  <span className="text-primary">completed</span>;
+        return <span className="text-primary">completed</span>;
       case "in_progress":
         return <span className="text-success">in-progress</span>;
       case "pending":
@@ -453,7 +484,7 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
             >
               <TableHeader>
                 <TableColumn>ORDER</TableColumn>
-                <TableColumn>SUBMITTER</TableColumn>
+                <TableColumn>REPORTED BY</TableColumn>
                 <TableColumn>PRIORITY</TableColumn>
                 <TableColumn>STATUS UNIT</TableColumn>
                 <TableColumn>LOCATION</TableColumn>
@@ -509,7 +540,7 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
                     <TableCell>
                       <Chip
                         color={getColorStatus(order.unit.status) as any}
-                        size="sm"                        
+                        size="sm"
                         variant="dot"
                       >
                         {order.unit.status ?? "n/a"}
@@ -530,8 +561,8 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
                       <div className="flex flex-col gap-1">
                         <Chip
                           color={getStatusColor(order.status) as any}
-                          startContent={getWoIcon(order.status)}
                           size="sm"
+                          startContent={getWoIcon(order.status)}
                           variant="dot"
                         >
                           {getStatusLabel(order.status)}
@@ -617,7 +648,7 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
                                 className="text-success"
                                 color="success"
                                 startContent={<Clock className="w-4 h-4" />}
-                                onPress={() => handleMarkAsInProgress(order.id)}
+                                onPress={() => handleMarkAsInProgress(order)}
                               >
                                 Mark as In Progress
                               </DropdownItem>
@@ -685,6 +716,16 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
         isOpen={isRFUModalOpen}
         onClose={handleCloseRFUModal}
         onRFUComplete={handleRFUComplete}
+      />
+
+      {/* In Progress Modal */}
+      <InProgressModal
+        breakdownNumber={selectedBreakdownForInProgress?.breakdownNumber || ""}
+        isOpen={isInProgressModalOpen}
+        unitAssetTag={selectedBreakdownForInProgress?.unit.assetTag || ""}
+        unitName={selectedBreakdownForInProgress?.unit.name || ""}
+        onClose={handleCloseInProgressModal}
+        onConfirm={handleInProgressComplete}
       />
     </div>
   );

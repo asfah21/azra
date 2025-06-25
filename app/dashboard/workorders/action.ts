@@ -111,7 +111,7 @@ export async function createBreakdown(prevState: any, formData: FormData) {
     }
 
     // Validate priority value
-    const validPriorities = ["medium", "high", "urgent"];
+    const validPriorities = ["low", "medium", "high"];
 
     if (!validPriorities.includes(priority)) {
       return { success: false, message: "Invalid priority value!" };
@@ -417,5 +417,77 @@ export async function updateBreakdownStatusWithActions(
     console.error("Error updating breakdown status with actions:", error);
 
     return { success: false, message: "Failed to update status with actions." };
+  }
+}
+
+export async function updateBreakdownStatusWithUnitStatus(
+  id: string,
+  status: BreakdownStatus,
+  unitStatus: string,
+  notes?: string,
+  resolvedById?: string,
+) {
+  try {
+    const breakdown = await prisma.breakdown.findUnique({
+      where: { id },
+      include: { unit: true },
+    });
+
+    if (!breakdown) {
+      return { success: false, message: "Breakdown not found!" };
+    }
+
+    // Update breakdown status dan unit status dalam satu transaction
+    await prisma.$transaction(async (tx) => {
+      // Update breakdown status
+      const updateData: any = { status };
+
+      if (status === "in_progress" && resolvedById) {
+        updateData.inProgressById = resolvedById;
+        updateData.inProgressAt = new Date();
+      }
+
+      await tx.breakdown.update({
+        where: { id },
+        data: updateData,
+      });
+
+      // Update unit status
+      await tx.unit.update({
+        where: { id: breakdown.unitId },
+        data: { status: unitStatus },
+      });
+
+      // Create history log untuk breakdown
+      await tx.unitHistory.create({
+        data: {
+          logType: "status_update",
+          referenceId: breakdown.id,
+          message: `Breakdown ${breakdown.breakdownNumber} marked as in progress. Unit status updated to ${unitStatus}.${notes ? ` Notes: ${notes}` : ""}`,
+          unitId: breakdown.unitId,
+        },
+      });
+
+      // Create history log untuk unit status change
+      await tx.unitHistory.create({
+        data: {
+          logType: "unit_status_change",
+          referenceId: breakdown.id,
+          message: `Unit status changed to ${unitStatus} due to breakdown ${breakdown.breakdownNumber}.${notes ? ` Notes: ${notes}` : ""}`,
+          unitId: breakdown.unitId,
+        },
+      });
+    });
+
+    revalidatePath("/dashboard/gamma");
+
+    return {
+      success: true,
+      message: `Breakdown marked as in progress and unit status updated to ${unitStatus}.`,
+    };
+  } catch (error) {
+    console.error("Error updating breakdown status with unit status:", error);
+
+    return { success: false, message: "Failed to update status." };
   }
 }

@@ -41,7 +41,6 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
 
   const [components, setComponents] = useState<Component[]>([]);
   const [subcomponentInput, setSubcomponentInput] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedShift, setSelectedShift] = useState<string>("");
   const [selectedPriority, setSelectedPriority] = useState<string>("medium");
 
@@ -49,7 +48,7 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
   const [selectedUnitId, setSelectedUnitId] = useState<string>("");
   const [loadingUnits, setLoadingUnits] = useState(true);
 
-  const [state, formAction] = useActionState(createBreakdown, null);
+  const [state, formAction, isPending] = useActionState(createBreakdown, null);
 
   const [breakdownNumber, setBreakdownNumber] = useState("");
 
@@ -123,14 +122,7 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
 
   // Handle form submission dengan loading state
   const handleSubmit = async (formData: FormData) => {
-    setIsSubmitting(true);
-    try {
-      await formAction(formData);
-    } catch (error) {
-      console.error("Error submitting form:", error);
-    } finally {
-      setIsSubmitting(false);
-    }
+    await formAction(formData);
   };
 
   // Tampilkan error jika tidak ada userId
@@ -495,6 +487,7 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
         >
           Cancel
         </Button>
+
         <Button
           className="font-medium bg-gradient-to-r from-blue-500 to-purple-600 text-white"
           color="primary"
@@ -504,34 +497,12 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
             !selectedUnitId ||
             !selectedShift ||
             !selectedPriority ||
-            isSubmitting
+            isPending
           }
-          isLoading={isSubmitting}
-          spinner={
-            <svg
-              className="animate-spin h-5 w-5 text-current"
-              fill="none"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-              />
-              <path
-                className="opacity-75"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                fill="currentColor"
-              />
-            </svg>
-          }
+          isLoading={isPending}
           type="submit"
         >
-          {isSubmitting ? "Reporting..." : "Report Breakdown"}
+          {isPending ? "Reporting..." : "Report Breakdown"}
         </Button>
       </ModalFooter>
     </>
