@@ -772,7 +772,7 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
         onOpenChange={setIsDeleteModalOpen}
       >
         <ModalContent>
-          {(onClose) => (
+          {(_onClose) => (
             <>
               <ModalHeader className="flex flex-col gap-1">
                 <div className="flex items-center gap-2">

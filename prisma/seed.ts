@@ -18,7 +18,7 @@ async function main() {
     where: { email: "asfah21@gmail.com" },
     update: { password: hashedPassword },
     create: {
-      name: "Super Admin",
+      name: "Muh. Al-Asfahani",
       email: "asfah21@gmail.com",
       password: hashedPassword,
       role: "super_admin",
@@ -26,7 +26,7 @@ async function main() {
       avatar: "https://i.pravatar.cc/150?u=1",
       status: "online",
       lastActive: new Date(),
-      tasksCompleted: 145,
+      tasksCompleted: 1,
       joinDate: new Date(),
     },
   });
