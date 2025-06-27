@@ -27,29 +27,19 @@ interface Breakdown {
   // tambahkan field lain jika perlu
 }
 
+interface BreakdownStats {
+  total: number;
+  progress: number;
+  rfu: number;
+  pending: number;
+  overdue: number;
+}
+
 interface WoStatsCardsProps {
-  stats: Breakdown[];
+  stats: BreakdownStats;
 }
 
 export default function GammaCardGrid({ stats }: WoStatsCardsProps) {
-  // Hitung statistik dari array breakdowns
-  const total = stats.length;
-  const progress = stats.filter((b) => b.status === "in_progress").length;
-  const rfu = stats.filter((b) => b.status === "rfu").length;
-
-  // Hitung overdue: status pending yang sudah lebih dari 30 hari sejak created
-  const thirtyDaysAgo = new Date();
-
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 3);
-
-  const overdue = stats.filter(
-    (b) => b.status === "pending" && new Date(b.createdAt) < thirtyDaysAgo,
-  ).length;
-
-  // Hitung pending: semua status pending dikurangi dengan yang overdue
-  const allPending = stats.filter((b) => b.status === "pending").length;
-  const pending = allPending - overdue;
-
   // Mock data untuk work orders
   const workOrderStats = {
     completionRate: 89.2,
@@ -77,7 +67,7 @@ export default function GammaCardGrid({ stats }: WoStatsCardsProps) {
           <div className="space-y-2 sm:space-y-3">
             <div className="flex justify-between items-center">
               <span className="text-xl sm:text-2xl font-bold text-primary-700">
-                {total}
+                {stats.total}
               </span>
               <Chip
                 color="primary"
@@ -90,7 +80,7 @@ export default function GammaCardGrid({ stats }: WoStatsCardsProps) {
             </div>
             <div className="flex justify-between items-center">
               <span className="text-xl sm:text-2xl font-bold text-primary-700">
-                {rfu}
+                {stats.rfu}
               </span>
               <Chip
                 color="primary"
@@ -125,7 +115,7 @@ export default function GammaCardGrid({ stats }: WoStatsCardsProps) {
           <div className="space-y-2 sm:space-y-3">
             <div className="flex justify-between items-center">
               <span className="text-xl sm:text-2xl font-bold text-success-700">
-                {progress}
+                {stats.progress}
               </span>
               <Chip
                 color="success"
@@ -176,7 +166,7 @@ export default function GammaCardGrid({ stats }: WoStatsCardsProps) {
           <div className="space-y-2 sm:space-y-3">
             <div className="flex justify-between items-center">
               <span className="text-xl sm:text-2xl font-bold text-warning-700">
-                {pending}
+                {stats.pending}
               </span>
               <Chip
                 color="warning"
@@ -214,7 +204,7 @@ export default function GammaCardGrid({ stats }: WoStatsCardsProps) {
           <div className="space-y-2 sm:space-y-3">
             <div className="flex justify-between items-center">
               <span className="text-xl sm:text-2xl font-bold text-danger-700">
-                {overdue}
+                {stats.overdue}
               </span>
               <Chip
                 color="danger"

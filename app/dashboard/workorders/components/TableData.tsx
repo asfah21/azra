@@ -21,6 +21,9 @@ import {
   useDisclosure,
   Modal,
   ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
   Pagination,
   Input,
 } from "@heroui/react";
@@ -142,6 +145,11 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
   // State untuk modal In Progress
   const [isInProgressModalOpen, setIsInProgressModalOpen] = useState(false);
   const [selectedBreakdownForInProgress, setSelectedBreakdownForInProgress] =
+    useState<BreakdownPayload | null>(null);
+
+  // State untuk modal konfirmasi delete
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [selectedBreakdownForDelete, setSelectedBreakdownForDelete] =
     useState<BreakdownPayload | null>(null);
 
   // Filter data berdasarkan search query
@@ -277,10 +285,38 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
     setSelectedBreakdownForInProgress(null);
   };
 
-  const handleDelete = (id: string) => {
-    if (window.confirm("Are you sure you want to delete this order?")) {
-      handleAction(() => deleteBreakdown(id));
+  const handleDelete = (breakdown: BreakdownPayload) => {
+    // Validasi role user sebelum membuka modal
+    if (session?.user?.role !== "super_admin") {
+      console.error("Unauthorized: Only super_admin can delete work orders");
+
+      return;
     }
+
+    setSelectedBreakdownForDelete(breakdown);
+    setIsDeleteModalOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!selectedBreakdownForDelete) return;
+
+    // Validasi role user sebelum melakukan delete
+    if (session?.user?.role !== "super_admin") {
+      console.error("Unauthorized: Only super_admin can delete work orders");
+      setIsDeleteModalOpen(false);
+      setSelectedBreakdownForDelete(null);
+
+      return;
+    }
+
+    await handleAction(() => deleteBreakdown(selectedBreakdownForDelete.id));
+    setIsDeleteModalOpen(false);
+    setSelectedBreakdownForDelete(null);
+  };
+
+  const handleCloseDeleteModal = () => {
+    setIsDeleteModalOpen(false);
+    setSelectedBreakdownForDelete(null);
   };
 
   const handleUserAdded = () => {
@@ -660,7 +696,7 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
                                 className="text-danger"
                                 color="danger"
                                 startContent={<Trash2 className="w-4 h-4" />}
-                                onPress={() => handleDelete(order.id)}
+                                onPress={() => handleDelete(order)}
                               >
                                 Delete Order
                               </DropdownItem>
@@ -727,6 +763,51 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
         onClose={handleCloseInProgressModal}
         onConfirm={handleInProgressComplete}
       />
+
+      {/* Modal konfirmasi delete */}
+      <Modal
+        isOpen={isDeleteModalOpen}
+        placement="center"
+        size="sm"
+        onOpenChange={setIsDeleteModalOpen}
+      >
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="flex flex-col gap-1">
+                <div className="flex items-center gap-2">
+                  <Trash2 className="w-5 h-5 text-danger" />
+                  <span>Konfirmasi Hapus</span>
+                </div>
+              </ModalHeader>
+              <ModalBody>
+                <p>
+                  Apakah Anda yakin ingin menghapus work order{" "}
+                  <span className="font-semibold">
+                    {selectedBreakdownForDelete?.breakdownNumber}
+                  </span>
+                  ?
+                </p>
+                <p className="text-sm text-default-500">
+                  Tindakan ini tidak dapat dibatalkan.
+                </p>
+              </ModalBody>
+              <ModalFooter>
+                <Button
+                  color="default"
+                  variant="flat"
+                  onPress={handleCloseDeleteModal}
+                >
+                  Batal
+                </Button>
+                <Button color="danger" onPress={handleConfirmDelete}>
+                  Hapus
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
     </div>
   );
 }

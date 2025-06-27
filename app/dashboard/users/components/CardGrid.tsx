@@ -22,6 +22,8 @@ import {
 interface UserStats {
   total: number;
   new: number;
+  active: number;
+  inactive: number;
 }
 
 interface UserStatsCardsProps {
@@ -59,7 +61,7 @@ export default function UserCardGrids({ stats }: UserStatsCardsProps) {
                 startContent={<TrendingUp className="w-3 h-3" />}
                 variant="flat"
               >
-                +1 {/* {userStats.growthRate} */}
+                +1
               </Chip>
             </div>
             <p className="text-xs sm:text-small text-default-600">
@@ -89,7 +91,7 @@ export default function UserCardGrids({ stats }: UserStatsCardsProps) {
           <div className="space-y-2 sm:space-y-3">
             <div className="flex justify-between items-center">
               <span className="text-xl sm:text-2xl font-bold text-success-700">
-                {/* {userStats.activeUsers} */} N/A
+                {stats.active}
               </span>
               <Chip
                 color="success"
@@ -99,28 +101,24 @@ export default function UserCardGrids({ stats }: UserStatsCardsProps) {
               >
                 On
               </Chip>
-              {/* <Badge
-                color="success"
-                content="on"
-                //   content={userStats.onlineNow}
-                variant="flat"
-                
-              >
-                <div className="w-4 h-4 bg-success-500 rounded-full animate-pulse" />
-              </Badge> */}
             </div>
             <div className="space-y-1 sm:space-y-2">
               <div className="flex justify-between">
                 <span className="text-xs sm:text-small text-default-600">
                   Activity Rate
                 </span>
-                <span className="text-xs sm:text-small font-medium">71.5%</span>
+                <span className="text-xs sm:text-small font-medium">
+                  {stats.total > 0
+                    ? Math.round((stats.active / stats.total) * 100)
+                    : 0}
+                  %
+                </span>
               </div>
               <Progress
                 className="max-w-full"
                 color="success"
                 size="sm"
-                value={71.5}
+                value={stats.total > 0 ? (stats.active / stats.total) * 100 : 0}
               />
             </div>
           </div>
@@ -183,7 +181,7 @@ export default function UserCardGrids({ stats }: UserStatsCardsProps) {
           <div className="space-y-2 sm:space-y-3">
             <div className="flex justify-between items-center">
               <span className="text-xl sm:text-2xl font-bold text-warning-700">
-                {/* {userStats.inactiveUsers} */} N/A
+                {stats.inactive}
               </span>
               <Chip
                 color="warning"

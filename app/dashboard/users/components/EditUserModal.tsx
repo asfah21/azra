@@ -13,44 +13,66 @@ import {
   Input,
 } from "@heroui/react";
 
-import { addUsers } from "../action";
+import { updateUser } from "../action";
 
-interface AddUserFormProps {
-  onClose: () => void;
-  onUserAdded?: () => void;
+interface User {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  department: string | null;
+  createdAt: Date;
+  lastActive: Date | null;
 }
 
-export function AddUserForms({ onClose, onUserAdded }: AddUserFormProps) {
-  const [state, formAction, isPending] = useActionState(addUsers, null);
+interface EditUserModalProps {
+  user: User | null;
+  onClose: () => void;
+  onUserUpdated?: () => void;
+}
 
-  // Auto close modal jika berhasil add user
+export function EditUserModal({
+  user,
+  onClose,
+  onUserUpdated,
+}: EditUserModalProps) {
+  const [state, formAction, isPending] = useActionState(updateUser, null);
+
+  // Auto close modal jika berhasil update user
   useEffect(() => {
-    if (state?.message && !state?.errors) {
-      // Tunggu sebentar agar user bisa lihat pesan sukses (opsional)
+    // Hanya close modal jika ada message sukses dan tidak ada errors
+    if (state && state.message && !state.errors) {
+      // Tunggu 500ms agar user bisa lihat pesan sukses
       const timer = setTimeout(() => {
         onClose();
         // Trigger refresh data jika callback tersedia
-        if (onUserAdded) {
-          onUserAdded();
+        if (onUserUpdated) {
+          onUserUpdated();
         }
-      }, 500); // Kurangi delay menjadi 500ms
+      }, 500);
 
       return () => clearTimeout(timer);
     }
-  }, [state?.message, state?.errors, onClose, onUserAdded]);
+  }, [state, onClose, onUserUpdated]);
 
   const handleSubmit = async (formData: FormData) => {
-    await formAction(formData);
+    if (user) {
+      formData.append("id", user.id);
+      await formAction(formData);
+    }
   };
+
+  if (!user) return null;
 
   return (
     <>
       <ModalHeader className="flex flex-col gap-1">
-        <h2 className="text-xl font-semibold">Add New User</h2>
+        <h2 className="text-xl font-semibold">Edit User</h2>
+        <p className="text-sm text-default-500">Update user information</p>
       </ModalHeader>
 
       <ModalBody>
-        <form action={handleSubmit} className="space-y-4" id="addUserForm">
+        <form action={handleSubmit} className="space-y-4" id="editUserForm">
           <Input
             isRequired
             classNames={{
@@ -62,7 +84,6 @@ export function AddUserForms({ onClose, onUserAdded }: AddUserFormProps) {
               ],
               innerWrapper: "bg-transparent",
               inputWrapper: [
-                // "shadow-xl",
                 "bg-default-200/50",
                 "dark:bg-default/60",
                 "backdrop-blur-xl",
@@ -74,6 +95,7 @@ export function AddUserForms({ onClose, onUserAdded }: AddUserFormProps) {
                 "!cursor-text",
               ],
             }}
+            defaultValue={user.name}
             label="Name"
             name="name"
             placeholder="Enter user name"
@@ -91,7 +113,6 @@ export function AddUserForms({ onClose, onUserAdded }: AddUserFormProps) {
               ],
               innerWrapper: "bg-transparent",
               inputWrapper: [
-                // "shadow-xl",
                 "bg-default-200/50",
                 "dark:bg-default/60",
                 "backdrop-blur-xl",
@@ -103,6 +124,7 @@ export function AddUserForms({ onClose, onUserAdded }: AddUserFormProps) {
                 "!cursor-text",
               ],
             }}
+            defaultValue={user.email}
             label="Email"
             name="email"
             placeholder="Enter email address"
@@ -111,7 +133,6 @@ export function AddUserForms({ onClose, onUserAdded }: AddUserFormProps) {
           />
 
           <Input
-            isRequired
             classNames={{
               label: "text-black/50 dark:text-white/90",
               input: [
@@ -121,7 +142,6 @@ export function AddUserForms({ onClose, onUserAdded }: AddUserFormProps) {
               ],
               innerWrapper: "bg-transparent",
               inputWrapper: [
-                // "shadow-xl",
                 "bg-default-200/50",
                 "dark:bg-default/60",
                 "backdrop-blur-xl",
@@ -133,9 +153,9 @@ export function AddUserForms({ onClose, onUserAdded }: AddUserFormProps) {
                 "!cursor-text",
               ],
             }}
-            label="Password"
+            label="New Password (leave empty to keep current)"
             name="password"
-            placeholder="Enter password"
+            placeholder="Enter new password (optional)"
             type="password"
             variant="bordered"
           />
@@ -145,7 +165,6 @@ export function AddUserForms({ onClose, onUserAdded }: AddUserFormProps) {
             classNames={{
               label: "text-black/50 dark:text-white/90",
               trigger: [
-                // "shadow-xl",
                 "bg-default-200/50",
                 "dark:bg-default/60",
                 "backdrop-blur-xl",
@@ -157,6 +176,7 @@ export function AddUserForms({ onClose, onUserAdded }: AddUserFormProps) {
               ],
               value: "text-black/90 dark:text-white/90",
             }}
+            defaultSelectedKeys={[user.role]}
             label="Role"
             name="role"
             placeholder="Select user role"
@@ -179,7 +199,6 @@ export function AddUserForms({ onClose, onUserAdded }: AddUserFormProps) {
               ],
               innerWrapper: "bg-transparent",
               inputWrapper: [
-                // "shadow-xl",
                 "bg-default-200/50",
                 "dark:bg-default/60",
                 "backdrop-blur-xl",
@@ -191,6 +210,7 @@ export function AddUserForms({ onClose, onUserAdded }: AddUserFormProps) {
                 "!cursor-text",
               ],
             }}
+            defaultValue={user.department || ""}
             label="Department"
             name="department"
             placeholder="Enter department (optional)"
@@ -198,7 +218,7 @@ export function AddUserForms({ onClose, onUserAdded }: AddUserFormProps) {
           />
 
           {/* Success Message */}
-          {state?.message && (
+          {state && state.message && !state.errors && (
             <Card className="border-success-200 bg-success-50">
               <CardBody className="py-3">
                 <div className="flex items-center gap-2">
@@ -212,28 +232,30 @@ export function AddUserForms({ onClose, onUserAdded }: AddUserFormProps) {
           )}
 
           {/* Error Messages */}
-          {(state?.errors?.general || state?.errors?.email) && (
-            <Card className="border-danger-200 bg-danger-50">
-              <CardBody className="py-3">
-                {state.errors.general && (
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className="w-2 h-2 bg-danger-500 rounded-full" />
-                    <p className="text-danger-700 text-sm font-medium">
-                      {state.errors.general}
-                    </p>
-                  </div>
-                )}
-                {state.errors.email && (
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-danger-500 rounded-full" />
-                    <p className="text-danger-700 text-sm font-medium">
-                      {state.errors.email}
-                    </p>
-                  </div>
-                )}
-              </CardBody>
-            </Card>
-          )}
+          {state &&
+            state.errors &&
+            (state.errors.general || state.errors.email) && (
+              <Card className="border-danger-200 bg-danger-50">
+                <CardBody className="py-3">
+                  {state.errors.general && (
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="w-2 h-2 bg-danger-500 rounded-full" />
+                      <p className="text-danger-700 text-sm font-medium">
+                        {state.errors.general}
+                      </p>
+                    </div>
+                  )}
+                  {state.errors.email && (
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-danger-500 rounded-full" />
+                      <p className="text-danger-700 text-sm font-medium">
+                        {state.errors.email}
+                      </p>
+                    </div>
+                  )}
+                </CardBody>
+              </Card>
+            )}
         </form>
       </ModalBody>
 
@@ -250,12 +272,12 @@ export function AddUserForms({ onClose, onUserAdded }: AddUserFormProps) {
         <Button
           className="font-medium bg-gradient-to-r from-blue-500 to-purple-600 text-white"
           color="primary"
-          form="addUserForm"
+          form="editUserForm"
           isDisabled={isPending}
           isLoading={isPending}
           type="submit"
         >
-          {isPending ? "Adding User..." : "Add User"}
+          {isPending ? "Updating..." : "Update User"}
         </Button>
       </ModalFooter>
     </>

@@ -74,6 +74,32 @@ export default async function WoPage() {
     },
   });
 
+  // Hitung stats di server-side
+  const total = allBreakdowns.length;
+  const progress = allBreakdowns.filter(
+    (b) => b.status === "in_progress",
+  ).length;
+  const rfu = allBreakdowns.filter((b) => b.status === "rfu").length;
+
+  const thirtyDaysAgo = new Date();
+
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+  const overdue = allBreakdowns.filter(
+    (b) => b.status === "pending" && b.createdAt < thirtyDaysAgo,
+  ).length;
+
+  const pending =
+    allBreakdowns.filter((b) => b.status === "pending").length - overdue;
+
+  const breakdownStats = {
+    total,
+    progress,
+    rfu,
+    pending,
+    overdue,
+  };
+
   return (
     <div className="p-0 md:p-5 max-w-7xl mx-auto">
       {/* Header */}
@@ -92,43 +118,10 @@ export default async function WoPage() {
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
-        <GammaCardGrid stats={allBreakdowns} />
+        <GammaCardGrid stats={breakdownStats} />
       </div>
 
       <GammaTableData dataTable={allBreakdowns} />
-
-      {/* <h1>Daftar Breakdown</h1>
-      <div className="grid gap-4">
-        {allBreakdowns.map((breakdown) => (
-          <div key={breakdown.id} className="border p-4 rounded">
-            <h3>#{breakdown.breakdownNumber || breakdown.id}</h3>
-            <p>
-              <strong>Deskripsi:</strong> {breakdown.description}
-            </p>
-            <p>
-              <strong>Unit:</strong> {breakdown.unit.name}
-            </p>
-            <p>
-              <strong>Dilaporkan oleh:</strong> {breakdown.reportedBy.name}
-            </p>
-            <p>
-              <strong>Status:</strong> {breakdown.status}
-            </p>
-            <p>
-              <strong>Waktu Breakdown:</strong>{" "}
-              {breakdown.breakdownTime.toLocaleString()}
-            </p>
-            <p>
-              <strong>Jam Kerja:</strong> {breakdown.workingHours} jam
-            </p>
-            {breakdown.components.length > 0 && (
-              <p>
-                <strong>Komponen:</strong> {breakdown.components.length} item
-              </p>
-            )}
-          </div>
-        ))}
-      </div> */}
     </div>
   );
 }

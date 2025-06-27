@@ -1,6 +1,5 @@
 import { Users } from "lucide-react";
 import { Metadata } from "next";
-import { Prisma } from "@prisma/client";
 
 import UserCardGrids from "./components/CardGrid";
 import UserTables from "./components/UserTable";
@@ -12,188 +11,79 @@ export const metadata: Metadata = {
   description: "Manage users and view statistics",
 };
 
-export const revalidate = 180; // 3 menit
-
-async function getTotalUsers(): Promise<number> {
-  try {
-    const totalUsers = await prisma.user.count();
-
-    console.log(`Successfully fetched ${totalUsers} total users`);
-
-    return totalUsers;
-  } catch (error) {
-    console.error("Error fetching total users:", error);
-
-    return 0;
-  }
-}
-
-async function getNewUsers(): Promise<number> {
-  try {
-    // User yang register bulan ini
-    const startOfMonth = new Date();
-
-    startOfMonth.setDate(1);
-    startOfMonth.setHours(0, 0, 0, 0);
-
-    const newUsers = await prisma.user.count({
-      where: {
-        createdAt: {
-          gte: startOfMonth,
-        },
-      },
-    });
-
-    console.log(`Successfully fetched ${newUsers} new users this month`);
-
-    return newUsers;
-  } catch (error) {
-    console.error("Error fetching new users:", error);
-
-    return 0;
-  }
-}
-
-type UserListItem = Prisma.UserGetPayload<{
-  select: {
-    id: true;
-    name: true;
-    email: true;
-    role: true;
-    department: true;
-    createdAt: true;
-  };
-}>;
-
-async function getUsersTable(): Promise<UserListItem[]> {
-  try {
-    const usersTable = await prisma.user.findMany({
-      orderBy: { createdAt: "desc" },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        department: true,
-        createdAt: true,
-      },
-    });
-
-    console.log(`Successfully fetched ${usersTable.length} users for table`);
-
-    return usersTable;
-  } catch (error) {
-    console.error("Error fetching users table:", error);
-
-    return []; // Return empty array instead of throwing
-  }
-}
-
 export default async function UsersPage() {
-  try {
-    // Fetch data secara parallel dengan error handling yang lebih robust
-    const [totalUsersResult, newUsersResult, usersTableResult] =
-      await Promise.allSettled([
-        getTotalUsers(),
-        getNewUsers(),
-        getUsersTable(),
-      ]);
+  const allUsers = await prisma.user.findMany({
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      department: true,
+      createdAt: true,
+      lastActive: true,
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
 
-    // Extract hasil dengan fallback values
-    const totalUsers =
-      totalUsersResult.status === "fulfilled" ? totalUsersResult.value : 0;
-    const newUsers =
-      newUsersResult.status === "fulfilled" ? newUsersResult.value : 0;
-    const usersTable =
-      usersTableResult.status === "fulfilled" ? usersTableResult.value : [];
+  // Hitung stats dari data yang sudah di-fetch
+  const totalUsers = allUsers.length;
 
-    // Log jika ada yang gagal
-    if (totalUsersResult.status === "rejected") {
-      console.error("Failed to fetch total users:", totalUsersResult.reason);
-    }
-    if (newUsersResult.status === "rejected") {
-      console.error("Failed to fetch new users:", newUsersResult.reason);
-    }
-    if (usersTableResult.status === "rejected") {
-      console.error("Failed to fetch users table:", usersTableResult.reason);
-    }
+  // Hitung new users bulan ini
+  const startOfMonth = new Date();
 
-    const userStats = {
-      total: totalUsers,
-      new: newUsers,
-    };
+  startOfMonth.setDate(1);
+  startOfMonth.setHours(0, 0, 0, 0);
 
-    return (
-      <div className="p-0 md:p-5 max-w-7xl mx-auto">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-gradient-to-br from-primary-100 to-primary-50 rounded-xl">
-              <Users className="w-6 h-6 text-primary-600" />
-            </div>
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent">
-                User Management
-              </h1>
-            </div>
+  const newUsers = allUsers.filter(
+    (user) => user.createdAt >= startOfMonth,
+  ).length;
+
+  // Hitung active users (aktif dalam 30 hari terakhir)
+  const thirtyDaysAgo = new Date();
+
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+  const activeUsers = allUsers.filter(
+    (user) => user.lastActive && user.lastActive >= thirtyDaysAgo,
+  ).length;
+
+  // Hitung inactive users (tidak aktif dalam 30 hari terakhir atau tidak ada lastActive)
+  const inactiveUsers = allUsers.filter(
+    (user) => !user.lastActive || user.lastActive < thirtyDaysAgo,
+  ).length;
+
+  const userStats = {
+    total: totalUsers,
+    new: newUsers,
+    active: activeUsers,
+    inactive: inactiveUsers,
+  };
+
+  return (
+    <div className="p-0 md:p-5 max-w-7xl mx-auto">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
+        <div className="flex items-center gap-3">
+          <div className="p-2 bg-gradient-to-br from-primary-100 to-primary-50 rounded-xl">
+            <Users className="w-6 h-6 text-primary-600" />
           </div>
-          {/* <div className="flex gap-2"><RightButtonList /></div> */}
-        </div>
-
-        {/* Error indicator jika ada data yang gagal dimuat */}
-        {(totalUsersResult.status === "rejected" ||
-          newUsersResult.status === "rejected" ||
-          usersTableResult.status === "rejected") && (
-          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
-            <div className="flex items-center gap-2">
-              <div className="w-2 h-2 bg-yellow-500 rounded-full" />
-              <p className="text-yellow-800 text-sm font-medium">
-                Some data may be incomplete due to loading issues. The page will
-                continue to function with available data.
-              </p>
-            </div>
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent">
+              User Management
+            </h1>
           </div>
-        )}
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
-          <UserCardGrids stats={userStats} />
-        </div>
-
-        {/* Main Grid */}
-        {/* <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8 mb-6 sm:mb-8">
-          <UserMainGrid />
-        </div> */}
-
-        {/* Users Table */}
-        <UserTables usersTable={usersTable} />
-      </div>
-    );
-  } catch (error) {
-    console.error("Error in UsersPage:", error);
-
-    // Fallback UI jika ada error major
-    return (
-      <div className="p-0 md:p-5 max-w-7xl mx-auto">
-        <div className="flex flex-col items-center justify-center min-h-[400px] text-center">
-          <div className="p-4 bg-red-50 rounded-xl mb-4">
-            <Users className="w-12 h-12 text-red-500 mx-auto" />
-          </div>
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">
-            Unable to Load User Data
-          </h2>
-          <p className="text-gray-600 mb-4">
-            There was an error loading the user management page. Please try
-            refreshing the page.
-          </p>
-          <button
-            className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
-            onClick={() => window.location.reload()}
-          >
-            Refresh Page
-          </button>
         </div>
       </div>
-    );
-  }
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
+        <UserCardGrids stats={userStats} />
+      </div>
+
+      {/* Users Table */}
+      <UserTables usersTable={allUsers} />
+    </div>
+  );
 }

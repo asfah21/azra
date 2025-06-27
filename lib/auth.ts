@@ -79,6 +79,12 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.id = user.id;
         token.role = user.role;
+
+        // Update lastActive saat login
+        await prisma.user.update({
+          where: { id: user.id },
+          data: { lastActive: new Date() },
+        });
       }
 
       return token;
