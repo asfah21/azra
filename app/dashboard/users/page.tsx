@@ -6,6 +6,9 @@ import UserTables from "./components/UserTable";
 
 import { prisma } from "@/lib/prisma";
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: "User Management",
   description: "Manage users and view statistics",
