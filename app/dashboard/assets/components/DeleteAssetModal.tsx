@@ -9,36 +9,48 @@ import {
   ModalBody,
   ModalFooter,
   Button,
-  User,
   Chip,
 } from "@heroui/react";
-import { Trash2, AlertTriangle } from "lucide-react";
+import { Trash2, AlertTriangle, Package } from "lucide-react";
 
-import { deleteUser } from "../action";
+import { deleteAsset } from "../action";
 
-interface User {
+interface Unit {
   id: string;
+  assetTag: string;
   name: string;
-  email: string;
-  role: string;
+  description: string | null;
+  categoryId: number;
+  status: string;
+  condition: string | null;
+  serialNumber: string | null;
+  location: string;
   department: string | null;
+  manufacturer: string | null;
+  installDate: Date | null;
+  warrantyExpiry: Date | null;
+  lastMaintenance: Date | null;
+  nextMaintenance: Date | null;
+  assetValue: number | null;
+  utilizationRate: number | null;
   createdAt: Date;
-  lastActive: Date | null;
+  createdById: string;
+  assignedToId: string | null;
 }
 
-interface DeleteConfirmModalProps {
+interface DeleteAssetModalProps {
   isOpen: boolean;
   onClose: () => void;
-  user: User | null;
-  onUserDeleted?: () => void;
+  asset: Unit | null;
+  onAssetDeleted?: () => void;
 }
 
-export function DeleteConfirmModal({
+export function DeleteAssetModal({
   isOpen,
   onClose,
-  user,
-  onUserDeleted,
-}: DeleteConfirmModalProps) {
+  asset,
+  onAssetDeleted,
+}: DeleteAssetModalProps) {
   const { data: session } = useSession();
   const [isDeleting, setIsDeleting] = useState(false);
   const [result, setResult] = useState<{
@@ -54,12 +66,12 @@ export function DeleteConfirmModal({
   }, [isOpen]);
 
   const handleDelete = async () => {
-    if (!user) return;
+    if (!asset) return;
 
     if (session?.user?.role !== "super_admin") {
       setResult({
         success: false,
-        message: "Unauthorized: Hanya Super Admin yang dapat menghapus user.",
+        message: "Unauthorized: Hanya Super Admin yang dapat menghapus asset.",
       });
 
       return;
@@ -69,63 +81,54 @@ export function DeleteConfirmModal({
     setResult(null);
 
     try {
-      const response = await deleteUser(user.id, session.user.role);
+      const response = await deleteAsset(asset.id, session.user.role);
 
       setResult(response);
 
       if (response.success) {
         setTimeout(() => {
           onClose();
-          if (onUserDeleted) {
-            onUserDeleted();
+          if (onAssetDeleted) {
+            onAssetDeleted();
           }
         }, 1500);
       }
     } catch (error) {
       setResult({
         success: false,
-        message: "Terjadi kesalahan saat menghapus user.",
+        message: "Terjadi kesalahan saat menghapus asset.",
       });
     } finally {
       setIsDeleting(false);
     }
   };
 
-  const getRoleLabel = (role: string): string => {
-    switch (role) {
-      case "super_admin":
-        return "Super Admin";
-      case "pengawas":
-        return "Foreman";
-      case "mekanik":
-        return "Mekanik";
-      case "admin_heavy":
-        return "Admin PAM";
-      case "admin_elec":
-        return "Admin";
-      default:
-        return role;
-    }
+  const getCategoryName = (category: number): string => {
+    const categories = {
+      1: "Alat Berat",
+      2: "Elektronik",
+    } as const;
+
+    return categories[category as keyof typeof categories] || "Lainnya";
   };
 
-  const getRoleColor = (role: string) => {
-    switch (role) {
-      case "admin_elec":
-        return "danger";
-      case "admin_heavy":
-        return "warning";
-      case "pengawas":
-        return "secondary";
-      case "mekanik":
-        return "primary";
-      case "super_admin":
-        return "success";
-      default:
-        return "default";
-    }
+  const getStatusColor = (status: string) => {
+    const statusColors = {
+      Critical: "danger",
+      critical: "danger",
+      Warning: "warning",
+      warning: "warning",
+      Maintenance: "primary",
+      maintenance: "warning",
+      Operational: "success",
+      operational: "success",
+      standby: "secondary",
+    } as const;
+
+    return statusColors[status as keyof typeof statusColors] || "default";
   };
 
-  if (!user) return null;
+  if (!asset) return null;
 
   return (
     <Modal isOpen={isOpen} placement="top-center" onOpenChange={onClose}>
@@ -138,7 +141,7 @@ export function DeleteConfirmModal({
                   <Trash2 className="w-5 h-5 text-danger-600" />
                 </div>
                 <span className="text-lg font-semibold">
-                  Konfirmasi Hapus User
+                  Konfirmasi Hapus Asset
                 </span>
               </div>
             </ModalHeader>
@@ -180,7 +183,7 @@ export function DeleteConfirmModal({
                         </span>
                       </div>
                       <p className="text-danger-700 text-sm">
-                        Anda tidak memiliki izin untuk menghapus user. Hanya
+                        Anda tidak memiliki izin untuk menghapus asset. Hanya
                         Super Admin yang dapat melakukan tindakan ini.
                       </p>
                     </div>
@@ -194,57 +197,75 @@ export function DeleteConfirmModal({
                       </span>
                     </div>
                     <p className="text-warning-700 text-sm">
-                      Tindakan ini tidak dapat dibatalkan. User yang dihapus
+                      Tindakan ini tidak dapat dibatalkan. Asset yang dihapus
                       tidak dapat dipulihkan.
                     </p>
                   </div>
 
                   <div className="p-4 border border-default-200 rounded-lg">
                     <div className="flex items-center gap-3 mb-3">
-                      <User
-                        avatarProps={{
-                          radius: "lg",
-                          size: "md",
-                        }}
-                        classNames={{
-                          description: "text-default-500",
-                        }}
-                        description={user.email}
-                        name={user.name}
-                      />
+                      <div className="p-2 bg-default-100 rounded-lg">
+                        <Package className="w-6 h-6 text-default-600" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-default-800">
+                          {asset.name}
+                        </h3>
+                        <p className="text-sm text-default-600">
+                          {asset.assetTag}
+                        </p>
+                      </div>
                     </div>
 
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-medium text-default-600">
-                          Role:
+                          Kategori:
                         </span>
-                        <Chip
-                          color={getRoleColor(user.role) as any}
-                          size="sm"
-                          variant="flat"
-                        >
-                          {getRoleLabel(user.role)}
+                        <Chip color="default" size="sm" variant="flat">
+                          {getCategoryName(asset.categoryId)}
                         </Chip>
                       </div>
 
-                      {user.department && (
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-default-600">
+                          Status:
+                        </span>
+                        <Chip
+                          color={getStatusColor(asset.status) as any}
+                          size="sm"
+                          variant="dot"
+                        >
+                          {asset.status}
+                        </Chip>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-default-600">
+                          Lokasi:
+                        </span>
+                        <span className="text-sm text-default-700">
+                          {asset.location}
+                        </span>
+                      </div>
+
+                      {asset.department && (
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-medium text-default-600">
-                            Department:
+                            Departemen:
                           </span>
                           <span className="text-sm text-default-700">
-                            {user.department}
+                            {asset.department}
                           </span>
                         </div>
                       )}
 
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-medium text-default-600">
-                          Bergabung:
+                          Dibuat:
                         </span>
                         <span className="text-sm text-default-700">
-                          {new Date(user.createdAt).toLocaleDateString(
+                          {new Date(asset.createdAt).toLocaleDateString(
                             "id-ID",
                             {
                               day: "numeric",
@@ -259,8 +280,8 @@ export function DeleteConfirmModal({
 
                   <div className="text-center">
                     <p className="text-default-600">
-                      Apakah Anda yakin ingin menghapus user{" "}
-                      <strong>{user.name}</strong>?
+                      Apakah Anda yakin ingin menghapus asset{" "}
+                      <strong>{asset.name}</strong> ({asset.assetTag})?
                     </p>
                   </div>
                 </div>
@@ -287,7 +308,7 @@ export function DeleteConfirmModal({
                     }
                     onPress={handleDelete}
                   >
-                    {isDeleting ? "Menghapus..." : "Hapus User"}
+                    {isDeleting ? "Menghapus..." : "Hapus Asset"}
                   </Button>
                 </>
               )}

@@ -82,6 +82,16 @@ export async function updateUser(
     const password = formData.get("password") as string;
     const role = formData.get("role") as Role;
     const department = formData.get("department") as string;
+    const currentUserRole = formData.get("currentUserRole") as string;
+
+    // Validasi role - hanya super_admin yang dapat mengedit user
+    if (currentUserRole !== "super_admin") {
+      return {
+        errors: {
+          general: "Unauthorized: Hanya Super Admin yang dapat mengedit user.",
+        },
+      };
+    }
 
     // Validasi
     if (!id || !name || !email || !role) {
@@ -149,8 +159,16 @@ export async function updateUser(
   }
 }
 
-export async function deleteUser(id: string) {
+export async function deleteUser(id: string, currentUserRole?: string) {
   try {
+    // Validasi role - hanya super_admin yang dapat menghapus user
+    if (currentUserRole !== "super_admin") {
+      return {
+        success: false,
+        message: "Unauthorized: Hanya Super Admin yang dapat menghapus user.",
+      };
+    }
+
     // Cek apakah user exists
     const existingUser = await prisma.user.findUnique({
       where: { id },

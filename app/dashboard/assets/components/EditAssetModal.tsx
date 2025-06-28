@@ -1,7 +1,6 @@
 "use client";
 
 import { useActionState, useEffect } from "react";
-import { useSession } from "next-auth/react";
 import {
   ModalHeader,
   ModalBody,
@@ -15,75 +14,88 @@ import {
   Textarea,
 } from "@heroui/react";
 
-import { createUnit } from "../action";
+import { updateAsset } from "../action";
 
-interface AddFormProps {
-  onClose: () => void;
-  onUnitAdded?: () => void;
-  categories?: Array<{ id: number; name: string }>;
-  users?: Array<{ id: string; name: string }>;
-  currentUserId?: string;
+interface Unit {
+  id: string;
+  assetTag: string;
+  name: string;
+  description: string | null;
+  categoryId: number;
+  status: string;
+  condition: string | null;
+  serialNumber: string | null;
+  location: string;
+  department: string | null;
+  manufacturer: string | null;
+  installDate: Date | null;
+  warrantyExpiry: Date | null;
+  lastMaintenance: Date | null;
+  nextMaintenance: Date | null;
+  assetValue: number | null;
+  utilizationRate: number | null;
+  createdAt: Date;
+  createdById: string;
+  assignedToId: string | null;
 }
 
-export function AddForms({
+interface EditAssetModalProps {
+  asset: Unit | null;
+  users: Array<{ id: string; name: string }>;
+  onClose: () => void;
+  onAssetUpdated?: () => void;
+}
+
+export function EditAssetModal({
+  asset,
+  users,
   onClose,
-  onUnitAdded,
-  categories = [],
-  users = [],
-}: AddFormProps) {
-  const { data: session } = useSession();
-  const currentUserId = session?.user?.id || "";
+  onAssetUpdated,
+}: EditAssetModalProps) {
+  const [state, formAction, isPending] = useActionState(updateAsset, null);
 
-  const [state, formAction, isPending] = useActionState(createUnit, null);
-
-  // Debugging - tampilkan userId di console
+  // Auto close modal jika berhasil update asset
   useEffect(() => {
-    console.log("Current User ID from session:", currentUserId);
-  }, [currentUserId]);
-
-  // Auto close modal jika berhasil add unit
-  useEffect(() => {
-    if (state?.success && state?.message) {
+    // Hanya close modal jika ada message sukses
+    if (state && state.success && state.message) {
+      // Tunggu 500ms agar user bisa lihat pesan sukses
       const timer = setTimeout(() => {
         onClose();
-        if (onUnitAdded) {
-          onUnitAdded();
+        // Trigger refresh data jika callback tersedia
+        if (onAssetUpdated) {
+          onAssetUpdated();
         }
-      }, 1500);
+      }, 500);
 
       return () => clearTimeout(timer);
     }
-  }, [state?.success, state?.message, onClose, onUnitAdded]);
+  }, [state, onClose, onAssetUpdated]);
 
   const handleSubmit = async (formData: FormData) => {
-    await formAction(formData);
+    if (asset) {
+      formData.append("id", asset.id);
+      await formAction(formData);
+    }
   };
 
-  // Tampilkan loading jika session masih loading
-  if (status === "loading") {
-    return <div>Loading user session...</div>;
-  }
+  // Helper function untuk format date ke YYYY-MM-DD
+  const formatDateForInput = (date: Date | null): string => {
+    if (!date) return "";
 
-  // Tampilkan error jika tidak ada userId
-  if (!currentUserId) {
-    return (
-      <div className="p-4 text-danger-500">
-        Error: User session not found. Please login again.
-      </div>
-    );
-  }
+    return new Date(date).toISOString().split("T")[0];
+  };
+
+  if (!asset) return null;
 
   return (
     <>
       <ModalHeader className="flex flex-col gap-1">
-        <h2 className="text-xl font-semibold">Add New Asset</h2>
+        <h2 className="text-xl font-semibold">Edit Asset</h2>
+        <p className="text-sm text-default-500">Update asset information</p>
       </ModalHeader>
 
       <ModalBody className="max-h-[60vh] overflow-y-auto">
-        <form action={handleSubmit} className="space-y-4" id="addUnitForm">
-          {/* Hidden field untuk currentUserId */}
-          <input name="createdById" type="hidden" value={currentUserId} />
-
+        <form action={handleSubmit} className="space-y-4" id="editAssetForm">
           {/* Required Fields */}
           <Input
             isRequired
@@ -107,39 +119,12 @@ export function AddForms({
                 "!cursor-text",
               ],
             }}
+            defaultValue={asset.assetTag}
             label="Asset Tag"
             name="assetTag"
             placeholder="Enter unique asset tag"
             variant="bordered"
           />
-
-          {/* <Input
-            isRequired
-            classNames={{
-              label: "text-black/50 dark:text-white/90",
-              input: [
-                "bg-transparent",
-                "text-black/90 dark:text-white/90",
-                "placeholder:text-default-700/50 dark:placeholder:text-white/60",
-              ],
-              innerWrapper: "bg-transparent",
-              inputWrapper: [
-                "bg-default-200/50",
-                "dark:bg-default/60",
-                "backdrop-blur-xl",
-                "backdrop-saturate-200",
-                "hover:bg-default-200/70",
-                "dark:hover:bg-default/70",
-                "group-data-[focused=true]:bg-default-200/50",
-                "dark:group-data-[focused=true]:bg-default/60",
-                "!cursor-text",
-              ],
-            }}
-            label="Name"
-            name="name"
-            placeholder="Enter unit name"
-            variant="bordered"
-          /> */}
 
           <Select
             isRequired
@@ -157,7 +142,7 @@ export function AddForms({
               ],
               value: "text-black/90 dark:text-white/90",
             }}
-            defaultSelectedKeys={["Dump Truck"]}
+            defaultSelectedKeys={[asset.name]}
             label="Unit Name"
             name="name"
             placeholder="Select Unit"
@@ -193,6 +178,7 @@ export function AddForms({
                 "!cursor-text",
               ],
             }}
+            defaultValue={asset.location}
             label="Location"
             name="location"
             placeholder="Enter unit location"
@@ -215,7 +201,7 @@ export function AddForms({
               ],
               value: "text-black/90 dark:text-white/90",
             }}
-            defaultSelectedKeys={["1"]}
+            defaultSelectedKeys={[asset.categoryId.toString()]}
             label="Category"
             name="categoryId"
             placeholder="Select category"
@@ -247,6 +233,7 @@ export function AddForms({
                 "!cursor-text",
               ],
             }}
+            defaultValue={asset.description || ""}
             label="Description"
             maxRows={4}
             minRows={2}
@@ -271,7 +258,7 @@ export function AddForms({
                 ],
                 value: "text-black/90 dark:text-white/90",
               }}
-              defaultSelectedKeys={["operational"]}
+              defaultSelectedKeys={[asset.status]}
               label="Status"
               name="status"
               placeholder="Select status"
@@ -298,6 +285,7 @@ export function AddForms({
                 ],
                 value: "text-black/90 dark:text-white/90",
               }}
+              defaultSelectedKeys={asset.condition ? [asset.condition] : []}
               label="Condition"
               name="condition"
               placeholder="Select condition"
@@ -332,6 +320,7 @@ export function AddForms({
                   "!cursor-text",
                 ],
               }}
+              defaultValue={asset.serialNumber || ""}
               label="Serial Number"
               name="serialNumber"
               placeholder="Enter serial number"
@@ -359,6 +348,7 @@ export function AddForms({
                   "!cursor-text",
                 ],
               }}
+              defaultValue={asset.department || ""}
               label="Department"
               name="department"
               placeholder="Enter department"
@@ -387,6 +377,7 @@ export function AddForms({
                 "!cursor-text",
               ],
             }}
+            defaultValue={asset.manufacturer || ""}
             label="Manufacturer"
             name="manufacturer"
             placeholder="Enter manufacturer"
@@ -408,6 +399,7 @@ export function AddForms({
               ],
               value: "text-black/90 dark:text-white/90",
             }}
+            defaultSelectedKeys={asset.assignedToId ? [asset.assignedToId] : []}
             label="Assigned To"
             name="assignedToId"
             placeholder="Select user (optional)"
@@ -441,6 +433,7 @@ export function AddForms({
                   "!cursor-text",
                 ],
               }}
+              defaultValue={formatDateForInput(asset.installDate)}
               label="Install Date"
               name="installDate"
               type="date"
@@ -468,6 +461,7 @@ export function AddForms({
                   "!cursor-text",
                 ],
               }}
+              defaultValue={formatDateForInput(asset.warrantyExpiry)}
               label="Warranty Expiry"
               name="warrantyExpiry"
               type="date"
@@ -497,6 +491,7 @@ export function AddForms({
                   "!cursor-text",
                 ],
               }}
+              defaultValue={formatDateForInput(asset.lastMaintenance)}
               label="Last Maintenance"
               name="lastMaintenance"
               type="date"
@@ -524,6 +519,7 @@ export function AddForms({
                   "!cursor-text",
                 ],
               }}
+              defaultValue={formatDateForInput(asset.nextMaintenance)}
               label="Next Maintenance"
               name="nextMaintenance"
               type="date"
@@ -554,6 +550,7 @@ export function AddForms({
                   "!cursor-text",
                 ],
               }}
+              defaultValue={asset.assetValue?.toString() || ""}
               label="Asset Value"
               name="assetValue"
               placeholder="Enter asset value"
@@ -588,6 +585,7 @@ export function AddForms({
                   "!cursor-text",
                 ],
               }}
+              defaultValue={asset.utilizationRate?.toString() || ""}
               endContent={
                 <div className="pointer-events-none flex items-center">
                   <span className="text-default-400 text-small">%</span>
@@ -604,7 +602,7 @@ export function AddForms({
           </div>
 
           {/* Success Message */}
-          {state?.success && state?.message && (
+          {state && state.success && state.message && (
             <Card className="border-success-200 bg-success-50">
               <CardBody className="py-3">
                 <div className="flex items-center gap-2">
@@ -618,7 +616,7 @@ export function AddForms({
           )}
 
           {/* Error Messages */}
-          {!state?.success && state?.message && (
+          {state && !state.success && state.message && (
             <Card className="border-danger-200 bg-danger-50">
               <CardBody className="py-3">
                 <div className="flex items-center gap-2">
@@ -646,12 +644,12 @@ export function AddForms({
         <Button
           className="font-medium bg-gradient-to-r from-blue-500 to-purple-600 text-white"
           color="primary"
-          form="addUnitForm"
+          form="editAssetForm"
           isDisabled={isPending}
           isLoading={isPending}
           type="submit"
         >
-          {isPending ? "Adding Asset..." : "Add Unit"}
+          {isPending ? "Updating..." : "Update Asset"}
         </Button>
       </ModalFooter>
     </>

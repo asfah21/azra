@@ -151,13 +151,7 @@ export default function UserTables({ usersTable }: UserManagementClientProps) {
 
   // Handler untuk membuka modal delete user dengan validasi role
   const handleDeleteUser = (user: User) => {
-    // Validasi role user sebelum membuka modal
-    if (session?.user?.role !== "super_admin") {
-      console.error("Unauthorized: Only super_admin can delete users");
-
-      return;
-    }
-
+    // Selalu buka modal, biarkan validasi error ditampilkan di dalam modal
     setSelectedUser(user);
     onDeleteOpen();
   };
@@ -544,13 +538,15 @@ export default function UserTables({ usersTable }: UserManagementClientProps) {
                             >
                               View Details
                             </DropdownItem>
-                            <DropdownItem
-                              key="edit"
-                              startContent={<Edit className="w-4 h-4" />}
-                              onPress={() => handleEditUser(user)}
-                            >
-                              Edit User
-                            </DropdownItem>
+                            {session?.user?.role === "super_admin" ? (
+                              <DropdownItem
+                                key="edit"
+                                startContent={<Edit className="w-4 h-4" />}
+                                onPress={() => handleEditUser(user)}
+                              >
+                                Edit User
+                              </DropdownItem>
+                            ) : null}
                             {/* <DropdownItem
                               key="contact"
                               startContent={<Mail className="w-4 h-4" />}
