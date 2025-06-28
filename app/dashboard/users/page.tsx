@@ -3,12 +3,7 @@ import { Metadata } from "next";
 
 import UserCardGrids from "./components/CardGrid";
 import UserTables from "./components/UserTable";
-
-import { prisma } from "@/lib/prisma";
-
-// Force dynamic rendering
-export const dynamic = 'force-dynamic';
-export const revalidate = 0;
+import { getUsersData } from "./action";
 
 export const metadata: Metadata = {
   title: "User Management",
@@ -16,54 +11,9 @@ export const metadata: Metadata = {
 };
 
 export default async function UsersPage() {
-  const allUsers = await prisma.user.findMany({
-    select: {
-      id: true,
-      name: true,
-      email: true,
-      role: true,
-      department: true,
-      createdAt: true,
-      lastActive: true,
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
+  const result = await getUsersData();
 
-  // Hitung stats dari data yang sudah di-fetch
-  const totalUsers = allUsers.length;
-
-  // Hitung new users bulan ini
-  const startOfMonth = new Date();
-
-  startOfMonth.setDate(1);
-  startOfMonth.setHours(0, 0, 0, 0);
-
-  const newUsers = allUsers.filter(
-    (user) => user.createdAt >= startOfMonth,
-  ).length;
-
-  // Hitung active users (aktif dalam 30 hari terakhir)
-  const thirtyDaysAgo = new Date();
-
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-  const activeUsers = allUsers.filter(
-    (user) => user.lastActive && user.lastActive >= thirtyDaysAgo,
-  ).length;
-
-  // Hitung inactive users (tidak aktif dalam 30 hari terakhir atau tidak ada lastActive)
-  const inactiveUsers = allUsers.filter(
-    (user) => !user.lastActive || user.lastActive < thirtyDaysAgo,
-  ).length;
-
-  const userStats = {
-    total: totalUsers,
-    new: newUsers,
-    active: activeUsers,
-    inactive: inactiveUsers,
-  };
+  const { users: allUsers, stats: userStats } = result.data;
 
   return (
     <div className="p-0 md:p-5 max-w-7xl mx-auto">
