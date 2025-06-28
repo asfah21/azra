@@ -223,12 +223,12 @@ export default function RFUReportActionModal({
                                 label="Deskripsi (Opsional)"
                                 maxRows={3}
                                 minRows={2}
-                                onValueChange={(value) =>
-                                  updateAction(index, "description", value)
-                                }
                                 placeholder="Jelaskan detail action yang dilakukan..."
                                 // value={action.description}
                                 value="Optional"
+                                onValueChange={(value) =>
+                                  updateAction(index, "description", value)
+                                }
                               />
                             </div>
                           </div>
