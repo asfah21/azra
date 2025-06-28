@@ -8,6 +8,7 @@ import { prisma } from "@/lib/prisma";
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export const metadata: Metadata = {
   title: "User Management",

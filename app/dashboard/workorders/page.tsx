@@ -5,6 +5,10 @@ import GammaTableData from "./components/TableData";
 
 import { prisma } from "@/lib/prisma";
 
+// Tambahkan ini untuk mencegah caching dan masalah prepared statement
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export const metadata = {
   title: "Work Order",
 };
