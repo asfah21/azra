@@ -50,13 +50,8 @@ import {
   TbCircleDashedLetterL,
   TbCircleDashedLetterM,
 } from "react-icons/tb";
-import { useOptimisticWorkOrders } from "../actions/optimisticActions";
 
-import {
-  deleteBreakdown,
-  updateBreakdownStatusWithActions,
-  updateBreakdownStatusWithUnitStatus,
-} from "../actions/serverAction";
+import { useOptimisticWorkOrders } from "../actions/optimisticActions";
 
 import { AddWoForm } from "./AddForm";
 import BreakdownDetailModal from "./BreakdownDetailModal";
@@ -122,7 +117,10 @@ interface WoStatsCardsProps {
   mutate?: () => Promise<any>;
 }
 
-export default function GammaTableData({ dataTable, mutate }: WoStatsCardsProps) {
+export default function GammaTableData({
+  dataTable,
+  mutate,
+}: WoStatsCardsProps) {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const router = useRouter();
   const { data: session } = useSession();
@@ -221,8 +219,8 @@ export default function GammaTableData({ dataTable, mutate }: WoStatsCardsProps)
   };
 
   const handleRFUComplete = async (
-    solution: string,
-    actions: Array<{ action: string; description: string }>,
+    _solution: string,
+    _actions: Array<{ action: string; description: string }>,
   ) => {
     if (!selectedBreakdownForRFU) return;
 
@@ -230,12 +228,12 @@ export default function GammaTableData({ dataTable, mutate }: WoStatsCardsProps)
       await optimisticUpdateStatus(
         selectedBreakdownForRFU.id,
         "rfu",
-        session?.user?.id
+        session?.user?.id,
       );
-      
+
       setIsRFUModalOpen(false);
       setSelectedBreakdownForRFU(null);
-      
+
       // Refresh data dengan SWR mutate, bukan reload
       if (mutate) {
         await mutate();
@@ -262,12 +260,12 @@ export default function GammaTableData({ dataTable, mutate }: WoStatsCardsProps)
         "in_progress",
         unitStatus,
         notes,
-        session?.user?.id
+        session?.user?.id,
       );
-      
+
       setIsInProgressModalOpen(false);
       setSelectedBreakdownForInProgress(null);
-      
+
       // Refresh data dengan SWR mutate, bukan reload
       if (mutate) {
         await mutate();
@@ -302,15 +300,16 @@ export default function GammaTableData({ dataTable, mutate }: WoStatsCardsProps)
       console.error("Unauthorized: Only super_admin can delete work orders");
       setIsDeleteModalOpen(false);
       setSelectedBreakdownForDelete(null);
+
       return;
     }
 
     try {
       await optimisticDelete(selectedBreakdownForDelete.id);
-      
+
       setIsDeleteModalOpen(false);
       setSelectedBreakdownForDelete(null);
-      
+
       // Refresh data dengan SWR mutate, bukan reload
       if (mutate) {
         await mutate();

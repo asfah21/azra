@@ -56,4 +56,4 @@ export interface BreakdownStats {
   rfu: number;
   pending: number;
   overdue: number;
-} 
+}

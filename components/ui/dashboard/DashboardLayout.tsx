@@ -13,7 +13,7 @@ import {
 import { PiWrench } from "react-icons/pi";
 import { LuLayoutDashboard } from "react-icons/lu";
 
-import { LoadingSpinner } from "../skeleton";
+import { LoadingSpinner, OverlaySpinner } from "../skeleton";
 
 import { Sidebar } from "./Sidebar";
 import { Topbar } from "./Topbar";
@@ -38,6 +38,7 @@ export default function UIDashboardLayout({
   const [tabsInitialized, setTabsInitialized] = useState(false);
 
   const [tabLoading, setTabLoading] = useState(false);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   const navItems = [
     {
@@ -197,6 +198,7 @@ export default function UIDashboardLayout({
     }
 
     setTabsInitialized(true);
+    setIsInitialLoad(false);
   }, [isClient, pathname]);
 
   useEffect(() => {
@@ -235,6 +237,7 @@ export default function UIDashboardLayout({
     }
   }, [pathname, tabsInitialized, isClient]);
 
+  // Reset tabLoading ketika pathname berubah
   useEffect(() => {
     setTabLoading(false);
   }, [pathname]);
@@ -298,12 +301,18 @@ export default function UIDashboardLayout({
     }
   };
 
-  if (!isClient || status === "loading" || !tabsInitialized) {
+  // Tampilkan loading hanya jika benar-benar diperlukan
+  if (!isClient || status === "loading") {
     return <LoadingSpinner />;
   }
 
   if (!session?.user) {
     return null;
+  }
+
+  // Jika tabs belum initialized dan bukan initial load, tampilkan loading singkat
+  if (!tabsInitialized && !isInitialLoad) {
+    return <LoadingSpinner />;
   }
 
   return (
@@ -314,14 +323,13 @@ export default function UIDashboardLayout({
           activeTab={activeTab}
           navItems={navItems}
           openNewTab={openNewTab}
-          session={session}
           setSidebarCollapsed={setSidebarCollapsed}
           sidebarCollapsed={sidebarCollapsed}
         />
       </div>
 
       {/* Main Content Area - Tambahkan transisi */}
-      <div className="flex-1 flex flex-col overflow-hidden transition-all duration-300 ease-in-out">
+      <div className="flex-1 flex flex-col overflow-hidden transition-all duration-300 ease-in-out relative">
         {/* Topbar - Fixed */}
         <div className="flex-shrink-0">
           <Topbar
@@ -340,13 +348,11 @@ export default function UIDashboardLayout({
           />
         </div>
 
+        {/* Loading Spinner - Pindah ke level yang lebih tinggi */}
+        {tabLoading && <OverlaySpinner />}
+
         {/* Scrollable Content Area */}
-        <main className="flex-1 bg-background p-6 overflow-auto relative">
-          {tabLoading && (
-            <div className="absolute inset-0 z-10 bg-background/50 flex items-center justify-center">
-              <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-            </div>
-          )}
+        <main className="flex-1 bg-background p-6 overflow-auto">
           <div className={tabLoading ? "opacity-50 pointer-events-none" : ""}>
             {children}
           </div>

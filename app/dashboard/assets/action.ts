@@ -109,8 +109,6 @@ export async function createUnit(prevState: any, formData: FormData) {
       message: `Unit ${newUnit.name} berhasil ditambahkan dengan Asset Tag: ${newUnit.assetTag}!`,
     };
   } catch (error: unknown) {
-    console.error("Error creating unit:", error);
-
     // Type guard to check if error is an object with a code property
     if (error instanceof Error) {
       // Handle specific Prisma errors
@@ -240,8 +238,6 @@ export async function updateAsset(prevState: any, formData: FormData) {
       message: `Asset ${updatedAsset.name} berhasil diperbarui!`,
     };
   } catch (error: unknown) {
-    console.error("Error updating asset:", error);
-
     // Type guard to check if error is an object with a code property
     if (error instanceof Error) {
       // Handle specific Prisma errors
@@ -430,7 +426,6 @@ export async function importAssetsFromExcel(
 
         successCount++;
       } catch (error) {
-        console.error(`Error processing row ${i + 1}:`, error);
         errors.push(`Baris ${i + 1}: Gagal memproses data`);
         errorCount++;
       }
@@ -457,8 +452,6 @@ export async function importAssetsFromExcel(
       message: `Berhasil mengimpor ${successCount} asset!`,
     };
   } catch (error: unknown) {
-    console.error("Error importing assets:", error);
-
     return {
       success: false,
       message: "Gagal mengimpor assets. Silakan coba lagi.",
@@ -502,8 +495,6 @@ export async function deleteAsset(id: string, userRole: string) {
       message: `Asset ${assetToDelete.name} (${assetToDelete.assetTag}) berhasil dihapus!`,
     };
   } catch (error) {
-    console.error("Error deleting asset:", error);
-
     // Handle specific Prisma errors
     if (error instanceof Error && "code" in error) {
       if (error.code === "P2025") {
@@ -628,7 +619,6 @@ export async function getAssetsData() {
       users,
     };
   } catch (error) {
-    console.error("Error fetching assets data:", error);
     throw new Error("Failed to fetch assets data");
   }
 }
@@ -646,7 +636,6 @@ export async function getUsersData() {
 
     return users;
   } catch (error) {
-    console.error("Error fetching users data:", error);
     throw new Error("Failed to fetch users data");
   }
 }

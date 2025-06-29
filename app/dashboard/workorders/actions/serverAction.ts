@@ -569,6 +569,7 @@ export async function getBreakdownsData() {
     const rfu = allBreakdowns.filter((b) => b.status === "rfu").length;
 
     const thirtyDaysAgo = new Date();
+
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
     const overdue = allBreakdowns.filter(

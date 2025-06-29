@@ -19,7 +19,6 @@ interface SidebarProps {
   }[];
   activeTab: string;
   openNewTab: (tab: any) => void;
-  session: any;
 }
 
 export function Sidebar({
@@ -28,7 +27,6 @@ export function Sidebar({
   navItems,
   activeTab,
   openNewTab,
-  session,
 }: SidebarProps) {
   return (
     <aside

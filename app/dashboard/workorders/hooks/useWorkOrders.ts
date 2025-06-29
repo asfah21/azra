@@ -1,6 +1,7 @@
 "use client";
 
 import useSWR from "swr";
+
 import { BreakdownPayload, BreakdownStats } from "../types";
 
 // Helper function untuk konversi data
@@ -21,16 +22,17 @@ const convertBreakdownData = (breakdown: any): BreakdownPayload => ({
 
 const fetcher = async (url: string) => {
   const response = await fetch(url);
+
   if (!response.ok) {
     throw new Error("Failed to fetch data");
   }
   const data = await response.json();
-  
+
   // Konversi string dates ke Date objects
   if (data.allBreakdowns) {
     data.allBreakdowns = data.allBreakdowns.map(convertBreakdownData);
   }
-  
+
   return data;
 };
 
@@ -60,4 +62,4 @@ export function useWorkOrders() {
 }
 
 // Export helper function untuk digunakan di optimistic actions
-export { convertBreakdownData }; 
+export { convertBreakdownData };

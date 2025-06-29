@@ -10,6 +10,8 @@ import { Alert } from "@heroui/alert";
 import { Divider } from "@heroui/divider";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 
+import { LoginSpinner } from "@/components/ui/skeleton";
+
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -44,7 +46,6 @@ export default function LoginPage() {
         setError(result.error);
       } else if (result?.ok) {
         router.push("/dashboard");
-        router.refresh();
       } else {
         setError("An unexpected error occurred. Please try again.");
       }
@@ -57,13 +58,14 @@ export default function LoginPage() {
     }
   };
 
-  // Tampilkan loading jika sedang mengecek session
-  if (status === "loading" || status === "authenticated") {
-    return (
-      <div className="absolute inset-0 flex items-center justify-center bg-white dark:bg-black">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500" />
-      </div>
-    );
+  // Tampilkan loading hanya jika sedang mengecek session, bukan jika sudah authenticated
+  if (status === "loading") {
+    return <LoginSpinner />;
+  }
+
+  // Redirect otomatis jika sudah authenticated
+  if (status === "authenticated") {
+    return null;
   }
 
   return (
