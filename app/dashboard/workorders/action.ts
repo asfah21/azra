@@ -569,7 +569,6 @@ export async function getBreakdownsData() {
     const rfu = allBreakdowns.filter((b) => b.status === "rfu").length;
 
     const thirtyDaysAgo = new Date();
-
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
     const overdue = allBreakdowns.filter(
@@ -591,11 +590,6 @@ export async function getBreakdownsData() {
   } catch (error) {
     console.error("Error fetching breakdowns:", error);
 
-    return {
-      allBreakdowns: [],
-      breakdownStats: { total: 0, progress: 0, rfu: 0, pending: 0, overdue: 0 },
-    };
+    throw new Error("Failed to fetch breakdowns data");
   }
 }
-
-// ... existing code ...
