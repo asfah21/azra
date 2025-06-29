@@ -1,10 +1,8 @@
 "use client";
 
 import { Divider } from "@heroui/divider";
-import { Avatar } from "@heroui/avatar";
 import { Tooltip } from "@heroui/tooltip";
 import { Button } from "@heroui/button";
-import { Card, CardBody } from "@heroui/card";
 
 import { VersionApp } from "../ChipVersion";
 
@@ -39,7 +37,9 @@ export function Sidebar({
       } hidden md:flex flex-col`}
     >
       <div
-        className={`flex items-center ${!sidebarCollapsed ? "justify-between" : "justify-center"} px-4 py-5`}
+        className={`flex items-center transition-all duration-300 ease-in-out ${
+          !sidebarCollapsed ? "justify-between" : "justify-center"
+        } px-4 py-5`}
       >
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center">
@@ -47,7 +47,15 @@ export function Sidebar({
               <Logo />
             </span>
           </div>
-          {!sidebarCollapsed && <VersionApp />}
+          <div
+            className={`transition-all duration-300 ease-in-out ${
+              sidebarCollapsed
+                ? "opacity-0 w-0 overflow-hidden"
+                : "opacity-100 w-auto"
+            }`}
+          >
+            {!sidebarCollapsed && <VersionApp />}
+          </div>
         </div>
       </div>
 
@@ -65,7 +73,7 @@ export function Sidebar({
               placement="right"
             >
               <Button
-                className={`w-full ${
+                className={`w-full transition-all duration-300 ease-in-out ${
                   sidebarCollapsed
                     ? "justify-center min-w-12 px-0"
                     : "justify-start"
@@ -73,40 +81,22 @@ export function Sidebar({
                 color={isActive ? "primary" : "default"}
                 startContent={<span className="text-lg">{item.icon}</span>}
                 variant={isActive ? "flat" : "light"}
-                onClick={() => openNewTab(item)}
+                onPress={() => openNewTab(item)}
               >
-                {!sidebarCollapsed && item.title}
+                <span
+                  className={`transition-all duration-300 ease-in-out ${
+                    sidebarCollapsed
+                      ? "opacity-0 w-0 overflow-hidden"
+                      : "opacity-100 w-auto"
+                  }`}
+                >
+                  {!sidebarCollapsed && item.title}
+                </span>
               </Button>
             </Tooltip>
           );
         })}
       </nav>
-
-      <Divider />
-
-      <div className="p-3">
-        {!sidebarCollapsed ? (
-          <Card className="bg-default-100">
-            <CardBody className="p-3">
-              <div className="flex items-center gap-3">
-                <Avatar name={session?.user?.name || "User"} size="sm" />
-                <div className="flex flex-col">
-                  <span className="text-small font-medium text-foreground">
-                    {session?.user?.name || "User"}
-                  </span>
-                  <span className="text-tiny text-default-500">
-                    {session?.user?.email}
-                  </span>
-                </div>
-              </div>
-            </CardBody>
-          </Card>
-        ) : (
-          <div className="flex justify-center">
-            <Avatar name={session?.user?.name || "User"} size="sm" />
-          </div>
-        )}
-      </div>
     </aside>
   );
 }

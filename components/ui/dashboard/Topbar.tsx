@@ -1,12 +1,26 @@
 "use client";
 
-import { FiBell, FiLogOut, FiMenu, FiX } from "react-icons/fi";
+import {
+  FiBell,
+  FiLogOut,
+  FiMenu,
+  FiX,
+  FiUser,
+  FiSettings,
+} from "react-icons/fi";
 import { Input } from "@heroui/input";
 import { Kbd } from "@heroui/kbd";
 import { Button } from "@heroui/button";
 import { Card, CardBody } from "@heroui/card";
 import { GoSidebarExpand, GoSidebarCollapse } from "react-icons/go";
 import { FiXCircle } from "react-icons/fi";
+import { Avatar } from "@heroui/avatar";
+import {
+  Dropdown,
+  DropdownTrigger,
+  DropdownMenu,
+  DropdownItem,
+} from "@heroui/dropdown";
 
 import { ThemeSwitch } from "@/components/theme-switch";
 import { Logo, SearchIcon } from "@/components/icons";
@@ -23,6 +37,7 @@ interface TopbarProps {
   signOut: () => void;
   navItems: any[];
   openNewTab: (tab: any) => void;
+  session: any;
 }
 
 export function Topbar({
@@ -37,6 +52,7 @@ export function Topbar({
   signOut,
   navItems,
   openNewTab,
+  session,
 }: TopbarProps) {
   const searchInput = (
     <Input
@@ -62,6 +78,11 @@ export function Topbar({
     />
   );
 
+  // Fungsi untuk mendapatkan kata pertama dari nama
+  const getFirstName = (name: string) => {
+    return name ? name.split(" ")[0] : "User";
+  };
+
   return (
     <>
       {/* Mobile Topbar */}
@@ -83,10 +104,48 @@ export function Topbar({
           <h1 className="text-xl font-bold text-foreground">AZRA</h1>
         </div>
 
-        <Button isIconOnly variant="light">
+        <div className="flex items-center gap-2">
           <ThemeSwitch />
-          {/* <FiBell size={18} /> */}
-        </Button>
+          <Dropdown placement="bottom-end">
+            <DropdownTrigger>
+              <Avatar
+                className="cursor-pointer"
+                name={getFirstName(session?.user?.name || "User")}
+                size="sm"
+              />
+            </DropdownTrigger>
+            <DropdownMenu aria-label="User actions">
+              <DropdownItem key="user-info" className="h-auto py-3">
+                <div className="flex flex-col gap-1">
+                  <span className="text-small font-medium text-foreground">
+                    {session?.user?.name || "User"}
+                  </span>
+                  <span className="text-tiny text-default-500">
+                    {session?.user?.email}
+                  </span>
+                </div>
+              </DropdownItem>
+              <DropdownItem key="profile" startContent={<FiUser size={16} />}>
+                Profile
+              </DropdownItem>
+              <DropdownItem
+                key="settings"
+                startContent={<FiSettings size={16} />}
+              >
+                Settings
+              </DropdownItem>
+              <DropdownItem
+                key="logout"
+                className="text-danger"
+                color="danger"
+                startContent={<FiLogOut size={16} />}
+                onPress={signOut}
+              >
+                Logout
+              </DropdownItem>
+            </DropdownMenu>
+          </Dropdown>
+        </div>
       </header>
 
       {/* Mobile Dropdown */}
@@ -117,18 +176,19 @@ export function Topbar({
       )}
 
       {/* Desktop Topbar */}
-      <header className="hidden md:flex justify-between items-center bg-content1 px-6 py-4 shadow-small border-b border-divider">
+      <header className="hidden md:flex justify-between items-center bg-content1 px-6 py-3 shadow-small border-b border-divider">
         <div className="flex items-center gap-4">
           <Button
             isIconOnly
-            variant="bordered"
+            color="default"
+            variant="flat"
             onPress={() => setSidebarCollapsed(!sidebarCollapsed)}
           >
             <span className="text-gray-500">
               {sidebarCollapsed ? (
-                <GoSidebarCollapse size={18} />
+                <GoSidebarCollapse size={20} />
               ) : (
-                <GoSidebarExpand size={18} />
+                <GoSidebarExpand size={20} />
               )}
             </span>
           </Button>
@@ -138,16 +198,53 @@ export function Topbar({
         <div className="flex items-center gap-3">
           <ThemeSwitch />
           <Button isIconOnly className="text-default-500" variant="light">
-            <FiBell size={18} />
+            <FiBell size={19} />
           </Button>
-          <Button
-            className="text-danger"
-            startContent={<FiLogOut size={16} />}
-            variant="light"
-            onClick={signOut}
-          >
-            Logout
-          </Button>
+          <Dropdown placement="bottom-end">
+            <DropdownTrigger>
+              <div className="flex items-center gap-2 cursor-pointer hover:bg-default-100 rounded-lg p-2 transition-colors">
+                <Avatar
+                  name={getFirstName(session?.user?.name || "User")}
+                  size="sm"
+                />
+                <div className="hidden lg:flex flex-col items-start">
+                  <span className="text-small font-medium text-foreground">
+                    {getFirstName(session?.user?.name || "User")}
+                  </span>
+                </div>
+              </div>
+            </DropdownTrigger>
+            <DropdownMenu aria-label="User actions">
+              <DropdownItem key="user-info" className="h-auto py-3">
+                <div className="flex flex-col gap-1">
+                  <span className="text-small font-medium text-foreground">
+                    {session?.user?.name || "User"}
+                  </span>
+                  <span className="text-tiny text-default-500">
+                    {session?.user?.email}
+                  </span>
+                </div>
+              </DropdownItem>
+              <DropdownItem key="profile" startContent={<FiUser size={16} />}>
+                Profile
+              </DropdownItem>
+              <DropdownItem
+                key="settings"
+                startContent={<FiSettings size={16} />}
+              >
+                Settings
+              </DropdownItem>
+              <DropdownItem
+                key="logout"
+                className="text-danger"
+                color="danger"
+                startContent={<FiLogOut size={16} />}
+                onPress={signOut}
+              >
+                Logout
+              </DropdownItem>
+            </DropdownMenu>
+          </Dropdown>
         </div>
       </header>
 

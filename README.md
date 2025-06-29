@@ -1,53 +1,44 @@
-# Next.js & HeroUI Template
+# AZRA - Asset Management System v0.2.0
 
-This is a template for creating applications using Next.js 14 (app directory) and HeroUI (v2).
+Sistem manajemen aset untuk PT GSI dengan fitur pengelolaan unit, work order, dan maintenance tracking.
 
-[Try it on CodeSandbox](https://githubbox.com/heroui-inc/heroui/next-app-template)
+## �� Dokumentasi
 
-## Technologies Used
+Untuk dokumentasi lengkap, silakan lihat [DOCUMENTATION.md](./DOCUMENTATION.md)
 
-- [Next.js 14](https://nextjs.org/docs/getting-started)
-- [HeroUI v2](https://heroui.com/)
-- [Tailwind CSS](https://tailwindcss.com/)
-- [Tailwind Variants](https://tailwind-variants.org)
-- [TypeScript](https://www.typescriptlang.org/)
-- [Framer Motion](https://www.framer.com/motion/)
-- [next-themes](https://github.com/pacocoursey/next-themes)
-
-## How to Use
-
-### Use the template with create-next-app
-
-To create a new project based on this template using `create-next-app`, run the following command:
+## 🚀 Quick Start
 
 ```bash
-npx create-next-app -e https://github.com/heroui-inc/next-app-template
-```
-
-### Install dependencies
-
-You can use one of them `npm`, `yarn`, `pnpm`, `bun`, Example using `npm`:
-
-```bash
+# Install dependencies
 npm install
-```
 
-### Run the development server
+# Setup database
+npx prisma generate
+npx prisma db push
 
-```bash
+# Run development server
 npm run dev
 ```
 
-### Setup pnpm (optional)
+## 🛠️ Tech Stack
 
-If you are using `pnpm`, you need to add the following code to your `.npmrc` file:
+- Next.js 15.3.1
+- React 18.3.1
+- TypeScript 5.6.3
+- HeroUI v2.7.9
+- Prisma 6.10.1
+- PostgreSQL
+- NextAuth.js 4.24.11
 
-```bash
-public-hoist-pattern[]=*@heroui/*
-```
+## 📖 Fitur Utama
 
-After modifying the `.npmrc` file, you need to run `pnpm install` again to ensure that the dependencies are installed correctly.
+- ✅ Asset Management
+- ✅ Work Order Management
+- ✅ User Management
+- ✅ Maintenance History
+- ✅ Role-based Access Control
+- ✅ Reporting & Analytics
 
-## License
+## 📄 License
 
-Licensed under the [MIT license](https://github.com/heroui-inc/next-app-template/blob/main/LICENSE).
+MIT License

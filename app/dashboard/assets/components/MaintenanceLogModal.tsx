@@ -11,9 +11,22 @@ import {
   Card,
   CardBody,
   Chip,
-  Divider,
+  Spinner,
+  Tooltip,
+  Avatar,
 } from "@heroui/react";
-import { Wrench, User, Clock, DollarSign } from "lucide-react";
+import {
+  Wrench,
+  User,
+  Clock,
+  DollarSign,
+  ChevronDown,
+  AlertTriangle,
+  CheckCircle,
+  Calendar,
+  MapPin,
+  Hash,
+} from "lucide-react";
 
 interface Unit {
   id: string;
@@ -81,6 +94,7 @@ export default function MaintenanceLogModal({
 }: MaintenanceLogModalProps) {
   const [maintenanceLogs, setMaintenanceLogs] = useState<RFUReport[]>([]);
   const [loadingLogs, setLoadingLogs] = useState(false);
+  const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
 
   // Fetch maintenance logs when modal opens
   useEffect(() => {
@@ -116,16 +130,30 @@ export default function MaintenanceLogModal({
     onClose();
   };
 
-  const formatDate = (date: Date | null) => {
-    if (!date) return "Not set";
+  const toggleExpanded = (logId: string) => {
+    const newExpanded = new Set(expandedItems);
 
-    return new Date(date).toLocaleDateString("id-ID", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
+    if (newExpanded.has(logId)) {
+      newExpanded.delete(logId);
+    } else {
+      newExpanded.add(logId);
+    }
+    setExpandedItems(newExpanded);
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case "rfu":
+        return <CheckCircle className="w-4 h-4 text-success" />;
+      case "pending":
+        return <Clock className="w-4 h-4 text-warning" />;
+      case "in_progress":
+        return <Wrench className="w-4 h-4 text-primary" />;
+      case "overdue":
+        return <AlertTriangle className="w-4 h-4 text-danger" />;
+      default:
+        return <Clock className="w-4 h-4 text-default-400" />;
+    }
   };
 
   const getStatusColor = (status: string) => {
@@ -139,168 +167,272 @@ export default function MaintenanceLogModal({
     return statusColors[status as keyof typeof statusColors] || "default";
   };
 
+  const formatDate = (date: Date | null) => {
+    if (!date) return "Not set";
+
+    return new Date(date).toLocaleDateString("id-ID", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
+  const formatTimeAgo = (date: Date) => {
+    const now = new Date();
+    const diffInHours = Math.floor(
+      (now.getTime() - new Date(date).getTime()) / (1000 * 60 * 60),
+    );
+
+    if (diffInHours < 24) {
+      return `${diffInHours} jam yang lalu`;
+    } else {
+      const diffInDays = Math.floor(diffInHours / 24);
+
+      return `${diffInDays} hari yang lalu`;
+    }
+  };
+
   if (!asset) return null;
 
   return (
-    <Modal
-      isOpen={isOpen}
-      placement="top-center"
-      size="4xl"
-      onOpenChange={handleClose}
-    >
+    <Modal isOpen={isOpen} placement="top-center" onOpenChange={handleClose}>
       <ModalContent>
         {(onClose) => (
           <>
-            <ModalHeader className="flex flex-col gap-1">
-              <div className="flex items-center gap-2">
-                <Wrench className="w-5 h-5 text-primary" />
-                <span>Riwayat Maintenance - {asset.name}</span>
+            <ModalHeader className="flex flex-col gap-2 pb-4 px-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-primary-100 rounded-lg">
+                    <Wrench className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold">Log Maintenance</h3>
+                    <p className="text-sm text-default-500">{asset.name}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1 text-xs text-default-500 pr-6">
+                  <Hash className="w-3 h-3" />
+                  <span>{asset.assetTag}</span>
+                  <MapPin className="w-3 h-3 ml-2" />
+                  <span>{asset.location}</span>
+                </div>
               </div>
-              <p className="text-sm text-default-500">
-                Asset Tag: {asset.assetTag} | Lokasi: {asset.location}
-              </p>
             </ModalHeader>
-            <ModalBody>
+
+            <ModalBody className="px-6 pb-6">
               {loadingLogs ? (
-                <div className="text-center py-8">
-                  <p className="text-default-500">
-                    Loading riwayat maintenance...
-                  </p>
+                <div className="flex flex-col items-center justify-center py-12">
+                  <Spinner color="primary" size="lg" />
+                  <p className="text-default-500 mt-4">Loading...</p>
                 </div>
               ) : maintenanceLogs.length === 0 ? (
-                <Card className="bg-default-50">
+                <Card className="bg-default-50 border-dashed">
                   <CardBody className="p-8 text-center">
-                    <Wrench className="w-12 h-12 text-default-300 mx-auto mb-4" />
-                    <p className="text-default-500 text-lg mb-2">
-                      Belum ada riwayat maintenance
-                    </p>
-                    <p className="text-default-400 text-sm">
-                      Riwayat maintenance akan muncul setelah ada breakdown yang
-                      diselesaikan (RFU)
+                    <div className="p-3 bg-default-200 rounded-full w-fit mx-auto mb-4">
+                      <Wrench className="w-8 h-8 text-default-400" />
+                    </div>
+                    <h4 className="text-lg font-medium text-default-600 mb-2">
+                      Riwayat tidak ditemukan
+                    </h4>
+                    <p className="text-sm text-default-500 max-w-sm mx-auto">
+                      Data akan muncul setelah WO dinyatakan complete atau RFU
+                      (Ready for Use)
                     </p>
                   </CardBody>
                 </Card>
               ) : (
-                <div className="space-y-4 max-h-96 overflow-y-auto">
-                  {maintenanceLogs.map((log) => (
-                    <Card key={log.id} className="bg-default-50">
+                <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2">
+                  {maintenanceLogs.map((log, index) => (
+                    <Card
+                      key={log.id}
+                      isPressable
+                      className="transition-all duration-200 hover:shadow-md cursor-pointer mx-2 justify-center"
+                      onPress={() => toggleExpanded(log.id)}
+                    >
                       <CardBody className="p-4">
-                        {/* Header */}
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="flex items-center gap-2">
+                        {/* Compact Header */}
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-2">
+                              {getStatusIcon(log.breakdown.status)}
+                              <Chip
+                                className="font-medium"
+                                color={
+                                  getStatusColor(log.breakdown.status) as any
+                                }
+                                size="sm"
+                                variant="flat"
+                              >
+                                {log.breakdown.status.toUpperCase()}
+                              </Chip>
+                            </div>
                             <Chip
-                              color={
-                                getStatusColor(log.breakdown.status) as any
-                              }
+                              className="font-mono mr-4"
+                              color="primary"
                               size="sm"
                               variant="flat"
                             >
-                              {log.breakdown.status.toUpperCase()}
+                              {log.breakdown.breakdownNumber}
                             </Chip>
-                            <span className="text-xs text-default-500">
-                              #{log.breakdown.breakdownNumber}
-                            </span>
                           </div>
-                          <div className="text-right">
-                            <p className="text-xs text-default-500">
-                              Diselesaikan
-                            </p>
-                            <p className="text-sm font-medium">
-                              {formatDate(log.resolvedAt)}
-                            </p>
+
+                          <div className="flex items-center gap-3">
+                            <Tooltip content={formatDate(log.resolvedAt)}>
+                              <div className="text-right">
+                                <p className="text-xs text-default-500">
+                                  Selesai
+                                </p>
+                                <p className="text-xs">
+                                  {formatTimeAgo(log.resolvedAt)}
+                                </p>
+                              </div>
+                            </Tooltip>
+                            <ChevronDown
+                              className={`w-4 h-4 text-default-400 transition-transform duration-200 ${
+                                expandedItems.has(log.id) ? "rotate-180" : ""
+                              }`}
+                            />
                           </div>
                         </div>
 
-                        {/* Breakdown Info */}
-                        <div className="mb-3 p-3 bg-default-100 rounded-lg">
-                          <div className="flex items-center gap-2 mb-2">
-                            <Clock className="w-4 h-4 text-default-500" />
-                            <span className="text-sm font-medium">
-                              Breakdown Info
-                            </span>
-                          </div>
-                          <p className="text-sm text-default-600 mb-1">
-                            <span className="font-medium">
-                              Waktu Breakdown:
-                            </span>{" "}
-                            {formatDate(log.breakdown.breakdownTime)}
-                          </p>
-                          <p className="text-sm text-default-600">
-                            <span className="font-medium">Deskripsi:</span>{" "}
+                        {/* Always visible summary */}
+                        <div className="mb-3">
+                          <p className="text-sm text-default-600 line-clamp-2">
+                            <span className="font-medium">Masalah:</span>{" "}
                             {log.breakdown.description}
                           </p>
                         </div>
 
-                        {/* Solution */}
-                        <div className="mb-3">
-                          <div className="flex items-center gap-2 mb-2">
-                            <Wrench className="w-4 h-4 text-success" />
-                            <span className="text-sm font-medium">Solusi</span>
-                          </div>
-                          <p className="text-sm text-default-700 bg-success-50 p-3 rounded-lg">
-                            {log.solution}
-                          </p>
-                        </div>
-
-                        {/* Work Details */}
-                        {log.workDetails && (
-                          <div className="mb-3">
-                            <div className="flex items-center gap-2 mb-2">
-                              <User className="w-4 h-4 text-primary" />
-                              <span className="text-sm font-medium">
-                                Detail Pekerjaan
-                              </span>
-                            </div>
-                            <p className="text-sm text-default-700 bg-primary-50 p-3 rounded-lg">
-                              {log.workDetails}
-                            </p>
-                          </div>
-                        )}
-
-                        {/* Actions */}
-                        {log.actions.length > 0 && (
-                          <div>
-                            <div className="flex items-center gap-2 mb-2">
-                              <DollarSign className="w-4 h-4 text-warning" />
-                              <span className="text-sm font-medium">
-                                Aksi yang Dilakukan
-                              </span>
-                            </div>
-                            <div className="space-y-2">
-                              {log.actions.map((action) => (
-                                <div
-                                  key={action.id}
-                                  className="bg-warning-50 p-3 rounded-lg"
-                                >
-                                  <div className="flex items-start justify-between mb-1">
-                                    <p className="text-sm font-medium text-default-700">
-                                      {action.action}
-                                    </p>
-                                    <span className="text-xs text-default-500">
-                                      {formatDate(action.actionTime)}
-                                    </span>
-                                  </div>
-                                  {action.description && (
-                                    <p className="text-sm text-default-600">
-                                      {action.description}
-                                    </p>
-                                  )}
+                        {/* Expandable details with consistent height */}
+                        <div
+                          className={`overflow-hidden transition-all duration-300 ease-in-out ${
+                            expandedItems.has(log.id)
+                              ? "max-h-[1000px] opacity-100"
+                              : "max-h-0 opacity-0"
+                          }`}
+                        >
+                          <div className="space-y-4 pt-3 border-t border-default-200">
+                            {/* Breakdown Timeline */}
+                            <div className="flex items-start gap-3 p-3 bg-default-50 rounded-lg">
+                              <div className="p-2 bg-primary-100 rounded-lg">
+                                <Calendar className="w-4 h-4 text-primary" />
+                              </div>
+                              <div className="flex-1">
+                                <p className="text-sm font-medium mb-1">
+                                  Timeline
+                                </p>
+                                <div className="space-y-1 text-xs text-default-600">
+                                  <p>
+                                    <span className="font-medium">
+                                      Waktu WO:
+                                    </span>{" "}
+                                    {formatDate(log.breakdown.breakdownTime)}
+                                  </p>
+                                  <p>
+                                    <span className="font-medium">
+                                      Selesai:
+                                    </span>{" "}
+                                    {formatDate(log.resolvedAt)}
+                                  </p>
                                 </div>
-                              ))}
+                              </div>
+                            </div>
+
+                            {/* Solution */}
+                            <div className="flex items-start gap-3 p-3 bg-success-50 rounded-lg">
+                              <div className="p-2 bg-success-100 rounded-lg">
+                                <CheckCircle className="w-4 h-4 text-success" />
+                              </div>
+                              <div className="flex-1">
+                                <p className="text-sm font-medium mb-1 text-success-700">
+                                  Solusi
+                                </p>
+                                <p className="text-sm text-success-800">
+                                  {log.solution}
+                                </p>
+                              </div>
+                            </div>
+
+                            {/* Work Details */}
+                            {log.workDetails && (
+                              <div className="flex items-start gap-3 p-3 bg-primary-50 rounded-lg">
+                                <div className="p-2 bg-primary-100 rounded-lg">
+                                  <User className="w-4 h-4 text-primary" />
+                                </div>
+                                <div className="flex-1">
+                                  <p className="text-sm font-medium mb-1 text-primary-700">
+                                    Detail Pekerjaan
+                                  </p>
+                                  <p className="text-sm text-primary-800">
+                                    {log.workDetails}
+                                  </p>
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Actions */}
+                            {log.actions.length > 0 && (
+                              <div className="space-y-2">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <DollarSign className="w-4 h-4 text-warning" />
+                                  <span className="text-sm font-medium">
+                                    Aksi yang Dilakukan
+                                  </span>
+                                </div>
+                                <div className="space-y-2">
+                                  {log.actions.map((action) => (
+                                    <div
+                                      key={action.id}
+                                      className="flex items-start gap-3 p-3 bg-warning-50 rounded-lg"
+                                    >
+                                      <div className="p-1 bg-warning-100 rounded">
+                                        <DollarSign className="w-3 h-3 text-warning" />
+                                      </div>
+                                      <div className="flex-1">
+                                        <div className="flex items-center justify-between mb-1">
+                                          <p className="text-sm font-medium text-warning-800">
+                                            {action.action}
+                                          </p>
+                                          <span className="text-xs text-warning-600">
+                                            {formatDate(action.actionTime)}
+                                          </span>
+                                        </div>
+                                        {action.description && (
+                                          <p className="text-sm text-warning-700">
+                                            {action.description}
+                                          </p>
+                                        )}
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            {/* Resolved By */}
+                            <div className="flex items-center justify-between p-3 bg-default-50 rounded-lg">
+                              <div className="flex items-center gap-2">
+                                <Avatar
+                                  className="bg-primary-100 text-primary"
+                                  name={log.resolvedBy.name}
+                                  size="sm"
+                                />
+                                <div>
+                                  <p className="text-sm font-medium">
+                                    RFU oleh
+                                  </p>
+                                  <p className="text-xs text-default-500">
+                                    {log.resolvedBy.name}
+                                  </p>
+                                </div>
+                              </div>
+                              {/* <p className="text-xs">
+                                ID: {log.resolvedById}
+                              </p> */}
                             </div>
                           </div>
-                        )}
-
-                        {/* Resolved By */}
-                        <Divider className="my-3" />
-                        <div className="flex items-center justify-between text-xs text-default-500">
-                          <span>
-                            Diselesaikan oleh:{" "}
-                            <span className="font-medium">
-                              {log.resolvedBy.name}
-                            </span>
-                          </span>
-                          <span>ID: {log.resolvedById}</span>
                         </div>
                       </CardBody>
                     </Card>
@@ -308,9 +440,15 @@ export default function MaintenanceLogModal({
                 </div>
               )}
             </ModalBody>
-            <ModalFooter>
-              <Button color="danger" variant="light" onPress={handleClose}>
-                Tutup
+
+            <ModalFooter className="pt-4 px-6">
+              <Button
+                className="font-medium"
+                color="danger"
+                variant="light"
+                onPress={handleClose}
+              >
+                Close
               </Button>
             </ModalFooter>
           </>

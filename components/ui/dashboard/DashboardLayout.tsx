@@ -320,8 +320,8 @@ export default function UIDashboardLayout({
         />
       </div>
 
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      {/* Main Content Area - Tambahkan transisi */}
+      <div className="flex-1 flex flex-col overflow-hidden transition-all duration-300 ease-in-out">
         {/* Topbar - Fixed */}
         <div className="flex-shrink-0">
           <Topbar
@@ -332,6 +332,7 @@ export default function UIDashboardLayout({
             menuOpen={menuOpen}
             navItems={navItems}
             openNewTab={openNewTab}
+            session={session}
             setMenuOpen={setMenuOpen}
             setSidebarCollapsed={setSidebarCollapsed}
             sidebarCollapsed={sidebarCollapsed}

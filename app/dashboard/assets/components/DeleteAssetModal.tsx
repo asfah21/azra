@@ -183,8 +183,7 @@ export function DeleteAssetModal({
                         </span>
                       </div>
                       <p className="text-danger-700 text-sm">
-                        Anda tidak memiliki izin untuk menghapus asset. Hanya
-                        Super Admin yang dapat melakukan tindakan ini.
+                        Hanya Super Admin yang dapat menghapus asset.
                       </p>
                     </div>
                   )}
@@ -197,8 +196,7 @@ export function DeleteAssetModal({
                       </span>
                     </div>
                     <p className="text-warning-700 text-sm">
-                      Tindakan ini tidak dapat dibatalkan. Asset yang dihapus
-                      tidak dapat dipulihkan.
+                      Asset yang dihapus tidak dapat dipulihkan.
                     </p>
                   </div>
 
@@ -278,12 +276,12 @@ export function DeleteAssetModal({
                     </div>
                   </div>
 
-                  <div className="text-center">
+                  {/* <div className="text-center">
                     <p className="text-default-600">
                       Apakah Anda yakin ingin menghapus asset{" "}
                       <strong>{asset.name}</strong> ({asset.assetTag})?
                     </p>
-                  </div>
+                  </div> */}
                 </div>
               )}
             </ModalBody>

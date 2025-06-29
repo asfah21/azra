@@ -1,6 +1,7 @@
 "use client";
 
 import { useActionState, useEffect } from "react";
+import { useSession } from "next-auth/react";
 import {
   ModalHeader,
   ModalBody,
@@ -36,6 +37,7 @@ export function EditUserModal({
   onClose,
   onUserUpdated,
 }: EditUserModalProps) {
+  const { data: session } = useSession();
   const [state, formAction, isPending] = useActionState(updateUser, null);
 
   // Auto close modal jika berhasil update user
@@ -58,6 +60,10 @@ export function EditUserModal({
   const handleSubmit = async (formData: FormData) => {
     if (user) {
       formData.append("id", user.id);
+      // Tambahkan currentUserRole dari session
+      if (session?.user?.role) {
+        formData.append("currentUserRole", session.user.role);
+      }
       await formAction(formData);
     }
   };
