@@ -4,7 +4,7 @@ import bcrypt from "bcrypt";
 import { revalidatePath } from "next/cache";
 import { Role } from "@prisma/client";
 
-import prisma from "@/lib/prisma";
+import { prisma } from "@/lib/prisma";
 
 // Tambahkan tipe return yang sesuai
 export type FormState = {
