@@ -50,12 +50,13 @@ import {
   TbCircleDashedLetterL,
   TbCircleDashedLetterM,
 } from "react-icons/tb";
+import { useOptimisticWorkOrders } from "../actions/optimisticActions";
 
 import {
   deleteBreakdown,
   updateBreakdownStatusWithActions,
   updateBreakdownStatusWithUnitStatus,
-} from "../action";
+} from "../actions/serverAction";
 
 import { AddWoForm } from "./AddForm";
 import BreakdownDetailModal from "./BreakdownDetailModal";
@@ -118,9 +119,10 @@ interface BreakdownPayload {
 
 interface WoStatsCardsProps {
   dataTable: BreakdownPayload[];
+  mutate?: () => Promise<any>;
 }
 
-export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
+export default function GammaTableData({ dataTable, mutate }: WoStatsCardsProps) {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const router = useRouter();
   const { data: session } = useSession();
@@ -152,15 +154,22 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
   const [selectedBreakdownForDelete, setSelectedBreakdownForDelete] =
     useState<BreakdownPayload | null>(null);
 
-  // Filter data berdasarkan search query
+  const {
+    optimisticWorkOrders,
+    optimisticUpdateStatus,
+    optimisticUpdateWithUnitStatus,
+    optimisticDelete,
+  } = useOptimisticWorkOrders(dataTable);
+
+  // Gunakan optimisticWorkOrders sebagai data utama
   const filteredData = useMemo(() => {
     if (!searchQuery.trim()) {
-      return dataTable;
+      return optimisticWorkOrders;
     }
 
     const query = searchQuery.toLowerCase();
 
-    return dataTable.filter((item) => {
+    return optimisticWorkOrders.filter((item) => {
       return (
         item.breakdownNumber?.toLowerCase().includes(query) ||
         item.unit.name.toLowerCase().includes(query) ||
@@ -172,7 +181,7 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
         item.priority?.toLowerCase().includes(query)
       );
     });
-  }, [dataTable, searchQuery]);
+  }, [optimisticWorkOrders, searchQuery]);
 
   // Hitung data yang akan ditampilkan berdasarkan halaman
   const pages = Math.ceil(filteredData.length / rowsPerPage);
@@ -217,31 +226,22 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
   ) => {
     if (!selectedBreakdownForRFU) return;
 
-    const currentUserId = session?.user?.id;
-
-    if (!currentUserId) {
-      console.error("User ID not found");
-
-      return;
-    }
-
     try {
-      const result = await updateBreakdownStatusWithActions(
+      await optimisticUpdateStatus(
         selectedBreakdownForRFU.id,
         "rfu",
-        solution,
-        actions,
-        currentUserId,
+        session?.user?.id
       );
-
-      if (result.success) {
-        console.log(result.message);
-        router.refresh(); // Refresh halaman untuk update data
-      } else {
-        console.error(result.message);
+      
+      setIsRFUModalOpen(false);
+      setSelectedBreakdownForRFU(null);
+      
+      // Refresh data dengan SWR mutate, bukan reload
+      if (mutate) {
+        await mutate();
       }
     } catch (error) {
-      console.error("An unexpected error occurred:", error);
+      console.error("Error completing RFU:", error);
     }
   };
 
@@ -256,27 +256,24 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
   ) => {
     if (!selectedBreakdownForInProgress) return;
 
-    const currentUserId = session?.user?.id;
-
-    if (currentUserId) {
-      await handleAction(() =>
-        updateBreakdownStatusWithUnitStatus(
-          selectedBreakdownForInProgress.id,
-          "in_progress",
-          unitStatus,
-          notes,
-          currentUserId,
-        ),
+    try {
+      await optimisticUpdateWithUnitStatus(
+        selectedBreakdownForInProgress.id,
+        "in_progress",
+        unitStatus,
+        notes,
+        session?.user?.id
       );
-    } else {
-      await handleAction(() =>
-        updateBreakdownStatusWithUnitStatus(
-          selectedBreakdownForInProgress.id,
-          "in_progress",
-          unitStatus,
-          notes,
-        ),
-      );
+      
+      setIsInProgressModalOpen(false);
+      setSelectedBreakdownForInProgress(null);
+      
+      // Refresh data dengan SWR mutate, bukan reload
+      if (mutate) {
+        await mutate();
+      }
+    } catch (error) {
+      console.error("Error completing in progress:", error);
     }
   };
 
@@ -305,13 +302,22 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
       console.error("Unauthorized: Only super_admin can delete work orders");
       setIsDeleteModalOpen(false);
       setSelectedBreakdownForDelete(null);
-
       return;
     }
 
-    await handleAction(() => deleteBreakdown(selectedBreakdownForDelete.id));
-    setIsDeleteModalOpen(false);
-    setSelectedBreakdownForDelete(null);
+    try {
+      await optimisticDelete(selectedBreakdownForDelete.id);
+      
+      setIsDeleteModalOpen(false);
+      setSelectedBreakdownForDelete(null);
+      
+      // Refresh data dengan SWR mutate, bukan reload
+      if (mutate) {
+        await mutate();
+      }
+    } catch (error) {
+      console.error("Error deleting work order:", error);
+    }
   };
 
   const handleCloseDeleteModal = () => {

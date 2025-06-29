@@ -1,14 +1,16 @@
 import { PaperClipIcon } from "@heroicons/react/24/outline";
 
-import GammaCardGrid from "./components/CardGrid";
-import GammaTableData from "./components/TableData";
-import { getBreakdownsData } from "./action";
+import RealTimeStats from "./components/RealTimeStats";
+import RealTimeTable from "./components/RealTimeTable";
+import { getBreakdownsData } from "./actions/serverAction";
 
+// Server Component untuk initial load
 export const metadata = {
   title: "Work Order",
 };
 
 export default async function WoPage() {
+  // Server-side data untuk initial load (SSR)
   const { allBreakdowns, breakdownStats } = await getBreakdownsData();
 
   return (
@@ -25,14 +27,13 @@ export default async function WoPage() {
             </h1>
           </div>
         </div>
-        {/* <div className="flex flex-wrap gap-2"><WoRightButtonList /></div> */}
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
-        <GammaCardGrid stats={breakdownStats} />
-      </div>
+      {/* Real-time Stats */}
+      <RealTimeStats initialStats={breakdownStats} />
 
-      <GammaTableData dataTable={allBreakdowns} />
+      {/* Real-time Table */}
+      <RealTimeTable initialData={allBreakdowns} />
     </div>
   );
 }
