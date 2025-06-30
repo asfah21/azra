@@ -1,4 +1,4 @@
-import { getServerSession } from "next-auth";
+import { getServerSession } from "next-auth"; // untuk autentikasi
 
 import { getDashboardData, getRecentActivities } from "./action";
 
