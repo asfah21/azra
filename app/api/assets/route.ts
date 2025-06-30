@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error("Error in assets API:", error);
 
-    // Return fallback data instead of error
+    // Return fallback data instead of error!
     return NextResponse.json({
       allAssets: [],
       assetStats: {
