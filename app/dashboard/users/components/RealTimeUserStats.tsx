@@ -9,11 +9,13 @@ interface RealTimeUserStatsProps {
   initialStats: UserStats;
 }
 
-export default function RealTimeUserStats({ initialStats }: RealTimeUserStatsProps) {
+export default function RealTimeUserStats({
+  initialStats,
+}: RealTimeUserStatsProps) {
   const { stats, isLoading } = useUsers();
 
   // Gunakan initial stats jika SWR masih loading
   const displayStats = isLoading ? initialStats : stats;
 
   return <UserCardGrids stats={displayStats} />;
-} 
+}

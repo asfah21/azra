@@ -50,9 +50,10 @@ import {
   TbCircleDashedLetterL,
   TbCircleDashedLetterM,
 } from "react-icons/tb";
+import { KeyedMutator } from "swr";
+
 import { BreakdownPayload } from "../types";
 import { useOptimisticWorkOrders } from "../actions/optimisticActions";
-import { KeyedMutator } from "swr";
 
 import { AddWoForm } from "./AddForm";
 import BreakdownDetailModal from "./BreakdownDetailModal";
@@ -394,8 +395,8 @@ export default function GammaTableData({
   };
 
   const handleStatusUpdate = async (
-    id: string, 
-    status: "pending" | "in_progress" | "rfu" | "overdue"
+    id: string,
+    status: "pending" | "in_progress" | "rfu" | "overdue",
   ) => {
     try {
       await optimisticUpdateStatus(id, status);

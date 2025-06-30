@@ -14,9 +14,12 @@ export async function GET() {
       recentActivities,
     });
 
-    response.headers.set('Cache-Control', 'public, s-maxage=30, stale-while-revalidate=60');
-    response.headers.set('CDN-Cache-Control', 'public, max-age=30');
-    
+    response.headers.set(
+      "Cache-Control",
+      "public, s-maxage=30, stale-while-revalidate=60",
+    );
+    response.headers.set("CDN-Cache-Control", "public, max-age=30");
+
     return response;
   } catch (error) {
     console.error("Error in dashboard API:", error);

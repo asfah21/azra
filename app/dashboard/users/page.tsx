@@ -1,8 +1,6 @@
 import { Users } from "lucide-react";
 import { Metadata } from "next";
 
-import UserCardGrids from "./components/CardGrid";
-import UserTables from "./components/UserTable";
 import RealTimeUserStats from "./components/RealTimeUserStats";
 import RealTimeUserTable from "./components/RealTimeUserTable";
 import { getUsersData } from "./action";

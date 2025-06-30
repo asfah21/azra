@@ -9,8 +9,12 @@ const convertAssetData = (asset: any): AssetPayload => ({
   ...asset,
   installDate: asset.installDate ? new Date(asset.installDate) : null,
   warrantyExpiry: asset.warrantyExpiry ? new Date(asset.warrantyExpiry) : null,
-  lastMaintenance: asset.lastMaintenance ? new Date(asset.lastMaintenance) : null,
-  nextMaintenance: asset.nextMaintenance ? new Date(asset.nextMaintenance) : null,
+  lastMaintenance: asset.lastMaintenance
+    ? new Date(asset.lastMaintenance)
+    : null,
+  nextMaintenance: asset.nextMaintenance
+    ? new Date(asset.nextMaintenance)
+    : null,
   createdAt: new Date(asset.createdAt),
 });
 
@@ -58,4 +62,4 @@ export function useAssets() {
 }
 
 // Export helper function untuk digunakan di optimistic actions
-export { convertAssetData }; 
+export { convertAssetData };

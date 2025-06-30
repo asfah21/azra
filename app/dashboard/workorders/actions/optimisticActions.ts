@@ -1,8 +1,10 @@
 "use client";
 
 import { useOptimistic, startTransition } from "react";
+
 import { BreakdownPayload, OptimisticBreakdownUpdate } from "../types";
 import { convertBreakdownData } from "../hooks/useWorkOrders";
+
 import {
   updateBreakdownStatusWithActions,
   updateBreakdownStatusWithUnitStatus,
@@ -20,8 +22,10 @@ export function useOptimisticWorkOrders(initialWorkOrders: BreakdownPayload[]) {
       return state.map((workOrder) => {
         if (workOrder.id === update.id) {
           const updatedWorkOrder = { ...workOrder, ...update };
+
           return convertBreakdownData(updatedWorkOrder);
         }
+
         return workOrder;
       });
     },
@@ -86,6 +90,7 @@ export function useOptimisticWorkOrders(initialWorkOrders: BreakdownPayload[]) {
 
     try {
       const result = await deleteBreakdown(id);
+
       return result;
     } catch (error) {
       console.error("Error deleting work order:", error);

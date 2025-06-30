@@ -61,9 +61,17 @@ interface DashboardChartsProps {
   };
 }
 
-export default function DashboardCharts({ dashboardData }: DashboardChartsProps) {
-  const { assetStats, workOrderStats, monthlyBreakdowns, categoryDistribution, maintenancePerformance } = dashboardData;
-  
+export default function DashboardCharts({
+  dashboardData,
+}: DashboardChartsProps) {
+  const {
+    assetStats,
+    workOrderStats,
+    monthlyBreakdowns,
+    categoryDistribution,
+    maintenancePerformance,
+  } = dashboardData;
+
   // Asset Utilization Chart (Doughnut)
   const assetUtilizationData = {
     labels: ["Operational", "Maintenance", "Critical", "Offline"],

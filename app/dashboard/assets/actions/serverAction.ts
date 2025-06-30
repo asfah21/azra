@@ -46,9 +46,9 @@ export async function getAssetsData() {
     });
 
     // Konversi data untuk memastikan tipe yang benar
-    const processedAssets = allAssets.map(asset => ({
+    const processedAssets = allAssets.map((asset) => ({
       ...asset,
-      breakdowns: asset.breakdowns.map(breakdown => ({
+      breakdowns: asset.breakdowns.map((breakdown) => ({
         id: breakdown.id,
         status: breakdown.status,
         priority: breakdown.priority,
@@ -60,6 +60,7 @@ export async function getAssetsData() {
 
     // Hitung new assets bulan ini
     const startOfMonth = new Date();
+
     startOfMonth.setDate(1);
     startOfMonth.setHours(0, 0, 0, 0);
 
@@ -117,4 +118,4 @@ export async function getAssetsData() {
     console.error("Error fetching assets:", error);
     throw new Error("Failed to fetch assets data");
   }
-} 
+}

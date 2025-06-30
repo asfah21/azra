@@ -20,4 +20,4 @@ export async function GET(_request: NextRequest) {
       { status: 500 },
     );
   }
-} 
+}

@@ -4,11 +4,7 @@ import { useOptimistic, startTransition } from "react";
 
 import { UserPayload } from "../types";
 import { convertUserData } from "../hooks/useUsers";
-import {
-  addUsers,
-  updateUser,
-  deleteUser,
-} from "../action";
+import { addUsers, updateUser, deleteUser } from "../action";
 
 export function useOptimisticUsers(initialUsers: UserPayload[]) {
   const [optimisticUsers, addOptimisticUser] = useOptimistic(
@@ -51,12 +47,12 @@ export function useOptimisticUsers(initialUsers: UserPayload[]) {
     const department = formData.get("department") as string;
 
     startTransition(() => {
-      addOptimisticUser({ 
-        id, 
-        name, 
-        email, 
-        role, 
-        department: department || null 
+      addOptimisticUser({
+        id,
+        name,
+        email,
+        role,
+        department: department || null,
       });
     });
 
@@ -91,4 +87,4 @@ export function useOptimisticUsers(initialUsers: UserPayload[]) {
     optimisticUpdateUser,
     optimisticDeleteUser,
   };
-} 
+}

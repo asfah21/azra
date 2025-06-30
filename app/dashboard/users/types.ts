@@ -13,4 +13,4 @@ export interface UserStats {
   new: number;
   active: number;
   inactive: number;
-} 
+}

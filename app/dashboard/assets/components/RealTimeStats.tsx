@@ -20,4 +20,4 @@ export default function RealTimeStats({ initialStats }: RealTimeStatsProps) {
       <AssetCardGrids stats={displayStats} />
     </div>
   );
-} 
+}

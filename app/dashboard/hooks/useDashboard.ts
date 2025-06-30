@@ -44,16 +44,16 @@ export interface RecentActivity {
 // Optimized fetcher dengan error handling yang lebih baik
 const fetcher = async (url: string) => {
   const response = await fetch(url, {
-    method: 'GET',
+    method: "GET",
     headers: {
-      'Content-Type': 'application/json',
+      "Content-Type": "application/json",
     },
   });
 
   if (!response.ok) {
     throw new Error(`HTTP error! status: ${response.status}`);
   }
-  
+
   const data = await response.json();
 
   // Konversi string dates ke Date objects untuk recent activities
@@ -81,7 +81,13 @@ export function useDashboard() {
     fallbackData: {
       dashboardData: {
         assetStats: { total: 0, active: 0, maintenance: 0, critical: 0 },
-        workOrderStats: { total: 0, pending: 0, inProgress: 0, rfu: 0, overdue: 0 },
+        workOrderStats: {
+          total: 0,
+          pending: 0,
+          inProgress: 0,
+          rfu: 0,
+          overdue: 0,
+        },
         monthlyBreakdowns: [],
         categoryDistribution: [],
         maintenancePerformance: [],
@@ -93,7 +99,13 @@ export function useDashboard() {
   return {
     dashboardData: data?.dashboardData || {
       assetStats: { total: 0, active: 0, maintenance: 0, critical: 0 },
-      workOrderStats: { total: 0, pending: 0, inProgress: 0, rfu: 0, overdue: 0 },
+      workOrderStats: {
+        total: 0,
+        pending: 0,
+        inProgress: 0,
+        rfu: 0,
+        overdue: 0,
+      },
       monthlyBreakdowns: [],
       categoryDistribution: [],
       maintenancePerformance: [],
@@ -103,4 +115,4 @@ export function useDashboard() {
     error,
     mutate,
   };
-} 
+}

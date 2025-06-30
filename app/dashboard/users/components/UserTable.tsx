@@ -62,7 +62,10 @@ interface UserManagementClientProps {
   mutate?: () => Promise<any>;
 }
 
-export default function UserTables({ usersTable, mutate }: UserManagementClientProps) {
+export default function UserTables({
+  usersTable,
+  mutate,
+}: UserManagementClientProps) {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const {
     isOpen: isDetailOpen,

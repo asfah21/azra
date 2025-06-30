@@ -18,8 +18,6 @@ import {
   CheckCircle2,
   AlertTriangle,
   User as UserIcon,
-  Mail,
-  Shield,
   Package,
   Wrench,
   TrendingUp,
@@ -75,7 +73,7 @@ export default function DashboardContent({
 }: DashboardContentProps) {
   // State untuk mencegah flickering
   const [isClient, setIsClient] = useState(false);
-  
+
   // Gunakan hook untuk real-time updates
   const { dashboardData, recentActivities, isLoading, error } = useDashboard();
 
@@ -85,13 +83,13 @@ export default function DashboardContent({
   }, []);
 
   // Gunakan initial data sampai client-side hydration selesai
-  const currentDashboardData = (!isClient || isLoading || error) 
-    ? initialDashboardData 
-    : dashboardData;
-    
-  const currentRecentActivities = (!isClient || isLoading || error) 
-    ? initialRecentActivities 
-    : recentActivities;
+  const currentDashboardData =
+    !isClient || isLoading || error ? initialDashboardData : dashboardData;
+
+  const currentRecentActivities =
+    !isClient || isLoading || error
+      ? initialRecentActivities
+      : recentActivities;
 
   const getActivityIcon = (type: string) => {
     switch (type) {
@@ -398,12 +396,12 @@ export default function DashboardContent({
                   >
                     <div className="flex-shrink-0">
                       <User
-                        name={activity.user}
-                        description={getActivityLabel(activity.type)}
                         avatarProps={{
                           src: activity.avatar,
                           size: "sm",
                         }}
+                        description={getActivityLabel(activity.type)}
+                        name={activity.user}
                       />
                     </div>
                     <div className="flex-1 min-w-0">
@@ -430,26 +428,26 @@ export default function DashboardContent({
             </CardHeader>
             <CardBody className="space-y-3">
               <Button
-                color="primary"
-                variant="flat"
                 className="w-full justify-start"
+                color="primary"
                 startContent={<Package className="w-4 h-4" />}
+                variant="flat"
               >
                 Add New Asset
               </Button>
               <Button
-                color="warning"
-                variant="flat"
                 className="w-full justify-start"
+                color="warning"
                 startContent={<Wrench className="w-4 h-4" />}
+                variant="flat"
               >
                 Create Work Order
               </Button>
               <Button
-                color="secondary"
-                variant="flat"
                 className="w-full justify-start"
+                color="secondary"
                 startContent={<Activity className="w-4 h-4" />}
+                variant="flat"
               >
                 Schedule Maintenance
               </Button>

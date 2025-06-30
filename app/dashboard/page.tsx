@@ -8,7 +8,7 @@ import DashboardContent from "@/components/ui/dashboard/DashboardContent";
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
   const user = session?.user;
-  
+
   // Server-side data untuk initial load (SSR)
   // Menggunakan Promise.all untuk parallel fetching
   const [dashboardData, recentActivities] = await Promise.all([

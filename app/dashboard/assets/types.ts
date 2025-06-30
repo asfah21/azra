@@ -32,4 +32,4 @@ export interface AssetStats {
   active: number;
   maintenance: number;
   critical: number;
-} 
+}
