@@ -19,19 +19,24 @@ const convertAssetData = (asset: any): AssetPayload => ({
 });
 
 const fetcher = async (url: string) => {
-  const response = await fetch(url);
+  try {
+    const response = await fetch(url);
 
-  if (!response.ok) {
-    throw new Error("Failed to fetch data");
+    if (!response.ok) {
+      throw new Error("Failed to fetch data");
+    }
+    const data = await response.json();
+
+    // Konversi string dates ke Date objects
+    if (data.allAssets) {
+      data.allAssets = data.allAssets.map(convertAssetData);
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Assets fetcher error:", error);
+    throw error;
   }
-  const data = await response.json();
-
-  // Konversi string dates ke Date objects
-  if (data.allAssets) {
-    data.allAssets = data.allAssets.map(convertAssetData);
-  }
-
-  return data;
 };
 
 export function useAssets() {
@@ -40,9 +45,23 @@ export function useAssets() {
     assetStats: AssetStats;
     users: Array<{ id: string; name: string }>;
   }>("/api/assets", fetcher, {
-    refreshInterval: 5000, // Refresh setiap 5 detik
-    revalidateOnFocus: true,
+    refreshInterval: 30000, // Ubah ke 30 detik
+    revalidateOnFocus: false, // Matikan revalidate on focus
     revalidateOnReconnect: true,
+    errorRetryCount: 3,
+    errorRetryInterval: 10000,
+    dedupingInterval: 20000,
+    fallbackData: {
+      allAssets: [],
+      assetStats: {
+        total: 0,
+        new: 0,
+        active: 0,
+        maintenance: 0,
+        critical: 0,
+      },
+      users: [],
+    },
   });
 
   return {

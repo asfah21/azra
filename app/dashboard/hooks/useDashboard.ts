@@ -43,28 +43,33 @@ export interface RecentActivity {
 
 // Optimized fetcher dengan error handling yang lebih baik
 const fetcher = async (url: string) => {
-  const response = await fetch(url, {
-    method: "GET",
-    headers: {
-      "Content-Type": "application/json",
-    },
-  });
+  try {
+    const response = await fetch(url, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
 
-  if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    // Konversi string dates ke Date objects untuk recent activities
+    if (data.recentActivities) {
+      data.recentActivities = data.recentActivities.map((activity: any) => ({
+        ...activity,
+        createdAt: new Date(activity.createdAt),
+      }));
+    }
+
+    return data;
+  } catch (error) {
+    console.error("Fetcher error:", error);
+    throw error;
   }
-
-  const data = await response.json();
-
-  // Konversi string dates ke Date objects untuk recent activities
-  if (data.recentActivities) {
-    data.recentActivities = data.recentActivities.map((activity: any) => ({
-      ...activity,
-      createdAt: new Date(activity.createdAt),
-    }));
-  }
-
-  return data;
 };
 
 export function useDashboard() {
@@ -72,12 +77,12 @@ export function useDashboard() {
     dashboardData: DashboardData;
     recentActivities: RecentActivity[];
   }>("/api/dashboard", fetcher, {
-    refreshInterval: 30000,
-    revalidateOnFocus: true,
+    refreshInterval: 60000,
+    revalidateOnFocus: false,
     revalidateOnReconnect: true,
     errorRetryCount: 3,
-    errorRetryInterval: 5000,
-    dedupingInterval: 10000,
+    errorRetryInterval: 10000,
+    dedupingInterval: 30000,
     fallbackData: {
       dashboardData: {
         assetStats: { total: 0, active: 0, maintenance: 0, critical: 0 },

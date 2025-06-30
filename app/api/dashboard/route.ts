@@ -16,17 +16,29 @@ export async function GET() {
 
     response.headers.set(
       "Cache-Control",
-      "public, s-maxage=30, stale-while-revalidate=60",
+      "public, s-maxage=60, stale-while-revalidate=120",
     );
-    response.headers.set("CDN-Cache-Control", "public, max-age=30");
+    response.headers.set("CDN-Cache-Control", "public, max-age=60");
 
     return response;
   } catch (error) {
     console.error("Error in dashboard API:", error);
 
-    return NextResponse.json(
-      { error: "Failed to fetch dashboard data" },
-      { status: 500 },
-    );
+    return NextResponse.json({
+      dashboardData: {
+        assetStats: { total: 0, active: 0, maintenance: 0, critical: 0 },
+        workOrderStats: {
+          total: 0,
+          pending: 0,
+          inProgress: 0,
+          rfu: 0,
+          overdue: 0,
+        },
+        monthlyBreakdowns: [],
+        categoryDistribution: [],
+        maintenancePerformance: [],
+      },
+      recentActivities: [],
+    });
   }
 }

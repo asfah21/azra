@@ -10,10 +10,10 @@ interface RealTimeStatsProps {
 }
 
 export default function RealTimeStats({ initialStats }: RealTimeStatsProps) {
-  const { stats, isLoading } = useAssets();
+  const { stats, isLoading, error } = useAssets();
 
-  // Gunakan initial data jika SWR masih loading
-  const displayStats = isLoading ? initialStats : stats;
+  // Gunakan initial data jika SWR masih loading atau error
+  const displayStats = isLoading || error ? initialStats : stats;
 
   return (
     <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">

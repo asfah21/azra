@@ -17,9 +17,9 @@ export default async function DashboardPage() {
 
   return (
     <DashboardContent
-      user={user}
       initialDashboardData={dashboardData}
       initialRecentActivities={recentActivities}
+      user={user}
     />
   );
 }

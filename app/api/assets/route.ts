@@ -6,13 +6,30 @@ export async function GET(request: NextRequest) {
   try {
     const data = await getAssetsData();
 
-    return NextResponse.json(data);
+    const response = NextResponse.json(data);
+
+    // Tambah cache headers
+    response.headers.set(
+      "Cache-Control",
+      "public, s-maxage=60, stale-while-revalidate=120",
+    );
+    response.headers.set("CDN-Cache-Control", "public, max-age=60");
+
+    return response;
   } catch (error) {
     console.error("Error in assets API:", error);
 
-    return NextResponse.json(
-      { error: "Failed to fetch assets data" },
-      { status: 500 },
-    );
+    // Return fallback data instead of error
+    return NextResponse.json({
+      allAssets: [],
+      assetStats: {
+        total: 0,
+        new: 0,
+        active: 0,
+        maintenance: 0,
+        critical: 0,
+      },
+      users: [],
+    });
   }
 }

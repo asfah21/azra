@@ -73,6 +73,7 @@ export default function DashboardContent({
 }: DashboardContentProps) {
   // State untuk mencegah flickering
   const [isClient, setIsClient] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   // Gunakan hook untuk real-time updates
   const { dashboardData, recentActivities, isLoading, error } = useDashboard();
@@ -80,16 +81,15 @@ export default function DashboardContent({
   // Mencegah hydration mismatch
   useEffect(() => {
     setIsClient(true);
+    setMounted(true);
   }, []);
 
-  // Gunakan initial data sampai client-side hydration selesai
+  // Gunakan initial data sampai client-side hydration selesai dan data SWR tersedia
   const currentDashboardData =
-    !isClient || isLoading || error ? initialDashboardData : dashboardData;
+    !mounted || isLoading || error ? initialDashboardData : dashboardData;
 
   const currentRecentActivities =
-    !isClient || isLoading || error
-      ? initialRecentActivities
-      : recentActivities;
+    !mounted || isLoading || error ? initialRecentActivities : recentActivities;
 
   const getActivityIcon = (type: string) => {
     switch (type) {
