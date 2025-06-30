@@ -3,6 +3,8 @@ import { Metadata } from "next";
 
 import UserCardGrids from "./components/CardGrid";
 import UserTables from "./components/UserTable";
+import RealTimeUserStats from "./components/RealTimeUserStats";
+import RealTimeUserTable from "./components/RealTimeUserTable";
 import { getUsersData } from "./action";
 
 export const metadata: Metadata = {
@@ -11,8 +13,8 @@ export const metadata: Metadata = {
 };
 
 export default async function UsersPage() {
+  // Server-side data untuk initial load (SSR)
   const result = await getUsersData();
-
   const { users: allUsers, stats: userStats } = result.data;
 
   return (
@@ -31,13 +33,13 @@ export default async function UsersPage() {
         </div>
       </div>
 
-      {/* Stats Cards */}
+      {/* Real-time Stats Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
-        <UserCardGrids stats={userStats} />
+        <RealTimeUserStats initialStats={userStats} />
       </div>
 
-      {/* Users Table */}
-      <UserTables usersTable={allUsers} />
+      {/* Real-time Users Table */}
+      <RealTimeUserTable initialData={allUsers} />
     </div>
   );
 }

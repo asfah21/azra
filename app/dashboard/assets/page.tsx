@@ -1,9 +1,9 @@
 import { Package } from "lucide-react";
 import { Metadata } from "next";
 
-import AssetCardGrids from "./components/CardGrid";
-import TableDatas from "./components/TableData";
-import { getAssetsData } from "./action";
+import RealTimeStats from "./components/RealTimeStats";
+import RealTimeTable from "./components/RealTimeTable";
+import { getAssetsData } from "./actions/serverAction";
 
 export const metadata: Metadata = {
   title: "Asset Management",
@@ -11,6 +11,7 @@ export const metadata: Metadata = {
 };
 
 export default async function AssetsPage() {
+  // Server-side data untuk initial load (SSR)
   const { assetStats, allAssets, users } = await getAssetsData();
 
   return (
@@ -29,13 +30,11 @@ export default async function AssetsPage() {
         </div>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
-        <AssetCardGrids stats={assetStats} />
-      </div>
+      {/* Real-time Stats */}
+      <RealTimeStats initialStats={assetStats} />
 
-      {/* Assets Table */}
-      <TableDatas dataTable={allAssets} users={users} />
+      {/* Real-time Table */}
+      <RealTimeTable initialData={allAssets} initialUsers={users} />
     </div>
   );
 }

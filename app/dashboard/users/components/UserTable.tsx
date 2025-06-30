@@ -40,7 +40,7 @@ import {
   ChevronUp,
   ChevronDown,
 } from "lucide-react";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo } from "react";
 
 import { AddUserForms } from "./AddUserForm";
 import UserDetailModal from "./UserDetailModal";
@@ -59,9 +59,10 @@ interface User {
 
 interface UserManagementClientProps {
   usersTable: User[];
+  mutate?: () => Promise<any>;
 }
 
-export default function UserTables({ usersTable }: UserManagementClientProps) {
+export default function UserTables({ usersTable, mutate }: UserManagementClientProps) {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const {
     isOpen: isDetailOpen,
@@ -91,21 +92,9 @@ export default function UserTables({ usersTable }: UserManagementClientProps) {
   // State untuk selected user
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
 
-  // State untuk memaksa re-render setiap detik
-  const [, setForceUpdate] = useState(0);
-
   // State untuk sorting
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
-
-  // Effect untuk update realtime setiap detik
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setForceUpdate((prev) => prev + 1);
-    }, 1000); // Update setiap 1 detik
-
-    return () => clearInterval(interval);
-  }, []);
 
   // Label yang akan ditampilkan - pindahkan ke atas sebelum useMemo
   const getRoleLabel = (role: string): string => {
@@ -125,15 +114,19 @@ export default function UserTables({ usersTable }: UserManagementClientProps) {
     }
   };
 
-  const handleUserAdded = () => {
-    // Refresh halaman untuk update data setelah user ditambah
-    router.refresh();
+  const handleUserAdded = async () => {
+    // Refresh data menggunakan SWR mutate
+    if (mutate) {
+      await mutate();
+    }
     onOpenChange();
   };
 
-  const handleUserUpdated = () => {
-    // Refresh halaman untuk update data setelah user diupdate
-    router.refresh();
+  const handleUserUpdated = async () => {
+    // Refresh data menggunakan SWR mutate
+    if (mutate) {
+      await mutate();
+    }
     onEditOpenChange();
   };
 
@@ -156,9 +149,11 @@ export default function UserTables({ usersTable }: UserManagementClientProps) {
     onDeleteOpen();
   };
 
-  const handleUserDeleted = () => {
-    // Refresh halaman untuk update data setelah user dihapus
-    router.refresh();
+  const handleUserDeleted = async () => {
+    // Refresh data menggunakan SWR mutate
+    if (mutate) {
+      await mutate();
+    }
     onDeleteOpenChange();
   };
 
