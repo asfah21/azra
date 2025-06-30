@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import {
   Card,
   CardHeader,
@@ -72,12 +73,25 @@ export default function DashboardContent({
   initialDashboardData,
   initialRecentActivities,
 }: DashboardContentProps) {
+  // State untuk mencegah flickering
+  const [isClient, setIsClient] = useState(false);
+  
   // Gunakan hook untuk real-time updates
   const { dashboardData, recentActivities, isLoading, error } = useDashboard();
 
-  // Optimized data selection: gunakan initial data jika SWR masih loading atau error
-  const currentDashboardData = (isLoading || error) ? initialDashboardData : dashboardData;
-  const currentRecentActivities = (isLoading || error) ? initialRecentActivities : recentActivities;
+  // Mencegah hydration mismatch
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  // Gunakan initial data sampai client-side hydration selesai
+  const currentDashboardData = (!isClient || isLoading || error) 
+    ? initialDashboardData 
+    : dashboardData;
+    
+  const currentRecentActivities = (!isClient || isLoading || error) 
+    ? initialRecentActivities 
+    : recentActivities;
 
   const getActivityIcon = (type: string) => {
     switch (type) {

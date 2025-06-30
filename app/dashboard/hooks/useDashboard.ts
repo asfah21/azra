@@ -48,8 +48,6 @@ const fetcher = async (url: string) => {
     headers: {
       'Content-Type': 'application/json',
     },
-    // Tambahkan cache control untuk optimasi
-    cache: 'no-store',
   });
 
   if (!response.ok) {
@@ -74,14 +72,22 @@ export function useDashboard() {
     dashboardData: DashboardData;
     recentActivities: RecentActivity[];
   }>("/api/dashboard", fetcher, {
-    refreshInterval: 30000, // Refresh setiap 30 detik (lebih optimal untuk dashboard)
+    refreshInterval: 30000,
     revalidateOnFocus: true,
     revalidateOnReconnect: true,
-    // Tambahkan error retry
     errorRetryCount: 3,
     errorRetryInterval: 5000,
-    // Optimasi untuk data yang tidak terlalu sering berubah
     dedupingInterval: 10000,
+    fallbackData: {
+      dashboardData: {
+        assetStats: { total: 0, active: 0, maintenance: 0, critical: 0 },
+        workOrderStats: { total: 0, pending: 0, inProgress: 0, rfu: 0, overdue: 0 },
+        monthlyBreakdowns: [],
+        categoryDistribution: [],
+        maintenancePerformance: [],
+      },
+      recentActivities: [],
+    },
   });
 
   return {
