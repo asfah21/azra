@@ -1,27 +1,27 @@
 "use client";
 
 import { useOptimistic, startTransition } from "react";
-
-import { BreakdownPayload } from "../types";
+import { BreakdownPayload, OptimisticBreakdownUpdate } from "../types";
 import { convertBreakdownData } from "../hooks/useWorkOrders";
 import {
   updateBreakdownStatusWithActions,
   updateBreakdownStatusWithUnitStatus,
   deleteBreakdown,
-} from "../actions/serverAction";
+} from "./serverAction";
 
 export function useOptimisticWorkOrders(initialWorkOrders: BreakdownPayload[]) {
   const [optimisticWorkOrders, addOptimisticWorkOrder] = useOptimistic(
     initialWorkOrders,
-    (state, newWorkOrder: Partial<BreakdownPayload>) => {
-      return state.map((workOrder) => {
-        if (workOrder.id === newWorkOrder.id) {
-          // Pastikan data yang diupdate tetap memiliki Date objects
-          const updatedWorkOrder = { ...workOrder, ...newWorkOrder };
+    (state, update: OptimisticBreakdownUpdate) => {
+      if (update.deleted) {
+        return state.filter((workOrder) => workOrder.id !== update.id);
+      }
 
+      return state.map((workOrder) => {
+        if (workOrder.id === update.id) {
+          const updatedWorkOrder = { ...workOrder, ...update };
           return convertBreakdownData(updatedWorkOrder);
         }
-
         return workOrder;
       });
     },
@@ -81,12 +81,11 @@ export function useOptimisticWorkOrders(initialWorkOrders: BreakdownPayload[]) {
 
   const optimisticDelete = async (id: string) => {
     startTransition(() => {
-      addOptimisticWorkOrder({ id, status: "deleted" as any });
+      addOptimisticWorkOrder({ id, deleted: true });
     });
 
     try {
       const result = await deleteBreakdown(id);
-
       return result;
     } catch (error) {
       console.error("Error deleting work order:", error);

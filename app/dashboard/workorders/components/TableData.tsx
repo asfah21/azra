@@ -50,71 +50,18 @@ import {
   TbCircleDashedLetterL,
   TbCircleDashedLetterM,
 } from "react-icons/tb";
-
+import { BreakdownPayload } from "../types";
 import { useOptimisticWorkOrders } from "../actions/optimisticActions";
+import { KeyedMutator } from "swr";
 
 import { AddWoForm } from "./AddForm";
 import BreakdownDetailModal from "./BreakdownDetailModal";
 import RFUReportActionModal from "./RFUReportActionModal";
 import InProgressModal from "./InProgressModal";
 
-// Tambahkan import untuk mendapatkan current user
-
-interface BreakdownPayload {
-  id: string;
-  breakdownNumber: string | null;
-  description: string;
-  breakdownTime: Date;
-  workingHours: number;
-  status: "pending" | "in_progress" | "rfu" | "overdue";
-  priority: string | null;
-  createdAt: Date;
-  unitId: string;
-  reportedById: string;
-  shift: string | null;
-  unit: {
-    id: string;
-    assetTag: string;
-    name: string;
-    location: string;
-    department: string | null; // Updated to allow null
-    categoryId: number;
-    status: string;
-  };
-  reportedBy: {
-    id: string;
-    name: string;
-    email: string;
-    department: string | null;
-  };
-  components: {
-    id: string;
-    component: string;
-    subcomponent: string;
-  }[];
-  rfuReport?: {
-    id: string;
-    solution: string;
-    resolvedAt: Date;
-    resolvedById: string;
-    resolvedBy: {
-      id: string;
-      name: string;
-      email: string;
-    };
-  } | null;
-  inProgressById: string | null;
-  inProgressAt: Date | null;
-  inProgressBy?: {
-    id: string;
-    name: string;
-    email: string;
-  } | null;
-}
-
 interface WoStatsCardsProps {
   dataTable: BreakdownPayload[];
-  mutate?: () => Promise<any>;
+  mutate: KeyedMutator<any>;
 }
 
 export default function GammaTableData({
@@ -445,6 +392,23 @@ export default function GammaTableData({
         return status;
     }
   };
+
+  const handleStatusUpdate = async (
+    id: string, 
+    status: "pending" | "in_progress" | "rfu" | "overdue"
+  ) => {
+    try {
+      await optimisticUpdateStatus(id, status);
+      if (mutate) {
+        await mutate();
+      }
+    } catch (error) {
+      console.error("Error updating status:", error);
+    }
+  };
+
+  // Gunakan optimistic data untuk rendering
+  const displayData = optimisticWorkOrders;
 
   return (
     <div>

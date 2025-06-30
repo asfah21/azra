@@ -57,3 +57,40 @@ export interface BreakdownStats {
   pending: number;
   overdue: number;
 }
+
+// Types untuk Server Actions
+export interface CreateBreakdownData {
+  description: string;
+  breakdownTime: string;
+  workingHours: number;
+  unitId: string;
+  reportedById: string;
+  priority: string;
+  shift: string;
+  components: Array<{ component: string; subcomponent: string }>;
+}
+
+export interface UpdateBreakdownStatusData {
+  id: string;
+  status: "pending" | "in_progress" | "rfu" | "overdue";
+  resolvedById?: string;
+}
+
+export interface UpdateBreakdownWithUnitStatusData {
+  id: string;
+  status: "pending" | "in_progress" | "rfu" | "overdue";
+  unitStatus: string;
+  notes?: string;
+  resolvedById?: string;
+}
+
+export interface DeleteBreakdownData {
+  id: string;
+}
+
+// Types untuk optimistic updates
+export interface OptimisticBreakdownUpdate {
+  id: string;
+  status?: "pending" | "in_progress" | "rfu" | "overdue";
+  deleted?: boolean;
+}
