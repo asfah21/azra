@@ -1,4 +1,4 @@
-import { getServerSession } from "next-auth"; // untuk autentikasi
+import { getServerSession } from "next-auth"; 
 
 import { getDashboardData, getRecentActivities } from "./action";
 
@@ -22,4 +22,4 @@ export default async function DashboardPage() {
       user={user}
     />
   );
-}
+} //
