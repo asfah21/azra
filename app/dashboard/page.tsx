@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { getDashboardData, getRecentActivities } from "./action";
 
 import { authOptions } from "@/lib/auth";
-import DashboardContent from "./components/DashboardContent";
+import DashboardContent from "@/components/ui/dashboard/DashboardContent";
 
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
@@ -11,9 +11,15 @@ export default async function DashboardPage() {
 
   if (!user) return null;
 
+  // Fetch data untuk initial load
+  const dashboardData = await getDashboardData();
+  const recentActivities = await getRecentActivities();
+
   return (
     <DashboardContent
       user={user}
+      initialDashboardData={dashboardData}
+      initialRecentActivities={recentActivities}
     />
   );
 }
