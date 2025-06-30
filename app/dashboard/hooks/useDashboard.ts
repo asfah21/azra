@@ -41,12 +41,21 @@ export interface RecentActivity {
   createdAt: Date;
 }
 
+// Optimized fetcher dengan error handling yang lebih baik
 const fetcher = async (url: string) => {
-  const response = await fetch(url);
+  const response = await fetch(url, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    // Tambahkan cache control untuk optimasi
+    cache: 'no-store',
+  });
 
   if (!response.ok) {
-    throw new Error("Failed to fetch data");
+    throw new Error(`HTTP error! status: ${response.status}`);
   }
+  
   const data = await response.json();
 
   // Konversi string dates ke Date objects untuk recent activities
@@ -65,9 +74,14 @@ export function useDashboard() {
     dashboardData: DashboardData;
     recentActivities: RecentActivity[];
   }>("/api/dashboard", fetcher, {
-    refreshInterval: 10000, // Refresh setiap 10 detik
+    refreshInterval: 30000, // Refresh setiap 30 detik (lebih optimal untuk dashboard)
     revalidateOnFocus: true,
     revalidateOnReconnect: true,
+    // Tambahkan error retry
+    errorRetryCount: 3,
+    errorRetryInterval: 5000,
+    // Optimasi untuk data yang tidak terlalu sering berubah
+    dedupingInterval: 10000,
   });
 
   return {

@@ -9,10 +9,14 @@ export async function GET() {
       getRecentActivities(),
     ]);
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       dashboardData,
       recentActivities,
     });
+
+    response.headers.set('Cache-Control', 's-maxage=30, stale-while-revalidate');
+    
+    return response;
   } catch (error) {
     console.error("Error in dashboard API:", error);
 

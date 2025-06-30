@@ -10,8 +10,11 @@ export default async function DashboardPage() {
   const user = session?.user;
   
   // Server-side data untuk initial load (SSR)
-  const dashboardData = await getDashboardData();
-  const recentActivities = await getRecentActivities();
+  // Menggunakan Promise.all untuk parallel fetching
+  const [dashboardData, recentActivities] = await Promise.all([
+    getDashboardData(),
+    getRecentActivities(),
+  ]);
 
   if (!user) return null;
 

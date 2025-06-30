@@ -73,11 +73,11 @@ export default function DashboardContent({
   initialRecentActivities,
 }: DashboardContentProps) {
   // Gunakan hook untuk real-time updates
-  const { dashboardData, recentActivities, isLoading } = useDashboard();
+  const { dashboardData, recentActivities, isLoading, error } = useDashboard();
 
-  // Gunakan initial data jika hook masih loading atau error
-  const currentDashboardData = isLoading ? initialDashboardData : dashboardData;
-  const currentRecentActivities = isLoading ? initialRecentActivities : recentActivities;
+  // Optimized data selection: gunakan initial data jika SWR masih loading atau error
+  const currentDashboardData = (isLoading || error) ? initialDashboardData : dashboardData;
+  const currentRecentActivities = (isLoading || error) ? initialRecentActivities : recentActivities;
 
   const getActivityIcon = (type: string) => {
     switch (type) {
