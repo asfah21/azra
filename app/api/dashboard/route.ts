@@ -1,12 +1,18 @@
 import { NextResponse } from "next/server";
 
-import { getDashboardData } from "@/app/dashboard/action";
+import { getDashboardData, getRecentActivities } from "@/app/dashboard/action";
 
 export async function GET() {
   try {
-    const dashboardData = await getDashboardData();
+    const [dashboardData, recentActivities] = await Promise.all([
+      getDashboardData(),
+      getRecentActivities(),
+    ]);
 
-    return NextResponse.json(dashboardData);
+    return NextResponse.json({
+      dashboardData,
+      recentActivities,
+    });
   } catch (error) {
     console.error("Error in dashboard API:", error);
 

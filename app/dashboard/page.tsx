@@ -8,6 +8,8 @@ import DashboardContent from "@/components/ui/dashboard/DashboardContent";
 export default async function DashboardPage() {
   const session = await getServerSession(authOptions);
   const user = session?.user;
+  
+  // Server-side data untuk initial load (SSR)
   const dashboardData = await getDashboardData();
   const recentActivities = await getRecentActivities();
 
@@ -15,8 +17,8 @@ export default async function DashboardPage() {
 
   return (
     <DashboardContent
-      dashboardData={dashboardData}
-      recentActivities={recentActivities}
+      initialDashboardData={dashboardData}
+      initialRecentActivities={recentActivities}
       user={user}
     />
   );

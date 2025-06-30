@@ -32,40 +32,38 @@ ChartJS.register(
 );
 
 interface DashboardChartsProps {
-  assetStats: {
-    total: number;
-    active: number;
-    maintenance: number;
-    critical: number;
+  dashboardData: {
+    assetStats: {
+      total: number;
+      active: number;
+      maintenance: number;
+      critical: number;
+    };
+    workOrderStats: {
+      total: number;
+      pending: number;
+      inProgress: number;
+      rfu: number;
+      overdue: number;
+    };
+    monthlyBreakdowns: Array<{
+      month: string;
+      count: number;
+    }>;
+    categoryDistribution: Array<{
+      category: string;
+      count: number;
+    }>;
+    maintenancePerformance: Array<{
+      department: string;
+      completionRate: number;
+    }>;
   };
-  workOrderStats: {
-    total: number;
-    pending: number;
-    inProgress: number;
-    rfu: number;
-    overdue: number;
-  };
-  monthlyBreakdowns: Array<{
-    month: string;
-    count: number;
-  }>;
-  categoryDistribution: Array<{
-    category: string;
-    count: number;
-  }>;
-  maintenancePerformance: Array<{
-    department: string;
-    completionRate: number;
-  }>;
 }
 
-export default function DashboardCharts({
-  assetStats,
-  workOrderStats,
-  monthlyBreakdowns,
-  categoryDistribution,
-  maintenancePerformance,
-}: DashboardChartsProps) {
+export default function DashboardCharts({ dashboardData }: DashboardChartsProps) {
+  const { assetStats, workOrderStats, monthlyBreakdowns, categoryDistribution, maintenancePerformance } = dashboardData;
+  
   // Asset Utilization Chart (Doughnut)
   const assetUtilizationData = {
     labels: ["Operational", "Maintenance", "Critical", "Offline"],

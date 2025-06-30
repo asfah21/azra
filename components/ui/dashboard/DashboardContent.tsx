@@ -25,10 +25,11 @@ import {
 } from "lucide-react";
 
 import DashboardCharts from "@/components/ui/dashboard/DashboardCharts";
+import { useDashboard } from "@/app/dashboard/hooks/useDashboard";
 
 interface DashboardContentProps {
   user: any;
-  dashboardData: {
+  initialDashboardData: {
     assetStats: {
       total: number;
       active: number;
@@ -55,7 +56,7 @@ interface DashboardContentProps {
       completionRate: number;
     }>;
   };
-  recentActivities: Array<{
+  initialRecentActivities: Array<{
     id: string;
     user: string;
     action: string;
@@ -68,9 +69,16 @@ interface DashboardContentProps {
 
 export default function DashboardContent({
   user,
-  dashboardData,
-  recentActivities,
+  initialDashboardData,
+  initialRecentActivities,
 }: DashboardContentProps) {
+  // Gunakan hook untuk real-time updates
+  const { dashboardData, recentActivities, isLoading } = useDashboard();
+
+  // Gunakan initial data jika hook masih loading atau error
+  const currentDashboardData = isLoading ? initialDashboardData : dashboardData;
+  const currentRecentActivities = isLoading ? initialRecentActivities : recentActivities;
+
   const getActivityIcon = (type: string) => {
     switch (type) {
       case "login":
@@ -162,7 +170,7 @@ export default function DashboardContent({
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <span className="text-2xl font-bold text-primary-700">
-                  {dashboardData.assetStats.total}
+                  {currentDashboardData.assetStats.total}
                 </span>
                 <Chip color="primary" size="sm" variant="flat">
                   <TrendingUp className="w-3 h-3 mr-1" />
@@ -205,22 +213,23 @@ export default function DashboardContent({
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <span className="text-2xl font-bold text-success-700">
-                  {dashboardData.assetStats.active}
+                  {currentDashboardData.assetStats.active}
                 </span>
                 <Chip color="success" size="sm" variant="flat">
-                  On
+                  <CheckCircle2 className="w-3 h-3 mr-1" />
+                  Active
                 </Chip>
               </div>
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span className="text-small text-default-600">
-                    Availability
+                    Utilization
                   </span>
                   <span className="text-small font-medium">
-                    {dashboardData.assetStats.total
+                    {currentDashboardData.assetStats.total > 0
                       ? Math.round(
-                          (dashboardData.assetStats.active /
-                            dashboardData.assetStats.total) *
+                          (currentDashboardData.assetStats.active /
+                            currentDashboardData.assetStats.total) *
                             100,
                         )
                       : 0}
@@ -232,9 +241,9 @@ export default function DashboardContent({
                   color="success"
                   size="sm"
                   value={
-                    dashboardData.assetStats.total
-                      ? (dashboardData.assetStats.active /
-                          dashboardData.assetStats.total) *
+                    currentDashboardData.assetStats.total > 0
+                      ? (currentDashboardData.assetStats.active /
+                          currentDashboardData.assetStats.total) *
                         100
                       : 0
                   }
@@ -254,7 +263,7 @@ export default function DashboardContent({
               <p className="text-lg font-semibold text-warning-800">
                 Work Orders
               </p>
-              <p className="text-small text-warning-600">Active Breakdowns</p>
+              <p className="text-small text-warning-600">Total Breakdowns</p>
             </div>
           </CardHeader>
           <Divider className="bg-warning-200" />
@@ -262,26 +271,20 @@ export default function DashboardContent({
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <span className="text-2xl font-bold text-warning-700">
-                  {dashboardData.workOrderStats.total}
+                  {currentDashboardData.workOrderStats.total}
                 </span>
                 <Chip color="warning" size="sm" variant="flat">
-                  Active
+                  <Clock className="w-3 h-3 mr-1" />
+                  Pending: {currentDashboardData.workOrderStats.pending}
                 </Chip>
               </div>
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span className="text-small text-default-600">
-                    Completion Rate
+                    In Progress
                   </span>
                   <span className="text-small font-medium">
-                    {dashboardData.workOrderStats.total
-                      ? Math.round(
-                          (dashboardData.workOrderStats.rfu /
-                            dashboardData.workOrderStats.total) *
-                            100,
-                        )
-                      : 0}
-                    %
+                    {currentDashboardData.workOrderStats.inProgress}
                   </span>
                 </div>
                 <Progress
@@ -289,9 +292,9 @@ export default function DashboardContent({
                   color="warning"
                   size="sm"
                   value={
-                    dashboardData.workOrderStats.total
-                      ? (dashboardData.workOrderStats.rfu /
-                          dashboardData.workOrderStats.total) *
+                    currentDashboardData.workOrderStats.total > 0
+                      ? (currentDashboardData.workOrderStats.inProgress /
+                          currentDashboardData.workOrderStats.total) *
                         100
                       : 0
                   }
@@ -301,7 +304,7 @@ export default function DashboardContent({
           </CardBody>
         </Card>
 
-        {/* Critical Assets */}
+        {/* Critical Issues */}
         <Card className="bg-gradient-to-br from-danger-50 to-danger-100 border-danger-200">
           <CardHeader className="flex gap-3">
             <div className="p-2 bg-danger-500 rounded-lg">
@@ -309,9 +312,9 @@ export default function DashboardContent({
             </div>
             <div className="flex flex-col">
               <p className="text-lg font-semibold text-danger-800">
-                Critical Assets
+                Critical Issues
               </p>
-              <p className="text-small text-danger-600">Need Attention</p>
+              <p className="text-small text-danger-600">Requires Attention</p>
             </div>
           </CardHeader>
           <Divider className="bg-danger-200" />
@@ -319,26 +322,22 @@ export default function DashboardContent({
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <span className="text-2xl font-bold text-danger-700">
-                  {dashboardData.assetStats.critical}
+                  {currentDashboardData.assetStats.critical +
+                    currentDashboardData.workOrderStats.overdue}
                 </span>
                 <Chip color="danger" size="sm" variant="flat">
-                  Alert
+                  <AlertTriangle className="w-3 h-3 mr-1" />
+                  Critical
                 </Chip>
               </div>
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span className="text-small text-default-600">
-                    Risk Level
+                    Assets + Overdue
                   </span>
                   <span className="text-small font-medium">
-                    {dashboardData.assetStats.total
-                      ? Math.round(
-                          (dashboardData.assetStats.critical /
-                            dashboardData.assetStats.total) *
-                            100,
-                        )
-                      : 0}
-                    %
+                    {currentDashboardData.assetStats.critical} +{" "}
+                    {currentDashboardData.workOrderStats.overdue}
                   </span>
                 </div>
                 <Progress
@@ -346,9 +345,10 @@ export default function DashboardContent({
                   color="danger"
                   size="sm"
                   value={
-                    dashboardData.assetStats.total
-                      ? (dashboardData.assetStats.critical /
-                          dashboardData.assetStats.total) *
+                    currentDashboardData.assetStats.total > 0
+                      ? ((currentDashboardData.assetStats.critical +
+                          currentDashboardData.workOrderStats.overdue) /
+                          currentDashboardData.assetStats.total) *
                         100
                       : 0
                   }
@@ -359,190 +359,90 @@ export default function DashboardContent({
         </Card>
       </div>
 
-      {/* Charts Section */}
-      <DashboardCharts
-        assetStats={dashboardData.assetStats}
-        categoryDistribution={dashboardData.categoryDistribution}
-        maintenancePerformance={dashboardData.maintenancePerformance}
-        monthlyBreakdowns={dashboardData.monthlyBreakdowns}
-        workOrderStats={dashboardData.workOrderStats}
-      />
+      {/* Charts and Activities Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Charts Section */}
+        <div className="lg:col-span-2">
+          <DashboardCharts dashboardData={currentDashboardData} />
+        </div>
 
-      {/* User Info Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        {/* User Name Card */}
-        <Card className="bg-gradient-to-br from-primary-50 to-primary-100 border-primary-200">
-          <CardHeader className="flex gap-3">
-            <div className="p-2 bg-primary-500 rounded-lg">
-              <Activity className="w-6 h-6 text-white" />
-            </div>
-            <div className="flex flex-col">
-              <p className="text-lg font-semibold text-primary-800">
-                User Name
-              </p>
-              <p className="text-small text-primary-600">
-                Personal Information
-              </p>
-            </div>
-          </CardHeader>
-          <Divider className="bg-primary-200" />
-          <CardBody className="px-6 py-4">
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <span className="text-default-700">Name</span>
-                <Chip color="primary" size="sm" variant="flat">
-                  {user.name}
-                </Chip>
+        {/* Recent Activities */}
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <div className="flex items-center gap-2">
+                <Activity className="w-5 h-5 text-primary" />
+                <h3 className="text-lg font-semibold">Recent Activities</h3>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-default-700">Status</span>
-                <Chip color="success" size="sm" variant="flat">
-                  Active
-                </Chip>
+            </CardHeader>
+            <CardBody className="p-0">
+              <div className="space-y-4 p-4">
+                {currentRecentActivities.slice(0, 5).map((activity) => (
+                  <div
+                    key={activity.id}
+                    className="flex items-start gap-3 p-3 rounded-lg hover:bg-default-50 transition-colors"
+                  >
+                    <div className="flex-shrink-0">
+                      <User
+                        name={activity.user}
+                        description={getActivityLabel(activity.type)}
+                        avatarProps={{
+                          src: activity.avatar,
+                          size: "sm",
+                        }}
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-default-700 line-clamp-2">
+                        {activity.action}
+                      </p>
+                      <p className="text-xs text-default-500 mt-1">
+                        {activity.time}
+                      </p>
+                    </div>
+                    <div className="flex-shrink-0">
+                      {getActivityIcon(activity.type)}
+                    </div>
+                  </div>
+                ))}
               </div>
-            </div>
-          </CardBody>
-        </Card>
+            </CardBody>
+          </Card>
 
-        {/* User Role Card */}
-        <Card className="bg-gradient-to-br from-success-50 to-success-100 border-success-200">
-          <CardHeader className="flex gap-3">
-            <div className="p-2 bg-success-500 rounded-lg">
-              <Shield className="w-6 h-6 text-white" />
-            </div>
-            <div className="flex flex-col">
-              <p className="text-lg font-semibold text-success-800">
-                User Role
-              </p>
-              <p className="text-small text-success-600">Access Level</p>
-            </div>
-          </CardHeader>
-          <Divider className="bg-success-200" />
-          <CardBody className="px-6 py-4">
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <span className="text-default-700">Role</span>
-                <span className="text-lg font-bold text-success-700 capitalize">
-                  {user.role}
-                </span>
-              </div>
-              <div className="flex justify-center items-center">
-                <span className="text-sm text-default-700">ID : {user.id}</span>
-              </div>
-            </div>
-          </CardBody>
-        </Card>
-
-        {/* Email Card */}
-        <Card className="bg-gradient-to-br from-warning-50 to-warning-100 border-warning-200">
-          <CardHeader className="flex gap-3">
-            <div className="p-2 bg-warning-500 rounded-lg">
-              <Mail className="w-6 h-6 text-white" />
-            </div>
-            <div className="flex flex-col">
-              <p className="text-lg font-semibold text-warning-800">
-                Email Address
-              </p>
-              <p className="text-small text-warning-600">Account Information</p>
-            </div>
-          </CardHeader>
-          <Divider className="bg-warning-200" />
-          <CardBody className="px-6 py-4">
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <span className="text-default-700">Email</span>
-                <Chip color="warning" size="sm" variant="flat">
-                  {user.email}
-                </Chip>
-              </div>
-              <div className="flex justify-between items-center">
-                <span className="text-default-700">Status</span>
-                <Chip color="success" size="sm" variant="flat">
-                  Active
-                </Chip>
-              </div>
-            </div>
-          </CardBody>
-        </Card>
+          {/* Quick Actions */}
+          <Card>
+            <CardHeader>
+              <h3 className="text-lg font-semibold">Quick Actions</h3>
+            </CardHeader>
+            <CardBody className="space-y-3">
+              <Button
+                color="primary"
+                variant="flat"
+                className="w-full justify-start"
+                startContent={<Package className="w-4 h-4" />}
+              >
+                Add New Asset
+              </Button>
+              <Button
+                color="warning"
+                variant="flat"
+                className="w-full justify-start"
+                startContent={<Wrench className="w-4 h-4" />}
+              >
+                Create Work Order
+              </Button>
+              <Button
+                color="secondary"
+                variant="flat"
+                className="w-full justify-start"
+                startContent={<Activity className="w-4 h-4" />}
+              >
+                Schedule Maintenance
+              </Button>
+            </CardBody>
+          </Card>
+        </div>
       </div>
-
-      {/* Recent Activities Detail */}
-      <Card className="bg-gradient-to-br from-secondary-50 to-secondary-100">
-        <CardHeader className="flex gap-3">
-          <div className="p-2 bg-secondary-500 rounded-lg">
-            <Clock className="w-6 h-6 text-white" />
-          </div>
-          <div className="flex flex-col flex-1">
-            <p className="text-xl font-semibold text-secondary-800">
-              Aktivitas Terbaru
-            </p>
-            <p className="text-small text-secondary-600">
-              Aktivitas sistem dan user
-            </p>
-          </div>
-          <Button
-            color="secondary"
-            endContent={<Activity className="w-4 h-4" />}
-            size="sm"
-            variant="flat"
-          >
-            Lihat Semua
-          </Button>
-        </CardHeader>
-        <Divider className="bg-secondary-200" />
-        <CardBody className="px-6 py-4">
-          <div className="space-y-4">
-            {recentActivities.length > 0 ? (
-              recentActivities.map((activity) => (
-                <div
-                  key={activity.id}
-                  className="flex items-center gap-4 p-3 rounded-xl hover:bg-secondary-100 transition-colors"
-                >
-                  {/* <Avatar
-                    isBordered
-                    color={getActivityColor(activity.type) as any}
-                    size="md"
-                    src={activity.avatar}
-                  /> */}
-                  <div className="flex-1">
-                    <User
-                      classNames={{
-                        name: "font-semibold text-default-700",
-                        description: "text-default-500",
-                      }}
-                      description={activity.action}
-                      name={activity.user}
-                    />
-                  </div>
-                  <div className="flex items-center gap-2">
-                    {getActivityIcon(activity.type)}
-                    <Chip
-                      color={getActivityColor(activity.type) as any}
-                      size="sm"
-                      variant="flat"
-                    >
-                      {getActivityLabel(activity.type)}
-                    </Chip>
-                    <Chip
-                      color="default"
-                      size="sm"
-                      startContent={<Clock className="w-3 h-3" />}
-                      variant="flat"
-                    >
-                      {activity.time}
-                    </Chip>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="text-center py-8 text-default-500">
-                <Activity className="w-8 h-8 mx-auto mb-2 text-default-400" />
-                <p>Tidak ada aktivitas terbaru</p>
-              </div>
-            )}
-          </div>
-        </CardBody>
-      </Card>
     </div>
   );
 }
