@@ -59,11 +59,11 @@ export default function ChangePhotoModal({
                       </p>
                     </div>
                     <input
-                      type="file"
-                      name="photo"
                       accept="image/*"
                       className="hidden"
                       id="photoFile"
+                      name="photo"
+                      type="file"
                       onChange={(e) => {
                         setSelectedFile(e.target.files?.[0] || null);
                       }}
@@ -85,10 +85,15 @@ export default function ChangePhotoModal({
                   </CardBody>
                 </Card>
                 <div className="flex justify-end mt-4">
-                  <Button type="button" onClick={close} className="mr-2" variant="flat">
+                  <Button
+                    className="mr-2"
+                    type="button"
+                    variant="flat"
+                    onClick={close}
+                  >
                     Batal
                   </Button>
-                  <Button type="submit" color="primary">
+                  <Button color="primary" type="submit">
                     Simpan Foto
                   </Button>
                 </div>

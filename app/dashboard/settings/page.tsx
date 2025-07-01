@@ -1,11 +1,11 @@
-import { Settings} from "lucide-react";
+import { Settings } from "lucide-react";
+import { getServerSession } from "next-auth";
+
 import ProfileSetting from "./components/ProfileSetting";
 import { getProfile } from "./action";
-import SaveButton from "./components/SaveButton";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
-import NotificationSetting from "./components/NotificationSetting";
 import SystemSetting from "./components/SystemSetting";
+
+import { authOptions } from "@/lib/auth";
 
 export default async function SettingsPage() {
   const session = await getServerSession(authOptions);

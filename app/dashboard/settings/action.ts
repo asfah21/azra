@@ -1,9 +1,11 @@
 "use server";
 
-import { prisma } from "@/lib/prisma";
-import { revalidatePath } from "next/cache";
 import { writeFile } from "fs/promises";
 import path from "path";
+
+import { revalidatePath } from "next/cache";
+
+import { prisma } from "@/lib/prisma";
 
 // Ambil data profile user (misal userId = 1)
 export async function getProfile(userId: string) {
@@ -20,8 +22,12 @@ export async function updateProfile(userId: string, data: any) {
 }
 
 // Update foto profile
-export async function updatePhoto(userId: string, formData: FormData): Promise<void> {
+export async function updatePhoto(
+  userId: string,
+  formData: FormData,
+): Promise<void> {
   const file = formData.get("photo") as File;
+
   if (!file) return;
 
   const buffer = Buffer.from(await file.arrayBuffer());
