@@ -3,8 +3,6 @@
 import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import {
-  Modal,
-  ModalContent,
   ModalHeader,
   ModalBody,
   ModalFooter,
@@ -130,9 +128,7 @@ export function DeleteConfirmModal({
           <div className="p-2 bg-danger-100 rounded-lg">
             <Trash2 className="w-5 h-5 text-danger-600" />
           </div>
-          <span className="text-lg font-semibold">
-            Konfirmasi Hapus User
-          </span>
+          <span className="text-lg font-semibold">Konfirmasi Hapus User</span>
         </div>
       </ModalHeader>
 
@@ -173,8 +169,8 @@ export function DeleteConfirmModal({
                   </span>
                 </div>
                 <p className="text-danger-700 text-sm">
-                  Anda tidak memiliki izin untuk menghapus user. Hanya
-                  Super Admin yang dapat melakukan tindakan ini.
+                  Anda tidak memiliki izin untuk menghapus user. Hanya Super
+                  Admin yang dapat melakukan tindakan ini.
                 </p>
               </div>
             )}
@@ -182,13 +178,11 @@ export function DeleteConfirmModal({
             <div className="p-4 bg-warning-50 border border-warning-200 rounded-lg">
               <div className="flex items-center gap-2 mb-2">
                 <AlertTriangle className="w-5 h-5 text-warning-600" />
-                <span className="font-medium text-warning-800">
-                  Peringatan
-                </span>
+                <span className="font-medium text-warning-800">Peringatan</span>
               </div>
               <p className="text-warning-700 text-sm">
-                Tindakan ini tidak dapat dibatalkan. User yang dihapus
-                tidak dapat dipulihkan.
+                Tindakan ini tidak dapat dibatalkan. User yang dihapus tidak
+                dapat dipulihkan.
               </p>
             </div>
 
@@ -237,14 +231,11 @@ export function DeleteConfirmModal({
                     Bergabung:
                   </span>
                   <span className="text-sm text-default-700">
-                    {new Date(user.createdAt).toLocaleDateString(
-                      "id-ID",
-                      {
-                        day: "numeric",
-                        month: "long",
-                        year: "numeric",
-                      },
-                    )}
+                    {new Date(user.createdAt).toLocaleDateString("id-ID", {
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                    })}
                   </span>
                 </div>
               </div>

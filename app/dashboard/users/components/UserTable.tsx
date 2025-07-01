@@ -61,9 +61,7 @@ interface UserManagementClientProps {
   usersTable: User[];
 }
 
-export default function UserTables({
-  usersTable,
-}: UserManagementClientProps) {
+export default function UserTables({ usersTable }: UserManagementClientProps) {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const {
     isOpen: isDetailOpen,
@@ -399,10 +397,10 @@ export default function UserTables({
               <TableHeader>
                 <TableColumn>
                   <Button
-                    variant="light"
-                    size="sm"
-                    onPress={() => handleSort("name")}
                     className="px-1 h-auto text-default-500 font-semibold"
+                    size="sm"
+                    variant="light"
+                    onPress={() => handleSort("name")}
                   >
                     <div className="flex items-center gap-1">
                       NAME
@@ -415,10 +413,10 @@ export default function UserTables({
                 </TableColumn>
                 <TableColumn>
                   <Button
-                    variant="light"
-                    size="sm"
-                    onPress={() => handleSort("email")}
                     className="px-1 h-auto text-default-500 font-semibold"
+                    size="sm"
+                    variant="light"
+                    onPress={() => handleSort("email")}
                   >
                     <div className="flex items-center gap-1">
                       EMAIL
@@ -431,10 +429,10 @@ export default function UserTables({
                 </TableColumn>
                 <TableColumn>
                   <Button
-                    variant="light"
-                    size="sm"
-                    onPress={() => handleSort("role")}
                     className="px-1 h-auto text-default-500 font-semibold"
+                    size="sm"
+                    variant="light"
+                    onPress={() => handleSort("role")}
                   >
                     <div className="flex items-center gap-1">
                       ROLE
@@ -447,10 +445,10 @@ export default function UserTables({
                 </TableColumn>
                 <TableColumn>
                   <Button
-                    variant="light"
-                    size="sm"
-                    onPress={() => handleSort("department")}
                     className="px-1 h-auto text-default-500 font-semibold"
+                    size="sm"
+                    variant="light"
+                    onPress={() => handleSort("department")}
                   >
                     <div className="flex items-center gap-1">
                       DEPARTMENT
@@ -463,10 +461,10 @@ export default function UserTables({
                 </TableColumn>
                 <TableColumn>
                   <Button
-                    variant="light"
-                    size="sm"
-                    onPress={() => handleSort("createdAt")}
                     className="px-1 h-auto text-default-500 font-semibold"
+                    size="sm"
+                    variant="light"
+                    onPress={() => handleSort("createdAt")}
                   >
                     <div className="flex items-center gap-1">
                       CREATED
@@ -479,10 +477,10 @@ export default function UserTables({
                 </TableColumn>
                 <TableColumn>
                   <Button
-                    variant="light"
-                    size="sm"
-                    onPress={() => handleSort("lastActive")}
                     className="px-1 h-auto text-default-500 font-semibold"
+                    size="sm"
+                    variant="light"
+                    onPress={() => handleSort("lastActive")}
                   >
                     <div className="items-center gap-1">
                       LAST ACTIVE
@@ -554,11 +552,7 @@ export default function UserTables({
                       <div className="flex items-center gap-2">
                         <Dropdown>
                           <DropdownTrigger>
-                            <Button
-                              isIconOnly
-                              size="sm"
-                              variant="light"
-                            >
+                            <Button isIconOnly size="sm" variant="light">
                               <MoreVertical className="w-4 h-4" />
                             </Button>
                           </DropdownTrigger>
@@ -601,9 +595,9 @@ export default function UserTables({
       {/* Add User Modal */}
       <Modal
         isOpen={isOpen}
-        onOpenChange={onOpenChange}
         placement="top-center"
         size="2xl"
+        onOpenChange={onOpenChange}
       >
         <ModalContent>
           <AddUserForms onClose={onOpenChange} onUserAdded={handleUserAdded} />
@@ -613,24 +607,21 @@ export default function UserTables({
       {/* User Detail Modal */}
       <Modal
         isOpen={isDetailOpen}
-        onOpenChange={onDetailOpenChange}
         placement="top-center"
         size="2xl"
+        onOpenChange={onDetailOpenChange}
       >
         <ModalContent>
-          <UserDetailModal
-            user={selectedUser}
-            onClose={onDetailOpenChange}
-          />
+          <UserDetailModal user={selectedUser} onClose={onDetailOpenChange} />
         </ModalContent>
       </Modal>
 
       {/* Edit User Modal */}
       <Modal
         isOpen={isEditOpen}
-        onOpenChange={onEditOpenChange}
         placement="top-center"
         size="2xl"
+        onOpenChange={onEditOpenChange}
       >
         <ModalContent>
           <EditUserModal
@@ -644,9 +635,9 @@ export default function UserTables({
       {/* Delete Confirm Modal */}
       <Modal
         isOpen={isDeleteOpen}
-        onOpenChange={onDeleteOpenChange}
         placement="top-center"
         size="md"
+        onOpenChange={onDeleteOpenChange}
       >
         <ModalContent>
           <DeleteConfirmModal

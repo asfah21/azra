@@ -1,6 +1,7 @@
 "use client";
 
 import { BreakdownPayload } from "../types";
+
 import GammaTableData from "./TableData";
 
 interface RealTimeTableProps {

@@ -13,7 +13,5 @@ export default function RealTimeTable({
   initialData,
   initialUsers,
 }: RealTimeTableProps) {
-  return (
-    <TableDatas dataTable={initialData} users={initialUsers} />
-  );
+  return <TableDatas dataTable={initialData} users={initialUsers} />;
 }

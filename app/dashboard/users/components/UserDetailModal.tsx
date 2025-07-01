@@ -1,8 +1,6 @@
 "use client";
 
 import {
-  Modal,
-  ModalContent,
   ModalHeader,
   ModalBody,
   ModalFooter,
@@ -174,9 +172,7 @@ export default function UserDetailModal({
                     ? "text-success-600 font-medium"
                     : "",
               }}
-              color={
-                getStatusColor(getUserStatus(user.lastActive)) as any
-              }
+              color={getStatusColor(getUserStatus(user.lastActive)) as any}
               size="lg"
               startContent={
                 getUserStatus(user.lastActive) === "online" ? (

@@ -14,8 +14,24 @@ import {
   Filler,
 } from "chart.js";
 import { Doughnut, Bar, Line, Pie } from "react-chartjs-2";
-import { Card, CardHeader, CardBody, Divider } from "@heroui/react";
-import { BarChart3, TrendingUp, Activity, AlertTriangle } from "lucide-react";
+import {
+  Card,
+  CardHeader,
+  CardBody,
+  Divider,
+  Chip,
+  Progress,
+} from "@heroui/react";
+import {
+  BarChart3,
+  TrendingUp,
+  Activity,
+  AlertTriangle,
+  PieChart,
+  Clock,
+  Wrench,
+  CheckCircle2,
+} from "lucide-react";
 
 // Register Chart.js components
 ChartJS.register(
@@ -221,118 +237,418 @@ export default function DashboardCharts({
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-      {/* Asset Utilization Chart */}
-      <Card className="bg-gradient-to-br from-primary-50 to-primary-100">
-        <CardHeader className="flex gap-3">
-          <div className="p-2 bg-primary-500 rounded-lg">
-            <Activity className="w-6 h-6 text-white" />
-          </div>
-          <div className="flex flex-col">
-            <p className="text-lg font-semibold text-primary-800">
-              Asset Utilization
-            </p>
-            <p className="text-small text-primary-600">Status distribution</p>
-          </div>
-        </CardHeader>
-        <Divider className="bg-primary-200" />
-        <CardBody className="px-6 py-4">
-          <div className="h-64">
-            <Doughnut data={assetUtilizationData} options={chartOptions} />
-          </div>
-        </CardBody>
-      </Card>
+    <div className="space-y-8">
+      {/* Progress Cards Section - Similar to ReportCharts */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6 sm:mb-8">
+        {/* Work Order Progress */}
+        <Card className="bg-gradient-to-br from-warning-50 to-warning-100 border-warning-200">
+          <CardHeader className="flex gap-3">
+            <div className="p-2 bg-warning-500 rounded-lg">
+              <PieChart className="w-6 h-6 text-white" />
+            </div>
+            <div className="flex flex-col">
+              <p className="text-lg font-semibold text-warning-800">
+                Work Order Progress
+              </p>
+              <p className="text-small text-warning-600">
+                Current work order distribution
+              </p>
+            </div>
+          </CardHeader>
+          <Divider className="bg-warning-200" />
+          <CardBody className="px-6 py-4">
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-warning-600" />
+                  <span className="text-default-700">Pending</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Chip color="warning" size="sm" variant="flat">
+                    {workOrderStats.pending}
+                  </Chip>
+                  <span className="text-small text-default-600">
+                    {workOrderStats.total > 0
+                      ? Math.round(
+                          (workOrderStats.pending / workOrderStats.total) * 100,
+                        )
+                      : 0}
+                    %
+                  </span>
+                </div>
+              </div>
+              <Progress
+                className="max-w-full"
+                color="warning"
+                size="sm"
+                value={
+                  workOrderStats.total > 0
+                    ? (workOrderStats.pending / workOrderStats.total) * 100
+                    : 0
+                }
+              />
 
-      {/* Work Order Status Chart */}
-      <Card className="bg-gradient-to-br from-success-50 to-success-100">
-        <CardHeader className="flex gap-3">
-          <div className="p-2 bg-success-500 rounded-lg">
-            <BarChart3 className="w-6 h-6 text-white" />
-          </div>
-          <div className="flex flex-col">
-            <p className="text-lg font-semibold text-success-800">
-              Work Order Status
-            </p>
-            <p className="text-small text-success-600">Current breakdowns</p>
-          </div>
-        </CardHeader>
-        <Divider className="bg-success-200" />
-        <CardBody className="px-6 py-4">
-          <div className="h-64">
-            <Bar data={workOrderStatusData} options={barChartOptions} />
-          </div>
-        </CardBody>
-      </Card>
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                  <Wrench className="w-4 h-4 text-primary-600" />
+                  <span className="text-default-700">In Progress</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Chip color="primary" size="sm" variant="flat">
+                    {workOrderStats.inProgress}
+                  </Chip>
+                  <span className="text-small text-default-600">
+                    {workOrderStats.total > 0
+                      ? Math.round(
+                          (workOrderStats.inProgress / workOrderStats.total) *
+                            100,
+                        )
+                      : 0}
+                    %
+                  </span>
+                </div>
+              </div>
+              <Progress
+                className="max-w-full"
+                color="primary"
+                size="sm"
+                value={
+                  workOrderStats.total > 0
+                    ? (workOrderStats.inProgress / workOrderStats.total) * 100
+                    : 0
+                }
+              />
 
-      {/* Monthly Breakdown Trend */}
-      <Card className="bg-gradient-to-br from-warning-50 to-warning-100">
-        <CardHeader className="flex gap-3">
-          <div className="p-2 bg-warning-500 rounded-lg">
-            <TrendingUp className="w-6 h-6 text-white" />
-          </div>
-          <div className="flex flex-col">
-            <p className="text-lg font-semibold text-warning-800">
-              Monthly Breakdown Trend
-            </p>
-            <p className="text-small text-warning-600">Last 6 months</p>
-          </div>
-        </CardHeader>
-        <Divider className="bg-warning-200" />
-        <CardBody className="px-6 py-4">
-          <div className="h-64">
-            <Line data={monthlyBreakdownData} options={chartOptions} />
-          </div>
-        </CardBody>
-      </Card>
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-success-600" />
+                  <span className="text-default-700">Completed</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Chip color="success" size="sm" variant="flat">
+                    {workOrderStats.rfu}
+                  </Chip>
+                  <span className="text-small text-default-600">
+                    {workOrderStats.total > 0
+                      ? Math.round(
+                          (workOrderStats.rfu / workOrderStats.total) * 100,
+                        )
+                      : 0}
+                    %
+                  </span>
+                </div>
+              </div>
+              <Progress
+                className="max-w-full"
+                color="success"
+                size="sm"
+                value={
+                  workOrderStats.total > 0
+                    ? (workOrderStats.rfu / workOrderStats.total) * 100
+                    : 0
+                }
+              />
 
-      {/* Asset Category Distribution */}
-      <Card className="bg-gradient-to-br from-secondary-50 to-secondary-100">
-        <CardHeader className="flex gap-3">
-          <div className="p-2 bg-secondary-500 rounded-lg">
-            <AlertTriangle className="w-6 h-6 text-white" />
-          </div>
-          <div className="flex flex-col">
-            <p className="text-lg font-semibold text-secondary-800">
-              Asset Categories
-            </p>
-            <p className="text-small text-secondary-600">
-              Distribution by type
-            </p>
-          </div>
-        </CardHeader>
-        <Divider className="bg-secondary-200" />
-        <CardBody className="px-6 py-4">
-          <div className="h-64">
-            <Pie data={categoryDistributionData} options={chartOptions} />
-          </div>
-        </CardBody>
-      </Card>
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-danger-600" />
+                  <span className="text-default-700">Overdue</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Chip color="danger" size="sm" variant="flat">
+                    {workOrderStats.overdue}
+                  </Chip>
+                  <span className="text-small text-default-600">
+                    {workOrderStats.total > 0
+                      ? Math.round(
+                          (workOrderStats.overdue / workOrderStats.total) * 100,
+                        )
+                      : 0}
+                    %
+                  </span>
+                </div>
+              </div>
+              <Progress
+                className="max-w-full"
+                color="danger"
+                size="sm"
+                value={
+                  workOrderStats.total > 0
+                    ? (workOrderStats.overdue / workOrderStats.total) * 100
+                    : 0
+                }
+              />
+            </div>
+          </CardBody>
+        </Card>
 
-      {/* Maintenance Performance */}
-      <Card className="bg-gradient-to-br from-danger-50 to-danger-100 lg:col-span-2">
-        <CardHeader className="flex gap-3">
-          <div className="p-2 bg-danger-500 rounded-lg">
-            <BarChart3 className="w-6 h-6 text-white" />
-          </div>
-          <div className="flex flex-col">
-            <p className="text-lg font-semibold text-danger-800">
-              Maintenance Performance
-            </p>
-            <p className="text-small text-danger-600">
-              Completion rate by department
-            </p>
-          </div>
-        </CardHeader>
-        <Divider className="bg-danger-200" />
-        <CardBody className="px-6 py-4">
-          <div className="h-48">
-            <Bar
-              data={maintenancePerformanceData}
-              options={horizontalBarOptions}
-            />
-          </div>
-        </CardBody>
-      </Card>
+        {/* Asset Status Progress */}
+        <Card className="bg-gradient-to-br from-primary-50 to-primary-100 border-primary-200">
+          <CardHeader className="flex gap-3">
+            <div className="p-2 bg-primary-500 rounded-lg">
+              <BarChart3 className="w-6 h-6 text-white" />
+            </div>
+            <div className="flex flex-col">
+              <p className="text-lg font-semibold text-primary-800">
+                Asset Status Overview
+              </p>
+              <p className="text-small text-primary-600">
+                Equipment status distribution
+              </p>
+            </div>
+          </CardHeader>
+          <Divider className="bg-primary-200" />
+          <CardBody className="px-6 py-4">
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-success-600" />
+                  <span className="text-default-700">Operational</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Chip color="success" size="sm" variant="flat">
+                    {assetStats.active}
+                  </Chip>
+                  <span className="text-small text-default-600">
+                    {assetStats.total > 0
+                      ? Math.round((assetStats.active / assetStats.total) * 100)
+                      : 0}
+                    %
+                  </span>
+                </div>
+              </div>
+              <Progress
+                className="max-w-full"
+                color="success"
+                size="sm"
+                value={
+                  assetStats.total > 0
+                    ? (assetStats.active / assetStats.total) * 100
+                    : 0
+                }
+              />
+
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                  <Wrench className="w-4 h-4 text-warning-600" />
+                  <span className="text-default-700">Maintenance</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Chip color="warning" size="sm" variant="flat">
+                    {assetStats.maintenance}
+                  </Chip>
+                  <span className="text-small text-default-600">
+                    {assetStats.total > 0
+                      ? Math.round(
+                          (assetStats.maintenance / assetStats.total) * 100,
+                        )
+                      : 0}
+                    %
+                  </span>
+                </div>
+              </div>
+              <Progress
+                className="max-w-full"
+                color="warning"
+                size="sm"
+                value={
+                  assetStats.total > 0
+                    ? (assetStats.maintenance / assetStats.total) * 100
+                    : 0
+                }
+              />
+
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                  <AlertTriangle className="w-4 h-4 text-danger-600" />
+                  <span className="text-default-700">Critical</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Chip color="danger" size="sm" variant="flat">
+                    {assetStats.critical}
+                  </Chip>
+                  <span className="text-small text-default-600">
+                    {assetStats.total > 0
+                      ? Math.round(
+                          (assetStats.critical / assetStats.total) * 100,
+                        )
+                      : 0}
+                    %
+                  </span>
+                </div>
+              </div>
+              <Progress
+                className="max-w-full"
+                color="danger"
+                size="sm"
+                value={
+                  assetStats.total > 0
+                    ? (assetStats.critical / assetStats.total) * 100
+                    : 0
+                }
+              />
+
+              <div className="flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                  <Activity className="w-4 h-4 text-default-600" />
+                  <span className="text-default-700">Offline</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Chip color="default" size="sm" variant="flat">
+                    {assetStats.total -
+                      assetStats.active -
+                      assetStats.maintenance -
+                      assetStats.critical}
+                  </Chip>
+                  <span className="text-small text-default-600">
+                    {assetStats.total > 0
+                      ? Math.round(
+                          ((assetStats.total -
+                            assetStats.active -
+                            assetStats.maintenance -
+                            assetStats.critical) /
+                            assetStats.total) *
+                            100,
+                        )
+                      : 0}
+                    %
+                  </span>
+                </div>
+              </div>
+              <Progress
+                className="max-w-full"
+                color="default"
+                size="sm"
+                value={
+                  assetStats.total > 0
+                    ? ((assetStats.total -
+                        assetStats.active -
+                        assetStats.maintenance -
+                        assetStats.critical) /
+                        assetStats.total) *
+                      100
+                    : 0
+                }
+              />
+            </div>
+          </CardBody>
+        </Card>
+      </div>
+
+      {/* Chart Cards Section - Original Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        {/* Asset Utilization Chart */}
+        <Card className="bg-gradient-to-br from-primary-50 to-primary-100">
+          <CardHeader className="flex gap-3">
+            <div className="p-2 bg-primary-500 rounded-lg">
+              <Activity className="w-6 h-6 text-white" />
+            </div>
+            <div className="flex flex-col">
+              <p className="text-lg font-semibold text-primary-800">
+                Asset Utilization
+              </p>
+              <p className="text-small text-primary-600">Status distribution</p>
+            </div>
+          </CardHeader>
+          <Divider className="bg-primary-200" />
+          <CardBody className="px-6 py-4">
+            <div className="h-64">
+              <Doughnut data={assetUtilizationData} options={chartOptions} />
+            </div>
+          </CardBody>
+        </Card>
+
+        {/* Work Order Status Chart */}
+        <Card className="bg-gradient-to-br from-success-50 to-success-100">
+          <CardHeader className="flex gap-3">
+            <div className="p-2 bg-success-500 rounded-lg">
+              <BarChart3 className="w-6 h-6 text-white" />
+            </div>
+            <div className="flex flex-col">
+              <p className="text-lg font-semibold text-success-800">
+                Work Order Status
+              </p>
+              <p className="text-small text-success-600">Current breakdowns</p>
+            </div>
+          </CardHeader>
+          <Divider className="bg-success-200" />
+          <CardBody className="px-6 py-4">
+            <div className="h-64">
+              <Bar data={workOrderStatusData} options={barChartOptions} />
+            </div>
+          </CardBody>
+        </Card>
+
+        {/* Monthly Breakdown Trend */}
+        <Card className="bg-gradient-to-br from-warning-50 to-warning-100">
+          <CardHeader className="flex gap-3">
+            <div className="p-2 bg-warning-500 rounded-lg">
+              <TrendingUp className="w-6 h-6 text-white" />
+            </div>
+            <div className="flex flex-col">
+              <p className="text-lg font-semibold text-warning-800">
+                Monthly Breakdown Trend
+              </p>
+              <p className="text-small text-warning-600">Last 6 months</p>
+            </div>
+          </CardHeader>
+          <Divider className="bg-warning-200" />
+          <CardBody className="px-6 py-4">
+            <div className="h-64">
+              <Line data={monthlyBreakdownData} options={chartOptions} />
+            </div>
+          </CardBody>
+        </Card>
+
+        {/* Asset Category Distribution */}
+        <Card className="bg-gradient-to-br from-secondary-50 to-secondary-100">
+          <CardHeader className="flex gap-3">
+            <div className="p-2 bg-secondary-500 rounded-lg">
+              <AlertTriangle className="w-6 h-6 text-white" />
+            </div>
+            <div className="flex flex-col">
+              <p className="text-lg font-semibold text-secondary-800">
+                Asset Categories
+              </p>
+              <p className="text-small text-secondary-600">
+                Distribution by type
+              </p>
+            </div>
+          </CardHeader>
+          <Divider className="bg-secondary-200" />
+          <CardBody className="px-6 py-4">
+            <div className="h-64">
+              <Pie data={categoryDistributionData} options={chartOptions} />
+            </div>
+          </CardBody>
+        </Card>
+
+        {/* Maintenance Performance */}
+        <Card className="bg-gradient-to-br from-danger-50 to-danger-100 lg:col-span-2">
+          <CardHeader className="flex gap-3">
+            <div className="p-2 bg-danger-500 rounded-lg">
+              <BarChart3 className="w-6 h-6 text-white" />
+            </div>
+            <div className="flex flex-col">
+              <p className="text-lg font-semibold text-danger-800">
+                Maintenance Performance
+              </p>
+              <p className="text-small text-danger-600">
+                Completion rate by department
+              </p>
+            </div>
+          </CardHeader>
+          <Divider className="bg-danger-200" />
+          <CardBody className="px-6 py-4">
+            <div className="h-48">
+              <Bar
+                data={maintenancePerformanceData}
+                options={horizontalBarOptions}
+              />
+            </div>
+          </CardBody>
+        </Card>
+      </div>
     </div>
   );
 }

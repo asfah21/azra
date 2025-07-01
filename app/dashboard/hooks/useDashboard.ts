@@ -43,10 +43,13 @@ export interface RecentActivity {
 
 export function useDashboard(
   initialDashboardData: DashboardData,
-  initialRecentActivities: RecentActivity[]
+  initialRecentActivities: RecentActivity[],
 ) {
-  const [dashboardData, setDashboardData] = useState<DashboardData>(initialDashboardData);
-  const [recentActivities, setRecentActivities] = useState<RecentActivity[]>(initialRecentActivities);
+  const [dashboardData, setDashboardData] =
+    useState<DashboardData>(initialDashboardData);
+  const [recentActivities, setRecentActivities] = useState<RecentActivity[]>(
+    initialRecentActivities,
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
 
@@ -60,13 +63,15 @@ export function useDashboard(
   const refreshData = async () => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       // Jika perlu refresh data, bisa implement di sini
       // Misalnya dengan memanggil server action atau API
       console.log("Manual refresh - implement if needed");
     } catch (err) {
-      setError(err instanceof Error ? err : new Error("Failed to refresh data"));
+      setError(
+        err instanceof Error ? err : new Error("Failed to refresh data"),
+      );
     } finally {
       setIsLoading(false);
     }

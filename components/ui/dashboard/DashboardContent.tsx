@@ -78,7 +78,7 @@ export default function DashboardContent({
   // Gunakan hook dengan initial data (cara tradisional)
   const { dashboardData, recentActivities, isLoading, error } = useDashboard(
     initialDashboardData,
-    initialRecentActivities
+    initialRecentActivities,
   );
 
   // Mencegah hydration mismatch
@@ -374,12 +374,14 @@ export default function DashboardContent({
       {/* Charts and Activities Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Charts Section */}
-        <div className="lg:col-span-2">
+        <div className="lg:col-span-3">
           <DashboardCharts dashboardData={currentDashboardData} />
         </div>
+      </div>
 
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
         {/* Recent Activities */}
-        <div className="space-y-6">
+        <div className="grid space-y-6 lg:col-span-2">
           <Card>
             <CardHeader>
               <div className="flex items-center gap-2">
@@ -420,7 +422,9 @@ export default function DashboardContent({
               </div>
             </CardBody>
           </Card>
+        </div>
 
+        <div className="grid space-y-6 lg:col-span-1 max-h-[250px] overflow-y-auto">
           {/* Quick Actions */}
           <Card>
             <CardHeader>

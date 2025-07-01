@@ -63,9 +63,7 @@ interface WoStatsCardsProps {
   dataTable: BreakdownPayload[];
 }
 
-export default function GammaTableData({
-  dataTable,
-}: WoStatsCardsProps) {
+export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const router = useRouter();
   const { data: session } = useSession();
