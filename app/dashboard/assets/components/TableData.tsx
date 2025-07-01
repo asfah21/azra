@@ -86,7 +86,6 @@ interface Unit {
 interface ManagementClientProps {
   dataTable: Unit[];
   users: Array<{ id: string; name: string }>;
-  mutate?: () => void;
 }
 
 // Constants - pindahkan keluar dari component untuk mencegah re-creation
@@ -148,7 +147,6 @@ const getUtilizationColor = (rate: number | null) => {
 export default function TableDatas({
   dataTable,
   users,
-  mutate,
 }: ManagementClientProps) {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const {
@@ -243,15 +241,11 @@ export default function TableDatas({
     return { totalPages, items };
   }, [filteredData, page]);
 
-  // Callback untuk modal close dengan mutate
+  // Callback untuk modal close
   const handleUserAdded = useCallback(() => {
-    if (mutate) {
-      mutate();
-    } else {
-      router.refresh();
-    }
+    router.refresh();
     onOpenChange();
-  }, [mutate, onOpenChange]);
+  }, [router, onOpenChange]);
 
   // Callback untuk pagination
   const handlePageChange = useCallback((newPage: number) => {
@@ -278,15 +272,11 @@ export default function TableDatas({
     [onEditOpen],
   );
 
-  // Callback untuk asset updated dengan mutate
+  // Callback untuk asset updated
   const handleAssetUpdated = useCallback(() => {
-    if (mutate) {
-      mutate();
-    } else {
-      router.refresh();
-    }
+    router.refresh();
     onEditOpenChange();
-  }, [mutate, onEditOpenChange]);
+  }, [router, onEditOpenChange]);
 
   // Callback untuk import complete
   const handleAssetsImported = useCallback(() => {

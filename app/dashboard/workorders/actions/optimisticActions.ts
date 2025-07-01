@@ -3,13 +3,28 @@
 import { useOptimistic, startTransition } from "react";
 
 import { BreakdownPayload, OptimisticBreakdownUpdate } from "../types";
-import { convertBreakdownData } from "../hooks/useWorkOrders";
 
 import {
   updateBreakdownStatusWithActions,
   updateBreakdownStatusWithUnitStatus,
   deleteBreakdown,
 } from "./serverAction";
+
+// Helper function untuk konversi data (dipindahkan dari useWorkOrders.ts)
+const convertBreakdownData = (breakdown: any): BreakdownPayload => ({
+  ...breakdown,
+  breakdownTime: new Date(breakdown.breakdownTime),
+  createdAt: new Date(breakdown.createdAt),
+  ...(breakdown.rfuReport && {
+    rfuReport: {
+      ...breakdown.rfuReport,
+      resolvedAt: new Date(breakdown.rfuReport.resolvedAt),
+    },
+  }),
+  ...(breakdown.inProgressAt && {
+    inProgressAt: new Date(breakdown.inProgressAt),
+  }),
+});
 
 export function useOptimisticWorkOrders(initialWorkOrders: BreakdownPayload[]) {
   const [optimisticWorkOrders, addOptimisticWorkOrder] = useOptimistic(

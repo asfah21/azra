@@ -31,13 +31,13 @@ export default async function UsersPage() {
         </div>
       </div>
 
-      {/* Real-time Stats Cards */}
+      {/* Stats Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
-        <RealTimeUserStats initialStats={userStats} />
+        <RealTimeUserStats stats={userStats} />
       </div>
 
-      {/* Real-time Users Table */}
-      <RealTimeUserTable initialData={allUsers} />
+      {/* Users Table */}
+      <RealTimeUserTable users={allUsers} />
     </div>
   );
 }

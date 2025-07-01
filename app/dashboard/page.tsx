@@ -11,7 +11,7 @@ export default async function DashboardPage() {
 
   if (!user) return null;
 
-  // Fetch data untuk initial load (SSE akan mengambil alih setelah hydration)
+  // Fetch data untuk initial load (SSR)
   const dashboardData = await getDashboardData();
   const recentActivities = await getRecentActivities();
 

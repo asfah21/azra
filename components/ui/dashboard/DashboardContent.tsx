@@ -75,8 +75,11 @@ export default function DashboardContent({
   const [isClient, setIsClient] = useState(false);
   const [mounted, setMounted] = useState(false);
 
-  // Gunakan hook untuk real-time updates
-  const { dashboardData, recentActivities, isLoading, error } = useDashboard();
+  // Gunakan hook dengan initial data (cara tradisional)
+  const { dashboardData, recentActivities, isLoading, error } = useDashboard(
+    initialDashboardData,
+    initialRecentActivities
+  );
 
   // Mencegah hydration mismatch
   useEffect(() => {
@@ -84,12 +87,9 @@ export default function DashboardContent({
     setMounted(true);
   }, []);
 
-  // Gunakan initial data sampai client-side hydration selesai dan data SWR tersedia
-  const currentDashboardData =
-    !mounted || isLoading || error ? initialDashboardData : dashboardData;
-
-  const currentRecentActivities =
-    !mounted || isLoading || error ? initialRecentActivities : recentActivities;
+  // Gunakan data dari hook (yang sudah menggunakan initial data)
+  const currentDashboardData = dashboardData;
+  const currentRecentActivities = recentActivities;
 
   const getActivityIcon = (type: string) => {
     switch (type) {

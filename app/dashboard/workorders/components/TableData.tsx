@@ -50,7 +50,6 @@ import {
   TbCircleDashedLetterL,
   TbCircleDashedLetterM,
 } from "react-icons/tb";
-import { KeyedMutator } from "swr";
 
 import { BreakdownPayload } from "../types";
 import { useOptimisticWorkOrders } from "../actions/optimisticActions";
@@ -62,12 +61,10 @@ import InProgressModal from "./InProgressModal";
 
 interface WoStatsCardsProps {
   dataTable: BreakdownPayload[];
-  mutate: KeyedMutator<any>;
 }
 
 export default function GammaTableData({
   dataTable,
-  mutate,
 }: WoStatsCardsProps) {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const router = useRouter();
@@ -182,10 +179,8 @@ export default function GammaTableData({
       setIsRFUModalOpen(false);
       setSelectedBreakdownForRFU(null);
 
-      // Refresh data dengan SWR mutate, bukan reload
-      if (mutate) {
-        await mutate();
-      }
+      // Refresh halaman untuk mendapatkan data terbaru
+      router.refresh();
     } catch (error) {
       console.error("Error completing RFU:", error);
     }
@@ -214,10 +209,8 @@ export default function GammaTableData({
       setIsInProgressModalOpen(false);
       setSelectedBreakdownForInProgress(null);
 
-      // Refresh data dengan SWR mutate, bukan reload
-      if (mutate) {
-        await mutate();
-      }
+      // Refresh halaman untuk mendapatkan data terbaru
+      router.refresh();
     } catch (error) {
       console.error("Error completing in progress:", error);
     }
@@ -243,27 +236,16 @@ export default function GammaTableData({
   const handleConfirmDelete = async () => {
     if (!selectedBreakdownForDelete) return;
 
-    // Validasi role user sebelum melakukan delete
-    if (session?.user?.role !== "super_admin") {
-      console.error("Unauthorized: Only super_admin can delete work orders");
-      setIsDeleteModalOpen(false);
-      setSelectedBreakdownForDelete(null);
-
-      return;
-    }
-
     try {
       await optimisticDelete(selectedBreakdownForDelete.id);
 
       setIsDeleteModalOpen(false);
       setSelectedBreakdownForDelete(null);
 
-      // Refresh data dengan SWR mutate, bukan reload
-      if (mutate) {
-        await mutate();
-      }
+      // Refresh halaman untuk mendapatkan data terbaru
+      router.refresh();
     } catch (error) {
-      console.error("Error deleting work order:", error);
+      console.error("Error deleting breakdown:", error);
     }
   };
 
@@ -273,9 +255,9 @@ export default function GammaTableData({
   };
 
   const handleUserAdded = () => {
-    // Refresh halaman untuk update data setelah user ditambah
-    router.refresh();
     onOpenChange();
+    // Refresh halaman untuk mendapatkan data terbaru
+    router.refresh();
   };
 
   const handleViewDetails = (breakdown: BreakdownPayload) => {
@@ -400,9 +382,7 @@ export default function GammaTableData({
   ) => {
     try {
       await optimisticUpdateStatus(id, status);
-      if (mutate) {
-        await mutate();
-      }
+      router.refresh();
     } catch (error) {
       console.error("Error updating status:", error);
     }

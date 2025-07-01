@@ -59,12 +59,10 @@ interface User {
 
 interface UserManagementClientProps {
   usersTable: User[];
-  mutate?: () => Promise<any>;
 }
 
 export default function UserTables({
   usersTable,
-  mutate,
 }: UserManagementClientProps) {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const {
@@ -118,18 +116,14 @@ export default function UserTables({
   };
 
   const handleUserAdded = async () => {
-    // Refresh data menggunakan SWR mutate
-    if (mutate) {
-      await mutate();
-    }
+    // Refresh halaman untuk mendapatkan data terbaru
+    router.refresh();
     onOpenChange();
   };
 
   const handleUserUpdated = async () => {
-    // Refresh data menggunakan SWR mutate
-    if (mutate) {
-      await mutate();
-    }
+    // Refresh halaman untuk mendapatkan data terbaru
+    router.refresh();
     onEditOpenChange();
   };
 
@@ -153,10 +147,8 @@ export default function UserTables({
   };
 
   const handleUserDeleted = async () => {
-    // Refresh data menggunakan SWR mutate
-    if (mutate) {
-      await mutate();
-    }
+    // Refresh halaman untuk mendapatkan data terbaru
+    router.refresh();
     onDeleteOpenChange();
   };
 
@@ -311,7 +303,7 @@ export default function UserTables({
     if (diffInHours < 24)
       return { text: `${diffInHours}h ago`, color: "warning", emoji: "⚠️" };
     if (diffInDays < 7)
-      return { text: `${diffInDays}d ago`, color: "danger", emoji: "🔴" };
+      return { text: `${diffInDays}d ago`, color: "danger", emoji: "��" };
 
     return {
       text: lastActive.toLocaleDateString("id-ID", {
@@ -400,81 +392,128 @@ export default function UserTables({
                   />
                 </div>
               }
+              classNames={{
+                wrapper: "min-h-[400px]",
+              }}
             >
               <TableHeader>
-                <TableColumn
-                  className="cursor-pointer select-none"
-                  onClick={() => handleSort("name")}
-                >
-                  USER
-                  <SortIcon
-                    active={sortColumn === "name"}
-                    direction={sortDirection}
-                  />
+                <TableColumn>
+                  <Button
+                    variant="light"
+                    size="sm"
+                    onPress={() => handleSort("name")}
+                    className="px-1 h-auto text-default-500 font-semibold"
+                  >
+                    <div className="flex items-center gap-1">
+                      NAME
+                      <SortIcon
+                        active={sortColumn === "name"}
+                        direction={sortDirection}
+                      />
+                    </div>
+                  </Button>
                 </TableColumn>
-                <TableColumn
-                  className="cursor-pointer select-none"
-                  onClick={() => handleSort("role")}
-                >
-                  ROLE
-                  <SortIcon
-                    active={sortColumn === "role"}
-                    direction={sortDirection}
-                  />
+                <TableColumn>
+                  <Button
+                    variant="light"
+                    size="sm"
+                    onPress={() => handleSort("email")}
+                    className="px-1 h-auto text-default-500 font-semibold"
+                  >
+                    <div className="flex items-center gap-1">
+                      EMAIL
+                      <SortIcon
+                        active={sortColumn === "email"}
+                        direction={sortDirection}
+                      />
+                    </div>
+                  </Button>
                 </TableColumn>
-                <TableColumn
-                  className="cursor-pointer select-none"
-                  onClick={() => handleSort("department")}
-                >
-                  DEPARTMENT
-                  <SortIcon
-                    active={sortColumn === "department"}
-                    direction={sortDirection}
-                  />
+                <TableColumn>
+                  <Button
+                    variant="light"
+                    size="sm"
+                    onPress={() => handleSort("role")}
+                    className="px-1 h-auto text-default-500 font-semibold"
+                  >
+                    <div className="flex items-center gap-1">
+                      ROLE
+                      <SortIcon
+                        active={sortColumn === "role"}
+                        direction={sortDirection}
+                      />
+                    </div>
+                  </Button>
                 </TableColumn>
-                <TableColumn>STATUS</TableColumn>
-                <TableColumn
-                  className="cursor-pointer select-none"
-                  onClick={() => handleSort("lastActive")}
-                >
-                  LAST ACTIVE
-                  <SortIcon
-                    active={sortColumn === "lastActive"}
-                    direction={sortDirection}
-                  />
+                <TableColumn>
+                  <Button
+                    variant="light"
+                    size="sm"
+                    onPress={() => handleSort("department")}
+                    className="px-1 h-auto text-default-500 font-semibold"
+                  >
+                    <div className="flex items-center gap-1">
+                      DEPARTMENT
+                      <SortIcon
+                        active={sortColumn === "department"}
+                        direction={sortDirection}
+                      />
+                    </div>
+                  </Button>
                 </TableColumn>
-                <TableColumn
-                  className="cursor-pointer select-none"
-                  onClick={() => handleSort("createdAt")}
-                >
-                  JOINED
-                  <SortIcon
-                    active={sortColumn === "createdAt"}
-                    direction={sortDirection}
-                  />
+                <TableColumn>
+                  <Button
+                    variant="light"
+                    size="sm"
+                    onPress={() => handleSort("createdAt")}
+                    className="px-1 h-auto text-default-500 font-semibold"
+                  >
+                    <div className="flex items-center gap-1">
+                      CREATED
+                      <SortIcon
+                        active={sortColumn === "createdAt"}
+                        direction={sortDirection}
+                      />
+                    </div>
+                  </Button>
+                </TableColumn>
+                <TableColumn>
+                  <Button
+                    variant="light"
+                    size="sm"
+                    onPress={() => handleSort("lastActive")}
+                    className="px-1 h-auto text-default-500 font-semibold"
+                  >
+                    <div className="items-center gap-1">
+                      LAST ACTIVE
+                      <SortIcon
+                        active={sortColumn === "lastActive"}
+                        direction={sortDirection}
+                      />
+                    </div>
+                  </Button>
                 </TableColumn>
                 <TableColumn>ACTIONS</TableColumn>
               </TableHeader>
-              <TableBody>
-                {items.map((user) => (
+              <TableBody emptyContent="No users found." items={items}>
+                {(user) => (
                   <TableRow key={user.id}>
                     <TableCell>
                       <User
                         avatarProps={{
-                          radius: "lg",
-                          // src: user.avatar,
-                          size: "sm",
-                        }}
-                        classNames={{
-                          description: "text-default-500",
+                          radius: "full",
+                          src: `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name}`,
                         }}
                         description={user.email}
                         name={user.name}
-                      />
+                      >
+                        {user.email}
+                      </User>
                     </TableCell>
+                    <TableCell>{user.email}</TableCell>
                     <TableCell>
                       <Chip
-                        color={getRoleColor(user.role) as any}
+                        color={getRoleColor(user.role)}
                         size="sm"
                         variant="flat"
                       >
@@ -482,49 +521,44 @@ export default function UserTables({
                       </Chip>
                     </TableCell>
                     <TableCell>
-                      <div className="text-small">
-                        <p className="font-medium">{user.department}</p>
+                      {user.department ? (
+                        <Chip color="default" size="sm" variant="flat">
+                          {user.department}
+                        </Chip>
+                      ) : (
+                        <span className="text-default-400">-</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {user.createdAt.toLocaleDateString("id-ID", {
+                        day: "numeric",
+                        month: "short",
+                        year: "numeric",
+                      })}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Chip
+                          color={getStatusColor(getUserStatus(user.lastActive))}
+                          size="sm"
+                          variant="flat"
+                        >
+                          {getUserStatus(user.lastActive)}
+                        </Chip>
+                        <span className="text-xs text-default-500">
+                          {formatLastActive(user.lastActive).text}
+                        </span>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Chip
-                        classNames={{
-                          content:
-                            getUserStatus(user.lastActive) === "online"
-                              ? "text-success-600 font-medium"
-                              : "",
-                        }}
-                        color={
-                          getStatusColor(getUserStatus(user.lastActive)) as any
-                        }
-                        size="sm"
-                        variant="dot"
-                      >
-                        {getUserStatus(user.lastActive)}
-                      </Chip>
-                    </TableCell>
-                    <TableCell>
-                      <Chip
-                        color={formatLastActive(user.lastActive).color as any}
-                        size="sm"
-                        startContent={
-                          <span>{formatLastActive(user.lastActive).emoji}</span>
-                        }
-                        variant="flat"
-                      >
-                        {formatLastActive(user.lastActive).text}
-                      </Chip>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-small">
-                        {new Date(user.createdAt).toLocaleDateString("id-ID")}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="relative flex items-center gap-2">
+                      <div className="flex items-center gap-2">
                         <Dropdown>
                           <DropdownTrigger>
-                            <Button isIconOnly size="sm" variant="light">
+                            <Button
+                              isIconOnly
+                              size="sm"
+                              variant="light"
+                            >
                               <MoreVertical className="w-4 h-4" />
                             </Button>
                           </DropdownTrigger>
@@ -536,94 +570,92 @@ export default function UserTables({
                             >
                               View Details
                             </DropdownItem>
-                            {session?.user?.role === "super_admin" ? (
-                              <DropdownItem
-                                key="edit"
-                                startContent={<Edit className="w-4 h-4" />}
-                                onPress={() => handleEditUser(user)}
-                              >
-                                Edit User
-                              </DropdownItem>
-                            ) : null}
-                            {/* <DropdownItem
-                              key="contact"
-                              startContent={<Mail className="w-4 h-4" />}
+                            <DropdownItem
+                              key="edit"
+                              startContent={<Edit className="w-4 h-4" />}
+                              onPress={() => handleEditUser(user)}
                             >
-                              Contact
-                            </DropdownItem> */}
-                            {session?.user?.role === "super_admin" ? (
-                              <DropdownItem
-                                key="delete"
-                                className="text-danger"
-                                color="danger"
-                                startContent={<Trash2 className="w-4 h-4" />}
-                                onPress={() => handleDeleteUser(user)}
-                              >
-                                Delete
-                              </DropdownItem>
-                            ) : null}
+                              Edit User
+                            </DropdownItem>
+                            <DropdownItem
+                              key="delete"
+                              className="text-danger"
+                              color="danger"
+                              startContent={<Trash2 className="w-4 h-4" />}
+                              onPress={() => handleDeleteUser(user)}
+                            >
+                              Delete User
+                            </DropdownItem>
                           </DropdownMenu>
                         </Dropdown>
                       </div>
                     </TableCell>
                   </TableRow>
-                ))}
+                )}
               </TableBody>
             </Table>
           </div>
         </CardBody>
       </Card>
 
-      {/* Modal Add User */}
-      <div className="mx-4">
-        <Modal
-          isOpen={isOpen}
-          placement="top-center"
-          size="2xl"
-          onOpenChange={onOpenChange}
-        >
-          <ModalContent>
-            {(onClose) => (
-              <AddUserForms onClose={onClose} onUserAdded={handleUserAdded} />
-            )}
-          </ModalContent>
-        </Modal>
-      </div>
+      {/* Add User Modal */}
+      <Modal
+        isOpen={isOpen}
+        onOpenChange={onOpenChange}
+        placement="top-center"
+        size="2xl"
+      >
+        <ModalContent>
+          <AddUserForms onClose={onOpenChange} onUserAdded={handleUserAdded} />
+        </ModalContent>
+      </Modal>
 
-      {/* Modal Detail User */}
-      <UserDetailModal
+      {/* User Detail Modal */}
+      <Modal
         isOpen={isDetailOpen}
-        user={selectedUser}
-        onClose={onDetailOpenChange}
-      />
+        onOpenChange={onDetailOpenChange}
+        placement="top-center"
+        size="2xl"
+      >
+        <ModalContent>
+          <UserDetailModal
+            user={selectedUser}
+            onClose={onDetailOpenChange}
+          />
+        </ModalContent>
+      </Modal>
 
-      {/* Modal Edit User */}
-      <div className="mx-4">
-        <Modal
-          isOpen={isEditOpen}
-          placement="top-center"
-          size="2xl"
-          onOpenChange={onEditOpenChange}
-        >
-          <ModalContent>
-            {(onClose) => (
-              <EditUserModal
-                user={selectedUser}
-                onClose={onClose}
-                onUserUpdated={handleUserUpdated}
-              />
-            )}
-          </ModalContent>
-        </Modal>
-      </div>
+      {/* Edit User Modal */}
+      <Modal
+        isOpen={isEditOpen}
+        onOpenChange={onEditOpenChange}
+        placement="top-center"
+        size="2xl"
+      >
+        <ModalContent>
+          <EditUserModal
+            user={selectedUser}
+            onClose={onEditOpenChange}
+            onUserUpdated={handleUserUpdated}
+          />
+        </ModalContent>
+      </Modal>
 
-      {/* Modal Delete User */}
-      <DeleteConfirmModal
+      {/* Delete Confirm Modal */}
+      <Modal
         isOpen={isDeleteOpen}
-        user={selectedUser}
-        onClose={onDeleteOpenChange}
-        onUserDeleted={handleUserDeleted}
-      />
+        onOpenChange={onDeleteOpenChange}
+        placement="top-center"
+        size="md"
+      >
+        <ModalContent>
+          <DeleteConfirmModal
+            user={selectedUser}
+            onClose={onDeleteOpenChange}
+            onUserDeleted={handleUserDeleted}
+          />
+        </ModalContent>
+      </Modal>
     </>
   );
 }

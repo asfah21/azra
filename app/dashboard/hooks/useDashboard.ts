@@ -1,6 +1,6 @@
 "use client";
 
-import useSWR from "swr";
+import { useEffect, useState } from "react";
 
 // Types untuk dashboard data
 export interface DashboardData {
@@ -41,83 +41,42 @@ export interface RecentActivity {
   createdAt: Date;
 }
 
-// Optimized fetcher dengan error handling yang lebih baik
-const fetcher = async (url: string) => {
-  try {
-    const response = await fetch(url, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-    });
+export function useDashboard(
+  initialDashboardData: DashboardData,
+  initialRecentActivities: RecentActivity[]
+) {
+  const [dashboardData, setDashboardData] = useState<DashboardData>(initialDashboardData);
+  const [recentActivities, setRecentActivities] = useState<RecentActivity[]>(initialRecentActivities);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
 
-    if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+  // Gunakan initial data dari server-side rendering
+  useEffect(() => {
+    setDashboardData(initialDashboardData);
+    setRecentActivities(initialRecentActivities);
+  }, [initialDashboardData, initialRecentActivities]);
+
+  // Optional: Manual refresh function
+  const refreshData = async () => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      // Jika perlu refresh data, bisa implement di sini
+      // Misalnya dengan memanggil server action atau API
+      console.log("Manual refresh - implement if needed");
+    } catch (err) {
+      setError(err instanceof Error ? err : new Error("Failed to refresh data"));
+    } finally {
+      setIsLoading(false);
     }
-
-    const data = await response.json();
-
-    // Konversi string dates ke Date objects untuk recent activities
-    if (data.recentActivities) {
-      data.recentActivities = data.recentActivities.map((activity: any) => ({
-        ...activity,
-        createdAt: new Date(activity.createdAt),
-      }));
-    }
-
-    return data;
-  } catch (error) {
-    console.error("Fetcher error:", error);
-    throw error;
-  }
-};
-
-export function useDashboard() {
-  const { data, error, isLoading, mutate } = useSWR<{
-    dashboardData: DashboardData;
-    recentActivities: RecentActivity[];
-  }>("/api/dashboard", fetcher, {
-    refreshInterval: 60000,
-    revalidateOnFocus: false,
-    revalidateOnReconnect: true,
-    errorRetryCount: 3,
-    errorRetryInterval: 10000,
-    dedupingInterval: 30000,
-    fallbackData: {
-      dashboardData: {
-        assetStats: { total: 0, active: 0, maintenance: 0, critical: 0 },
-        workOrderStats: {
-          total: 0,
-          pending: 0,
-          inProgress: 0,
-          rfu: 0,
-          overdue: 0,
-        },
-        monthlyBreakdowns: [],
-        categoryDistribution: [],
-        maintenancePerformance: [],
-      },
-      recentActivities: [],
-    },
-  });
+  };
 
   return {
-    dashboardData: data?.dashboardData || {
-      assetStats: { total: 0, active: 0, maintenance: 0, critical: 0 },
-      workOrderStats: {
-        total: 0,
-        pending: 0,
-        inProgress: 0,
-        rfu: 0,
-        overdue: 0,
-      },
-      monthlyBreakdowns: [],
-      categoryDistribution: [],
-      maintenancePerformance: [],
-    },
-    recentActivities: data?.recentActivities || [],
+    dashboardData,
+    recentActivities,
     isLoading,
     error,
-    mutate,
+    mutate: refreshData,
   };
 }
