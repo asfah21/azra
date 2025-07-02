@@ -110,7 +110,8 @@ export function Topbar({
             <DropdownTrigger>
               <Avatar
                 className="cursor-pointer"
-                name={getFirstName(session?.user?.name || "User")}
+                // name={getFirstName(session?.user?.name || "User")}
+                src={session?.user?.photo || "https://i.pravatar.cc/150?img=12"}
                 size="sm"
               />
             </DropdownTrigger>
@@ -194,6 +195,7 @@ export function Topbar({
           </Button>
           <div className="hidden lg:flex">{searchInput}</div>
         </div>
+        <p>halo {session?.user?.photo}</p>
 
         <div className="flex items-center gap-3">
           <ThemeSwitch />
@@ -204,7 +206,8 @@ export function Topbar({
             <DropdownTrigger>
               <div className="flex items-center gap-2 cursor-pointer hover:bg-default-100 rounded-lg p-2 transition-colors">
                 <Avatar
-                  name={getFirstName(session?.user?.name || "User")}
+                  // name={getFirstName(session?.user?.name || "User")}
+                  src={session?.user?.photo || "https://i.pravatar.cc/150?img=12"}
                   size="sm"
                 />
                 <div className="hidden lg:flex flex-col items-start">

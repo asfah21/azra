@@ -11,6 +11,7 @@ declare module "next-auth" {
   interface User {
     id: string;
     role: Role;
+    photo?: string | null;
   }
 
   interface Session {
@@ -19,6 +20,7 @@ declare module "next-auth" {
       email: string;
       name: string | null;
       role: Role;
+      photo?: string | null;
     };
   }
 }
@@ -27,6 +29,7 @@ declare module "next-auth/jwt" {
   interface JWT {
     id: string;
     role: Role;
+    photo?: string | null;
   }
 }
 
@@ -66,6 +69,7 @@ export const authOptions: NextAuthOptions = {
             email: user.email,
             name: user.name,
             role: user.role,
+            photo: user.photo,
           };
         } catch (error) {
           console.error("Auth error:", error);
@@ -79,6 +83,7 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.id = user.id;
         token.role = user.role;
+        token.photo = user.photo;
 
         // Update lastActive saat login
         await prisma.user.update({
@@ -96,6 +101,7 @@ export const authOptions: NextAuthOptions = {
           email: token.email!,
           name: token.name ?? null,
           role: token.role,
+          photo: token.photo ?? null,
         };
       }
 

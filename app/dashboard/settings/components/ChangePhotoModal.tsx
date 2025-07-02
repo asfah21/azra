@@ -11,21 +11,35 @@ import {
 } from "@heroui/react";
 import { Image as ImageIcon } from "lucide-react";
 import { useState } from "react";
+import { updatePhoto } from "../action";
 
 export default function ChangePhotoModal({
   isOpen,
   onClose,
-  onSubmit,
+  onPhotoUploaded,
   userId,
-  updatePhoto,
 }: {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit?: () => void;
+  onPhotoUploaded?: (url: string) => void;
   userId: string;
-  updatePhoto: (userId: string, formData: FormData) => Promise<void>;
 }) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedFile) return;
+    setLoading(true);
+    const formData = new FormData();
+    formData.append("photo", selectedFile);
+    // @ts-ignore
+    const url = await updatePhoto(userId, formData);
+    setLoading(false);
+    if (onPhotoUploaded) onPhotoUploaded(url);
+    onClose();
+  };
 
   return (
     <Modal isOpen={isOpen} placement="top-center" onOpenChange={onClose}>
@@ -39,14 +53,7 @@ export default function ChangePhotoModal({
               </p>
             </ModalHeader>
             <ModalBody>
-              <form
-                action={async (formData) => {
-                  await updatePhoto(userId, formData);
-                  close();
-                  onSubmit && onSubmit();
-                }}
-                className="space-y-6"
-              >
+              <form onSubmit={handleSubmit} className="space-y-6">
                 <Card className="border-2 border-dashed border-default-300">
                   <CardBody className="p-6 flex flex-col items-center gap-4">
                     <div className="p-3 bg-primary-50 rounded-full">
@@ -65,7 +72,15 @@ export default function ChangePhotoModal({
                       name="photo"
                       type="file"
                       onChange={(e) => {
-                        setSelectedFile(e.target.files?.[0] || null);
+                        const file = e.target.files?.[0] || null;
+                        if (file && file.size > 1024 * 1024) {
+                          setError("Ukuran gambar maksimal 1MB.");
+                          e.target.value = "";
+                          setSelectedFile(null);
+                          return;
+                        }
+                        setError(null);
+                        setSelectedFile(file);
                       }}
                     />
                     <Button
@@ -82,18 +97,16 @@ export default function ChangePhotoModal({
                         File terpilih: {selectedFile.name}
                       </p>
                     )}
+                    {error && (
+                      <div className="text-sm text-danger-600 text-center mt-2">{error}</div>
+                    )}
                   </CardBody>
                 </Card>
                 <div className="flex justify-end mt-4">
-                  <Button
-                    className="mr-2"
-                    type="button"
-                    variant="flat"
-                    onClick={close}
-                  >
+                  {/* <Button className="mr-2" type="button" variant="flat" onClick={close}>
                     Batal
-                  </Button>
-                  <Button color="primary" type="submit">
+                  </Button> */}
+                  <Button color="success" type="submit" isLoading={loading}>
                     Simpan Foto
                   </Button>
                 </div>

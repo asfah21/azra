@@ -87,8 +87,15 @@ export default function ProfileSetting({
   };
 
   const handlePhotoUpdate = async (file: File) => {
+    if (file.size > 1024 * 1024) { // 1MB
+      addToast({
+        title: "Ukuran gambar terlalu besar",
+        description: "Ukuran gambar maksimal 1MB.",
+        color: "danger",
+      });
+      return;
+    }
     const formData = new FormData();
-
     formData.append("photo", file);
     await updatePhoto(userId, formData);
     setShowPhotoModal(false);
@@ -146,9 +153,9 @@ export default function ProfileSetting({
             {/* Modal untuk Change Photo */}
             <ChangePhotoModal
               isOpen={showPhotoModal}
-              updatePhoto={updatePhoto}
               userId={userId}
               onClose={() => setShowPhotoModal(false)}
+              onPhotoUploaded={(url) => setPhoto(url)}
             />
 
             {/* Contact Information */}
@@ -169,9 +176,33 @@ export default function ProfileSetting({
                   label="Phone"
                   placeholder="+62 xxx xxxx xxxx"
                   size="sm"
+                  type="tel"
+                  maxLength={16}
+                  pattern="^\+?[0-9]{0,15}$"
                   startContent={<Phone className="w-4 h-4 text-default-400" />}
                   value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
+                  onChange={(e) => {
+                    let value = e.target.value;
+
+                    // Hapus semua karakter selain angka, +, _
+                    value = value.replace(/[^0-9+]/g, "");
+
+                    // Pastikan hanya satu + di depan
+                    if (value.startsWith("+")) {
+                      // Hapus + di posisi lain
+                      value = "+" + value.slice(1).replace(/\+/g, "");
+                    } else {
+                      // Hapus semua +
+                      value = value.replace(/\+/g, "");
+                    }
+
+                    // Batasi panjang maksimal 16 karakter
+                    if (value.length > 16) {
+                      value = value.slice(0, 16);
+                    }
+
+                    setPhone(value);
+                  }}
                 />
               </div>
               <Input
@@ -202,14 +233,19 @@ export default function ProfileSetting({
                   placeholder="Enter current password"
                   size="sm"
                   type={showPassword ? "text" : "password"}
+                  disabled
                 />
                 <Input
                   label="New Password"
                   placeholder="Enter new password"
                   size="sm"
                   type="password"
+                  disabled
                 />
               </div>
+              <p className="ml-1 text-xs text-warning">
+                Untuk mengubah password, silahkan hubungi Azvan IT
+              </p>
             </div>
             {/* Tombol Save */}
             <div className="mt-6 mb-2 flex justify-end">
