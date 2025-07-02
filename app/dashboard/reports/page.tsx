@@ -13,7 +13,8 @@ import {
 } from "lucide-react";
 import { Input } from "@heroui/react";
 import Link from "next/link";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import UnderMaintenanceModal from "./components/UnderMaintenanceModal";
 
 const reports = [
   {
@@ -61,6 +62,16 @@ const reports = [
 export default function ReportsPage() {
   // State untuk search
   const [searchQuery, setSearchQuery] = useState("");
+  // State untuk modal maintenance
+  const [showModal, setShowModal] = useState(false);
+
+  // Tampilkan modal saat page diakses
+  useEffect(() => {
+    setShowModal(true);
+  }, []);
+
+  // Handler untuk menutup modal
+  const handleCloseModal = () => setShowModal(false);
 
   // Handler untuk search
   const handleSearchChange = (value: string) => {
@@ -86,6 +97,9 @@ export default function ReportsPage() {
 
   return (
     <div className="p-0 md:p-5 max-w-7xl mx-auto">
+      {/* Modal Under Maintenance */}
+      <UnderMaintenanceModal open={showModal} onClose={() => setShowModal(false)} />
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
         <div className="flex items-center gap-3">

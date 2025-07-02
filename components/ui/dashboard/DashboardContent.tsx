@@ -157,7 +157,7 @@ export default function DashboardContent({
         </div>
         <div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent">
-            Dashboard
+            Dashboard 
           </h1>
         </div>
       </div>

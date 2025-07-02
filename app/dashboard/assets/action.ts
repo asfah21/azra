@@ -609,6 +609,7 @@ export async function getAssetsData() {
       select: {
         id: true,
         name: true,
+        photo: true,
       },
       orderBy: { name: "asc" },
     });

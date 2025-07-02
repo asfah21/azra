@@ -175,6 +175,7 @@ export async function getRecentActivities() {
               reportedBy: {
                 select: {
                   name: true,
+                  photo: true,
                 },
               },
               inProgressBy: {

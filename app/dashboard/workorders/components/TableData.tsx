@@ -501,7 +501,7 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
                       <User
                         avatarProps={{
                           radius: "lg",
-                          // src: order.assigneeAvatar,
+                          src: order.reportedBy.photo || undefined,
                           size: "sm",
                         }}
                         classNames={{

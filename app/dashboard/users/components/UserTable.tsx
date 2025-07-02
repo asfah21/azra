@@ -55,6 +55,7 @@ interface User {
   department: string | null;
   createdAt: Date;
   lastActive: Date | null;
+  photo?: string;
 }
 
 interface UserManagementClientProps {
@@ -500,7 +501,7 @@ export default function UserTables({ usersTable }: UserManagementClientProps) {
                       <User
                         avatarProps={{
                           radius: "full",
-                          src: `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.name}`,
+                          src: user.photo,
                         }}
                         description={user.email}
                         name={user.name}

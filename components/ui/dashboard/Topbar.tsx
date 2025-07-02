@@ -21,6 +21,7 @@ import {
   DropdownMenu,
   DropdownItem,
 } from "@heroui/dropdown";
+import { useRouter } from "next/navigation";
 
 import { ThemeSwitch } from "@/components/theme-switch";
 import { Logo, SearchIcon } from "@/components/icons";
@@ -54,6 +55,8 @@ export function Topbar({
   openNewTab,
   session,
 }: TopbarProps) {
+  const router = useRouter();
+
   const searchInput = (
     <Input
       aria-label="Search"
@@ -82,6 +85,9 @@ export function Topbar({
   const getFirstName = (name: string) => {
     return name ? name.split(" ")[0] : "User";
   };
+
+  // Tambahkan log di sini
+  console.log("SESSION DI TOPBAR:", session);
 
   return (
     <>
@@ -126,12 +132,13 @@ export function Topbar({
                   </span>
                 </div>
               </DropdownItem>
-              <DropdownItem key="profile" startContent={<FiUser size={16} />}>
+              {/* <DropdownItem key="profile" startContent={<FiUser size={16} />}>
                 Profile
-              </DropdownItem>
+              </DropdownItem> */}
               <DropdownItem
                 key="settings"
                 startContent={<FiSettings size={16} />}
+                onPress={() => router.push("./settings")}
               >
                 Settings
               </DropdownItem>
@@ -195,7 +202,7 @@ export function Topbar({
           </Button>
           <div className="hidden lg:flex">{searchInput}</div>
         </div>
-        <p>halo {session?.user?.photo}</p>
+        {/* <p>halo {session?.user?.photo}</p> */}
 
         <div className="flex items-center gap-3">
           <ThemeSwitch />
@@ -228,12 +235,13 @@ export function Topbar({
                   </span>
                 </div>
               </DropdownItem>
-              <DropdownItem key="profile" startContent={<FiUser size={16} />}>
+              {/* <DropdownItem key="profile" startContent={<FiUser size={16} />}>
                 Profile
-              </DropdownItem>
+              </DropdownItem> */}
               <DropdownItem
                 key="settings"
                 startContent={<FiSettings size={16} />}
+                onPress={() => router.push("./settings")}
               >
                 Settings
               </DropdownItem>

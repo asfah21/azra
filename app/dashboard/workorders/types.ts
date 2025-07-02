@@ -24,6 +24,7 @@ export interface BreakdownPayload {
     name: string;
     email: string;
     department: string | null;
+    photo?: string | null;
   };
   components: {
     id: string;

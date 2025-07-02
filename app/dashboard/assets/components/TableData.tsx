@@ -85,7 +85,7 @@ interface Unit {
 
 interface ManagementClientProps {
   dataTable: Unit[];
-  users: Array<{ id: string; name: string }>;
+  users: Array<{ id: string; name: string; photo?: string }>;
 }
 
 // Constants - pindahkan keluar dari component untuk mencegah re-creation
@@ -186,14 +186,27 @@ export default function TableDatas({
 
   // Memoize users lookup untuk performa
   const usersMap = useMemo(() => {
-    return new Map(users.map((user) => [user.id, user.name]));
+    return new Map(users.map((user) => [user.id, { name: user.name, photo: user.photo }]));
   }, [users]);
 
   const getUserName = useCallback(
     (userId: string | null): string => {
       if (!userId) return "Unassigned";
 
-      return usersMap.get(userId) || userId;
+      return usersMap.get(userId)?.name || userId;
+    },
+    [usersMap],
+  );
+
+  const getUserPhoto = useCallback(
+    (userId: string | null): string | undefined => {
+      if (!userId) return undefined;
+      const photo = usersMap.get(userId)?.photo;
+      if (!photo) return undefined;
+      // Jika sudah ada /uploads/ di depannya, return apa adanya
+      if (photo.startsWith('/uploads/')) return photo;
+      // Jika hanya nama file, tambahkan prefix
+      return `/uploads/${photo}`;
     },
     [usersMap],
   );
@@ -594,6 +607,7 @@ export default function TableDatas({
                           avatarProps={{
                             radius: "lg",
                             size: "sm",
+                            src: getUserPhoto(asset.assignedToId),
                           }}
                           classNames={{
                             name: "text-sm font-medium",

@@ -221,6 +221,7 @@ export async function getUsersData() {
         department: true,
         createdAt: true,
         lastActive: true,
+        photo: true,
       },
       orderBy: {
         createdAt: "desc",

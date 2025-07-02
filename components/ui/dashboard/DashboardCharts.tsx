@@ -390,7 +390,7 @@ export default function DashboardCharts({
             </div>
             <div className="flex flex-col">
               <p className="text-lg font-semibold text-primary-800">
-                Asset Status Overview
+                Asset Status Overview 
               </p>
               <p className="text-small text-primary-600">
                 Equipment status distribution

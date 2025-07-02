@@ -518,6 +518,7 @@ export async function getBreakdownsData() {
             name: true,
             email: true,
             department: true,
+            photo: true,
           },
         },
         inProgressBy: {

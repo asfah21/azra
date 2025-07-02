@@ -6,6 +6,7 @@ export interface UserPayload {
   department: string | null;
   createdAt: Date;
   lastActive: Date | null;
+  photo?: string | null;
 }
 
 export interface UserStats {
