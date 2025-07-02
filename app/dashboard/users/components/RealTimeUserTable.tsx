@@ -9,5 +9,10 @@ interface RealTimeUserTableProps {
 }
 
 export default function RealTimeUserTable({ users }: RealTimeUserTableProps) {
-  return <UserTables usersTable={users} />;
+  const usersFixed = users.map((user) => ({
+    ...user,
+    photo: user.photo ?? undefined,
+  }));
+
+  return <UserTables usersTable={usersFixed} />;
 }

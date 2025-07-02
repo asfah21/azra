@@ -11,6 +11,7 @@ import {
 } from "@heroui/react";
 import { Image as ImageIcon } from "lucide-react";
 import { useState } from "react";
+
 import { updatePhoto } from "../action";
 
 export default function ChangePhotoModal({
@@ -33,9 +34,11 @@ export default function ChangePhotoModal({
     if (!selectedFile) return;
     setLoading(true);
     const formData = new FormData();
+
     formData.append("photo", selectedFile);
     // @ts-ignore
     const url = await updatePhoto(userId, formData);
+
     setLoading(false);
     if (onPhotoUploaded) onPhotoUploaded(url);
     onClose();
@@ -53,7 +56,7 @@ export default function ChangePhotoModal({
               </p>
             </ModalHeader>
             <ModalBody>
-              <form onSubmit={handleSubmit} className="space-y-6">
+              <form className="space-y-6" onSubmit={handleSubmit}>
                 <Card className="border-2 border-dashed border-default-300">
                   <CardBody className="p-6 flex flex-col items-center gap-4">
                     <div className="p-3 bg-primary-50 rounded-full">
@@ -73,10 +76,12 @@ export default function ChangePhotoModal({
                       type="file"
                       onChange={(e) => {
                         const file = e.target.files?.[0] || null;
+
                         if (file && file.size > 1024 * 1024) {
                           setError("Ukuran gambar maksimal 1MB.");
                           e.target.value = "";
                           setSelectedFile(null);
+
                           return;
                         }
                         setError(null);
@@ -98,7 +103,9 @@ export default function ChangePhotoModal({
                       </p>
                     )}
                     {error && (
-                      <div className="text-sm text-danger-600 text-center mt-2">{error}</div>
+                      <div className="text-sm text-danger-600 text-center mt-2">
+                        {error}
+                      </div>
                     )}
                   </CardBody>
                 </Card>
@@ -106,7 +113,7 @@ export default function ChangePhotoModal({
                   {/* <Button className="mr-2" type="button" variant="flat" onClick={close}>
                     Batal
                   </Button> */}
-                  <Button color="success" type="submit" isLoading={loading}>
+                  <Button color="success" isLoading={loading} type="submit">
                     Simpan Foto
                   </Button>
                 </div>

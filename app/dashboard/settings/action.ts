@@ -23,19 +23,24 @@ export async function updateProfile(userId: string, data: any) {
 }
 
 // Update foto profile
-export async function updatePhoto(userId: string, formData: FormData): Promise<string> {
+export async function updatePhoto(
+  userId: string,
+  formData: FormData,
+): Promise<string> {
   // Ambil user dari database
   const user = await prisma.user.findUnique({ where: { id: userId } });
 
   // Cek dan hapus foto lama jika ada (dan bukan default)
   if (user?.photo && user.photo.startsWith("/uploads/")) {
     const oldPhotoPath = path.join(process.cwd(), "public", user.photo);
+
     if (fs.existsSync(oldPhotoPath)) {
       fs.unlinkSync(oldPhotoPath);
     }
   }
 
   const file = formData.get("photo") as File;
+
   if (!file) throw new Error("No file uploaded");
   if (file.size > 1024 * 1024) throw new Error("Ukuran gambar maksimal 1MB");
 
@@ -46,10 +51,12 @@ export async function updatePhoto(userId: string, formData: FormData): Promise<s
   await writeFile(filePath, buffer);
 
   const photoUrl = `/uploads/${fileName}`;
+
   await prisma.user.update({
     where: { id: userId },
     data: { photo: photoUrl },
   });
   revalidatePath("/dashboard/settings");
+
   return photoUrl;
 }

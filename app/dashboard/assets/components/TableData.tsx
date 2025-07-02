@@ -186,7 +186,9 @@ export default function TableDatas({
 
   // Memoize users lookup untuk performa
   const usersMap = useMemo(() => {
-    return new Map(users.map((user) => [user.id, { name: user.name, photo: user.photo }]));
+    return new Map(
+      users.map((user) => [user.id, { name: user.name, photo: user.photo }]),
+    );
   }, [users]);
 
   const getUserName = useCallback(
@@ -202,9 +204,11 @@ export default function TableDatas({
     (userId: string | null): string | undefined => {
       if (!userId) return undefined;
       const photo = usersMap.get(userId)?.photo;
+
       if (!photo) return undefined;
       // Jika sudah ada /uploads/ di depannya, return apa adanya
-      if (photo.startsWith('/uploads/')) return photo;
+      if (photo.startsWith("/uploads/")) return photo;
+
       // Jika hanya nama file, tambahkan prefix
       return `/uploads/${photo}`;
     },
@@ -605,9 +609,11 @@ export default function TableDatas({
                       <TableCell>
                         <User
                           avatarProps={{
-                            radius: "lg",
+                            // radius: "lg",
                             size: "sm",
                             src: getUserPhoto(asset.assignedToId),
+                            className:
+                              "w-8 h-8 rounded-full object-cover flex-shrink-0",
                           }}
                           classNames={{
                             name: "text-sm font-medium",

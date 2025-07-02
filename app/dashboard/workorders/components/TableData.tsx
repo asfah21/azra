@@ -503,6 +503,8 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
                           radius: "lg",
                           src: order.reportedBy.photo || undefined,
                           size: "sm",
+                          className:
+                            "w-8 h-8 rounded-full object-cover flex-shrink-0",
                         }}
                         classNames={{
                           description: "text-default-500",

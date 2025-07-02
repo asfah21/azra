@@ -87,15 +87,18 @@ export default function ProfileSetting({
   };
 
   const handlePhotoUpdate = async (file: File) => {
-    if (file.size > 1024 * 1024) { // 1MB
+    if (file.size > 1024 * 1024) {
+      // 1MB
       addToast({
         title: "Ukuran gambar terlalu besar",
         description: "Ukuran gambar maksimal 1MB.",
         color: "danger",
       });
+
       return;
     }
     const formData = new FormData();
+
     formData.append("photo", file);
     await updatePhoto(userId, formData);
     setShowPhotoModal(false);
@@ -174,12 +177,12 @@ export default function ProfileSetting({
                 />
                 <Input
                   label="Phone"
-                  placeholder="+62 xxx xxxx xxxx"
-                  size="sm"
-                  type="tel"
                   maxLength={16}
                   pattern="^\+?[0-9]{0,15}$"
+                  placeholder="+62 xxx xxxx xxxx"
+                  size="sm"
                   startContent={<Phone className="w-4 h-4 text-default-400" />}
+                  type="tel"
                   value={phone}
                   onChange={(e) => {
                     let value = e.target.value;
@@ -220,6 +223,7 @@ export default function ProfileSetting({
               <h4 className="font-semibold text-default-700">Security</h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <Input
+                  disabled
                   endContent={
                     <button onClick={() => setShowPassword(!showPassword)}>
                       {showPassword ? (
@@ -233,14 +237,13 @@ export default function ProfileSetting({
                   placeholder="Enter current password"
                   size="sm"
                   type={showPassword ? "text" : "password"}
-                  disabled
                 />
                 <Input
+                  disabled
                   label="New Password"
                   placeholder="Enter new password"
                   size="sm"
                   type="password"
-                  disabled
                 />
               </div>
               <p className="ml-1 text-xs text-warning">

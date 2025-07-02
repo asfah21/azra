@@ -1,13 +1,6 @@
 "use client";
 
-import {
-  FiBell,
-  FiLogOut,
-  FiMenu,
-  FiX,
-  FiUser,
-  FiSettings,
-} from "react-icons/fi";
+import { FiBell, FiLogOut, FiMenu, FiX, FiSettings } from "react-icons/fi";
 import { Input } from "@heroui/input";
 import { Kbd } from "@heroui/kbd";
 import { Button } from "@heroui/button";
@@ -115,10 +108,10 @@ export function Topbar({
           <Dropdown placement="bottom-end">
             <DropdownTrigger>
               <Avatar
+                size="sm"
                 className="cursor-pointer"
                 // name={getFirstName(session?.user?.name || "User")}
                 src={session?.user?.photo || "https://i.pravatar.cc/150?img=12"}
-                size="sm"
               />
             </DropdownTrigger>
             <DropdownMenu aria-label="User actions">
@@ -214,8 +207,10 @@ export function Topbar({
               <div className="flex items-center gap-2 cursor-pointer hover:bg-default-100 rounded-lg p-2 transition-colors">
                 <Avatar
                   // name={getFirstName(session?.user?.name || "User")}
-                  src={session?.user?.photo || "https://i.pravatar.cc/150?img=12"}
                   size="sm"
+                  src={
+                    session?.user?.photo || "https://i.pravatar.cc/150?img=12"
+                  }
                 />
                 <div className="hidden lg:flex flex-col items-start">
                   <span className="text-small font-medium text-foreground">

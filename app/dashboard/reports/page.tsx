@@ -14,6 +14,7 @@ import {
 import { Input } from "@heroui/react";
 import Link from "next/link";
 import { useState, useMemo, useEffect } from "react";
+
 import UnderMaintenanceModal from "./components/UnderMaintenanceModal";
 
 const reports = [
@@ -98,7 +99,10 @@ export default function ReportsPage() {
   return (
     <div className="p-0 md:p-5 max-w-7xl mx-auto">
       {/* Modal Under Maintenance */}
-      <UnderMaintenanceModal open={showModal} onClose={() => setShowModal(false)} />
+      <UnderMaintenanceModal
+        open={showModal}
+        onClose={() => setShowModal(false)}
+      />
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">

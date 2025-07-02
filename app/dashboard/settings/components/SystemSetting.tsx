@@ -1,5 +1,5 @@
 "use client";
-import { Tooltip, Button } from "@heroui/react";
+import { Button } from "@heroui/react";
 import { Card, CardBody, CardHeader, Divider } from "@heroui/react";
 import { Database, Shield } from "lucide-react";
 
@@ -76,9 +76,10 @@ export default function SystemSetting() {
               </Button>
             </div>
           </div>
-          <p className="text-xs text-warning">Fitur belum tersedia untuk versi ini</p>
+          <p className="text-xs text-warning">
+            Fitur belum tersedia untuk versi ini
+          </p>
         </CardBody>
-        
       </Card>
     </>
   );

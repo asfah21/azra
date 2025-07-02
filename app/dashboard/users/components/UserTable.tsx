@@ -500,8 +500,10 @@ export default function UserTables({ usersTable }: UserManagementClientProps) {
                     <TableCell>
                       <User
                         avatarProps={{
-                          radius: "full",
+                          radius: "lg",
                           src: user.photo,
+                          className:
+                            "w-8 h-8 rounded-full object-cover flex-shrink-0",
                         }}
                         description={user.email}
                         name={user.name}
