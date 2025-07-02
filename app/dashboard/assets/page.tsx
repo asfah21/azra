@@ -1,4 +1,3 @@
-// Note v1
 import { Package } from "lucide-react";
 import { Metadata } from "next";
 
@@ -10,6 +9,7 @@ export const metadata: Metadata = {
   title: "Asset Management",
   description: "Manage assets and view statistics",
 };
+// tambahan
 
 export default async function AssetsPage() {
   // Server-side data untuk initial load (SSR)
