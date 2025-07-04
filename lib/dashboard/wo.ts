@@ -93,10 +93,29 @@ export async function getBreakdownsData() {
       overdue,
     };
 
-    return { allBreakdowns, breakdownStats };
+    return {
+      success: true,
+      data: {
+        allBreakdowns,
+        breakdownStats,
+      },
+    };
   } catch (error) {
     console.error("Error fetching breakdowns:", error);
 
-    throw new Error("Failed to fetch breakdowns data");
+    return {
+      success: false,
+      message: "Terjadi kesalahan saat mengambil data breakdowns.",
+      data: {
+        allBreakdowns: [],
+        breakdownStats: {
+          total: 0,
+          progress: 0,
+          rfu: 0,
+          pending: 0,
+          overdue: 0,
+        },
+      },
+    };
   }
 }
