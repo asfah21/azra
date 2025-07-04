@@ -48,7 +48,18 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      data: maintenanceLogs,
+      data: maintenanceLogs.map((log) => ({
+        ...log,
+        resolvedAt: log.resolvedAt?.toISOString(),
+        actions: log.actions.map((action) => ({
+          ...action,
+          actionTime: action.actionTime?.toISOString(),
+        })),
+        breakdown: {
+          ...log.breakdown,
+          breakdownTime: log.breakdown.breakdownTime?.toISOString(),
+        },
+      })),
     });
   } catch (error) {
     console.error("Error fetching maintenance history:", error);
