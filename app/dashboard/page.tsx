@@ -1,7 +1,9 @@
 import { getServerSession } from "next-auth";
 
-import { getDashboardData, getRecentActivities } from "@/lib/dashboard/dashboard"
-
+import {
+  getDashboardData,
+  getRecentActivities,
+} from "@/lib/dashboard/dashboard";
 import { authOptions } from "@/lib/auth";
 import DashboardContent from "@/components/ui/dashboard/DashboardContent";
 

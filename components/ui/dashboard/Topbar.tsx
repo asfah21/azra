@@ -108,9 +108,9 @@ export function Topbar({
           <Dropdown placement="bottom-end">
             <DropdownTrigger>
               <Avatar
-                size="sm"
                 className="cursor-pointer"
                 // name={getFirstName(session?.user?.name || "User")}
+                size="sm"
                 src={session?.user?.photo || "https://i.pravatar.cc/150?img=12"}
               />
             </DropdownTrigger>

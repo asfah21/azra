@@ -3,6 +3,7 @@ import { Metadata } from "next";
 
 import RealTimeStats from "./components/RealTimeStats";
 import RealTimeTable from "./components/RealTimeTable";
+
 import { getAssetsData } from "@/lib/dashboard/asset";
 
 export const metadata: Metadata = {
