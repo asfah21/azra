@@ -99,11 +99,26 @@ export async function getAssetsData() {
     });
 
     return {
+      success: true,
       allAssets,
       assetStats,
       users,
     };
   } catch (error) {
-    throw new Error("Failed to fetch assets data");
+    console.error("Error fetching assets data:", error);
+
+    return {
+      success: false,
+      message: "Terjadi kesalahan saat mengambil data assets.",
+      allAssets: [],
+      assetStats: {
+        total: 0,
+        new: 0,
+        active: 0,
+        maintenance: 0,
+        critical: 0,
+      },
+      users: [],
+    };
   }
 }
