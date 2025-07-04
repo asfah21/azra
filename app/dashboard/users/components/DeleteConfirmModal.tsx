@@ -1,3 +1,10 @@
+// Issue page ini:
+
+// 1.Jangan Percayai session.user.role di Client
+// 2.Hindari useEffect(() => { ... }, []) yang tidak perlu
+// 3.Optional: Hindari as any pada color
+
+
 "use client";
 
 import { useState, useEffect } from "react";

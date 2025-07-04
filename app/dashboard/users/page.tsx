@@ -3,7 +3,7 @@ import { Metadata } from "next";
 
 import RealTimeUserStats from "./components/RealTimeUserStats";
 import RealTimeUserTable from "./components/RealTimeUserTable";
-import { getUsersData } from "./action";
+import { getUsersData } from "@/lib/dashboard/user"
 
 export const metadata: Metadata = {
   title: "User Management",

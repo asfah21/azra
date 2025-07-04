@@ -1,3 +1,15 @@
+// Poin yang Bisa Ditingkatkan (Optional tapi Best Practice)
+
+// 1. Validasi input pakai Zod
+// Untuk menghindari user mengirim input aneh atau tidak sesuai (misalnya kategori bukan number)
+// Pakai z.coerce.number() untuk fields seperti categoryId, assetValue, utilizationRate, dll.
+
+// 2. Gunakan Server Action yang bersih dan modular
+// Misalnya, pisahkan logic update ke dalam lib/data/asset.ts, dan di Server Action tinggal panggil updateAssetData(id, input).
+
+// 3. Gunakan useFormState kalau ingin manual handle lebih granular
+// Tapi useActionState sudah cukup baik di kasusmu sekarang.
+
 "use client";
 
 import { useActionState, useEffect } from "react";

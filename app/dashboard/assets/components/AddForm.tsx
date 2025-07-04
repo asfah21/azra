@@ -1,3 +1,7 @@
+// Issue page ini :
+// 1. Keamanan server action Validasi ulang ID di server
+// 2. Validasi form	Perlu perbaikan minor (status, coercion)
+
 "use client";
 
 import { useActionState, useEffect } from "react";

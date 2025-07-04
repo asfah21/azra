@@ -1,3 +1,9 @@
+// Yang Harus diperbaiki:
+
+// 1. Buat ulang deleteAsset() dengan validasi session di server
+// 2. Tambahkan zod untuk validasi input
+// 3. Refactor jadi pakai useActionState
+
 "use client";
 
 import { useState, useEffect } from "react";
