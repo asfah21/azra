@@ -63,9 +63,9 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error("Error fetching maintenance history:", error);
-
+    //Recomended Error catch
     return NextResponse.json(
-      { message: "Terjadi kesalahan saat mengambil riwayat maintenance" },
+      { message: "Terjadi kesalahan saat mengambil riwayat maintenance", error: String(error) },
       { status: 500 },
     );
   }
