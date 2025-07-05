@@ -60,3 +60,35 @@ export async function updatePhoto(
 
   return photoUrl;
 }
+
+// Fungsi untuk mengambil data settings (mirip dengan getAssetsData)
+export async function getSettingsData(userId: string) {
+  try {
+    const profile = await prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        photo: true,
+        phone: true,
+        location: true,
+        role: true,
+        createdAt: true,
+      },
+    });
+
+    return {
+      success: true,
+      profile,
+    };
+  } catch (error) {
+    console.error("Error fetching settings data:", error);
+
+    return {
+      success: false,
+      message: "Terjadi kesalahan saat mengambil data profil pengguna.",
+      profile: null,
+    };
+  }
+}

@@ -79,8 +79,10 @@ export function Topbar({
     return name ? name.split(" ")[0] : "User";
   };
 
-  // Tambahkan log di sini
-  console.log("SESSION DI TOPBAR:", session);
+  // Hanya log di development, tidak di production
+  if (process.env.NODE_ENV !== "production") {
+    console.log("SESSION DI TOPBAR:", session);
+  }
 
   return (
     <>
