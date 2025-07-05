@@ -1,10 +1,12 @@
 import { PaperClipIcon } from "@heroicons/react/24/outline";
+
 import RealTimeStats from "./components/RealTimeStats";
 import RealTimeTable from "./components/RealTimeTable";
+
 import { getBreakdownsData } from "@/lib/dashboard/wo";
 
 // Paksa SSR, jangan SSG/ISR
-export const dynamic = "force-dynamic";
+// export const dynamic = "force-dynamic";
 
 export const metadata = {
   title: "Work Order",
@@ -17,7 +19,9 @@ export default async function WoPage() {
     // Tampilkan pesan error jika gagal fetch data
     return (
       <div className="p-5 max-w-2xl mx-auto text-center text-red-600">
-        <h2 className="text-xl font-bold mb-2">Gagal mengambil data breakdowns</h2>
+        <h2 className="text-xl font-bold mb-2">
+          Gagal mengambil data breakdowns
+        </h2>
         <p>{result.message || "Terjadi kesalahan tak terduga."}</p>
       </div>
     );
