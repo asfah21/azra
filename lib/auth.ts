@@ -47,6 +47,9 @@ export const authOptions: NextAuthOptions = {
         }
 
         try {
+          // Test database connection first
+          await prisma.$connect();
+          
           const user = await prisma.user.findUnique({
             where: { email: credentials.email },
           });
@@ -73,7 +76,21 @@ export const authOptions: NextAuthOptions = {
           };
         } catch (error) {
           console.error("Auth error:", error);
-          throw new Error("Database connection error. Please try again.");
+          
+          // Check if it's a database connection error
+          if (error instanceof Error) {
+            if (error.message.includes("connect") || error.message.includes("connection")) {
+              throw new Error("Database connection error. Please check your database configuration.");
+            }
+            if (error.message.includes("timeout")) {
+              throw new Error("Database connection timeout. Please try again.");
+            }
+          }
+          
+          throw new Error("Authentication failed. Please try again.");
+        } finally {
+          // Always disconnect after auth attempt
+          await prisma.$disconnect();
         }
       },
     }),
@@ -86,10 +103,15 @@ export const authOptions: NextAuthOptions = {
         token.photo = user.photo;
 
         // Update lastActive saat login
-        await prisma.user.update({
-          where: { id: user.id },
-          data: { lastActive: new Date() },
-        });
+        try {
+          await prisma.user.update({
+            where: { id: user.id },
+            data: { lastActive: new Date() },
+          });
+        } catch (error) {
+          console.error("Error updating lastActive:", error);
+          // Don't fail the login if this fails
+        }
       }
 
       return token;

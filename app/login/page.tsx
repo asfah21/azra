@@ -43,16 +43,28 @@ export default function LoginPage() {
       });
 
       if (result?.error) {
-        setError(result.error);
+        // Handle specific error messages
+        if (result.error.includes("Database connection error")) {
+          setError("Database connection error. Please check your database configuration.");
+        } else if (result.error.includes("timeout")) {
+          setError("Connection timeout. Please try again.");
+        } else if (result.error.includes("No user found")) {
+          setError("Email tidak ditemukan. Silakan cek kembali.");
+        } else if (result.error.includes("Invalid password")) {
+          setError("Password salah. Silakan cek kembali.");
+        } else if (result.error.includes("Please enter email and password")) {
+          setError("Silakan masukkan email dan password.");
+        } else {
+          setError(result.error);
+        }
       } else if (result?.ok) {
         router.push("/dashboard");
       } else {
-        setError("An unexpected error occurred. Please try again.");
+        setError("Terjadi kesalahan tak terduga. Silakan coba lagi.");
       }
     } catch (err) {
-      /* eslint-disable no-console */
       console.error("Login error:", err);
-      setError("An error occurred during login. Please try again.");
+      setError("Terjadi kesalahan saat login. Silakan coba lagi.");
     } finally {
       setLoading(false);
     }
