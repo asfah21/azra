@@ -64,8 +64,28 @@ export async function updatePhoto(
 // Fungsi untuk mengambil data settings (mirip dengan getAssetsData)
 export async function getSettingsData(userId: string) {
   try {
+    // Jika userId adalah "system", ambil user pertama yang ada
+    let whereClause = { id: userId };
+    
+    if (userId === "system") {
+      // Ambil user pertama yang ada di database
+      const firstUser = await prisma.user.findFirst({
+        select: { id: true }
+      });
+      
+      if (!firstUser) {
+        return {
+          success: false,
+          message: "Tidak ada user yang tersedia di database.",
+          profile: null,
+        };
+      }
+      
+      whereClause = { id: firstUser.id };
+    }
+
     const profile = await prisma.user.findUnique({
-      where: { id: userId },
+      where: whereClause,
       select: {
         id: true,
         name: true,
@@ -77,6 +97,14 @@ export async function getSettingsData(userId: string) {
         createdAt: true,
       },
     });
+
+    if (!profile) {
+      return {
+        success: false,
+        message: "Profil pengguna tidak ditemukan.",
+        profile: null,
+      };
+    }
 
     return {
       success: true,

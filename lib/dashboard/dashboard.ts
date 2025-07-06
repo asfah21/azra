@@ -118,6 +118,7 @@ export async function getDashboardData() {
   } catch (error) {
     console.error("Error fetching dashboard data:", error);
 
+    // Return default data structure instead of throwing error
     return {
       assetStats: { total: 0, active: 0, maintenance: 0, critical: 0 },
       workOrderStats: {
@@ -127,9 +128,21 @@ export async function getDashboardData() {
         rfu: 0,
         overdue: 0,
       },
-      monthlyBreakdowns: [],
+      monthlyBreakdowns: [
+        { month: "Jan", count: 0 },
+        { month: "Feb", count: 0 },
+        { month: "Mar", count: 0 },
+        { month: "Apr", count: 0 },
+        { month: "May", count: 0 },
+        { month: "Jun", count: 0 },
+      ],
       categoryDistribution: [],
-      maintenancePerformance: [],
+      maintenancePerformance: [
+        { department: "Heavy Equipment", completionRate: 0 },
+        { department: "Electrical", completionRate: 0 },
+        { department: "Mechanical", completionRate: 0 },
+        { department: "General", completionRate: 0 },
+      ],
     };
   }
 }
@@ -291,6 +304,17 @@ export async function getRecentActivities() {
   } catch (error) {
     console.error("Error fetching recent activities:", error);
 
-    return [];
+    // Return default activities instead of empty array
+    return [
+      {
+        id: "default-1",
+        user: "System",
+        action: "Aplikasi telah dimulai",
+        time: "Baru saja",
+        avatar: "https://i.pravatar.cc/150?u=1",
+        type: "default",
+        createdAt: new Date(),
+      },
+    ];
   }
 }
