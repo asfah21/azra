@@ -1,28 +1,44 @@
+import { getServerSession } from "next-auth";
+
 import {
   getDashboardData,
   getRecentActivities,
 } from "@/lib/dashboard/dashboard";
+import { authOptions } from "@/lib/auth";
 import DashboardContent from "@/components/ui/dashboard/DashboardContent";
 
 export default async function DashboardPage() {
   try {
-    // Fetch data untuk initial load (SSR) tanpa dependency session
+    // Coba ambil session terlebih dahulu
+    let user: any;
+    
+    try {
+      const session = await getServerSession(authOptions);
+      user = session?.user || {
+        id: "system",
+        name: "System User",
+        email: "system@example.com",
+        role: "admin_heavy" as const,
+      };
+    } catch (sessionError) {
+      console.warn("Session error, using fallback:", sessionError);
+      user = {
+        id: "system",
+        name: "System User",
+        email: "system@example.com",
+        role: "admin_heavy" as const,
+      };
+    }
+
+    // Fetch data untuk initial load (SSR)
     const dashboardData = await getDashboardData();
     const recentActivities = await getRecentActivities();
-
-    // Mock user data untuk kompatibilitas
-    const mockUser = {
-      id: "system",
-      name: "System User",
-      email: "system@example.com",
-      role: "admin_heavy" as const,
-    };
 
     return (
       <DashboardContent
         initialDashboardData={dashboardData}
         initialRecentActivities={recentActivities}
-        user={mockUser}
+        user={user}
       />
     );
   } catch (error) {

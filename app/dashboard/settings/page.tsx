@@ -1,9 +1,11 @@
 import { Settings } from "lucide-react";
+import { getServerSession } from "next-auth";
 import { Metadata } from "next";
 
 import ProfileSetting from "./components/ProfileSetting";
 import SystemSetting from "./components/SystemSetting";
 import { getSettingsData } from "./action";
+import { authOptions } from "@/lib/auth";
 
 export const metadata: Metadata = {
   title: "Settings",
@@ -12,11 +14,19 @@ export const metadata: Metadata = {
 
 export default async function SettingsPage() {
   try {
-    // Gunakan user ID default atau ambil dari query parameter jika diperlukan
-    const defaultUserId = "system"; // Atau bisa diambil dari URL parameter
+    // Coba ambil session terlebih dahulu
+    let userId: string;
+    
+    try {
+      const session = await getServerSession(authOptions);
+      userId = session?.user?.id || "system";
+    } catch (sessionError) {
+      console.warn("Session error, using fallback:", sessionError);
+      userId = "system";
+    }
     
     // Server-side data untuk initial load (SSR)
-    const { profile, success, message } = await getSettingsData(defaultUserId);
+    const { profile, success, message } = await getSettingsData(userId);
 
     if (!success) {
       return (
@@ -52,7 +62,7 @@ export default async function SettingsPage() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <ProfileSetting profile={profile} userId={defaultUserId} />
+          <ProfileSetting profile={profile} userId={userId} />
           <SystemSetting />
         </div>
       </div>

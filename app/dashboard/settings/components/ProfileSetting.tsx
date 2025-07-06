@@ -72,18 +72,37 @@ export default function ProfileSetting({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    await updateProfile(userId, {
-      name,
-      department,
-      email,
-      phone,
-      location,
-    });
-    addToast({
-      title: "Berhasil Disimpan",
-      description: "Data profil berhasil diperbarui.",
-      color: "success",
-    });
+    
+    try {
+      const result = await updateProfile(userId, {
+        name,
+        department,
+        email,
+        phone,
+        location,
+      });
+      
+      if (result.success) {
+        addToast({
+          title: "Berhasil Disimpan",
+          description: result.message || "Data profil berhasil diperbarui.",
+          color: "success",
+        });
+      } else {
+        addToast({
+          title: "Gagal Menyimpan",
+          description: result.message || "Gagal memperbarui data profil.",
+          color: "danger",
+        });
+      }
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      addToast({
+        title: "Error",
+        description: "Terjadi kesalahan saat menyimpan data.",
+        color: "danger",
+      });
+    }
   };
 
   const handlePhotoUpdate = async (file: File) => {
@@ -97,11 +116,40 @@ export default function ProfileSetting({
 
       return;
     }
-    const formData = new FormData();
-
-    formData.append("photo", file);
-    await updatePhoto(userId, formData);
-    setShowPhotoModal(false);
+    
+    try {
+      const formData = new FormData();
+      formData.append("photo", file);
+      
+      const result = await updatePhoto(userId, formData);
+      
+      if (result.success) {
+        addToast({
+          title: "Berhasil",
+          description: result.message || "Foto berhasil diupdate.",
+          color: "success",
+        });
+        
+        if (result.photoUrl) {
+          setPhoto(result.photoUrl);
+        }
+        
+        setShowPhotoModal(false);
+      } else {
+        addToast({
+          title: "Gagal",
+          description: result.message || "Gagal mengupdate foto.",
+          color: "danger",
+        });
+      }
+    } catch (error) {
+      console.error("Error updating photo:", error);
+      addToast({
+        title: "Error",
+        description: "Terjadi kesalahan saat mengupdate foto.",
+        color: "danger",
+      });
+    }
   };
 
   return (

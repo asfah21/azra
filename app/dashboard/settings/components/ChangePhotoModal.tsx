@@ -33,15 +33,28 @@ export default function ChangePhotoModal({
     e.preventDefault();
     if (!selectedFile) return;
     setLoading(true);
-    const formData = new FormData();
-
-    formData.append("photo", selectedFile);
-    // @ts-ignore
-    const url = await updatePhoto(userId, formData);
-
-    setLoading(false);
-    if (onPhotoUploaded) onPhotoUploaded(url);
-    onClose();
+    setError(null);
+    
+    try {
+      const formData = new FormData();
+      formData.append("photo", selectedFile);
+      
+      const result = await updatePhoto(userId, formData);
+      
+      if (result.success) {
+        if (onPhotoUploaded && result.photoUrl) {
+          onPhotoUploaded(result.photoUrl);
+        }
+        onClose();
+      } else {
+        setError(result.message || "Gagal mengupdate foto.");
+      }
+    } catch (error) {
+      console.error("Error updating photo:", error);
+      setError("Terjadi kesalahan saat mengupdate foto.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
