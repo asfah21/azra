@@ -8,6 +8,12 @@ export async function getUserCount() {
 
 export async function getUserList() {
   return await prisma.user.findMany({
-    select: { id: true, name: true, email: true },
+    orderBy: { createdAt: 'desc'},
+    select: { 
+      id: true, 
+      name: true,
+      email: true,
+      createdAt: true,
+    },
   });
 }

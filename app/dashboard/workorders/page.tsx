@@ -3,7 +3,7 @@ import { PaperClipIcon } from "@heroicons/react/24/outline";
 import RealTimeStats from "./components/RealTimeStats";
 import RealTimeTable from "./components/RealTimeTable";
 
-import { getBreakdownsData } from "@/lib/dashboard/wo";
+import { getWorkOrdersData } from "./action";
 
 // Paksa SSR, jangan SSG/ISR
 // export const dynamic = "force-dynamic";
@@ -14,7 +14,7 @@ export const metadata = {
 
 export default async function WoPage() {
   try {
-    const result = await getBreakdownsData();
+    const result = await getWorkOrdersData();
 
     if (!result.success) {
       return (
