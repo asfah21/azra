@@ -7,6 +7,8 @@ import {
 import { authOptions } from "@/lib/auth";
 import DashboardContent from "@/components/ui/dashboard/DashboardContent";
 
+export const dynamic = "force-dynamic";
+
 export default async function DashboardPage() {
   try {
     // Coba ambil session terlebih dahulu

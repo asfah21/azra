@@ -6,7 +6,7 @@ import RealTimeTable from "./components/RealTimeTable";
 import { getWorkOrdersData } from "./action";
 
 // Paksa SSR, jangan SSG/ISR
-// export const dynamic = "force-dynamic";
+export const dynamic = "force-dynamic";
 
 export const metadata = {
   title: "Work Order",

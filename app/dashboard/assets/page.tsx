@@ -12,6 +12,8 @@ export const metadata: Metadata = {
 };
 // tambahan
 
+export const dynamic = "force-dynamic";
+
 export default async function AssetsPage() {
   try {
     // Server-side data untuk initial load (SSR)

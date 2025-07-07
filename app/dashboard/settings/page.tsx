@@ -7,6 +7,8 @@ import SystemSetting from "./components/SystemSetting";
 import { getSettingsData } from "./action";
 import { authOptions } from "@/lib/auth";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "Settings",
   description: "Manage your profile and system settings",
