@@ -8,7 +8,7 @@ import {
   updateBreakdownStatusWithActions,
   updateBreakdownStatusWithUnitStatus,
   deleteBreakdown,
-} from "./serverAction";
+} from "../action";
 
 // Helper function untuk konversi data (dipindahkan dari useWorkOrders.ts)
 const convertBreakdownData = (breakdown: any): BreakdownPayload => ({
