@@ -1,8 +1,6 @@
 "use client";
 
-import { Divider } from "@heroui/divider";
-import { Tooltip } from "@heroui/tooltip";
-import { Button } from "@heroui/button";
+import { Divider, Tooltip, Button } from "@heroui/react";
 
 import { VersionApp } from "../ChipVersion";
 

@@ -1,10 +1,8 @@
-import { Button } from "@heroui/button";
 import {
   ArrowRightEndOnRectangleIcon as Azvan,
   SparklesIcon as Azva,
 } from "@heroicons/react/24/outline";
-import { Card, CardHeader, CardBody } from "@heroui/card";
-import { Link } from "@heroui/link";
+import { Button, Link, Card, CardHeader, CardBody } from "@heroui/react";
 import { SiSmart, SiViaplay } from "react-icons/si";
 
 import { HeroBgDelta } from "./HeroBg";

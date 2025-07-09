@@ -8,19 +8,9 @@ import {
   FiUser,
   FiSettings,
 } from "react-icons/fi";
-import { Input } from "@heroui/input";
-import { Kbd } from "@heroui/kbd";
-import { Button } from "@heroui/button";
-import { Card, CardBody } from "@heroui/card";
+import { Input, Kbd, Button, Avatar, Card, CardBody, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem,} from "@heroui/react";
 import { GoSidebarExpand, GoSidebarCollapse } from "react-icons/go";
 import { FiXCircle } from "react-icons/fi";
-import { Avatar } from "@heroui/avatar";
-import {
-  Dropdown,
-  DropdownTrigger,
-  DropdownMenu,
-  DropdownItem,
-} from "@heroui/dropdown";
 
 import { ThemeSwitch } from "@/components/theme-switch";
 import { Logo, SearchIcon } from "@/components/icons";

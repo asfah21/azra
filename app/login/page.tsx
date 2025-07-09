@@ -3,11 +3,7 @@
 import { signIn, useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "@heroui/button";
-import { Input } from "@heroui/input";
-import { Card, CardHeader, CardBody, CardFooter } from "@heroui/card";
-import { Alert } from "@heroui/alert";
-import { Divider } from "@heroui/divider";
+import { Button, Input, Alert, Divider, Card, CardHeader, CardBody, CardFooter } from "@heroui/react";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 
 export default function LoginPage() {

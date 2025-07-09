@@ -1,4 +1,4 @@
-import { Card, CardHeader, CardBody } from "@heroui/card";
+import { Card, CardHeader, CardBody } from "@heroui/react";
 // import { Link } from "@heroui/link";
 import {
   TbAffiliateFilled,
