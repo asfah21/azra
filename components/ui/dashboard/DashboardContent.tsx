@@ -29,31 +29,11 @@ import DashboardCharts from "@/components/ui/dashboard/DashboardCharts";
 interface DashboardContentProps {
   user: any;
   dashboardData: {
-    assetStats: {
-      total: number;
-      active: number;
-      maintenance: number;
-      critical: number;
-    };
-    workOrderStats: {
-      total: number;
-      pending: number;
-      inProgress: number;
-      rfu: number;
-      overdue: number;
-    };
-    monthlyBreakdowns: Array<{
-      month: string;
-      count: number;
-    }>;
-    categoryDistribution: Array<{
-      category: string;
-      count: number;
-    }>;
-    maintenancePerformance: Array<{
-      department: string;
-      completionRate: number;
-    }>;
+    assetStats: { total: number; active: number; maintenance: number; critical: number };
+    workOrderStats: { total: number; pending: number; inProgress: number; rfu: number; overdue: number };
+    monthlyBreakdowns: Array<{ month: string; count: number }>;
+    categoryDistribution: Array<{ category: string; count: number }>;
+    maintenancePerformance: Array<{ department: string; completionRate: number }>;
   };
   recentActivities: Array<{
     id: string;
@@ -64,46 +44,101 @@ interface DashboardContentProps {
     type: string;
     createdAt: Date;
   }>;
+  loading?: boolean;
+  error?: string | null;
+  onRetry?: () => void;
 }
 
 export default function DashboardContent({
   user,
-  dashboardData,
-  recentActivities,
+  dashboardData = {
+    assetStats: { total: 0, active: 0, maintenance: 0, critical: 0 },
+    workOrderStats: { total: 0, pending: 0, inProgress: 0, rfu: 0, overdue: 0 },
+    monthlyBreakdowns: [],
+    categoryDistribution: [],
+    maintenancePerformance: [],
+  },
+  recentActivities = [],
+  loading = false,
+  error = null,
+  onRetry,
 }: DashboardContentProps) {
+  
+  // ✅ PERBAIKAN: Handle loading state dengan overlay
+  if (loading) {
+    return (
+      <div className="p-6 max-w-7xl mx-auto relative">
+        {/* Loading overlay */}
+        <div className="absolute inset-0 bg-background/50 backdrop-blur-sm z-50 flex items-center justify-center">
+          <div className="flex flex-col items-center gap-4">
+            <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+            <p className="text-small text-default-500">Loading dashboard data...</p>
+          </div>
+        </div>
+        
+        {/* Render skeleton content */}
+        <DashboardSkeleton />
+      </div>
+    );
+  }
+
+  // ✅ PERBAIKAN: Handle error state dengan retry button
+  if (error) {
+    return (
+      <div className="p-6 max-w-7xl mx-auto">
+        <div className="flex items-center gap-3 mb-8">
+          <div className="p-2 bg-gradient-to-br from-primary-100 to-primary-50 rounded-xl">
+            <LayoutDashboardIcon className="w-6 h-6 text-primary-600" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent">
+              Dashboard
+            </h1>
+          </div>
+        </div>
+        
+        <div className="flex justify-center items-center h-64">
+          <div className="text-center">
+            <p className="text-danger mb-2">Error loading dashboard:</p>
+            <p className="text-small text-default-500 mb-4">{error}</p>
+            <button 
+              onClick={onRetry}
+              className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-600"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ✅ PERBAIKAN: Selalu render content dengan data yang ada
   const getActivityIcon = (type: string) => {
     switch (type) {
-      case "login":
-        return <UserIcon className="w-4 h-4 text-success" />;
-      case "breakdown":
-        return <AlertTriangle className="w-4 h-4 text-danger" />;
-      case "workorder":
-        return <Wrench className="w-4 h-4 text-primary" />;
-      case "maintenance":
-        return <Activity className="w-4 h-4 text-secondary" />;
       case "asset":
-        return <Package className="w-4 h-4 text-warning" />;
-      case "rfu":
-        return <CheckCircle2 className="w-4 h-4 text-success" />;
+        return <Package className="w-3 h-3" />;
+      case "work_order":
+        return <Wrench className="w-3 h-3" />;
+      case "maintenance":
+        return <CheckCircle2 className="w-3 h-3" />;
+      case "alert":
+        return <AlertTriangle className="w-3 h-3" />;
       default:
-        return <Activity className="w-4 h-4 text-default" />;
+        return <Activity className="w-3 h-3" />;
     }
   };
 
   const getActivityColor = (type: string) => {
     switch (type) {
-      case "login":
-        return "success";
-      case "breakdown":
-        return "danger";
-      case "workorder":
-        return "primary";
-      case "maintenance":
-        return "secondary";
       case "asset":
+        return "primary";
+      case "work_order":
         return "warning";
-      case "rfu":
+      case "maintenance":
         return "success";
+      case "alert":
+        return "danger";
       default:
         return "default";
     }
@@ -111,18 +146,14 @@ export default function DashboardContent({
 
   const getActivityLabel = (type: string) => {
     switch (type) {
-      case "login":
-        return "Login";
-      case "breakdown":
-        return "Breakdown";
-      case "workorder":
+      case "asset":
+        return "Asset";
+      case "work_order":
         return "Work Order";
       case "maintenance":
         return "Maintenance";
-      case "asset":
-        return "Asset";
-      case "rfu":
-        return "RFU";
+      case "alert":
+        return "Alert";
       default:
         return "Activity";
     }
@@ -162,7 +193,7 @@ export default function DashboardContent({
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <span className="text-2xl font-bold text-primary-700">
-                  {dashboardData.assetStats.total}
+                  {dashboardData?.assetStats?.total || 0}
                 </span>
                 <Chip color="primary" size="sm" variant="flat">
                   <TrendingUp className="w-3 h-3 mr-1" />
@@ -205,7 +236,7 @@ export default function DashboardContent({
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <span className="text-2xl font-bold text-success-700">
-                  {dashboardData.assetStats.active}
+                  {dashboardData?.assetStats?.active || 0}
                 </span>
                 <Chip color="success" size="sm" variant="flat">
                   On
@@ -217,10 +248,10 @@ export default function DashboardContent({
                     Availability
                   </span>
                   <span className="text-small font-medium">
-                    {dashboardData.assetStats.total
+                    {dashboardData?.assetStats?.total
                       ? Math.round(
-                          (dashboardData.assetStats.active /
-                            dashboardData.assetStats.total) *
+                          (dashboardData?.assetStats?.active /
+                            dashboardData?.assetStats?.total) *
                             100,
                         )
                       : 0}
@@ -232,9 +263,9 @@ export default function DashboardContent({
                   color="success"
                   size="sm"
                   value={
-                    dashboardData.assetStats.total
-                      ? (dashboardData.assetStats.active /
-                          dashboardData.assetStats.total) *
+                    dashboardData?.assetStats?.total
+                      ? (dashboardData?.assetStats?.active /
+                          dashboardData?.assetStats?.total) *
                         100
                       : 0
                   }
@@ -262,7 +293,7 @@ export default function DashboardContent({
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <span className="text-2xl font-bold text-warning-700">
-                  {dashboardData.workOrderStats.total}
+                  {dashboardData?.workOrderStats?.total || 0}
                 </span>
                 <Chip color="warning" size="sm" variant="flat">
                   Active
@@ -274,10 +305,10 @@ export default function DashboardContent({
                     Completion Rate
                   </span>
                   <span className="text-small font-medium">
-                    {dashboardData.workOrderStats.total
+                    {dashboardData?.workOrderStats?.total
                       ? Math.round(
-                          (dashboardData.workOrderStats.rfu /
-                            dashboardData.workOrderStats.total) *
+                          (dashboardData?.workOrderStats?.rfu /
+                            dashboardData?.workOrderStats?.total) *
                             100,
                         )
                       : 0}
@@ -289,9 +320,9 @@ export default function DashboardContent({
                   color="warning"
                   size="sm"
                   value={
-                    dashboardData.workOrderStats.total
-                      ? (dashboardData.workOrderStats.rfu /
-                          dashboardData.workOrderStats.total) *
+                    dashboardData?.workOrderStats?.total
+                      ? (dashboardData?.workOrderStats?.rfu /
+                          dashboardData?.workOrderStats?.total) *
                         100
                       : 0
                   }
@@ -319,7 +350,7 @@ export default function DashboardContent({
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <span className="text-2xl font-bold text-danger-700">
-                  {dashboardData.assetStats.critical}
+                  {dashboardData?.assetStats?.critical || 0}
                 </span>
                 <Chip color="danger" size="sm" variant="flat">
                   Alert
@@ -331,10 +362,10 @@ export default function DashboardContent({
                     Risk Level
                   </span>
                   <span className="text-small font-medium">
-                    {dashboardData.assetStats.total
+                    {dashboardData?.assetStats?.total
                       ? Math.round(
-                          (dashboardData.assetStats.critical /
-                            dashboardData.assetStats.total) *
+                          (dashboardData?.assetStats?.critical /
+                            dashboardData?.assetStats?.total) *
                             100,
                         )
                       : 0}
@@ -346,9 +377,9 @@ export default function DashboardContent({
                   color="danger"
                   size="sm"
                   value={
-                    dashboardData.assetStats.total
-                      ? (dashboardData.assetStats.critical /
-                          dashboardData.assetStats.total) *
+                    dashboardData?.assetStats?.total
+                      ? (dashboardData?.assetStats?.critical /
+                          dashboardData?.assetStats?.total) *
                         100
                       : 0
                   }
@@ -361,11 +392,11 @@ export default function DashboardContent({
 
       {/* Charts Section */}
       <DashboardCharts
-        assetStats={dashboardData.assetStats}
-        categoryDistribution={dashboardData.categoryDistribution}
-        maintenancePerformance={dashboardData.maintenancePerformance}
-        monthlyBreakdowns={dashboardData.monthlyBreakdowns}
-        workOrderStats={dashboardData.workOrderStats}
+        assetStats={dashboardData?.assetStats || { total: 0, active: 0, maintenance: 0, critical: 0 }}
+        categoryDistribution={dashboardData?.categoryDistribution || []}
+        maintenancePerformance={dashboardData?.maintenancePerformance || []}
+        monthlyBreakdowns={dashboardData?.monthlyBreakdowns || []}
+        workOrderStats={dashboardData?.workOrderStats || { total: 0, pending: 0, inProgress: 0, rfu: 0, overdue: 0 }}
       />
 
       {/* User Info Cards Grid */}
@@ -543,6 +574,32 @@ export default function DashboardContent({
           </div>
         </CardBody>
       </Card>
+    </div>
+  );
+}
+
+  // ✅ TAMBAHAN: Skeleton component untuk loading state
+function DashboardSkeleton() {
+  return (
+    <div className="space-y-6">
+      {/* Header skeleton */}
+      <div className="flex items-center gap-3 mb-8">
+        <div className="w-10 h-10 bg-gray-200 rounded-xl animate-pulse" />
+        <div className="w-48 h-8 bg-gray-200 rounded animate-pulse" />
+      </div>
+      
+      {/* Cards skeleton */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="h-32 bg-gray-200 rounded-lg animate-pulse" />
+        ))}
+      </div>
+      
+      {/* Charts skeleton */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div className="h-64 bg-gray-200 rounded-lg animate-pulse" />
+        <div className="h-64 bg-gray-200 rounded-lg animate-pulse" />
+      </div>
     </div>
   );
 }

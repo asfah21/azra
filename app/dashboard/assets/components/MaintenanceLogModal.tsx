@@ -11,7 +11,6 @@ import {
   Card,
   CardBody,
   Chip,
-  Spinner,
   Tooltip,
   Avatar,
 } from "@heroui/react";
@@ -224,7 +223,7 @@ export default function MaintenanceLogModal({
             <ModalBody className="px-6 pb-6">
               {loadingLogs ? (
                 <div className="flex flex-col items-center justify-center py-12">
-                  <Spinner color="primary" size="lg" />
+                  <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
                   <p className="text-default-500 mt-4">Loading...</p>
                 </div>
               ) : maintenanceLogs.length === 0 ? (

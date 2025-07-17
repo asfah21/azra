@@ -5,65 +5,6 @@ import { BreakdownStatus } from "@prisma/client";
 
 import { prisma } from "@/lib/prisma";
 
-// Di dalam file action.ts yang sama
-export async function getUnits() {
-  try {
-    const units = await prisma.unit.findMany({
-      select: {
-        id: true,
-        name: true,
-        assetTag: true,
-      },
-      orderBy: {
-        name: "asc",
-      },
-    });
-
-    return units;
-  } catch (error) {
-    console.error("Error fetching units:", error);
-
-    return [];
-  }
-}
-
-// Fungsi untuk generate nomor breakdown berikutnya dengan transaction
-export async function getNextBreakdownNumber(role: string) {
-  const prefix =
-    role === "super_admin" || role === "admin_elec" ? "WOIT-" : "WO-";
-
-  // Gunakan transaction untuk memastikan atomicity
-  return await prisma.$transaction(async (tx) => {
-    // Lock dan cari nomor terakhir dengan prefix yang sesuai
-    const last = await tx.breakdown.findFirst({
-      where: {
-        breakdownNumber: {
-          startsWith: prefix,
-        },
-      },
-      orderBy: {
-        breakdownNumber: "desc",
-      },
-    });
-
-    let nextNumber = 1;
-
-    if (last && last.breakdownNumber) {
-      // Ambil angka di belakang prefix, misal dari WOIT0005 ambil 5
-      const match = last.breakdownNumber.match(/\d+$/);
-
-      if (match) {
-        nextNumber = parseInt(match[0], 10) + 1;
-      }
-    }
-
-    // Format dengan leading zero, misal 6 jadi 0006
-    const nextBreakdownNumber = `${prefix}${nextNumber.toString().padStart(4, "0")}`;
-
-    return nextBreakdownNumber;
-  });
-}
-
 export async function createBreakdown(prevState: any, formData: FormData) {
   try {
     // Required fields
@@ -152,7 +93,35 @@ export async function createBreakdown(prevState: any, formData: FormData) {
       user?.role === "super_admin" || user?.role === "admin_elec"
         ? "WOIT-"
         : "WO-";
-    const newBreakdownNumber = await getNextBreakdownNumber(user?.role || "");
+    const newBreakdownNumber = await prisma.$transaction(async (tx) => {
+      // Lock dan cari nomor terakhir dengan prefix yang sesuai
+      const last = await tx.breakdown.findFirst({
+        where: {
+          breakdownNumber: {
+            startsWith: prefix,
+          },
+        },
+        orderBy: {
+          breakdownNumber: "desc",
+        },
+      });
+
+      let nextNumber = 1;
+
+      if (last && last.breakdownNumber) {
+        // Ambil angka di belakang prefix, misal dari WOIT0005 ambil 5
+        const match = last.breakdownNumber.match(/\d+$/);
+
+        if (match) {
+          nextNumber = parseInt(match[0], 10) + 1;
+        }
+      }
+
+      // Format dengan leading zero, misal 6 jadi 0006
+      const nextBreakdownNumber = `${prefix}${nextNumber.toString().padStart(4, "0")}`;
+
+      return nextBreakdownNumber;
+    });
 
     // Create the breakdown
     const newBreakdown = await prisma.breakdown.create({
@@ -270,98 +239,6 @@ export async function updateBreakdownStatus(
     console.error("Error updating breakdown status:", error);
 
     return { success: false, message: "Failed to update status." };
-  }
-}
-
-export async function deleteBreakdown(id: string) {
-  try {
-    const breakdownToDelete = await prisma.breakdown.findUnique({
-      where: { id },
-      select: {
-        unitId: true,
-        breakdownNumber: true,
-        unit: {
-          select: {
-            name: true,
-            assetTag: true,
-          },
-        },
-      },
-    });
-
-    if (!breakdownToDelete) {
-      return { success: false, message: "Breakdown not found!" };
-    }
-
-    await prisma.$transaction([
-      prisma.rFUReport.deleteMany({
-        where: { breakdownId: id },
-      }),
-      prisma.breakdownComponent.deleteMany({
-        where: { breakdownId: id },
-      }),
-      prisma.breakdown.delete({
-        where: { id },
-      }),
-    ]);
-
-    await prisma.unitHistory.create({
-      data: {
-        logType: "breakdown_deleted",
-        referenceId: id,
-        message: `Breakdown report ${breakdownToDelete.breakdownNumber} for ${breakdownToDelete.unit.name} deleted.`,
-        unitId: breakdownToDelete.unitId,
-      },
-    });
-
-    revalidatePath("/dashboard/gamma");
-
-    return { success: true, message: "Breakdown deleted successfully!" };
-  } catch (error) {
-    console.error("Error deleting breakdown:", error);
-
-    return { success: false, message: "Failed to delete breakdown." };
-  }
-}
-
-export async function getBreakdownById(id: string) {
-  try {
-    const breakdown = await prisma.breakdown.findUnique({
-      where: { id },
-      include: {
-        unit: true,
-        reportedBy: {
-          select: {
-            name: true,
-            email: true,
-            id: true,
-          },
-        },
-        inProgressBy: {
-          select: {
-            name: true,
-            email: true,
-            id: true,
-          },
-        },
-        components: true,
-        rfuReport: {
-          include: {
-            resolvedBy: true,
-          },
-        },
-      },
-    });
-
-    if (!breakdown) {
-      return null;
-    }
-
-    return breakdown;
-  } catch (error) {
-    console.error("Error fetching breakdown:", error);
-
-    return null;
   }
 }
 
@@ -492,110 +369,53 @@ export async function updateBreakdownStatusWithUnitStatus(
   }
 }
 
-// ... existing code ...
-
-// Tambahkan fungsi baru untuk mengambil data breakdowns
-export async function getBreakdownsData() {
-  try {
-    const allBreakdowns = await prisma.breakdown.findMany({
-      select: {
-        id: true,
-        breakdownNumber: true,
-        description: true,
-        breakdownTime: true,
-        workingHours: true,
-        status: true,
-        priority: true,
-        createdAt: true,
+export async function deleteBreakdown(id: string) {
+    try {
+    const breakdownToDelete = await prisma.breakdown.findUnique({
+      where: { id },
+            select: {
         unitId: true,
-        reportedById: true,
-        shift: true,
-        inProgressById: true,
-        inProgressAt: true,
-        reportedBy: {
-          select: {
-            id: true,
+        breakdownNumber: true,
+          unit: {
+            select: {
             name: true,
-            email: true,
-            department: true,
+              assetTag: true,
           },
         },
-        inProgressBy: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
         },
-        unit: {
-          select: {
-            id: true,
-            assetTag: true,
-            name: true,
-            location: true,
-            department: true,
-            categoryId: true,
-            status: true,
-          },
-        },
-        components: true,
-        rfuReport: {
-          include: {
-            resolvedBy: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-              },
-            },
-            actions: {
-              orderBy: {
-                actionTime: "asc",
-              },
-            },
-          },
-        },
-      },
-      orderBy: {
-        createdAt: "desc",
+      });
+
+    if (!breakdownToDelete) {
+      return { success: false, message: "Breakdown not found!" };
+    }
+
+    await prisma.$transaction([
+      prisma.rFUReport.deleteMany({
+        where: { breakdownId: id },
+      }),
+      prisma.breakdownComponent.deleteMany({
+        where: { breakdownId: id },
+      }),
+      prisma.breakdown.delete({
+        where: { id },
+      }),
+    ]);
+
+    await prisma.unitHistory.create({
+      data: {
+        logType: "breakdown_deleted",
+        referenceId: id,
+        message: `Breakdown report ${breakdownToDelete.breakdownNumber} for ${breakdownToDelete.unit.name} deleted.`,
+        unitId: breakdownToDelete.unitId,
       },
     });
 
-    // Hitung stats di server-side
-    const total = allBreakdowns.length;
-    const progress = allBreakdowns.filter(
-      (b) => b.status === "in_progress",
-    ).length;
-    const rfu = allBreakdowns.filter((b) => b.status === "rfu").length;
+    revalidatePath("/dashboard/gamma");
 
-    const thirtyDaysAgo = new Date();
-
-    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-    const overdue = allBreakdowns.filter(
-      (b) => b.status === "pending" && b.createdAt < thirtyDaysAgo,
-    ).length;
-
-    const pending =
-      allBreakdowns.filter((b) => b.status === "pending").length - overdue;
-
-    const breakdownStats = {
-      total,
-      progress,
-      rfu,
-      pending,
-      overdue,
-    };
-
-    return { allBreakdowns, breakdownStats };
+    return { success: true, message: "Breakdown deleted successfully!" };
   } catch (error) {
-    console.error("Error fetching breakdowns:", error);
+    console.error("Error deleting breakdown:", error);
 
-    return {
-      allBreakdowns: [],
-      breakdownStats: { total: 0, progress: 0, rfu: 0, pending: 0, overdue: 0 },
-    };
+    return { success: false, message: "Failed to delete breakdown." };
   }
 }
-
-// ... existing code ...

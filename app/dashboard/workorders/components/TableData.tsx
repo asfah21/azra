@@ -624,18 +624,28 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
                       <div className="text-small">
                         {/* <p className="font-medium">{order.dueDate}</p> */}
                         <p>
-                          {order.breakdownTime.toLocaleDateString("en-GB", {
-                            day: "numeric",
-                            month: "short",
-                            year: "2-digit",
-                          })}
+                          {(() => {
+                            const dateObj = typeof order.breakdownTime === "string"
+                              ? new Date(order.breakdownTime)
+                              : order.breakdownTime;
+                            return dateObj.toLocaleDateString("en-GB", {
+                              day: "numeric",
+                              month: "short",
+                              year: "2-digit",
+                            });
+                          })()}
                         </p>
                         <p className="text-default-500 text-xs">
-                          {order.breakdownTime.toLocaleTimeString("en-GB", {
-                            hour: "2-digit",
-                            minute: "2-digit",
-                            hour12: false,
-                          })}
+                          {(() => {
+                            const dateObj = typeof order.breakdownTime === "string"
+                              ? new Date(order.breakdownTime)
+                              : order.breakdownTime;
+                            return dateObj.toLocaleTimeString("en-GB", {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                              hour12: false,
+                            });
+                          })()}
                         </p>
                       </div>
                     </TableCell>

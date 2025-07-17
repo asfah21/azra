@@ -1,63 +1,29 @@
-// import { PrismaClient } from "@prisma/client";
-
-// const globalForPrisma = globalThis as unknown as {
-//   prisma: PrismaClient | undefined;
-// };
-
-// export const prisma =
-//   globalForPrisma.prisma ??
-//   new PrismaClient({
-//     log: ["query"], // opsional, bantu debug di dev
-//   });
-
-// if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
-
-// export default prisma;
-
-// import { PrismaClient } from "@prisma/client";
-
-// const globalForPrisma = globalThis as unknown as {
-//   prisma: PrismaClient | undefined;
-// };
-
-// export const prisma =
-//   globalForPrisma.prisma ??
-//   new PrismaClient({
-//     log: process.env.NODE_ENV === "development" ? ["query", "error", "warn"] : ["error"],
-//     datasources: {
-//       db: {
-//         url: process.env.DATABASE_URL,
-//       },
-//     },
-//   });
-
-// if (process.env.NODE_ENV !== "production") {
-//   globalForPrisma.prisma = prisma;
-// }
-
-// export default prisma;
-
+// lib/prisma.ts
 import { PrismaClient } from "@prisma/client";
 
-const prismaClientSingleton = () => {
-  return new PrismaClient({
-    log:
-      process.env.NODE_ENV === "development"
-        ? ["query", "error", "warn"]
-        : ["error"],
+const globalForPrisma = global as unknown as { prisma: PrismaClient };
+
+export const prisma =
+  globalForPrisma.prisma ||
+  new PrismaClient({
+    log: process.env.NODE_ENV === "development" ? ["query", "error", "warn"] : ["error"],
+    datasources: {
+      db: {
+        url: process.env.DATABASE_URL,
+      },
+    },
   });
-};
 
-type PrismaClientSingleton = ReturnType<typeof prismaClientSingleton>;
+if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
 
-const globalForPrisma = globalThis as unknown as {
-  prisma: PrismaClientSingleton | undefined;
-};
+// Handle connection issues
+prisma.$connect().catch((error) => {
+  console.error("Failed to connect to database:", error);
+});
 
-export const prisma = globalForPrisma.prisma ?? prismaClientSingleton();
-
-if (process.env.NODE_ENV !== "production") {
-  globalForPrisma.prisma = prisma;
-}
+// Graceful shutdown
+process.on("beforeExit", async () => {
+  await prisma.$disconnect();
+});
 
 export default prisma;

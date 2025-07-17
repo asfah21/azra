@@ -57,7 +57,10 @@ export default function LoginPage() {
   if (status === "loading" || status === "authenticated") {
     return (
       <div className="absolute inset-0 flex items-center justify-center bg-white dark:bg-black">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500" />
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
+          <p className="text-small text-default-500">Loading...</p>
+        </div>
       </div>
     );
   }

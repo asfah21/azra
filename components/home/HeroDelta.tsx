@@ -1,3 +1,4 @@
+"use client";
 import {
   ArrowRightEndOnRectangleIcon as Azvan,
   SparklesIcon as Azva,

@@ -16,7 +16,8 @@ import {
   Chip,
 } from "@heroui/react";
 
-import { createBreakdown, getUnits, getNextBreakdownNumber } from "../action";
+import axios from "axios";
+import { createBreakdown } from "../action";
 
 interface AddWoFormProps {
   onClose: () => void;
@@ -56,9 +57,8 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
   useEffect(() => {
     const fetchUnits = async () => {
       try {
-        const unitsData = await getUnits();
-
-        setUnits(unitsData);
+        const res = await axios.get("/api/dashboard/workorders?units=true");
+        setUnits(res.data);
         setLoadingUnits(false);
       } catch (error) {
         console.error("Failed to load units:", error);
@@ -68,6 +68,21 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
 
     fetchUnits();
   }, []);
+
+  // Tambahkan useEffect untuk fetch breakdownNumber setiap kali AddForm dibuka
+  useEffect(() => {
+    async function fetchBreakdownNumber() {
+      try {
+        const res = await axios.get(`/api/dashboard/workorders?nextNumber=true&role=${userRole}`);
+        setBreakdownNumber(res.data.nextBreakdownNumber || "");
+      } catch (error) {
+        setBreakdownNumber("");
+      }
+    }
+    if (userRole) {
+      fetchBreakdownNumber();
+    }
+  }, [userRole]);
 
   // Auto close modal jika berhasil add breakdown
   useEffect(() => {
@@ -83,16 +98,7 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
     }
   }, [state?.success, state?.message, onClose, onBreakdownAdded]);
 
-  useEffect(() => {
-    async function fetchBreakdownNumber() {
-      const number = await getNextBreakdownNumber(userRole);
-
-      setBreakdownNumber(number);
-    }
-    if (userRole) {
-      fetchBreakdownNumber();
-    }
-  }, [userRole]);
+  // Sudah tidak ada getUnits dan getNextBreakdownNumber, sudah diganti axios di useEffect
 
   const addComponent = () => {
     if (subcomponentInput.trim()) {
