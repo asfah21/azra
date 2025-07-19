@@ -1,21 +1,23 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { NextRequest, NextResponse } from "next/server";
+
+import { prisma } from "@/lib/prisma";
 
 // GET /api/dashboard/workorders
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
-  const id = searchParams.get('id');
-  const units = searchParams.get('units');
-  const nextNumber = searchParams.get('nextNumber');
-  const role = searchParams.get('role');
+  const id = searchParams.get("id");
+  const units = searchParams.get("units");
+  const nextNumber = searchParams.get("nextNumber");
+  const role = searchParams.get("role");
 
   // GET units
-  if (units === 'true') {
+  if (units === "true") {
     try {
       const unitsData = await prisma.unit.findMany({
         select: { id: true, name: true, assetTag: true },
-        orderBy: { name: 'asc' },
+        orderBy: { name: "asc" },
       });
+
       return NextResponse.json(unitsData);
     } catch (error) {
       return NextResponse.json([], { status: 500 });
@@ -23,21 +25,27 @@ export async function GET(req: NextRequest) {
   }
 
   // GET next breakdown number
-  if (nextNumber === 'true' && role) {
-    const prefix = role === 'super_admin' || role === 'admin_elec' ? 'WOIT-' : 'WO-';
+  if (nextNumber === "true" && role) {
+    const prefix =
+      role === "super_admin" || role === "admin_elec" ? "WOIT-" : "WO-";
+
     try {
       const nextBreakdownNumber = await prisma.$transaction(async (tx) => {
         const last = await tx.breakdown.findFirst({
           where: { breakdownNumber: { startsWith: prefix } },
-          orderBy: { breakdownNumber: 'desc' },
+          orderBy: { breakdownNumber: "desc" },
         });
         let nextNumber = 1;
+
         if (last && last.breakdownNumber) {
           const match = last.breakdownNumber.match(/\d+$/);
+
           if (match) nextNumber = parseInt(match[0], 10) + 1;
         }
-        return `${prefix}${nextNumber.toString().padStart(4, '0')}`;
+
+        return `${prefix}${nextNumber.toString().padStart(4, "0")}`;
       });
+
       return NextResponse.json({ nextBreakdownNumber });
     } catch (error) {
       return NextResponse.json({ nextBreakdownNumber: null }, { status: 500 });
@@ -57,7 +65,9 @@ export async function GET(req: NextRequest) {
           rfuReport: { include: { resolvedBy: true } },
         },
       });
+
       if (!breakdown) return NextResponse.json(null, { status: 404 });
+
       return NextResponse.json(breakdown);
     } catch (error) {
       return NextResponse.json(null, { status: 500 });
@@ -68,39 +78,85 @@ export async function GET(req: NextRequest) {
   try {
     const maxRetries = 3;
     let lastError;
+
     for (let attempt = 1; attempt <= maxRetries; attempt++) {
       try {
         const allBreakdowns = await prisma.breakdown.findMany({
           include: {
-            reportedBy: { select: { id: true, name: true, email: true, department: true } },
+            reportedBy: {
+              select: { id: true, name: true, email: true, department: true },
+            },
             inProgressBy: { select: { id: true, name: true, email: true } },
-            unit: { select: { id: true, assetTag: true, name: true, location: true, department: true, categoryId: true, status: true } },
+            unit: {
+              select: {
+                id: true,
+                assetTag: true,
+                name: true,
+                location: true,
+                department: true,
+                categoryId: true,
+                status: true,
+              },
+            },
             rfuReport: {
               include: {
                 resolvedBy: { select: { id: true, name: true, email: true } },
-                actions: { orderBy: { actionTime: 'asc' } },
+                actions: { orderBy: { actionTime: "asc" } },
               },
             },
           },
-          orderBy: { createdAt: 'desc' },
+          orderBy: { createdAt: "desc" },
         });
         // Hitung stats di server-side
         const total = allBreakdowns.length;
-        const progress = allBreakdowns.filter((b) => b.status === 'in_progress').length;
-        const rfu = allBreakdowns.filter((b) => b.status === 'rfu').length;
+        const progress = allBreakdowns.filter(
+          (b) => b.status === "in_progress",
+        ).length;
+        const rfu = allBreakdowns.filter((b) => b.status === "rfu").length;
         const thirtyDaysAgo = new Date();
+
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-        const overdue = allBreakdowns.filter((b) => b.status === 'pending' && b.createdAt < thirtyDaysAgo).length;
-        const pending = allBreakdowns.filter((b) => b.status === 'pending').length - overdue;
+        const overdue = allBreakdowns.filter(
+          (b) => b.status === "pending" && b.createdAt < thirtyDaysAgo,
+        ).length;
+        const pending =
+          allBreakdowns.filter((b) => b.status === "pending").length - overdue;
         const breakdownStats = { total, progress, rfu, pending, overdue };
+
         return NextResponse.json({ allBreakdowns, breakdownStats });
       } catch (error) {
         lastError = error;
-        if (attempt < maxRetries) await new Promise(res => setTimeout(res, 1000 * attempt));
+        if (attempt < maxRetries)
+          await new Promise((res) => setTimeout(res, 1000 * attempt));
       }
     }
-    return NextResponse.json({ allBreakdowns: [], breakdownStats: { total: 0, progress: 0, rfu: 0, pending: 0, overdue: 0 } }, { status: 500 });
+
+    return NextResponse.json(
+      {
+        allBreakdowns: [],
+        breakdownStats: {
+          total: 0,
+          progress: 0,
+          rfu: 0,
+          pending: 0,
+          overdue: 0,
+        },
+      },
+      { status: 500 },
+    );
   } catch (error) {
-    return NextResponse.json({ allBreakdowns: [], breakdownStats: { total: 0, progress: 0, rfu: 0, pending: 0, overdue: 0 } }, { status: 500 });
+    return NextResponse.json(
+      {
+        allBreakdowns: [],
+        breakdownStats: {
+          total: 0,
+          progress: 0,
+          rfu: 0,
+          pending: 0,
+          overdue: 0,
+        },
+      },
+      { status: 500 },
+    );
   }
-} 
+}

@@ -242,7 +242,7 @@ export default function UIDashboardLayout({
   const handleTabClick = (tab: any) => {
     if (activeTab !== tab.id) {
       setActiveTab(tab.id);
-      setTabLoading(true);
+      // setTabLoading(true); // Hapus baris ini untuk menghilangkan loading
       router.push(tab.path);
       saveTabsToStorage(activeTabs, tab.id);
     }
@@ -342,14 +342,14 @@ export default function UIDashboardLayout({
 
         {/* Scrollable Content Area */}
         <main className="flex-1 bg-background p-6 overflow-auto relative">
-          {tabLoading && (
+          {/* {tabLoading && (
             <div className="absolute inset-0 z-10 bg-background/50 flex items-center justify-center">
               <div className="flex flex-col items-center gap-4">
                 <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
                 <p className="text-small text-default-500">Loading...</p>
               </div>
             </div>
-          )}
+          )} */}
           <div className={tabLoading ? "opacity-50 pointer-events-none" : ""}>
             {children}
           </div>

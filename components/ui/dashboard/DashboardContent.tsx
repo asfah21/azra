@@ -1,39 +1,32 @@
 "use client";
 
-import {
-  Card,
-  CardHeader,
-  CardBody,
-  Divider,
-  Chip,
-  Button,
-  User,
-  Progress,
-} from "@heroui/react";
-import {
-  LayoutDashboardIcon,
-  Activity,
-  Clock,
-  CheckCircle2,
-  AlertTriangle,
-  User as UserIcon,
-  Mail,
-  Shield,
-  Package,
-  Wrench,
-  TrendingUp,
-} from "lucide-react";
-
+import { Card, CardHeader, CardBody, Divider, Chip, Button, User, Progress } from "@heroui/react";
+import { LayoutDashboardIcon, Activity, Clock, CheckCircle2, AlertTriangle, Mail, Shield, Package, Wrench, TrendingUp } from "lucide-react";
 import DashboardCharts from "@/components/ui/dashboard/DashboardCharts";
+import { DashboardSkeleton } from "@/components/ui/skeleton";
 
 interface DashboardContentProps {
   user: any;
   dashboardData: {
-    assetStats: { total: number; active: number; maintenance: number; critical: number };
-    workOrderStats: { total: number; pending: number; inProgress: number; rfu: number; overdue: number };
+    assetStats: {
+      total: number;
+      active: number;
+      maintenance: number;
+      critical: number;
+    };
+    workOrderStats: {
+      total: number;
+      pending: number;
+      inProgress: number;
+      rfu: number;
+      overdue: number;
+    };
     monthlyBreakdowns: Array<{ month: string; count: number }>;
     categoryDistribution: Array<{ category: string; count: number }>;
-    maintenancePerformance: Array<{ department: string; completionRate: number }>;
+    maintenancePerformance: Array<{
+      department: string;
+      completionRate: number;
+    }>;
   };
   recentActivities: Array<{
     id: string;
@@ -63,47 +56,35 @@ export default function DashboardContent({
   error = null,
   onRetry,
 }: DashboardContentProps) {
-  
-  // ✅ PERBAIKAN: Handle loading state dengan overlay
+  // PERBAIKAN: Handle loading state dengan overlay
   if (loading) {
     return (
-      <div className="p-6 max-w-7xl mx-auto relative">
+      <div>
         {/* Loading overlay */}
-        <div className="absolute inset-0 bg-background/50 backdrop-blur-sm z-50 flex items-center justify-center">
+        {/* <div className="absolute inset-0 bg-background/50 backdrop-blur-sm z-50 flex items-center justify-center">
           <div className="flex flex-col items-center gap-4">
             <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
             <p className="text-small text-default-500">Loading dashboard data...</p>
           </div>
-        </div>
-        
+        </div> */}
+
         {/* Render skeleton content */}
         <DashboardSkeleton />
       </div>
     );
   }
 
-  // ✅ PERBAIKAN: Handle error state dengan retry button
+  // PERBAIKAN: Handle error state dengan retry button
   if (error) {
     return (
-      <div className="p-6 max-w-7xl mx-auto">
-        <div className="flex items-center gap-3 mb-8">
-          <div className="p-2 bg-gradient-to-br from-primary-100 to-primary-50 rounded-xl">
-            <LayoutDashboardIcon className="w-6 h-6 text-primary-600" />
-          </div>
-          <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent">
-              Dashboard
-            </h1>
-          </div>
-        </div>
-        
+      <div>        
         <div className="flex justify-center items-center h-64">
           <div className="text-center">
             <p className="text-danger mb-2">Error loading dashboard:</p>
             <p className="text-small text-default-500 mb-4">{error}</p>
-            <button 
-              onClick={onRetry}
+            <button
               className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary-600"
+              onClick={onRetry}
             >
               Retry
             </button>
@@ -113,7 +94,7 @@ export default function DashboardContent({
     );
   }
 
-  // ✅ PERBAIKAN: Selalu render content dengan data yang ada
+  // PERBAIKAN: Selalu render content dengan data yang ada
   const getActivityIcon = (type: string) => {
     switch (type) {
       case "asset":
@@ -160,19 +141,7 @@ export default function DashboardContent({
   };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-8">
-        <div className="p-2 bg-gradient-to-br from-primary-100 to-primary-50 rounded-xl">
-          <LayoutDashboardIcon className="w-6 h-6 text-primary-600" />
-        </div>
-        <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent">
-            Dashboard
-          </h1>
-        </div>
-      </div>
-
+    <div>
       {/* KPI Cards Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {/* Total Assets */}
@@ -392,11 +361,26 @@ export default function DashboardContent({
 
       {/* Charts Section */}
       <DashboardCharts
-        assetStats={dashboardData?.assetStats || { total: 0, active: 0, maintenance: 0, critical: 0 }}
+        assetStats={
+          dashboardData?.assetStats || {
+            total: 0,
+            active: 0,
+            maintenance: 0,
+            critical: 0,
+          }
+        }
         categoryDistribution={dashboardData?.categoryDistribution || []}
         maintenancePerformance={dashboardData?.maintenancePerformance || []}
         monthlyBreakdowns={dashboardData?.monthlyBreakdowns || []}
-        workOrderStats={dashboardData?.workOrderStats || { total: 0, pending: 0, inProgress: 0, rfu: 0, overdue: 0 }}
+        workOrderStats={
+          dashboardData?.workOrderStats || {
+            total: 0,
+            pending: 0,
+            inProgress: 0,
+            rfu: 0,
+            overdue: 0,
+          }
+        }
       />
 
       {/* User Info Cards Grid */}
@@ -574,32 +558,6 @@ export default function DashboardContent({
           </div>
         </CardBody>
       </Card>
-    </div>
-  );
-}
-
-  // ✅ TAMBAHAN: Skeleton component untuk loading state
-function DashboardSkeleton() {
-  return (
-    <div className="space-y-6">
-      {/* Header skeleton */}
-      <div className="flex items-center gap-3 mb-8">
-        <div className="w-10 h-10 bg-gray-200 rounded-xl animate-pulse" />
-        <div className="w-48 h-8 bg-gray-200 rounded animate-pulse" />
-      </div>
-      
-      {/* Cards skeleton */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {[...Array(4)].map((_, i) => (
-          <div key={i} className="h-32 bg-gray-200 rounded-lg animate-pulse" />
-        ))}
-      </div>
-      
-      {/* Charts skeleton */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-        <div className="h-64 bg-gray-200 rounded-lg animate-pulse" />
-        <div className="h-64 bg-gray-200 rounded-lg animate-pulse" />
-      </div>
     </div>
   );
 }

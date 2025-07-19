@@ -1,11 +1,13 @@
 "use client";
 
 import { PaperClipIcon } from "@heroicons/react/24/outline";
-import GammaCardGrid from "./components/CardGrid";
-import GammaTableData from "./components/TableData";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
-import { TableSkeleton } from "@/components/ui/skeleton";
+
+import GammaCardGrid from "./components/CardGrid";
+import GammaTableData from "./components/TableData";
+
+import { CardGridSkeleton, TableSkeleton } from "@/components/ui/skeleton";
 
 interface WorkorderClientPageProps {
   initialData?: {
@@ -20,11 +22,14 @@ interface WorkorderClientPageProps {
   };
 }
 
-export default function WorkorderClientPage({ initialData }: WorkorderClientPageProps) {
+export default function WorkorderClientPage({
+  initialData,
+}: WorkorderClientPageProps) {
   const { data, isLoading, isError } = useQuery({
     queryKey: ["breakdowns"],
     queryFn: async () => {
       const res = await axios.get("/api/dashboard/workorders");
+
       return res.data;
     },
     refetchInterval: 10000,
@@ -32,7 +37,13 @@ export default function WorkorderClientPage({ initialData }: WorkorderClientPage
   });
 
   const allBreakdowns = data?.allBreakdowns || [];
-  const breakdownStats = data?.breakdownStats || { total: 0, progress: 0, rfu: 0, pending: 0, overdue: 0 };
+  const breakdownStats = data?.breakdownStats || {
+    total: 0,
+    progress: 0,
+    rfu: 0,
+    pending: 0,
+    overdue: 0,
+  };
 
   return (
     <div className="p-0 md:p-5 max-w-7xl mx-auto">
@@ -50,17 +61,25 @@ export default function WorkorderClientPage({ initialData }: WorkorderClientPage
         </div>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
-        <GammaCardGrid stats={breakdownStats} />
-      </div>
+      {isLoading ? (
+        <CardGridSkeleton />
+      ) : isError ? (
+        <div className="text-center py-10 text-red-500" />
+      ) : (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
+          <GammaCardGrid stats={breakdownStats} />
+        </div>
+      )}
 
       {isLoading ? (
         <TableSkeleton />
       ) : isError ? (
-        <div className="text-center py-10 text-red-500">Gagal memuat data work order.</div>
+        <div className="text-center py-10 text-red-500">
+          Gagal memuat data work order.
+        </div>
       ) : (
         <GammaTableData dataTable={allBreakdowns} />
       )}
     </div>
   );
-} 
+}

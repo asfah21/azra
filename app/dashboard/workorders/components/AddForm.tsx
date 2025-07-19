@@ -15,8 +15,8 @@ import {
   Textarea,
   Chip,
 } from "@heroui/react";
-
 import axios from "axios";
+
 import { createBreakdown } from "../action";
 
 interface AddWoFormProps {
@@ -58,6 +58,7 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
     const fetchUnits = async () => {
       try {
         const res = await axios.get("/api/dashboard/workorders?units=true");
+
         setUnits(res.data);
         setLoadingUnits(false);
       } catch (error) {
@@ -73,7 +74,10 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
   useEffect(() => {
     async function fetchBreakdownNumber() {
       try {
-        const res = await axios.get(`/api/dashboard/workorders?nextNumber=true&role=${userRole}`);
+        const res = await axios.get(
+          `/api/dashboard/workorders?nextNumber=true&role=${userRole}`,
+        );
+
         setBreakdownNumber(res.data.nextBreakdownNumber || "");
       } catch (error) {
         setBreakdownNumber("");

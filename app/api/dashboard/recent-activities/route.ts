@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+
 import { prisma } from "@/lib/prisma";
 
 export async function GET(req: NextRequest) {
@@ -13,6 +14,7 @@ export async function GET(req: NextRequest) {
 
     // Build where clause
     const where: any = {};
+
     if (type) where.logType = type;
     if (from || to) {
       where.createdAt = {};
@@ -166,14 +168,16 @@ export async function GET(req: NextRequest) {
     });
   } catch (error) {
     console.error("Error in recent activities API:", error);
+
     return NextResponse.json(
       {
         success: false,
         error: "Failed to fetch recent activities",
-        message: error instanceof Error ? error.message : "Unknown error occurred",
+        message:
+          error instanceof Error ? error.message : "Unknown error occurred",
         timestamp: new Date().toISOString(),
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

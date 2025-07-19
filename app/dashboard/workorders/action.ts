@@ -370,20 +370,20 @@ export async function updateBreakdownStatusWithUnitStatus(
 }
 
 export async function deleteBreakdown(id: string) {
-    try {
+  try {
     const breakdownToDelete = await prisma.breakdown.findUnique({
       where: { id },
-            select: {
+      select: {
         unitId: true,
         breakdownNumber: true,
-          unit: {
-            select: {
+        unit: {
+          select: {
             name: true,
-              assetTag: true,
+            assetTag: true,
           },
         },
-        },
-      });
+      },
+    });
 
     if (!breakdownToDelete) {
       return { success: false, message: "Breakdown not found!" };

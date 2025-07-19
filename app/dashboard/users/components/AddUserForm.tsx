@@ -43,6 +43,14 @@ export function AddUserForms({ onClose, onUserAdded }: AddUserFormProps) {
     await formAction(formData);
   };
 
+  const userRoles = [
+    { key: "super_admin", label: "Super Admin" },
+    { key: "admin_heavy", label: "Admin Heavy" },
+    { key: "admin_elec", label: "Admin Electrical" },
+    { key: "pengawas", label: "Pengawas" },
+    { key: "mekanik", label: "Mekanik" },
+  ];
+
   return (
     <>
       <ModalHeader className="flex flex-col gap-1">
@@ -157,16 +165,18 @@ export function AddUserForms({ onClose, onUserAdded }: AddUserFormProps) {
               ],
               value: "text-black/90 dark:text-white/90",
             }}
+            items={userRoles}
             label="Role"
             name="role"
             placeholder="Select user role"
             variant="bordered"
           >
-            <SelectItem key="super_admin">Super Admin</SelectItem>
+            {(userRole) => <SelectItem>{userRole.label}</SelectItem>}
+            {/* <SelectItem key="super_admin">Super Admin</SelectItem>
             <SelectItem key="admin_heavy">Admin Heavy</SelectItem>
             <SelectItem key="admin_elec">Admin Electrical</SelectItem>
             <SelectItem key="pengawas">Pengawas</SelectItem>
-            <SelectItem key="mekanik">Mekanik</SelectItem>
+            <SelectItem key="mekanik">Mekanik</SelectItem> */}
           </Select>
 
           <Input

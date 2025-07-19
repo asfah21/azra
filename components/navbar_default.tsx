@@ -6,7 +6,11 @@ import {
   NavbarBrand,
   NavbarItem,
   NavbarMenuItem,
-  Button, Kbd, Link, Input, link as linkStyles
+  Button,
+  Kbd,
+  Link,
+  Input,
+  link as linkStyles,
 } from "@heroui/react";
 import NextLink from "next/link";
 import clsx from "clsx";

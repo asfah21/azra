@@ -1,32 +1,49 @@
 import { NextRequest, NextResponse } from "next/server";
+
 import { prisma } from "@/lib/prisma";
 
 export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
-    
+
     // ✅ Query parameters untuk filtering
-    const timeRange = searchParams.get('timeRange') || '6months'; // 6months, 3months, 1month, 1year
-    const categoryFilter = searchParams.get('category'); // Filter by specific category
-    const statusFilter = searchParams.get('status'); // Filter by asset status
-    const includeInactive = searchParams.get('includeInactive') === 'true'; // Include inactive assets
+    const timeRange = searchParams.get("timeRange") || "6months"; // 6months, 3months, 1month, 1year
+    const categoryFilter = searchParams.get("category"); // Filter by specific category
+    const statusFilter = searchParams.get("status"); // Filter by asset status
+    const includeInactive = searchParams.get("includeInactive") === "true"; // Include inactive assets
 
     // ✅ Time range calculation
     const currentDate = new Date();
     let startDate: Date;
-    
+
     switch (timeRange) {
-      case '1month':
-        startDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
+      case "1month":
+        startDate = new Date(
+          currentDate.getFullYear(),
+          currentDate.getMonth() - 1,
+          1,
+        );
         break;
-      case '3months':
-        startDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 3, 1);
+      case "3months":
+        startDate = new Date(
+          currentDate.getFullYear(),
+          currentDate.getMonth() - 3,
+          1,
+        );
         break;
-      case '1year':
-        startDate = new Date(currentDate.getFullYear() - 1, currentDate.getMonth(), 1);
+      case "1year":
+        startDate = new Date(
+          currentDate.getFullYear() - 1,
+          currentDate.getMonth(),
+          1,
+        );
         break;
       default: // 6months
-        startDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 6, 1);
+        startDate = new Date(
+          currentDate.getFullYear(),
+          currentDate.getMonth() - 6,
+          1,
+        );
         break;
     }
 
@@ -50,7 +67,7 @@ export async function GET(req: NextRequest) {
 
     if (!includeInactive) {
       assetWhereClause.status = {
-        not: 'inactive',
+        not: "inactive",
       };
     }
 
@@ -90,7 +107,8 @@ export async function GET(req: NextRequest) {
     const assetStats = {
       total: assets.length,
       active: assets.filter((asset) => asset.status === "operational").length,
-      maintenance: assets.filter((asset) => asset.status === "maintenance").length,
+      maintenance: assets.filter((asset) => asset.status === "maintenance")
+        .length,
       critical: assets.filter(
         (asset) => asset.condition === "critical" || asset.condition === "poor",
       ).length,
@@ -108,18 +126,32 @@ export async function GET(req: NextRequest) {
 
     // ✅ Calculate monthly breakdowns dengan dynamic months
     const monthlyBreakdowns = [];
-    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    
+    const months = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+
     // Calculate how many months to show based on timeRange
     let monthsToShow = 6;
+
     switch (timeRange) {
-      case '1month':
+      case "1month":
         monthsToShow = 1;
         break;
-      case '3months':
+      case "3months":
         monthsToShow = 3;
         break;
-      case '1year':
+      case "1year":
         monthsToShow = 12;
         break;
       default:
@@ -140,6 +172,7 @@ export async function GET(req: NextRequest) {
 
       const count = breakdowns.filter((b) => {
         const breakdownDate = new Date(b.createdAt);
+
         return breakdownDate >= monthDate && breakdownDate < nextMonth;
       }).length;
 
@@ -154,7 +187,9 @@ export async function GET(req: NextRequest) {
     const categoryCounts = assets.reduce(
       (acc, asset) => {
         const categoryName = asset.category?.name || "Unknown";
+
         acc[categoryName] = (acc[categoryName] || 0) + 1;
+
         return acc;
       },
       {} as Record<string, number>,
@@ -164,16 +199,37 @@ export async function GET(req: NextRequest) {
       ([category, count]) => ({
         category,
         count,
-        percentage: assets.length > 0 ? Math.round((count / assets.length) * 100) : 0,
+        percentage:
+          assets.length > 0 ? Math.round((count / assets.length) * 100) : 0,
       }),
     );
 
     // ✅ Mock maintenance performance data (bisa diganti dengan real data)
     const maintenancePerformance = [
-      { department: "Heavy Equipment", completionRate: 92, totalTasks: 45, completedTasks: 41 },
-      { department: "Electrical", completionRate: 88, totalTasks: 38, completedTasks: 33 },
-      { department: "Mechanical", completionRate: 85, totalTasks: 52, completedTasks: 44 },
-      { department: "General", completionRate: 78, totalTasks: 28, completedTasks: 22 },
+      {
+        department: "Heavy Equipment",
+        completionRate: 92,
+        totalTasks: 45,
+        completedTasks: 41,
+      },
+      {
+        department: "Electrical",
+        completionRate: 88,
+        totalTasks: 38,
+        completedTasks: 33,
+      },
+      {
+        department: "Mechanical",
+        completionRate: 85,
+        totalTasks: 52,
+        completedTasks: 44,
+      },
+      {
+        department: "General",
+        completionRate: 78,
+        totalTasks: 28,
+        completedTasks: 22,
+      },
     ];
 
     // ✅ Structured response format
@@ -201,15 +257,15 @@ export async function GET(req: NextRequest) {
       data: dashboardData,
       message: "Dashboard data retrieved successfully",
     });
-
   } catch (error) {
     console.error("Error in dashboard API:", error);
 
     // ✅ Better error handling
-    const errorMessage = error instanceof Error ? error.message : "Unknown error occurred";
-    
+    const errorMessage =
+      error instanceof Error ? error.message : "Unknown error occurred";
+
     return NextResponse.json(
-      { 
+      {
         success: false,
         error: "Failed to fetch dashboard data",
         message: errorMessage,
