@@ -177,6 +177,7 @@ export default function DashboardContent({
                   <span className="text-small font-medium">5.2%</span>
                 </div>
                 <Progress
+                  aria-label="Loading..."
                   className="max-w-full"
                   color="primary"
                   size="sm"
@@ -228,6 +229,7 @@ export default function DashboardContent({
                   </span>
                 </div>
                 <Progress
+                  aria-label="Loading..."
                   className="max-w-full"
                   color="success"
                   size="sm"
@@ -285,6 +287,7 @@ export default function DashboardContent({
                   </span>
                 </div>
                 <Progress
+                  aria-label="Loading..."
                   className="max-w-full"
                   color="warning"
                   size="sm"
@@ -342,6 +345,7 @@ export default function DashboardContent({
                   </span>
                 </div>
                 <Progress
+                  aria-label="Loading..."
                   className="max-w-full"
                   color="danger"
                   size="sm"

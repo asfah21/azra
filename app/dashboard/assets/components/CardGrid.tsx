@@ -33,7 +33,7 @@ interface AssetStatsCardsProps {
 
 export default function AssetCardGrids({ stats }: AssetStatsCardsProps) {
   return (
-    <>
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
       {/* Total Assets Card */}
       <Card className="bg-gradient-to-br from-primary-50 to-primary-100 border-primary-200">
         <CardHeader className="flex gap-2 sm:gap-3 pb-2">
@@ -116,6 +116,7 @@ export default function AssetCardGrids({ stats }: AssetStatsCardsProps) {
                 </span>
               </div>
               <Progress
+                aria-label="Loading..."
                 className="max-w-full"
                 color="success"
                 size="sm"
@@ -201,6 +202,6 @@ export default function AssetCardGrids({ stats }: AssetStatsCardsProps) {
           </div>
         </CardBody>
       </Card>
-    </>
+    </div>
   );
 }

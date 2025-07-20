@@ -34,7 +34,7 @@ export default function RootLayout({
     <html suppressHydrationWarning lang="en">
       <body
         className={clsx(
-          "min-h-screen flex flex-col", // ✅ Flex column untuk mengatur Navbar-Main-Footer
+          "min-h-screen flex flex-col",
           fontSans.variable,
           "text-foreground bg-background font-sans antialiased",
         )}

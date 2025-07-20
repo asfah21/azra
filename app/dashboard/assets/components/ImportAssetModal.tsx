@@ -417,7 +417,7 @@ export function ImportAssetModal({
 
                 {isValidating ? (
                   <div className="flex items-center gap-2">
-                    <Progress isIndeterminate size="sm" />
+                    <Progress isIndeterminate aria-label="Loading..." size="sm" />
                     <span className="text-sm">Memvalidasi data...</span>
                   </div>
                 ) : (

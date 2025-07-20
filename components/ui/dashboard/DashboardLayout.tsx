@@ -37,8 +37,6 @@ export default function UIDashboardLayout({
   const [isClient, setIsClient] = useState(false);
   const [tabsInitialized, setTabsInitialized] = useState(false);
 
-  const [tabLoading, setTabLoading] = useState(false);
-
   const navItems = [
     {
       id: "dashboard",
@@ -235,14 +233,9 @@ export default function UIDashboardLayout({
     }
   }, [pathname, tabsInitialized, isClient]);
 
-  useEffect(() => {
-    setTabLoading(false);
-  }, [pathname]);
-
   const handleTabClick = (tab: any) => {
     if (activeTab !== tab.id) {
       setActiveTab(tab.id);
-      // setTabLoading(true); // Hapus baris ini untuk menghilangkan loading
       router.push(tab.path);
       saveTabsToStorage(activeTabs, tab.id);
     }
@@ -253,14 +246,12 @@ export default function UIDashboardLayout({
 
     if (!existingTab) {
       const newTabs = [...activeTabs, tab];
-
       setActiveTabs(newTabs);
       saveTabsToStorage(newTabs, tab.id);
     }
 
     if (activeTab !== tab.id) {
       setActiveTab(tab.id);
-      setTabLoading(true);
       router.push(tab.path);
     }
   };
@@ -342,17 +333,7 @@ export default function UIDashboardLayout({
 
         {/* Scrollable Content Area */}
         <main className="flex-1 bg-background p-6 overflow-auto relative">
-          {/* {tabLoading && (
-            <div className="absolute inset-0 z-10 bg-background/50 flex items-center justify-center">
-              <div className="flex flex-col items-center gap-4">
-                <div className="w-10 h-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-                <p className="text-small text-default-500">Loading...</p>
-              </div>
-            </div>
-          )} */}
-          <div className={tabLoading ? "opacity-50 pointer-events-none" : ""}>
-            {children}
-          </div>
+          {children}
         </main>
       </div>
     </div>

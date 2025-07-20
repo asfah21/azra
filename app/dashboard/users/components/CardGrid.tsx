@@ -115,6 +115,7 @@ export default function UserCardGrids({ stats }: UserStatsCardsProps) {
                 </span>
               </div>
               <Progress
+                aria-label="Loading..."
                 className="max-w-full"
                 color="success"
                 size="sm"

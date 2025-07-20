@@ -136,6 +136,7 @@ export default function GammaCardGrid({ stats }: WoStatsCardsProps) {
                 </span>
               </div>
               <Progress
+                aria-label="Loading..."
                 className="max-w-full"
                 color="success"
                 size="sm"
