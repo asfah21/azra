@@ -113,10 +113,11 @@ export default function AssetDetailModal({
     return user?.name || userId;
   };
 
-  const formatDate = (date: Date | null) => {
+  const formatDate = (date: Date | string | null) => {
     if (!date) return "Not set";
-
-    return date.toLocaleDateString("id-ID", {
+    const d = typeof date === "string" ? new Date(date) : date;
+    if (isNaN(d.getTime())) return "Invalid date";
+    return d.toLocaleDateString("id-ID", {
       year: "numeric",
       month: "short",
       day: "numeric",
@@ -133,7 +134,7 @@ export default function AssetDetailModal({
     }).format(value);
   };
 
-  const getWarrantyStatus = (warrantyExpiry: Date | null) => {
+  const getWarrantyStatus = (warrantyExpiry: Date | string | null) => {
     if (!warrantyExpiry)
       return {
         status: "No warranty",
@@ -141,9 +142,14 @@ export default function AssetDetailModal({
         icon: <XCircle className="w-4 h-4" />,
       };
 
+    // Pastikan warrantyExpiry adalah Date
+    const expiryDate = typeof warrantyExpiry === "string"
+      ? new Date(warrantyExpiry)
+      : warrantyExpiry;
+
     const now = new Date();
     const diffInDays = Math.floor(
-      (warrantyExpiry.getTime() - now.getTime()) / (1000 * 60 * 60 * 24),
+      (expiryDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24),
     );
 
     if (diffInDays < 0)
