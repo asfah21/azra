@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   ModalHeader,
   ModalBody,
@@ -52,29 +52,28 @@ export function EditAssetModal({
   onClose,
   onAssetUpdated,
 }: EditAssetModalProps) {
-  const [state, formAction, isPending] = useActionState(updateAsset, null);
+  const queryClient = useQueryClient();
 
-  // Auto close modal jika berhasil update asset
-  useEffect(() => {
-    // Hanya close modal jika ada message sukses
-    if (state && state.success && state.message) {
-      // Tunggu 500ms agar user bisa lihat pesan sukses
-      const timer = setTimeout(() => {
+  // React Query mutation untuk update asset
+  const mutation = useMutation({
+    mutationFn: async (formData: FormData) => {
+      return await updateAsset(null, formData);
+    },
+    onSuccess: (data) => {
+      // Invalidate cache assets agar data ter-refresh
+      queryClient.invalidateQueries({ queryKey: ["assets"] });
+      // Tutup modal & callback
+      setTimeout(() => {
         onClose();
-        // Trigger refresh data jika callback tersedia
-        if (onAssetUpdated) {
-          onAssetUpdated();
-        }
+        if (onAssetUpdated) onAssetUpdated();
       }, 500);
-
-      return () => clearTimeout(timer);
-    }
-  }, [state, onClose, onAssetUpdated]);
+    },
+  });
 
   const handleSubmit = async (formData: FormData) => {
     if (asset) {
       formData.append("id", asset.id);
-      await formAction(formData);
+      mutation.mutate(formData);
     }
   };
 
@@ -95,7 +94,15 @@ export function EditAssetModal({
       </ModalHeader>
 
       <ModalBody className="max-h-[60vh] overflow-y-auto">
-        <form action={handleSubmit} className="space-y-4" id="editAssetForm">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            const formData = new FormData(e.currentTarget);
+            handleSubmit(formData);
+          }}
+          className="space-y-4"
+          id="editAssetForm"
+        >
           {/* Required Fields */}
           <Input
             isRequired
@@ -602,13 +609,13 @@ export function EditAssetModal({
           </div>
 
           {/* Success Message */}
-          {state && state.success && state.message && (
+          {mutation.data && mutation.data.success && (
             <Card className="border-success-200 bg-success-50">
               <CardBody className="py-3">
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-success-500 rounded-full" />
                   <p className="text-success-700 text-sm font-medium">
-                    {state.message}
+                    {mutation.data.message}
                   </p>
                 </div>
               </CardBody>
@@ -616,13 +623,13 @@ export function EditAssetModal({
           )}
 
           {/* Error Messages */}
-          {state && !state.success && state.message && (
+          {mutation.data && !mutation.data.success && (
             <Card className="border-danger-200 bg-danger-50">
               <CardBody className="py-3">
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-danger-500 rounded-full" />
                   <p className="text-danger-700 text-sm font-medium">
-                    {state.message}
+                    {mutation.data.message}
                   </p>
                 </div>
               </CardBody>
@@ -635,7 +642,7 @@ export function EditAssetModal({
         <Button
           className="font-medium"
           color="danger"
-          isDisabled={isPending}
+          isDisabled={mutation.isPending}
           variant="light"
           onPress={onClose}
         >
@@ -645,11 +652,11 @@ export function EditAssetModal({
           className="font-medium bg-gradient-to-r from-blue-500 to-purple-600 text-white"
           color="primary"
           form="editAssetForm"
-          isDisabled={isPending}
-          isLoading={isPending}
+          isDisabled={mutation.isPending}
+          isLoading={mutation.isPending}
           type="submit"
         >
-          {isPending ? "Updating..." : "Update Asset"}
+          {mutation.isPending ? "Updating..." : "Update Asset"}
         </Button>
       </ModalFooter>
     </>

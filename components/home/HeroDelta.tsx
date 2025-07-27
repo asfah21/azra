@@ -44,7 +44,7 @@ export default function HeroDelta() {
               <h1 className="tracking-tight inline font-semibold text-[clamp(1rem,10vw,2rem)] sm:text-[clamp(1rem,10vw,3rem)] lg:text-5xl">
                 Assets&nbsp;
               </h1>
-              <h1 className="tracking-tight font-semibold from-[#FF1CF7] to-[#b249f8] text-[clamp(1rem,10vw,2rem)] sm:text-[clamp(1rem,10vw,3rem)] lg:text-5xl bg-clip-text text-transparent bg-gradient-to-b inline">
+              <h1 className="tracking-tight font-semibold from-success to-primary text-[clamp(1rem,10vw,2rem)] sm:text-[clamp(1rem,10vw,3rem)] lg:text-5xl bg-clip-text text-transparent bg-gradient-to-b inline">
                 Management
               </h1>
             </div>
@@ -55,7 +55,7 @@ export default function HeroDelta() {
 
           <div className="flex flex-row gap-3 justify-start">
             <Button
-              color="secondary"
+              color="primary"
               endContent={<ArrowRightEndOnRectangleIcon />}
               radius="full"
               variant="solid"
@@ -76,7 +76,7 @@ export default function HeroDelta() {
                   shadow="sm"
                 >
                   <CardHeader className="flex gap-3 pb-0">
-                    <div className="flex justify-center p-2 rounded-full items-center bg-secondary-100/80 text-pink-500">
+                    <div className="flex justify-center p-2 rounded-full items-center bg-primary-100/40 text-success-500">
                       {feature.icon}
                     </div>
                     <div className="flex flex-col">

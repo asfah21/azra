@@ -25,6 +25,7 @@ import { FiXCircle } from "react-icons/fi";
 
 import { ThemeSwitch } from "@/components/theme-switch";
 import { Logo, SearchIcon } from "@/components/icons";
+import { useRouter } from "next/navigation";
 
 interface TopbarProps {
   menuOpen: boolean;
@@ -55,6 +56,8 @@ export function Topbar({
   openNewTab,
   session,
 }: TopbarProps) {
+  const router = useRouter();
+
   const searchInput = (
     <Input
       aria-label="Search"
@@ -126,12 +129,13 @@ export function Topbar({
                   </span>
                 </div>
               </DropdownItem>
-              <DropdownItem key="profile" startContent={<FiUser size={16} />}>
+              {/* <DropdownItem key="profile" startContent={<FiUser size={16} />}>
                 Profile
-              </DropdownItem>
+              </DropdownItem> */}
               <DropdownItem
                 key="settings"
                 startContent={<FiSettings size={16} />}
+                onPress={() => router.push("/dashboard/settings")}
               >
                 Settings
               </DropdownItem>
@@ -226,12 +230,13 @@ export function Topbar({
                   </span>
                 </div>
               </DropdownItem>
-              <DropdownItem key="profile" startContent={<FiUser size={16} />}>
+              {/* <DropdownItem key="profile" startContent={<FiUser size={16} />}>
                 Profile
-              </DropdownItem>
+              </DropdownItem> */}
               <DropdownItem
                 key="settings"
                 startContent={<FiSettings size={16} />}
+                onPress={() => router.push("/dashboard/settings")}
               >
                 Settings
               </DropdownItem>

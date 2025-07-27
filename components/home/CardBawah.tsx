@@ -21,7 +21,7 @@ export default function CardBawah() {
 
   return (
     <section className="px-6 md:px-20 relative gap-2 w-full flex flex-col items-center z-20 ">
-      <div className="mx-8 px-4 justify-center mt-8 md:mt-14 grid grid-cols-1 md:grid-cols-2 gap-4 lg:grid-cols-2">
+      <div className="justify-center mt-8 md:mx-16 px-4 mt-14 grid grid-cols-1 md:grid-cols-2 gap-4 lg:grid-cols-2">
         {features.map((feature, index) => (
           <div key={index}>
             <Card
@@ -30,7 +30,7 @@ export default function CardBawah() {
               href="#"
             >
               <CardHeader className="flex gap-3 pb-0">
-                <div className="flex justify-center p-2 rounded-full items-center bg-secondary-100/80 text-pink-500">
+                <div className="flex justify-center p-2 rounded-full items-center bg-primary-100/40 text-success-500">
                   {feature.icon}
                 </div>
                 <div className="flex flex-col">

@@ -23,7 +23,7 @@ export default function Hero() {
 
           <h1 className="tracking-tight inline font-semibold text-[clamp(1.8rem,8vw,3.2rem)] leading-tight text-center md:text-left">
             Discover{" "}
-            <span className="tracking-tight inline font-bold from-[#FF1CF7] to-[#b249f8] bg-clip-text text-transparent bg-gradient-to-b">
+            <span className="tracking-tight inline font-bold from-success to-primary bg-clip-text text-transparent bg-gradient-to-b">
               AZRA
             </span>{" "}
             a stunning&nbsp;
@@ -39,14 +39,14 @@ export default function Hero() {
 
           <div className="flex flex-col items-center gap-4 md:flex-row">
             <a
-              className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-full transition"
+              className="text-sm bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-full transition"
               href="/login"
             >
               Get Started →
             </a>
-            <div className="bg-gray-800 text-white px-4 py-3 rounded-full font-mono text-sm flex items-center gap-2">
-              <span>$</span>
-              <span>ask your IT for access </span>
+            <div className="bg-green-600 hover:bg-green-700 transition text-white px-4 py-3 rounded-full font-mono text-sm flex items-center gap-2">
+              <span>#</span>
+              <span>Ask for access </span>
               <button
                 aria-label="Copy command"
                 className="ml-2"

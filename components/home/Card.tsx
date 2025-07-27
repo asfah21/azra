@@ -26,9 +26,9 @@ const cards = [
     // href: "http://gsi.db-ku.com"
   },
   {
-    title: "Multi-Format Export",
+    title: "Export to Excel",
     description:
-      "Effortlessly export full asset records to Excel, PDF, and CSV.",
+      "Easily export full asset records to Excel spreadsheets for reporting and analysis.",
     iconLeft: <MultiFormatExport />,
     // iconRight: <IconLink />,
     // href: "http://gsi.db-ku.com"
@@ -56,7 +56,7 @@ export default function Cards() {
             shadow="sm"
           >
             <CardHeader className="flex gap-3 pb-0">
-              <div className="flex justify-center p-2 rounded-full items-center bg-secondary-100/80 text-pink-500">
+              <div className="flex justify-center p-2 rounded-full items-center bg-primary-100/40 text-success-500">
                 {card.iconLeft}
               </div>
               <div className="flex flex-col">

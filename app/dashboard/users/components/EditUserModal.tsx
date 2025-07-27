@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import {
   ModalHeader,
@@ -13,7 +13,6 @@ import {
   Select,
   Input,
 } from "@heroui/react";
-
 import { updateUser } from "../action";
 
 interface User {
@@ -38,33 +37,31 @@ export function EditUserModal({
   onUserUpdated,
 }: EditUserModalProps) {
   const { data: session } = useSession();
-  const [state, formAction, isPending] = useActionState(updateUser, null);
+  const queryClient = useQueryClient();
 
-  // Auto close modal jika berhasil update user
-  useEffect(() => {
-    // Hanya close modal jika ada message sukses dan tidak ada errors
-    if (state && state.message && !state.errors) {
-      // Tunggu 500ms agar user bisa lihat pesan sukses
-      const timer = setTimeout(() => {
+  // React Query mutation untuk update user
+  const mutation = useMutation({
+    mutationFn: async (formData: FormData) => {
+      return await updateUser(null, formData);
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["users-data"] });
+      setTimeout(() => {
         onClose();
-        // Trigger refresh data jika callback tersedia
-        if (onUserUpdated) {
-          onUserUpdated();
-        }
+        if (onUserUpdated) onUserUpdated();
       }, 500);
+    },
+  });
 
-      return () => clearTimeout(timer);
-    }
-  }, [state, onClose, onUserUpdated]);
-
-  const handleSubmit = async (formData: FormData) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
     if (user) {
+      const formData = new FormData(e.currentTarget);
       formData.append("id", user.id);
-      // Tambahkan currentUserRole dari session
       if (session?.user?.role) {
         formData.append("currentUserRole", session.user.role);
       }
-      await formAction(formData);
+      mutation.mutate(formData);
     }
   };
 
@@ -78,58 +75,17 @@ export function EditUserModal({
       </ModalHeader>
 
       <ModalBody>
-        <form action={handleSubmit} className="space-y-4" id="editUserForm">
+        <form onSubmit={handleSubmit} className="space-y-4" id="editUserForm">
           <Input
             isRequired
-            classNames={{
-              label: "text-black/50 dark:text-white/90",
-              input: [
-                "bg-transparent",
-                "text-black/90 dark:text-white/90",
-                "placeholder:text-default-700/50 dark:placeholder:text-white/60",
-              ],
-              innerWrapper: "bg-transparent",
-              inputWrapper: [
-                "bg-default-200/50",
-                "dark:bg-default/60",
-                "backdrop-blur-xl",
-                "backdrop-saturate-200",
-                "hover:bg-default-200/70",
-                "dark:hover:bg-default/70",
-                "group-data-[focused=true]:bg-default-200/50",
-                "dark:group-data-[focused=true]:bg-default/60",
-                "!cursor-text",
-              ],
-            }}
             defaultValue={user.name}
             label="Name"
             name="name"
             placeholder="Enter user name"
             variant="bordered"
           />
-
           <Input
             isRequired
-            classNames={{
-              label: "text-black/50 dark:text-white/90",
-              input: [
-                "bg-transparent",
-                "text-black/90 dark:text-white/90",
-                "placeholder:text-default-700/50 dark:placeholder:text-white/60",
-              ],
-              innerWrapper: "bg-transparent",
-              inputWrapper: [
-                "bg-default-200/50",
-                "dark:bg-default/60",
-                "backdrop-blur-xl",
-                "backdrop-saturate-200",
-                "hover:bg-default-200/70",
-                "dark:hover:bg-default/70",
-                "group-data-[focused=true]:bg-default-200/50",
-                "dark:group-data-[focused=true]:bg-default/60",
-                "!cursor-text",
-              ],
-            }}
             defaultValue={user.email}
             label="Email"
             name="email"
@@ -137,51 +93,15 @@ export function EditUserModal({
             type="email"
             variant="bordered"
           />
-
           <Input
-            classNames={{
-              label: "text-black/50 dark:text-white/90",
-              input: [
-                "bg-transparent",
-                "text-black/90 dark:text-white/90",
-                "placeholder:text-default-700/50 dark:placeholder:text-white/60",
-              ],
-              innerWrapper: "bg-transparent",
-              inputWrapper: [
-                "bg-default-200/50",
-                "dark:bg-default/60",
-                "backdrop-blur-xl",
-                "backdrop-saturate-200",
-                "hover:bg-default-200/70",
-                "dark:hover:bg-default/70",
-                "group-data-[focused=true]:bg-default-200/50",
-                "dark:group-data-[focused=true]:bg-default/60",
-                "!cursor-text",
-              ],
-            }}
             label="New Password (leave empty to keep current)"
             name="password"
             placeholder="Enter new password (optional)"
             type="password"
             variant="bordered"
           />
-
           <Select
             isRequired
-            classNames={{
-              label: "text-black/50 dark:text-white/90",
-              trigger: [
-                "bg-default-200/50",
-                "dark:bg-default/60",
-                "backdrop-blur-xl",
-                "backdrop-saturate-200",
-                "hover:bg-default-200/70",
-                "dark:hover:bg-default/70",
-                "group-data-[focused=true]:bg-default-200/50",
-                "dark:group-data-[focused=true]:bg-default/60",
-              ],
-              value: "text-black/90 dark:text-white/90",
-            }}
             defaultSelectedKeys={[user.role]}
             label="Role"
             name="role"
@@ -194,28 +114,7 @@ export function EditUserModal({
             <SelectItem key="pengawas">Pengawas</SelectItem>
             <SelectItem key="mekanik">Mekanik</SelectItem>
           </Select>
-
           <Input
-            classNames={{
-              label: "text-black/50 dark:text-white/90",
-              input: [
-                "bg-transparent",
-                "text-black/90 dark:text-white/90",
-                "placeholder:text-default-700/50 dark:placeholder:text-white/60",
-              ],
-              innerWrapper: "bg-transparent",
-              inputWrapper: [
-                "bg-default-200/50",
-                "dark:bg-default/60",
-                "backdrop-blur-xl",
-                "backdrop-saturate-200",
-                "hover:bg-default-200/70",
-                "dark:hover:bg-default/70",
-                "group-data-[focused=true]:bg-default-200/50",
-                "dark:group-data-[focused=true]:bg-default/60",
-                "!cursor-text",
-              ],
-            }}
             defaultValue={user.department || ""}
             label="Department"
             name="department"
@@ -224,13 +123,13 @@ export function EditUserModal({
           />
 
           {/* Success Message */}
-          {state && state.message && !state.errors && (
+          {mutation.data && mutation.data.message && !mutation.data.errors && (
             <Card className="border-success-200 bg-success-50">
               <CardBody className="py-3">
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-success-500 rounded-full" />
                   <p className="text-success-700 text-sm font-medium">
-                    {state.message}
+                    {mutation.data.message}
                   </p>
                 </div>
               </CardBody>
@@ -238,30 +137,18 @@ export function EditUserModal({
           )}
 
           {/* Error Messages */}
-          {state &&
-            state.errors &&
-            (state.errors.general || state.errors.email) && (
-              <Card className="border-danger-200 bg-danger-50">
-                <CardBody className="py-3">
-                  {state.errors.general && (
-                    <div className="flex items-center gap-2 mb-2">
-                      <div className="w-2 h-2 bg-danger-500 rounded-full" />
-                      <p className="text-danger-700 text-sm font-medium">
-                        {state.errors.general}
-                      </p>
-                    </div>
-                  )}
-                  {state.errors.email && (
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 bg-danger-500 rounded-full" />
-                      <p className="text-danger-700 text-sm font-medium">
-                        {state.errors.email}
-                      </p>
-                    </div>
-                  )}
-                </CardBody>
-              </Card>
-            )}
+          {mutation.data && mutation.data.message && mutation.data.errors && (
+            <Card className="border-danger-200 bg-danger-50">
+              <CardBody className="py-3">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-danger-500 rounded-full" />
+                  <p className="text-danger-700 text-sm font-medium">
+                    {mutation.data.message}
+                  </p>
+                </div>
+              </CardBody>
+            </Card>
+          )}
         </form>
       </ModalBody>
 
@@ -269,7 +156,7 @@ export function EditUserModal({
         <Button
           className="font-medium"
           color="danger"
-          isDisabled={isPending}
+          isDisabled={mutation.isPending}
           variant="light"
           onPress={onClose}
         >
@@ -279,11 +166,11 @@ export function EditUserModal({
           className="font-medium bg-gradient-to-r from-blue-500 to-purple-600 text-white"
           color="primary"
           form="editUserForm"
-          isDisabled={isPending}
-          isLoading={isPending}
+          isDisabled={mutation.isPending}
+          isLoading={mutation.isPending}
           type="submit"
         >
-          {isPending ? "Updating..." : "Update User"}
+          {mutation.isPending ? "Updating..." : "Update User"}
         </Button>
       </ModalFooter>
     </>

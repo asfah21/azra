@@ -14,6 +14,8 @@ import {
 } from "@heroui/react";
 
 import { addUsers } from "../action";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import axios from "axios";
 
 interface AddUserFormProps {
   onClose: () => void;
@@ -22,6 +24,20 @@ interface AddUserFormProps {
 
 export function AddUserForms({ onClose, onUserAdded }: AddUserFormProps) {
   const [state, formAction, isPending] = useActionState(addUsers, null);
+  const queryClient = useQueryClient();
+
+  const addUserMutation = useMutation({
+    mutationFn: async (newUser) => {
+      // Panggil server action/API untuk tambah user
+      return await axios.post("/api/dashboard/users", newUser);
+    },
+    onSuccess: () => {
+      // Setelah berhasil tambah user, refresh data user
+      queryClient.invalidateQueries({ queryKey: ["users-data"] });
+      // Atau, jika ingin update cache lokal:
+      // queryClient.setQueryData(["users-data"], (old) => ({ ...old, users: [...old.users, newUser] }));
+    },
+  });
 
   // Auto close modal jika berhasil add user
   useEffect(() => {

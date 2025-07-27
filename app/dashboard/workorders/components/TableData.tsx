@@ -50,6 +50,7 @@ import {
   TbCircleDashedLetterL,
   TbCircleDashedLetterM,
 } from "react-icons/tb";
+import { useQueryClient } from "@tanstack/react-query";
 
 import {
   deleteBreakdown,
@@ -124,8 +125,9 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const router = useRouter();
   const { data: session } = useSession();
+  const queryClient = useQueryClient();
 
-  // State untuk modal detail
+  // State untuk modal detail 
   const [selectedBreakdown, setSelectedBreakdown] =
     useState<BreakdownPayload | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
@@ -195,6 +197,8 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
       const result = await action();
 
       if (result.success) {
+        // Tambahkan invalidateQueries di sini
+        queryClient.invalidateQueries({ queryKey: ["breakdowns"] });
         // Mungkin bisa ditambahkan notifikasi sukses di sini
         console.log(result.message);
       } else {
@@ -674,7 +678,7 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
                               isDisabled
                               startContent={<Edit className="w-4 h-4" />}
                               onPress={() =>
-                                router.push(`/dashboard/gamma/${order.id}/edit`)
+                                router.push(`/dashboard/workorders/${order.id}/edit`)
                               }
                             >
                               Edit Order

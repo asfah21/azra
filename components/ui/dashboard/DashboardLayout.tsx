@@ -74,12 +74,6 @@ export default function UIDashboardLayout({
       path: "/dashboard/settings",
       icon: <FiSettings />,
     },
-    {
-      id: "beta",
-      title: "Beta",
-      path: "/dashboard/beta",
-      icon: <FiCodesandbox />,
-    },
   ];
 
   // Function untuk mendapatkan matched item berdasarkan pathname

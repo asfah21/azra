@@ -86,10 +86,12 @@ export const Navbar = () => {
           <Button
             isExternal
             as={Link}
-            className="text-sm font-normal text-default-600 bg-default-100"
-            color="secondary"
+            className="bg-gradient-to-tr from-success to-primary text-white shadow-lg"
+            // className="text-sm font-normal text-default-600 bg-default-100"
+            // color="secondary"
+            // radius="full"
             href={siteConfig.links.login}
-            variant="ghost"
+            variant="solid"
           >
             Login
           </Button>

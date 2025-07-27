@@ -10,6 +10,7 @@ import HeroDelta from "@/components/home/HeroDelta";
 import FooterBefore from "@/components/home/FooterBefore";
 import WithLove from "@/components/home/WithLove";
 import CardBawah from "@/components/home/CardBawah";
+import InteractiveHero from "@/components/home/InteractiveHero";
 
 export default function Home() {
   return (
@@ -20,8 +21,9 @@ export default function Home() {
         <HeroBgAtas />
         <Cards />
         <BuildWith />
+        {/* <InteractiveHero /> */}
         <HeroAlpha />
-        <HeroGamma />
+        {/* <HeroGamma /> */}
         <WithLove />
         <CardBawah />
         <HeroDelta />

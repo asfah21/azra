@@ -18,6 +18,7 @@ import {
 import axios from "axios";
 
 import { createBreakdown } from "../action";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface AddWoFormProps {
   onClose: () => void;
@@ -52,6 +53,7 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
   const [state, formAction, isPending] = useActionState(createBreakdown, null);
 
   const [breakdownNumber, setBreakdownNumber] = useState("");
+  const queryClient = useQueryClient();
 
   // Load units data on component mount
   useEffect(() => {
@@ -91,6 +93,8 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
   // Auto close modal jika berhasil add breakdown
   useEffect(() => {
     if (state?.success && state?.message) {
+      queryClient.invalidateQueries({ queryKey: ["breakdowns"] });
+
       const timer = setTimeout(() => {
         onClose();
         if (onBreakdownAdded) {
@@ -100,7 +104,7 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
 
       return () => clearTimeout(timer);
     }
-  }, [state?.success, state?.message, onClose, onBreakdownAdded]);
+  }, [state?.success, state?.message, onClose, onBreakdownAdded, queryClient]);
 
   // Sudah tidak ada getUnits dan getNextBreakdownNumber, sudah diganti axios di useEffect
 

@@ -39,7 +39,7 @@ export default function FooterBefore() {
     <section className="px-6 relative z-10 gap-2 w-full flex flex-col items-center mt-16 lg:mt-44 pb-16 lg:pb-28">
       <div className="max-w-4xl flex flex-col gap-8">
         <div>
-          <div className="flex flex-col gap-2 justify-center w-full items-center">
+          <div className="mt-16 flex flex-col gap-2 justify-center w-full items-center">
             <h1 className="tracking-tight inline font-semibold text-4xl lg:text-6xl">
               Stay Connected
             </h1>

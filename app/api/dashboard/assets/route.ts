@@ -1,8 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
 // GET /api/dashboard/assets
 export async function GET(req: NextRequest) {
+  const session = await getServerSession(authOptions); //Proteksi API
+
+  if (!session) {
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  }
+
   try {
     const allAssets = await prisma.unit.findMany({
       select: {
@@ -44,7 +52,6 @@ export async function GET(req: NextRequest) {
       },
     });
 
-    // Hitung stats dari data yang sudah di-fetch
     const totalAssets = allAssets.length;
     const startOfMonth = new Date();
     startOfMonth.setDate(1);

@@ -284,7 +284,7 @@ export default function BreakdownDetailModal({
                           Komponen Terkait
                         </h2>
                         <ul className="space-y-2">
-                          {breakdown.components.map((comp) => (
+                        {Array.isArray(breakdown.components) && breakdown.components.map((comp) => (
                             <li
                               key={comp.id}
                               className="flex items-center gap-2"

@@ -13,6 +13,7 @@ import {
 } from "@heroui/react";
 import { Trash2, AlertTriangle, Package } from "lucide-react";
 
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { deleteAsset } from "../action";
 
 interface Unit {
@@ -52,55 +53,39 @@ export function DeleteAssetModal({
   onAssetDeleted,
 }: DeleteAssetModalProps) {
   const { data: session } = useSession();
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [result, setResult] = useState<{
-    success: boolean;
-    message: string;
-  } | null>(null);
+  const queryClient = useQueryClient();
+
+  // React Query mutation untuk delete asset
+  const mutation = useMutation({
+    mutationFn: async () => {
+      if (!asset) return { success: false, message: "Asset tidak ditemukan!" };
+      if (session?.user?.role !== "super_admin") {
+        return { success: false, message: "Unauthorized: Hanya Super Admin yang dapat menghapus asset." };
+      }
+      return await deleteAsset(asset.id, session.user.role);
+    },
+    onSuccess: (data) => {
+      // Invalidate cache assets agar data ter-refresh
+      if (data.success) {
+        queryClient.invalidateQueries({ queryKey: ["assets"] });
+        setTimeout(() => {
+          onClose();
+          if (onAssetDeleted) onAssetDeleted();
+        }, 1500);
+      }
+    },
+  });
 
   useEffect(() => {
     if (isOpen) {
-      setResult(null);
-      setIsDeleting(false);
+      // setResult(null); // Removed as per new_code
+      // setIsDeleting(false); // Removed as per new_code
     }
   }, [isOpen]);
 
-  const handleDelete = async () => {
-    if (!asset) return;
-
-    if (session?.user?.role !== "super_admin") {
-      setResult({
-        success: false,
-        message: "Unauthorized: Hanya Super Admin yang dapat menghapus asset.",
-      });
-
-      return;
-    }
-
-    setIsDeleting(true);
-    setResult(null);
-
-    try {
-      const response = await deleteAsset(asset.id, session.user.role);
-
-      setResult(response);
-
-      if (response.success) {
-        setTimeout(() => {
-          onClose();
-          if (onAssetDeleted) {
-            onAssetDeleted();
-          }
-        }, 1500);
-      }
-    } catch (error) {
-      setResult({
-        success: false,
-        message: "Terjadi kesalahan saat menghapus asset.",
-      });
-    } finally {
-      setIsDeleting(false);
-    }
+  // Ganti handleDelete jadi trigger mutation
+  const handleDelete = () => {
+    mutation.mutate();
   };
 
   const getCategoryName = (category: number): string => {
@@ -147,10 +132,10 @@ export function DeleteAssetModal({
             </ModalHeader>
 
             <ModalBody>
-              {result ? (
+              {mutation.data ? (
                 <div
                   className={`p-4 rounded-lg ${
-                    result.success
+                    mutation.data.success
                       ? "bg-success-50 border border-success-200"
                       : "bg-danger-50 border border-danger-200"
                   }`}
@@ -158,17 +143,17 @@ export function DeleteAssetModal({
                   <div className="flex items-center gap-2">
                     <span
                       className={`text-lg ${
-                        result.success ? "text-success-600" : "text-danger-600"
+                        mutation.data.success ? "text-success-600" : "text-danger-600"
                       }`}
                     >
-                      {result.success ? "✅" : "❌"}
+                      {mutation.data.success ? "✅" : "❌"}
                     </span>
                     <span
                       className={`font-medium ${
-                        result.success ? "text-success-800" : "text-danger-800"
+                        mutation.data.success ? "text-success-800" : "text-danger-800"
                       }`}
                     >
-                      {result.message}
+                      {mutation.data.message}
                     </span>
                   </div>
                 </div>
@@ -287,11 +272,11 @@ export function DeleteAssetModal({
             </ModalBody>
 
             <ModalFooter>
-              {!result && (
+              {!mutation.data && (
                 <>
                   <Button
                     color="default"
-                    isDisabled={isDeleting}
+                    isDisabled={mutation.isPending}
                     variant="light"
                     onPress={onClose}
                   >
@@ -300,17 +285,17 @@ export function DeleteAssetModal({
                   <Button
                     color="danger"
                     isDisabled={session?.user?.role !== "super_admin"}
-                    isLoading={isDeleting}
+                    isLoading={mutation.isPending}
                     startContent={
-                      !isDeleting ? <Trash2 className="w-4 h-4" /> : undefined
+                      !mutation.isPending ? <Trash2 className="w-4 h-4" /> : undefined
                     }
                     onPress={handleDelete}
                   >
-                    {isDeleting ? "Menghapus..." : "Hapus Asset"}
+                    {mutation.isPending ? "Menghapus..." : "Hapus Asset"}
                   </Button>
                 </>
               )}
-              {result && (
+              {mutation.data && (
                 <Button color="primary" onPress={onClose}>
                   Tutup
                 </Button>

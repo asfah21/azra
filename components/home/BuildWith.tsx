@@ -2,10 +2,11 @@ import {
   SiNextdotjs,
   SiTypescript,
   SiTailwindcss,
-  SiSupabase,
+  SiPostgresql,
   SiNextui,
   SiPrisma,
 } from "react-icons/si";
+import { BiLogoPostgresql } from "react-icons/bi";
 
 export default function BuildWith() {
   return (
@@ -80,20 +81,20 @@ export default function BuildWith() {
             </span>
           </a>
 
-          {/* Supabase - Green theme with text */}
+          {/* PostgreSQL - Green theme with text */}
           <a
             className="relative tap-highlight-transparent outline-none data-[focus-visible=true]:z-10 data-[focus-visible=true]:outline-2 data-[focus-visible=true]:outline-focus data-[focus-visible=true]:outline-offset-2 no-underline transition-all duration-300 flex flex-col items-center justify-center p-4 rounded-xl hover:bg-cyan-50 dark:hover:bg-cyan-900/20 hover:shadow-lg hover:scale-105 group"
-            href="https://supabase.com/"
+            href="https://postgresql.org/"
             rel="noopener noreferrer"
             target="_blank"
           >
-            <SiSupabase
-              className="text-green-600 dark:text-green-400 transition-all duration-300 group-hover:scale-110 group-hover:text-green-700 dark:group-hover:text-green-300"
-              size={43}
+            <BiLogoPostgresql
+              className="text-[#699eca] dark:text-[#699eca] transition-all duration-300 group-hover:scale-110 group-hover:text-[#699eca] dark:group-hover:text-[#699eca]"
+              size={52}
             />
-            <span className="text-xs font-medium text-green-700 dark:text-green-300 mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <span className="text-xs font-medium text-[#699eca] dark:text-[#699eca] mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
               {/* <span className="text-sm font-medium text-green-700 dark:text-green-300 transition-colors duration-300 group-hover:text-green-800 dark:group-hover:text-green-200"> */}
-              Supabase
+              PostgreSQL
             </span>
           </a>
 

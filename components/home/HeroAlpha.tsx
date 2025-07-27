@@ -24,21 +24,19 @@ export default function HeroAlpha() {
         <div aria-hidden="true">
           <div className="flex flex-col gap-2 items-start justify-center w-full">
             <h1 className="tracking-tight inline font-semibold text-4xl lg:text-6xl">
-              Accessibility
+              Integrated
             </h1>
             <div>
               <h1 className="tracking-tight inline font-semibold from-[#6FEE8D] to-[#17c964] text-4xl lg:text-6xl bg-clip-text text-transparent bg-gradient-to-b">
-                Ready from day&nbsp;
+                Work Order&nbsp;
               </h1>
               <h1 className="tracking-tight inline font-semibold text-4xl lg:text-6xl">
-                one.
+                System.
               </h1>
             </div>
           </div>
           <p className="w-full md:w-1/2 my-2 text-medium lg:text-large font-normal text-default-500 block max-w-full">
-            Our asset management app is built with accessibility in mind,
-            &nbsp;ensuring users of all abilities can interact with the system
-            effortlessly.
+            Our Work Order dashboard is designed with operational efficiency and accessibility in mind — helping every user monitor and manage tasks effortlessly.
             {/* &nbsp;ensuring exceptional accessibility support as a top priority. */}
           </p>
         </div>
@@ -63,13 +61,19 @@ export default function HeroAlpha() {
             <a
               aria-label="Learn more about accessibility"
               className="z-0 group relative inline-flex items-center justify-center box-border appearance-none select-none whitespace-nowrap font-normal subpixel-antialiased overflow-hidden tap-highlight-transparent transform-gpu data-[pressed=true]:scale-[0.97] outline-none data-[focus-visible=true]:z-10 data-[focus-visible=true]:outline-2 data-[focus-visible=true]:outline-focus data-[focus-visible=true]:outline-offset-2 px-3 min-w-16 h-8 text-tiny gap-2 rounded-full [&amp;&gt;svg]:max-w-[theme(spacing.8)] transition-transform-colors-opacity motion-reduce:transition-none bg-success/20 text-success-700 dark:text-success data-[hover=true]:opacity-hover max-w-fit"
-              href="/docs/customization/customize-theme"
+              href="/dashboard"
               role="button"
             >
               Learn more
             </a>
           </div>
-          <div className="flex relative w-full bg-gradient-to-r from-[#4ADE80] to-[#06B6D4] rounded-2xl h-full min-h-[200px] lg:min-h-[390px] max-h-[300px] lg:pt-8 items-center lg:items-start justify-center" />
+          <div className="flex relative w-full bg-gradient-to-r from-[#4ADE80] to-[#06B6D4] rounded-2xl h-full min-h-[200px] lg:min-h-[390px] max-h-[300px] lg:px-4 lg:py-8 items-center lg:items-start justify-center">
+            <img
+              src="/wo-2.png"
+              alt="Work Order"
+              className="object-cover rounded-2xl"
+            />
+          </div>
         </div>
       </div>
     </section>

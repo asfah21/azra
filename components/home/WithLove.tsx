@@ -10,7 +10,7 @@ export default function WithLove() {
               </h1>
               <svg
                 aria-hidden="true"
-                className="text-pink-500 animate-heartbeat"
+                className="text-red-500 animate-heartbeat"
                 fill="none"
                 focusable="false"
                 height="50"
@@ -28,7 +28,7 @@ export default function WithLove() {
           </div>
 
           <p className="w-full my-2 text-medium lg:text-large font-normal text-default-500 max-w-full md:w-full text-center flex justify-center items-center">
-            Crafted with precision and care by the IT Department team to
+            Crafted with precision and care by the IT Department to
             streamline asset management across operations.
           </p>
           <div />

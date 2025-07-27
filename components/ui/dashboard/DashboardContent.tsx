@@ -28,15 +28,15 @@ interface DashboardContentProps {
       completionRate: number;
     }>;
   };
-  recentActivities: Array<{
-    id: string;
-    user: string;
-    action: string;
-    time: string;
-    avatar: string;
-    type: string;
-    createdAt: Date;
-  }>;
+  // recentActivities: Array<{
+  //   id: string;
+  //   user: string;
+  //   action: string;
+  //   time: string;
+  //   avatar: string;
+  //   type: string;
+  //   createdAt: Date;
+  // }>;
   loading?: boolean;
   error?: string | null;
   onRetry?: () => void;
@@ -51,7 +51,7 @@ export default function DashboardContent({
     categoryDistribution: [],
     maintenancePerformance: [],
   },
-  recentActivities = [],
+  // recentActivities = [],
   loading = false,
   error = null,
   onRetry,
@@ -143,25 +143,27 @@ export default function DashboardContent({
   return (
     <div>
       {/* KPI Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
         {/* Total Assets */}
         <Card className="bg-gradient-to-br from-primary-50 to-primary-100 border-primary-200">
-          <CardHeader className="flex gap-3">
-            <div className="p-2 bg-primary-500 rounded-lg">
-              <Package className="w-6 h-6 text-white" />
+          <CardHeader className="flex gap-2 sm:gap-3 pb-2">
+            <div className="p-1.5 sm:p-2 bg-primary-500 rounded-lg">
+              <Package className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
             </div>
-            <div className="flex flex-col">
-              <p className="text-lg font-semibold text-primary-800">
+            <div className="flex flex-col min-w-0">
+              <p className="text-sm sm:text-lg font-semibold text-primary-800 truncate">
                 Total Assets
               </p>
-              <p className="text-small text-primary-600">All Equipment</p>
+              <p className="text-xs sm:text-small text-primary-600">
+              All Equipment
+            </p>
             </div>
           </CardHeader>
           <Divider className="bg-primary-200" />
-          <CardBody className="px-6 py-4">
-            <div className="space-y-4">
+          <CardBody className="px-3 sm:px-6 py-2 sm:py-4">
+            <div className="space-y-2 sm:space-y-3">
               <div className="flex justify-between items-center">
-                <span className="text-2xl font-bold text-primary-700">
+                <span className="text-xl sm:text-2xl font-bold text-primary-700">
                   {dashboardData?.assetStats?.total || 0}
                 </span>
                 <Chip color="primary" size="sm" variant="flat">
@@ -190,22 +192,22 @@ export default function DashboardContent({
 
         {/* Active Assets */}
         <Card className="bg-gradient-to-br from-success-50 to-success-100 border-success-200">
-          <CardHeader className="flex gap-3">
-            <div className="p-2 bg-success-500 rounded-lg">
-              <Activity className="w-6 h-6 text-white" />
+          <CardHeader className="flex gap-2 sm:gap-3 pb-2">
+            <div className="p-1.5 sm:p-2 bg-primary-500 rounded-lg">
+              <Activity className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
             </div>
-            <div className="flex flex-col">
-              <p className="text-lg font-semibold text-success-800">
+            <div className="flex flex-col min-w-0">
+              <p className="text-sm sm:text-lg font-semibold text-primary-800 truncate">
                 Active Assets
               </p>
-              <p className="text-small text-success-600">Operational</p>
+              <p className="text-xs sm:text-small text-success-600">Operational</p>
             </div>
           </CardHeader>
           <Divider className="bg-success-200" />
-          <CardBody className="px-6 py-4">
-            <div className="space-y-4">
+          <CardBody className="px-3 sm:px-6 py-2 sm:py-4">
+            <div className="space-y-2 sm:space-y-3">
               <div className="flex justify-between items-center">
-                <span className="text-2xl font-bold text-success-700">
+                <span className="text-xl sm:text-2xl font-bold text-primary-700">
                   {dashboardData?.assetStats?.active || 0}
                 </span>
                 <Chip color="success" size="sm" variant="flat">
@@ -248,22 +250,22 @@ export default function DashboardContent({
 
         {/* Work Orders */}
         <Card className="bg-gradient-to-br from-warning-50 to-warning-100 border-warning-200">
-          <CardHeader className="flex gap-3">
-            <div className="p-2 bg-warning-500 rounded-lg">
-              <Wrench className="w-6 h-6 text-white" />
+          <CardHeader className="flex gap-2 sm:gap-3 pb-2">
+            <div className="p-1.5 sm:p-2 bg-warning-500 rounded-lg">
+              <Wrench className="w-4 h-4 sm:w-6 sm:h-6 text-white"/>
             </div>
-            <div className="flex flex-col">
-              <p className="text-lg font-semibold text-warning-800">
+            <div className="flex flex-col min-w-0">
+              <p className="text-sm sm:text-lg font-semibold text-warning-800 truncate">
                 Work Orders
               </p>
-              <p className="text-small text-warning-600">Active Breakdowns</p>
+              <p className="text-xs sm:text-small text-warning-600">Active WO</p>
             </div>
           </CardHeader>
           <Divider className="bg-warning-200" />
-          <CardBody className="px-6 py-4">
-            <div className="space-y-4">
+          <CardBody className="px-3 sm:px-6 py-2 sm:py-4">
+            <div className="space-y-2 sm:space-y-3">
               <div className="flex justify-between items-center">
-                <span className="text-2xl font-bold text-warning-700">
+                <span className="text-xl sm:text-2xl font-bold text-primary-700">
                   {dashboardData?.workOrderStats?.total || 0}
                 </span>
                 <Chip color="warning" size="sm" variant="flat">
@@ -273,7 +275,7 @@ export default function DashboardContent({
               <div className="space-y-2">
                 <div className="flex justify-between">
                   <span className="text-small text-default-600">
-                    Completion Rate
+                    Completion
                   </span>
                   <span className="text-small font-medium">
                     {dashboardData?.workOrderStats?.total
@@ -306,22 +308,22 @@ export default function DashboardContent({
 
         {/* Critical Assets */}
         <Card className="bg-gradient-to-br from-danger-50 to-danger-100 border-danger-200">
-          <CardHeader className="flex gap-3">
-            <div className="p-2 bg-danger-500 rounded-lg">
-              <AlertTriangle className="w-6 h-6 text-white" />
+          <CardHeader className="flex gap-2 sm:gap-3 pb-2">
+            <div className="p-1.5 sm:p-2 bg-danger-500 rounded-lg">
+              <AlertTriangle className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
             </div>
-            <div className="flex flex-col">
-              <p className="text-lg font-semibold text-danger-800">
+            <div className="flex flex-col min-w-0">
+              <p className="text-sm sm:text-lg font-semibold text-danger-800 truncate">
                 Critical Assets
               </p>
-              <p className="text-small text-danger-600">Need Attention</p>
+              <p className="text-xs sm:text-small text-danger-600">Need Attention</p>
             </div>
           </CardHeader>
           <Divider className="bg-danger-200" />
-          <CardBody className="px-6 py-4">
-            <div className="space-y-4">
+          <CardBody className="px-3 sm:px-6 py-2 sm:py-4">
+            <div className="space-y-2 sm:space-y-3">
               <div className="flex justify-between items-center">
-                <span className="text-2xl font-bold text-danger-700">
+                <span className="text-xl sm:text-2xl font-bold text-danger-700">
                   {dashboardData?.assetStats?.critical || 0}
                 </span>
                 <Chip color="danger" size="sm" variant="flat">
@@ -486,7 +488,7 @@ export default function DashboardContent({
       </div>
 
       {/* Recent Activities Detail */}
-      <Card className="bg-gradient-to-br from-secondary-50 to-secondary-100">
+      {/* <Card className="bg-gradient-to-br from-secondary-50 to-secondary-100">
         <CardHeader className="flex gap-3">
           <div className="p-2 bg-secondary-500 rounded-lg">
             <Clock className="w-6 h-6 text-white" />
@@ -517,12 +519,6 @@ export default function DashboardContent({
                   key={activity.id}
                   className="flex items-center gap-4 p-3 rounded-xl hover:bg-secondary-100 transition-colors"
                 >
-                  {/* <Avatar
-                    isBordered
-                    color={getActivityColor(activity.type) as any}
-                    size="md"
-                    src={activity.avatar}
-                  /> */}
                   <div className="flex-1">
                     <User
                       classNames={{
@@ -561,7 +557,7 @@ export default function DashboardContent({
             )}
           </div>
         </CardBody>
-      </Card>
+      </Card> */}
     </div>
   );
 }
