@@ -115,19 +115,13 @@ export default function InProgressModal({
                   variant="bordered"
                   onSelectionChange={(keys) => {
                     const keyArray = Array.from(keys);
-                    // Get the first key from the selection
-                    const selectedKey = keyArray[0]?.toString();
-                    if (selectedKey) {
-                      setPriority(selectedKey);
-                    } else {
-                      setPriority("");
-                    }
+                    setPriority(keyArray[0]?.toString() || "");
                   }}
                 >
-                <SelectItem key="low">Low</SelectItem>
-                <SelectItem key="medium">Medium</SelectItem>
-                <SelectItem key="high">High</SelectItem>
-              </Select>
+                  <SelectItem key="low">Low</SelectItem>
+                  <SelectItem key="medium">Medium</SelectItem>
+                  <SelectItem key="high">High</SelectItem>
+                </Select>
               </div>
 
               <div className="space-y-2">

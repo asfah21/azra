@@ -301,6 +301,7 @@ export async function updateBreakdownStatusWithUnitStatus(
   id: string,
   status: BreakdownStatus,
   unitStatus: string,
+  priority?: string,
   notes?: string,
   resolvedById?: string,
 ) {
@@ -318,6 +319,11 @@ export async function updateBreakdownStatusWithUnitStatus(
     await prisma.$transaction(async (tx) => {
       // Update breakdown status
       const updateData: any = { status };
+
+      // Update priority if provided
+      if (priority) {
+        updateData.priority = priority;
+      }
 
       if (status === "in_progress" && resolvedById) {
         updateData.inProgressById = resolvedById;

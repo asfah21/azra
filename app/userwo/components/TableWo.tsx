@@ -53,15 +53,15 @@ import {
 import { useQueryClient } from "@tanstack/react-query";
 
 import {
-  deleteBreakdown,
-  updateBreakdownStatusWithActions,
-  updateBreakdownStatusWithUnitStatus,
-} from "../action";
+  // deleteBreakdown,
+  // updateBreakdownStatusWithActions,
+  // updateBreakdownStatusWithUnitStatus,
+} from "@/app/userwo/action";
 
-import { AddWoForm } from "./AddForm";
-import BreakdownDetailModal from "./BreakdownDetailModal";
-import RFUReportActionModal from "./RFUReportActionModal";
-import InProgressModal from "./InProgressModal";
+import { AddWoForm } from "./AddWo";
+import DetailWo from "./DetailWo";
+// import RFUReportActionModal from "./RFUReportActionModal";
+// import InProgressModal from "./InProgressModal";
 
 // Tambahkan import untuk mendapatkan current user
 
@@ -217,77 +217,77 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
     setIsRFUModalOpen(true);
   };
 
-  const handleRFUComplete = async (
-    solution: string,
-    actions: Array<{ action: string; description: string }>,
-  ) => {
-    if (!selectedBreakdownForRFU) return;
+  // const handleRFUComplete = async (
+  //   solution: string,
+  //   actions: Array<{ action: string; description: string }>,
+  // ) => {
+  //   if (!selectedBreakdownForRFU) return;
 
-    const currentUserId = session?.user?.id;
+  //   const currentUserId = session?.user?.id;
 
-    if (!currentUserId) {
-      console.error("User ID not found");
+  //   if (!currentUserId) {
+  //     console.error("User ID not found");
 
-      return;
-    }
+  //     return;
+  //   }
 
-    try {
-      const result = await updateBreakdownStatusWithActions(
-        selectedBreakdownForRFU.id,
-        "rfu",
-        solution,
-        actions,
-        currentUserId,
-      );
+  //   try {
+  //     const result = await updateBreakdownStatusWithActions(
+  //       selectedBreakdownForRFU.id,
+  //       "rfu",
+  //       solution,
+  //       actions,
+  //       currentUserId,
+  //     );
 
-      if (result.success) {
-        console.log(result.message);
-        router.refresh(); // Refresh halaman untuk update data
-      } else {
-        console.error(result.message);
-      }
-    } catch (error) {
-      console.error("An unexpected error occurred:", error);
-    }
-  };
+  //     if (result.success) {
+  //       console.log(result.message);
+  //       router.refresh(); // Refresh halaman untuk update data
+  //     } else {
+  //       console.error(result.message);
+  //     }
+  //   } catch (error) {
+  //     console.error("An unexpected error occurred:", error);
+  //   }
+  // };
 
   const handleMarkAsInProgress = (breakdown: BreakdownPayload) => {
     setSelectedBreakdownForInProgress(breakdown);
     setIsInProgressModalOpen(true);
   };
 
-  const handleInProgressComplete = async (
-    unitStatus: string,
-    priority: string,
-    notes?: string,
-  ) => {
-    if (!selectedBreakdownForInProgress) return;
+  // const handleInProgressComplete = async (
+  //   unitStatus: string,
+  //   priority: string,
+  //   notes?: string,
+  // ) => {
+  //   if (!selectedBreakdownForInProgress) return;
 
-    const currentUserId = session?.user?.id;
+  //   const currentUserId = session?.user?.id;
 
-    if (currentUserId) {
-      await handleAction(() =>
-        updateBreakdownStatusWithUnitStatus(
-          selectedBreakdownForInProgress.id,
-          "in_progress",
-          unitStatus,
-          priority,
-          notes,
-          currentUserId,
-        ),
-      );
-    } else {
-      await handleAction(() =>
-        updateBreakdownStatusWithUnitStatus(
-          selectedBreakdownForInProgress.id,
-          "in_progress",
-          unitStatus,
-          priority,
-          notes,
-        ),
-      );
-    }
-  };
+  //   if (currentUserId) {
+  //     await handleAction(() =>
+  //       updateBreakdownStatusWithUnitStatus(
+  //         selectedBreakdownForInProgress.id,
+  //         "in_progress",
+  //         unitStatus,
+  //         priority,
+  //         notes,
+  //         currentUserId,
+  //       ),
+  //     );
+  //   } else {
+  //     await handleAction(() =>
+  //       updateBreakdownStatusWithUnitStatus(
+  //         selectedBreakdownForInProgress.id,
+  //         "in_progress",
+  //         unitStatus,
+  //         priority,
+  //         notes,
+  //       ),
+  //     );
+  //   }
+  // };
 
   const handleCloseInProgressModal = () => {
     setIsInProgressModalOpen(false);
@@ -306,29 +306,29 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
     setIsDeleteModalOpen(true);
   };
 
-  const handleConfirmDelete = async () => {
-    if (!selectedBreakdownForDelete) return;
+  // const handleConfirmDelete = async () => {
+  //   if (!selectedBreakdownForDelete) return;
 
-    // Validasi role user sebelum melakukan delete
-    if (session?.user?.role !== "super_admin") {
-      console.error("Unauthorized: Only super_admin can delete work orders");
-      setIsDeleteModalOpen(false);
-      setSelectedBreakdownForDelete(null);
+  //   // Validasi role user sebelum melakukan delete
+  //   if (session?.user?.role !== "super_admin") {
+  //     console.error("Unauthorized: Only super_admin can delete work orders");
+  //     setIsDeleteModalOpen(false);
+  //     setSelectedBreakdownForDelete(null);
 
-      return;
-    }
+  //     return;
+  //   }
 
-    setIsDeleting(true);
-    try {
-      await handleAction(() => deleteBreakdown(selectedBreakdownForDelete.id));
-      setIsDeleteModalOpen(false);
-      setSelectedBreakdownForDelete(null);
-    } catch (error) {
-      console.error("Error deleting breakdown:", error);
-    } finally {
-      setIsDeleting(false);
-    }
-  };
+  //   setIsDeleting(true);
+  //   try {
+  //     await handleAction(() => deleteBreakdown(selectedBreakdownForDelete.id));
+  //     setIsDeleteModalOpen(false);
+  //     setSelectedBreakdownForDelete(null);
+  //   } catch (error) {
+  //     console.error("Error deleting breakdown:", error);
+  //   } finally {
+  //     setIsDeleting(false);
+  //   }
+  // };
 
   const handleCloseDeleteModal = () => {
     setIsDeleteModalOpen(false);
@@ -484,7 +484,7 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
               variant="flat"
               onValueChange={handleSearchChange}
             />
-            <Button
+            {/* <Button
               className="flex-1 sm:flex-none"
               color="default"
               size="sm"
@@ -492,7 +492,7 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
               variant="flat"
             >
               Filter
-            </Button>
+            </Button> */}
             <Button
               className="flex-1 sm:flex-none"
               color="primary"
@@ -500,7 +500,7 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
               startContent={<PlusIcon className="w-4 h-4" />}
               onPress={onOpen}
             >
-              Add WO
+              Create WO
             </Button>
           </div>
         </CardHeader>
@@ -689,7 +689,7 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
                             >
                               View Details
                             </DropdownItem>
-                            <DropdownItem
+                            {/* <DropdownItem
                               key="edit"
                               isDisabled
                               startContent={<Edit className="w-4 h-4" />}
@@ -734,7 +734,7 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
                               >
                                 Delete Order
                               </DropdownItem>
-                            ) : null}
+                            ) : null} */}
 
                             {/* <DropdownItem
                               key="cancel"
@@ -773,33 +773,33 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
       </div>
 
       {/* Modal untuk Detail Breakdown */}
-      <BreakdownDetailModal
+      <DetailWo
         breakdown={selectedBreakdown}
         isOpen={isDetailModalOpen}
         onClose={handleCloseDetailModal}
       />
 
       {/* RFU Report Action Modal */}
-      <RFUReportActionModal
+      {/* <RFUReportActionModal
         breakdownId={selectedBreakdownForRFU?.id || ""}
         breakdownNumber={selectedBreakdownForRFU?.breakdownNumber || ""}
         isOpen={isRFUModalOpen}
         onClose={handleCloseRFUModal}
         onRFUComplete={handleRFUComplete}
-      />
+      /> */}
 
       {/* In Progress Modal */}
-      <InProgressModal
+      {/* <InProgressModal
         breakdownNumber={selectedBreakdownForInProgress?.breakdownNumber || ""}
         isOpen={isInProgressModalOpen}
         unitAssetTag={selectedBreakdownForInProgress?.unit.assetTag || ""}
         unitName={selectedBreakdownForInProgress?.unit.name || ""}
         onClose={handleCloseInProgressModal}
         onConfirm={handleInProgressComplete}
-      />
+      /> */}
 
       {/* Modal konfirmasi delete */}
-      <Modal
+      {/* <Modal
         isOpen={isDeleteModalOpen}
         placement="center"
         size="sm"
@@ -846,7 +846,7 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
             </>
           )}
         </ModalContent>
-      </Modal>
+      </Modal> */}
     </div>
   );
 }
