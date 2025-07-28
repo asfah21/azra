@@ -15,6 +15,7 @@ import {
 } from "@heroui/react";
 import { Image, Upload } from "lucide-react";
 import { useState } from "react";
+import { useProfile } from "@/app/context/ProfileContext"; // refresh setelah upload
 
 interface ChangePhotoModalProps {
   isOpen: boolean;
@@ -55,11 +56,14 @@ export default function ChangePhotoModal({
     }
   };
 
+  const { refreshProfile } = useProfile(); // refresh setelah upload
+
   const handleUpload = async () => {
     if (selectedFile) {
       setIsUploading(true);
       try {
         await onPhotoUploaded(selectedFile);
+        await refreshProfile(); // refresh setelah upload
         handleClose();
       } catch (error) {
         addToast({
@@ -80,6 +84,8 @@ export default function ChangePhotoModal({
     setErrorMessage(null);
     onClose();
   };
+
+  
 
   return (
     <Modal 

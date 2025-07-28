@@ -95,6 +95,7 @@ export async function GET(req: NextRequest) {
       select: {
         id: true,
         name: true,
+        photo: true,
       },
       orderBy: { name: "asc" },
     });

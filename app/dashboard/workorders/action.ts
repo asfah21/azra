@@ -158,7 +158,7 @@ export async function createBreakdown(prevState: any, formData: FormData) {
       },
     });
 
-    revalidatePath("/dashboard/gamma");
+    revalidatePath("/dashboard/workorders");
 
     return {
       success: true,
@@ -232,7 +232,7 @@ export async function updateBreakdownStatus(
       },
     });
 
-    revalidatePath("/dashboard/gamma");
+    revalidatePath("/dashboard/workorders");
 
     return { success: true, message: "Breakdown status updated." };
   } catch (error) {
@@ -287,7 +287,7 @@ export async function updateBreakdownStatusWithActions(
       },
     });
 
-    revalidatePath("/dashboard/gamma");
+    revalidatePath("/dashboard/workorders");
 
     return { success: true, message: "Breakdown status updated with actions." };
   } catch (error) {
@@ -356,7 +356,7 @@ export async function updateBreakdownStatusWithUnitStatus(
       });
     });
 
-    revalidatePath("/dashboard/gamma");
+    revalidatePath("/dashboard/workorders");
 
     return {
       success: true,
@@ -389,18 +389,33 @@ export async function deleteBreakdown(id: string) {
       return { success: false, message: "Breakdown not found!" };
     }
 
-    await prisma.$transaction([
-      prisma.rFUReport.deleteMany({
-        where: { breakdownId: id },
-      }),
-      prisma.breakdownComponent.deleteMany({
-        where: { breakdownId: id },
-      }),
-      prisma.breakdown.delete({
-        where: { id },
-      }),
-    ]);
+    await prisma.$transaction(async (tx) => {
+      // 1. Hapus RFUReportAction terlebih dahulu
+      await tx.rFUReportAction.deleteMany({
+        where: {
+          rfuReport: {
+            breakdownId: id
+          }
+        }
+      });
 
+      // 2. Baru hapus RFUReport
+      await tx.rFUReport.deleteMany({
+        where: { breakdownId: id },
+      });
+
+      // 3. Hapus BreakdownComponent
+      await tx.breakdownComponent.deleteMany({
+        where: { breakdownId: id },
+      });
+
+      // 4. Terakhir hapus Breakdown
+      await tx.breakdown.delete({
+        where: { id },
+      });
+    });
+
+    // Create history log setelah transaction berhasil
     await prisma.unitHistory.create({
       data: {
         logType: "breakdown_deleted",
@@ -410,12 +425,11 @@ export async function deleteBreakdown(id: string) {
       },
     });
 
-    revalidatePath("/dashboard/gamma");
+    revalidatePath("/dashboard/workorders");
 
     return { success: true, message: "Breakdown deleted successfully!" };
   } catch (error) {
     console.error("Error deleting breakdown:", error);
-
     return { success: false, message: "Failed to delete breakdown." };
   }
 }

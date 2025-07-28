@@ -55,6 +55,7 @@ interface User {
   department: string | null;
   createdAt: Date;
   lastActive: Date | null;
+  photo?: string;
 }
 
 interface UserManagementClientProps {
@@ -464,8 +465,8 @@ export default function UserTables({ usersTable }: UserManagementClientProps) {
                       <User
                         avatarProps={{
                           radius: "lg",
-                          // src: user.avatar,
-                          size: "sm",
+                          src: user.photo,
+                          className:"w-8 h-8 rounded-full object-cover flex-shrink-0",
                         }}
                         classNames={{
                           description: "text-default-500",

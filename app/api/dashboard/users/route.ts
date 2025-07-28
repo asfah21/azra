@@ -21,6 +21,7 @@ export async function GET(req: NextRequest) {
         department: true,
         createdAt: true,
         lastActive: true,
+        photo: true, //tambahanku
       },
       orderBy: { createdAt: "desc" },
     });

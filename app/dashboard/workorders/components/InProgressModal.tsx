@@ -17,7 +17,7 @@ import { useState } from "react";
 interface InProgressModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: (unitStatus: string, notes?: string) => void;
+  onConfirm: (unitStatus: string, priority: string, notes?: string) => void;
   breakdownNumber?: string;
   unitName?: string;
   unitAssetTag?: string;
@@ -32,19 +32,24 @@ export default function InProgressModal({
   unitAssetTag,
 }: InProgressModalProps) {
   const [unitStatus, setUnitStatus] = useState<string>("");
+  const [priority, setPriority] = useState<string>("");
   const [notes, setNotes] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
 
   const handleConfirm = async () => {
     if (!unitStatus) {
       alert("Please select unit status");
-
+      return;
+    }
+    
+    if (!priority) {
+      alert("Please select priority");
       return;
     }
 
     setIsLoading(true);
     try {
-      await onConfirm(unitStatus, notes);
+      await onConfirm(unitStatus, priority, notes);
       handleClose();
     } catch (error) {
       console.error("Error updating status:", error);
@@ -55,6 +60,7 @@ export default function InProgressModal({
 
   const handleClose = () => {
     setUnitStatus("");
+    setPriority("");
     setNotes("");
     setIsLoading(false);
     onClose();
@@ -72,7 +78,7 @@ export default function InProgressModal({
               {/* <CardHeader>
                 <span className="font-semibold text-default-700">Info Breakdown</span>
               </CardHeader> */}
-              <CardBody>
+              <CardBody className="space-y-2">
                 <p className="text-sm text-default-600">
                   <strong>No:</strong> {breakdownNumber}
                 </p>
@@ -82,8 +88,50 @@ export default function InProgressModal({
               </CardBody>
             </Card>
 
-            <div className="space-y-2">
-              <Select
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Priority</label>
+
+                <Select
+                  isRequired
+                  classNames={{
+                    label: "text-black/50 dark:text-white/90",
+                    trigger: [
+                      "bg-default-200/50",
+                      "dark:bg-default/60",
+                      "backdrop-blur-xl",
+                      "backdrop-saturate-200",
+                      "hover:bg-default-200/70",
+                      "dark:hover:bg-default/70",
+                      "group-data-[focused=true]:bg-default-200/50",
+                      "dark:group-data-[focused=true]:bg-default/60",
+                    ],
+                    value: "text-black/90 dark:text-white/90",
+                  }}
+                  label="Priority"
+                  name="priority"
+                  placeholder="Select priority"
+                  selectedKeys={priority ? [priority] : []}
+                  variant="bordered"
+                  onSelectionChange={(keys) => {
+                    const keyArray = Array.from(keys);
+                    // Get the first key from the selection
+                    const selectedKey = keyArray[0]?.toString();
+                    if (selectedKey) {
+                      setPriority(selectedKey);
+                    } else {
+                      setPriority("");
+                    }
+                  }}
+                >
+                <SelectItem key="low">Low</SelectItem>
+                <SelectItem key="medium">Medium</SelectItem>
+                <SelectItem key="high">High</SelectItem>
+              </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Select
                 isRequired
                 classNames={{
                   label: "text-sm font-medium",
@@ -115,6 +163,7 @@ export default function InProgressModal({
                 <SelectItem key="broken">Broken</SelectItem>
                 {/* Tambahkan opsi lain sesuai kebutuhan */}
               </Select>
+              </div>
             </div>
 
             {/* <div className="space-y-2">

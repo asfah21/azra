@@ -1,7 +1,7 @@
 import { Metadata } from "next";
-
 import { siteConfig } from "@/config/site";
 import UIDashboardLayout from "@/components/ui/dashboard/DashboardLayout";
+import { ProfileProvider } from "@/app/context/ProfileContext"
 
 export const metadata: Metadata = {
   title: {
@@ -15,5 +15,9 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <UIDashboardLayout>{children}</UIDashboardLayout>;
+  return (
+    <ProfileProvider>
+      <UIDashboardLayout>{children}</UIDashboardLayout>
+    </ProfileProvider>
+  );
 }

@@ -91,6 +91,7 @@ interface BreakdownPayload {
     name: string;
     email: string;
     department: string | null;
+    photo?: string | null;
   };
   components: {
     id: string;
@@ -151,6 +152,7 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
 
   // State untuk modal konfirmasi delete
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [selectedBreakdownForDelete, setSelectedBreakdownForDelete] =
     useState<BreakdownPayload | null>(null);
 
@@ -313,9 +315,16 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
       return;
     }
 
-    await handleAction(() => deleteBreakdown(selectedBreakdownForDelete.id));
-    setIsDeleteModalOpen(false);
-    setSelectedBreakdownForDelete(null);
+    setIsDeleting(true);
+    try {
+      await handleAction(() => deleteBreakdown(selectedBreakdownForDelete.id));
+      setIsDeleteModalOpen(false);
+      setSelectedBreakdownForDelete(null);
+    } catch (error) {
+      console.error("Error deleting breakdown:", error);
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   const handleCloseDeleteModal = () => {
@@ -536,7 +545,7 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
                 {items.map((order) => (
                   <TableRow key={order.id}>
                     <TableCell>
-                      <div className="flex flex-col gap-1">
+                      <div className="flex flex-col gap-1 truncate">
                         <div className="flex items-center gap-2">
                           <span className="font-medium text-sm">
                             {order.breakdownNumber ?? "Not Found!"}
@@ -557,11 +566,15 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
                       <User
                         avatarProps={{
                           radius: "lg",
+                          src: order.reportedBy.photo || undefined,
                           // src: order.assigneeAvatar,
                           size: "sm",
+                          className:
+                            "w-8 h-8 rounded-full object-cover flex-shrink-0",
                         }}
                         classNames={{
                           description: "text-default-500",
+                          wrapper: "truncate",
                         }}
                         description={order.reportedBy.department}
                         name={order.reportedBy.name}
@@ -587,7 +600,7 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
                       </Chip>
                     </TableCell>
                     <TableCell>
-                      <div className="">
+                      <div className="truncate">
                         <p className="flex items-center gap-1">
                           <MapPin className="text-red-500 w-3 h-3" />
                           {order.unit.location}
@@ -625,7 +638,7 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div className="text-small">
+                      <div className="text-small truncate">
                         {/* <p className="font-medium">{order.dueDate}</p> */}
                         <p>
                           {(() => {
@@ -818,8 +831,13 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
                 >
                   Batal
                 </Button>
-                <Button color="danger" onPress={handleConfirmDelete}>
-                  Hapus
+                <Button
+                  color="danger"
+                  onPress={handleConfirmDelete}
+                  isLoading={isDeleting}
+                  disabled={isDeleting}
+                >
+                  {isDeleting ? "Menghapus..." : "Hapus"}
                 </Button>
               </ModalFooter>
             </>

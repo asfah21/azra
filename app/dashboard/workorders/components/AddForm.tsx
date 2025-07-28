@@ -176,6 +176,7 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
           <Input
             isReadOnly
             isRequired
+            className="hidden"
             classNames={{
               label: "text-black/50 dark:text-white/90",
               input: [
@@ -245,6 +246,42 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
             ))}
           </Select>
 
+          <Input
+                isRequired
+                classNames={{
+                  label: "text-black/50 dark:text-white/90",
+                  input: [
+                    "bg-transparent",
+                    "text-black/90 dark:text-white/90",
+                    "placeholder:text-default-700/50 dark:placeholder:text-white/60",
+                  ],
+                  innerWrapper: "bg-transparent",
+                  inputWrapper: [
+                    "bg-default-200/50",
+                    "dark:bg-default/60",
+                    "backdrop-blur-xl",
+                    "backdrop-saturate-200",
+                    "hover:bg-default-200/70",
+                    "dark:hover:bg-default/70",
+                    "group-data-[focused=true]:bg-default-200/50",
+                    "dark:group-data-[focused=true]:bg-default/60",
+                    "!cursor-text",
+                  ],
+                }}
+                endContent={
+                  <div className="pointer-events-none flex items-center">
+                    <span className="text-default-400 text-small">hours</span>
+                  </div>
+                }
+                label="Hours Meter"
+                min="0"
+                name="workingHours"
+                placeholder="Enter unit HM"
+                step="0.1"
+                type="number"
+                variant="bordered"
+              />
+
           <Textarea
             isRequired
             classNames={{
@@ -267,9 +304,9 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
                 "!cursor-text",
               ],
             }}
-            label="Description"
+            label="Position"
             name="description"
-            placeholder="Describe the breakdown in detail"
+            placeholder="Describe your current position in detail"
             variant="bordered"
           />
 
@@ -304,9 +341,11 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
                 name="breakdownTime"
                 type="datetime-local"
                 variant="bordered"
-              />
+              />              
+            </div>
 
-              <Select
+            <div className="space-y-4">
+            <Select
                 isRequired
                 classNames={{
                   label: "text-black/50 dark:text-white/90",
@@ -335,10 +374,10 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
               >
                 <SelectItem key="siang">Siang</SelectItem>
                 <SelectItem key="malam">Malam</SelectItem>
-              </Select>
+              </Select>              
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-4 hidden">
               <Select
                 isRequired
                 classNames={{
@@ -371,47 +410,12 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
                 <SelectItem key="high">High</SelectItem>
               </Select>
 
-              <Input
-                isRequired
-                classNames={{
-                  label: "text-black/50 dark:text-white/90",
-                  input: [
-                    "bg-transparent",
-                    "text-black/90 dark:text-white/90",
-                    "placeholder:text-default-700/50 dark:placeholder:text-white/60",
-                  ],
-                  innerWrapper: "bg-transparent",
-                  inputWrapper: [
-                    "bg-default-200/50",
-                    "dark:bg-default/60",
-                    "backdrop-blur-xl",
-                    "backdrop-saturate-200",
-                    "hover:bg-default-200/70",
-                    "dark:hover:bg-default/70",
-                    "group-data-[focused=true]:bg-default-200/50",
-                    "dark:group-data-[focused=true]:bg-default/60",
-                    "!cursor-text",
-                  ],
-                }}
-                endContent={
-                  <div className="pointer-events-none flex items-center">
-                    <span className="text-default-400 text-small">hours</span>
-                  </div>
-                }
-                label="Working Hours"
-                min="0"
-                name="workingHours"
-                placeholder="Enter working hours"
-                step="0.1"
-                type="number"
-                variant="bordered"
-              />
             </div>
           </div>
 
           {/* Components Section */}
           <div className="space-y-2">
-            <h3 className="text-sm font-medium">Components Affected</h3>
+            <h3 className="text-sm font-medium">Report</h3>
             <div className="grid grid-cols-1 gap-4">
               <Input
                 classNames={{
@@ -433,8 +437,8 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
                     "!cursor-text",
                   ],
                 }}
-                label="Component Description"
-                placeholder="Masukkan deskripsi komponen (misal: Kerusakan Tyre, Kerusakan Hidrolik)"
+                label="Report Description"
+                placeholder="Tyre no 10 bocor"
                 value={subcomponentInput}
                 variant="bordered"
                 onChange={(e) => setSubcomponentInput(e.target.value)}
@@ -447,7 +451,7 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
               variant="bordered"
               onPress={addComponent}
             >
-              Add Component
+              Add Report
             </Button>
             <div className="flex flex-wrap gap-2">
               {components.map((comp, index) => (

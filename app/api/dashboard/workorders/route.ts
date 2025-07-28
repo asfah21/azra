@@ -85,7 +85,7 @@ export async function GET(req: NextRequest) {
         const allBreakdowns = await prisma.breakdown.findMany({
           include: {
             reportedBy: {
-              select: { id: true, name: true, email: true, department: true },
+              select: { id: true, name: true, email: true, department: true, photo: true },
             },
             inProgressBy: { select: { id: true, name: true, email: true } },
             unit: {

@@ -1,31 +1,24 @@
 "use client";
 
+import { FiBell, FiLogOut, FiMenu, FiX, FiSettings } from "react-icons/fi";
+import { Input } from "@heroui/input";
+import { Kbd } from "@heroui/kbd";
+import { Button } from "@heroui/button";
+import { Card, CardBody } from "@heroui/card";
+import { GoSidebarExpand, GoSidebarCollapse } from "react-icons/go";
+import { FiXCircle } from "react-icons/fi";
+import { Avatar } from "@heroui/avatar";
 import {
-  FiBell,
-  FiLogOut,
-  FiMenu,
-  FiX,
-  FiUser,
-  FiSettings,
-} from "react-icons/fi";
-import {
-  Input,
-  Kbd,
-  Button,
-  Avatar,
-  Card,
-  CardBody,
   Dropdown,
   DropdownTrigger,
   DropdownMenu,
   DropdownItem,
-} from "@heroui/react";
-import { GoSidebarExpand, GoSidebarCollapse } from "react-icons/go";
-import { FiXCircle } from "react-icons/fi";
+} from "@heroui/dropdown";
+import { useRouter } from "next/navigation";
 
 import { ThemeSwitch } from "@/components/theme-switch";
 import { Logo, SearchIcon } from "@/components/icons";
-import { useRouter } from "next/navigation";
+import { useProfile } from "@/app/context/ProfileContext";
 
 interface TopbarProps {
   menuOpen: boolean;
@@ -58,6 +51,9 @@ export function Topbar({
 }: TopbarProps) {
   const router = useRouter();
 
+  const { profile } = useProfile();
+  // const { profile, isLoading } = useProfile();
+
   const searchInput = (
     <Input
       aria-label="Search"
@@ -87,6 +83,11 @@ export function Topbar({
     return name ? name.split(" ")[0] : "User";
   };
 
+  // Hanya log di development, tidak di production
+  if (process.env.NODE_ENV !== "production") {
+    console.log("SESSION DI TOPBAR:", session);
+  }
+
   return (
     <>
       {/* Mobile Topbar */}
@@ -114,8 +115,10 @@ export function Topbar({
             <DropdownTrigger>
               <Avatar
                 className="cursor-pointer"
-                name={getFirstName(session?.user?.name || "User")}
+                // name={getFirstName(session?.user?.name || "User")}
                 size="sm"
+                // src={session?.user?.photo || "https://i.pravatar.cc/150?img=12"}
+                src={profile?.photo || "https://i.pravatar.cc/150?img=12"}
               />
             </DropdownTrigger>
             <DropdownMenu aria-label="User actions">
@@ -135,7 +138,7 @@ export function Topbar({
               <DropdownItem
                 key="settings"
                 startContent={<FiSettings size={16} />}
-                onPress={() => router.push("/dashboard/settings")}
+                onPress={() => router.push("./settings")}
               >
                 Settings
               </DropdownItem>
@@ -199,6 +202,7 @@ export function Topbar({
           </Button>
           <div className="hidden lg:flex">{searchInput}</div>
         </div>
+        {/* <p>halo {session?.user?.photo}</p> */}
 
         <div className="flex items-center gap-3">
           <ThemeSwitch />
@@ -209,8 +213,10 @@ export function Topbar({
             <DropdownTrigger>
               <div className="flex items-center gap-2 cursor-pointer hover:bg-default-100 rounded-lg p-2 transition-colors">
                 <Avatar
-                  name={getFirstName(session?.user?.name || "User")}
+                  // name={getFirstName(session?.user?.name || "User")}
                   size="sm"
+                  src={profile?.photo}
+                  // src={session?.user?.photo || "https://i.pravatar.cc/150?img=12"}
                 />
                 <div className="hidden lg:flex flex-col items-start">
                   <span className="text-small font-medium text-foreground">
@@ -236,7 +242,7 @@ export function Topbar({
               <DropdownItem
                 key="settings"
                 startContent={<FiSettings size={16} />}
-                onPress={() => router.push("/dashboard/settings")}
+                onPress={() => router.push("./settings")}
               >
                 Settings
               </DropdownItem>

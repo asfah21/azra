@@ -85,7 +85,7 @@ interface Unit {
 
 interface ManagementClientProps {
   dataTable: Unit[];
-  users: Array<{ id: string; name: string }>;
+  users: Array<{ id: string; name: string; photo: string }>;
 }
 
 // Constants - pindahkan keluar dari component untuk mencegah re-creation
@@ -186,14 +186,31 @@ export default function TableDatas({
 
   // Memoize users lookup untuk performa
   const usersMap = useMemo(() => {
-    return new Map(users.map((user) => [user.id, user.name]));
+    return new Map(
+      users.map((user) => [user.id, { name: user.name, photo: user.photo }])
+    );
   }, [users]);
 
   const getUserName = useCallback(
     (userId: string | null): string => {
       if (!userId) return "Unassigned";
 
-      return usersMap.get(userId) || userId;
+      return usersMap.get(userId)?.name || userId;
+    },
+    [usersMap],
+  );
+
+  const getUserPhoto = useCallback(
+    (userId: string | null): string | undefined => {
+      if (!userId) return undefined;
+      const photo = usersMap.get(userId)?.photo;
+
+      if (!photo) return undefined;
+      // Jika sudah ada /uploads/ di depannya, return apa adanya
+      if (photo.startsWith("/uploads/")) return photo;
+
+      // Jika hanya nama file, tambahkan prefix
+      return `/uploads/${photo}`;
     },
     [usersMap],
   );
@@ -570,7 +587,7 @@ export default function TableDatas({
                   {paginationData.items.map((asset) => (
                     <TableRow key={asset.id}>
                       <TableCell>
-                        <div className="flex flex-col gap-1">
+                        <div className="flex flex-col gap-1 truncate">
                           <div className="flex items-center gap-2">
                             <span className="font-medium text-sm">
                               {asset.assetTag}
@@ -592,12 +609,15 @@ export default function TableDatas({
                       <TableCell>
                         <User
                           avatarProps={{
-                            radius: "lg",
+                            // radius: "lg",
                             size: "sm",
+                            src: getUserPhoto(asset.assignedToId),
+                            className: "w-8 h-8 rounded-full object-cover flex-shrink-0",
                           }}
                           classNames={{
                             name: "text-sm font-medium",
                             description: "text-xs text-default-500",
+                            wrapper: "truncate",
                           }}
                           description={asset.department || "No department"}
                           name={getUserName(asset.assignedToId)}
@@ -625,7 +645,7 @@ export default function TableDatas({
                       <TableCell>
                         <div className="flex items-center gap-1">
                           <MapPin className="w-3 h-3 text-default-500" />
-                          <span className="text-sm">{asset.location}</span>
+                          <span className="text-sm truncate">{asset.location}</span>
                         </div>
                       </TableCell>
                       <TableCell>
