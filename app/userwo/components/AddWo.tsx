@@ -1,7 +1,6 @@
 "use client";
 
 import { useActionState, useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
 import {
   ModalHeader,
   ModalBody,
@@ -14,10 +13,12 @@ import {
   Input,
   Textarea,
   Chip,
+  Autocomplete,
+  AutocompleteItem,
 } from "@heroui/react";
 import axios from "axios";
 
-import { createBreakdown } from "@/app/userwo/action";
+import { createBreakdown, getUsers } from "@/app/userwo/action";
 import { useQueryClient } from "@tanstack/react-query";
 
 interface AddWoFormProps {
@@ -36,61 +37,53 @@ interface Component {
   subcomponent: string;
 }
 
-export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
-  const { data: session } = useSession();
-  const currentUserId = session?.user?.id || "";
-  const userRole = session?.user?.role || "";
+interface User {
+  id: string;
+  name: string;
+  email: string;
+}
 
+export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
   const [components, setComponents] = useState<Component[]>([]);
   const [subcomponentInput, setSubcomponentInput] = useState("");
   const [selectedShift, setSelectedShift] = useState<string>("");
-  const [selectedPriority, setSelectedPriority] = useState<string>("medium");
-
+  const [selectedPriority, setSelectedPriority] = useState("low");
+  const [selectedUserId, setSelectedUserId] = useState("");
   const [units, setUnits] = useState<Unit[]>([]);
-  const [selectedUnitId, setSelectedUnitId] = useState<string>("");
+  const [users, setUsers] = useState<User[]>([]);
+  const [selectedUnitId, setSelectedUnitId] = useState("");
   const [loadingUnits, setLoadingUnits] = useState(true);
+  const [loadingUsers, setLoadingUsers] = useState(true);
 
   const [state, formAction, isPending] = useActionState(createBreakdown, null);
 
   const [breakdownNumber, setBreakdownNumber] = useState("");
   const queryClient = useQueryClient();
 
-  // Load units data on component mount
+  // Load units and users data on component mount
   useEffect(() => {
-    const fetchUnits = async () => {
+    const fetchData = async () => {
       try {
-        const res = await axios.get("/api/dashboard/workorders?units=true");
+        // Fetch units
+        const unitsRes = await axios.get("/api/dashboard/workorders?units=true");
+        setUnits(unitsRes.data);
+        setLoadingUnits(false);
 
-        setUnits(res.data);
-        setLoadingUnits(false);
+        // Fetch users
+        const usersRes = await getUsers();
+        setUsers(usersRes);
+        setLoadingUsers(false);
       } catch (error) {
-        console.error("Failed to load units:", error);
+        console.error("Failed to load data:", error);
         setLoadingUnits(false);
+        setLoadingUsers(false);
       }
     };
 
-    fetchUnits();
+    fetchData();
   }, []);
 
-  // Tambahkan useEffect untuk fetch breakdownNumber setiap kali AddForm dibuka
-  useEffect(() => {
-    async function fetchBreakdownNumber() {
-      try {
-        const res = await axios.get(
-          `/api/dashboard/workorders?nextNumber=true&role=${userRole}`,
-        );
-
-        setBreakdownNumber(res.data.nextBreakdownNumber || "");
-      } catch (error) {
-        setBreakdownNumber("");
-      }
-    }
-    if (userRole) {
-      fetchBreakdownNumber();
-    }
-  }, [userRole]);
-
-  // Auto close modal jika berhasil add breakdown
+  // Auto close modal if successfully added breakdown
   useEffect(() => {
     if (state?.success && state?.message) {
       queryClient.invalidateQueries({ queryKey: ["breakdowns"] });
@@ -105,8 +98,6 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
       return () => clearTimeout(timer);
     }
   }, [state?.success, state?.message, onClose, onBreakdownAdded, queryClient]);
-
-  // Sudah tidak ada getUnits dan getNextBreakdownNumber, sudah diganti axios di useEffect
 
   const addComponent = () => {
     if (subcomponentInput.trim()) {
@@ -123,30 +114,27 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
 
   const removeComponent = (index: number) => {
     const newComponents = [...components];
-
     newComponents.splice(index, 1);
-    // Re-index nomor komponen setelah penghapusan
     const reIndexed = newComponents.map((comp, idx) => ({
       ...comp,
       component: `${idx + 1}.`,
     }));
-
     setComponents(reIndexed);
   };
 
-  // Handle form submission dengan loading state
   const handleSubmit = async (formData: FormData) => {
+    // Debug: Log form data
+    console.log("Form Data being submitted:");
+    Array.from(formData.entries()).forEach(([key, value]) => {
+      console.log(key, value);
+    });
+    const formDataObj: Record<string, any> = {};
+    Array.from(formData.entries()).forEach(([key, value]) => {
+      formDataObj[key] = value;
+    });
+    console.log(formDataObj);
     await formAction(formData);
   };
-
-  // Tampilkan error jika tidak ada userId
-  if (!currentUserId) {
-    return (
-      <div className="p-4 text-danger-500">
-        Error: User session not found. Please login again.
-      </div>
-    );
-  }
 
   return (
     <>
@@ -157,7 +145,6 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
       <ModalBody className="max-h-[60vh] overflow-y-auto">
         <form action={handleSubmit} className="space-y-4" id="addBreakdownForm">
           {/* Hidden fields */}
-          <input name="reportedById" type="hidden" value={currentUserId} />
           {components.map((comp, index) => (
             <div key={`component-group-${index}`}>
               <input
@@ -177,26 +164,6 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
             isReadOnly
             isRequired
             className="hidden"
-            classNames={{
-              label: "text-black/50 dark:text-white/90",
-              input: [
-                "bg-transparent",
-                "text-black/90 dark:text-white/90",
-                "placeholder:text-default-700/50 dark:placeholder:text-white/60",
-              ],
-              innerWrapper: "bg-transparent",
-              inputWrapper: [
-                "bg-default-200/50",
-                "dark:bg-default/60",
-                "backdrop-blur-xl",
-                "backdrop-saturate-200",
-                "hover:bg-default-200/70",
-                "dark:hover:bg-default/70",
-                "group-data-[focused=true]:bg-default-200/50",
-                "dark:group-data-[focused=true]:bg-default/60",
-                "!cursor-text",
-              ],
-            }}
             label="Breakdown Number"
             name="breakdownNumber"
             type="text"
@@ -204,106 +171,79 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
             variant="bordered"
           />
 
-          {/* Required Fields */}
-          <Select
+          {/* User Selection */}
+          <div className="flex flex-col gap-2">
+            <Autocomplete
+              isRequired
+              label="Reported By"
+              placeholder={
+                loadingUsers
+                  ? "Loading users..."
+                  : "Select user"
+              }
+              defaultItems={users}
+              selectedKey={selectedUserId}
+              variant="bordered"
+              onSelectionChange={(key) => setSelectedUserId(key?.toString() || "")}
+              isLoading={loadingUsers}
+              classNames={{
+                base: "min-h-unit-16 py-2",
+              }}
+            >
+              {(item) => (
+                <AutocompleteItem key={item.id} textValue={`${item.name} (${item.email})`}>
+                  <div className="flex flex-col">
+                    <span>{item.name}</span>
+                    <span className="text-xs text-gray-500">{item.email}</span>
+                  </div>
+                </AutocompleteItem>
+              )}
+            </Autocomplete>
+            <input type="hidden" name="reportedById" value={selectedUserId} />
+          </div>
+
+          {/* Unit Selection */}
+          <Autocomplete
             isRequired
-            classNames={{
-              label: "text-black/50 dark:text-white/90",
-              trigger: [
-                "bg-default-200/50",
-                "dark:bg-default/60",
-                "backdrop-blur-xl",
-                "backdrop-saturate-200",
-                "hover:bg-default-200/70",
-                "dark:hover:bg-default/70",
-                "group-data-[focused=true]:bg-default-200/50",
-                "dark:group-data-[focused=true]:bg-default/60",
-              ],
-              value: "text-black/90 dark:text-white/90",
-            }}
             label="Unit"
-            name="unitId"
             placeholder={loadingUnits ? "Loading units..." : "Select unit"}
-            renderValue={(items) => {
-              return items.map((item) => {
-                const unit = units.find((u) => u.id === item.key);
-
-                return unit ? `${unit.name} (${unit.assetTag})` : "";
-              });
-            }}
-            selectedKeys={selectedUnitId ? [selectedUnitId] : []}
+            defaultItems={units}
+            selectedKey={selectedUnitId}
             variant="bordered"
-            onSelectionChange={(keys) => {
-              const keyArray = Array.from(keys);
-
-              setSelectedUnitId(keyArray[0]?.toString() || "");
-            }}
+            onSelectionChange={(key) => setSelectedUnitId(key?.toString() || "")}
+            isLoading={loadingUnits}
           >
-            {units.map((unit) => (
-              <SelectItem key={unit.id}>
-                {unit.name} ({unit.assetTag})
-              </SelectItem>
-            ))}
-          </Select>
+            {(item) => (
+              <AutocompleteItem key={item.id} textValue={`${item.name} (${item.assetTag})`}>
+                {item.name} ({item.assetTag})
+              </AutocompleteItem>
+            )}
+          </Autocomplete>
+          <input type="hidden" name="unitId" value={selectedUnitId} />
+          {/* Debug: Display selected values */}
+          {/* <div className="text-xs text-gray-500">
+            Selected Unit ID: {selectedUnitId || "None"}
+            Selected User ID: {selectedUserId || "None"}
+          </div> */}
 
           <Input
-                isRequired
-                classNames={{
-                  label: "text-black/50 dark:text-white/90",
-                  input: [
-                    "bg-transparent",
-                    "text-black/90 dark:text-white/90",
-                    "placeholder:text-default-700/50 dark:placeholder:text-white/60",
-                  ],
-                  innerWrapper: "bg-transparent",
-                  inputWrapper: [
-                    "bg-default-200/50",
-                    "dark:bg-default/60",
-                    "backdrop-blur-xl",
-                    "backdrop-saturate-200",
-                    "hover:bg-default-200/70",
-                    "dark:hover:bg-default/70",
-                    "group-data-[focused=true]:bg-default-200/50",
-                    "dark:group-data-[focused=true]:bg-default/60",
-                    "!cursor-text",
-                  ],
-                }}
-                endContent={
-                  <div className="pointer-events-none flex items-center">
-                    <span className="text-default-400 text-small">hours</span>
-                  </div>
-                }
-                label="Hours Meter"
-                min="0"
-                name="workingHours"
-                placeholder="Enter unit HM"
-                step="0.1"
-                type="number"
-                variant="bordered"
-              />
+            isRequired
+            endContent={
+              <div className="pointer-events-none flex items-center">
+                <span className="text-default-400 text-small">hours</span>
+              </div>
+            }
+            label="Hours Meter"
+            min="0"
+            name="workingHours"
+            placeholder="Enter unit HM"
+            step="0.1"
+            type="number"
+            variant="bordered"
+          />
 
           <Textarea
             isRequired
-            classNames={{
-              label: "text-black/50 dark:text-white/90",
-              input: [
-                "bg-transparent",
-                "text-black/90 dark:text-white/90",
-                "placeholder:text-default-700/50 dark:placeholder:text-white/60",
-              ],
-              innerWrapper: "bg-transparent",
-              inputWrapper: [
-                "bg-default-200/50",
-                "dark:bg-default/60",
-                "backdrop-blur-xl",
-                "backdrop-saturate-200",
-                "hover:bg-default-200/70",
-                "dark:hover:bg-default/70",
-                "group-data-[focused=true]:bg-default-200/50",
-                "dark:group-data-[focused=true]:bg-default/60",
-                "!cursor-text",
-              ],
-            }}
             label="Position"
             name="description"
             placeholder="Describe your current position in detail"
@@ -311,89 +251,36 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
           />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-4">
-              <Input
-                isRequired
-                classNames={{
-                  label: "text-black/50 dark:text-white/90",
-                  input: [
-                    "bg-transparent",
-                    "text-black/90 dark:text-white/90",
-                    "placeholder:text-default-700/50 dark:placeholder:text-white/60",
-                  ],
-                  innerWrapper: "bg-transparent",
-                  inputWrapper: [
-                    "bg-default-200/50",
-                    "dark:bg-default/60",
-                    "backdrop-blur-xl",
-                    "backdrop-saturate-200",
-                    "hover:bg-default-200/70",
-                    "dark:hover:bg-default/70",
-                    "group-data-[focused=true]:bg-default-200/50",
-                    "dark:group-data-[focused=true]:bg-default/60",
-                    "!cursor-text",
-                  ],
-                }}
-                defaultValue={new Date(Date.now() + 8 * 60 * 60 * 1000)
-                  .toISOString()
-                  .slice(0, 16)}
-                label="Breakdown Time"
-                name="breakdownTime"
-                type="datetime-local"
-                variant="bordered"
-              />              
-            </div>
+            <Input
+              isRequired
+              defaultValue={new Date(Date.now() + 8 * 60 * 60 * 1000)
+                .toISOString()
+                .slice(0, 16)}
+              label="Breakdown Time"
+              name="breakdownTime"
+              type="datetime-local"
+              variant="bordered"
+            />
 
-            <div className="space-y-4">
             <Select
-                isRequired
-                classNames={{
-                  label: "text-black/50 dark:text-white/90",
-                  trigger: [
-                    "bg-default-200/50",
-                    "dark:bg-default/60",
-                    "backdrop-blur-xl",
-                    "backdrop-saturate-200",
-                    "hover:bg-default-200/70",
-                    "dark:hover:bg-default/70",
-                    "group-data-[focused=true]:bg-default-200/50",
-                    "dark:group-data-[focused=true]:bg-default/60",
-                  ],
-                  value: "text-black/90 dark:text-white/90",
-                }}
-                label="Shift"
-                name="shift"
-                placeholder="Select shift"
-                selectedKeys={selectedShift ? [selectedShift] : []}
-                variant="bordered"
-                onSelectionChange={(keys) => {
-                  const keyArray = Array.from(keys);
-
-                  setSelectedShift(keyArray[0]?.toString() || "");
-                }}
-              >
-                <SelectItem key="siang">Siang</SelectItem>
-                <SelectItem key="malam">Malam</SelectItem>
-              </Select>              
-            </div>
-
+              isRequired
+              label="Shift"
+              name="shift"
+              placeholder="Select shift"
+              selectedKeys={selectedShift ? [selectedShift] : []}
+              variant="bordered"
+              onSelectionChange={(keys) => {
+                const keyArray = Array.from(keys);
+                setSelectedShift(keyArray[0]?.toString() || "");
+              }}
+            >
+              <SelectItem key="siang">Siang</SelectItem>
+              <SelectItem key="malam">Malam</SelectItem>
+            </Select>
+            
             <div className="space-y-4 hidden">
               <Select
                 isRequired
-                classNames={{
-                  label: "text-black/50 dark:text-white/90",
-                  trigger: [
-                    "bg-default-200/50",
-                    "dark:bg-default/60",
-                    "backdrop-blur-xl",
-                    "backdrop-saturate-200",
-                    "hover:bg-default-200/70",
-                    "dark:hover:bg-default/70",
-                    "group-data-[focused=true]:bg-default-200/50",
-                    "dark:group-data-[focused=true]:bg-default/60",
-                  ],
-                  value: "text-black/90 dark:text-white/90",
-                }}
                 label="Priority"
                 name="priority"
                 placeholder="Select priority"
@@ -401,7 +288,6 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
                 variant="bordered"
                 onSelectionChange={(keys) => {
                   const keyArray = Array.from(keys);
-
                   setSelectedPriority(keyArray[0]?.toString() || "");
                 }}
               >
@@ -409,41 +295,19 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
                 <SelectItem key="medium">Medium</SelectItem>
                 <SelectItem key="high">High</SelectItem>
               </Select>
-
             </div>
           </div>
 
           {/* Components Section */}
           <div className="space-y-2">
             <h3 className="text-sm font-medium">Report</h3>
-            <div className="grid grid-cols-1 gap-4">
-              <Input
-                classNames={{
-                  input: [
-                    "bg-transparent",
-                    "text-black/90 dark:text-white/90",
-                    "placeholder:text-default-700/50 dark:placeholder:text-white/60",
-                  ],
-                  innerWrapper: "bg-transparent",
-                  inputWrapper: [
-                    "bg-default-200/50",
-                    "dark:bg-default/60",
-                    "backdrop-blur-xl",
-                    "backdrop-saturate-200",
-                    "hover:bg-default-200/70",
-                    "dark:hover:bg-default/70",
-                    "group-data-[focused=true]:bg-default-200/50",
-                    "dark:group-data-[focused=true]:bg-default/60",
-                    "!cursor-text",
-                  ],
-                }}
-                label="Report Description"
-                placeholder="Tyre no 10 bocor"
-                value={subcomponentInput}
-                variant="bordered"
-                onChange={(e) => setSubcomponentInput(e.target.value)}
-              />
-            </div>
+            <Input
+              label="Report Description"
+              placeholder="Tyre no 10 bocor"
+              value={subcomponentInput}
+              variant="bordered"
+              onChange={(e) => setSubcomponentInput(e.target.value)}
+            />
             <Button
               color="primary"
               isDisabled={!subcomponentInput}
@@ -466,27 +330,13 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
             </div>
           </div>
 
-          {/* Success Message */}
-          {state?.success && state?.message && (
-            <Card className="border-success-200 bg-success-50">
+          {/* Status Messages */}
+          {state?.message && (
+            <Card className={state.success ? "border-success-200 bg-success-50" : "border-danger-200 bg-danger-50"}>
               <CardBody className="py-3">
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-success-500 rounded-full" />
-                  <p className="text-success-700 text-sm font-medium">
-                    {state.message}
-                  </p>
-                </div>
-              </CardBody>
-            </Card>
-          )}
-
-          {/* Error Messages */}
-          {!state?.success && state?.message && (
-            <Card className="border-danger-200 bg-danger-50">
-              <CardBody className="py-3">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-danger-500 rounded-full" />
-                  <p className="text-danger-700 text-sm font-medium">
+                  <div className={`w-2 h-2 rounded-full ${state.success ? "bg-success-500" : "bg-danger-500"}`} />
+                  <p className={`text-sm font-medium ${state.success ? "text-success-700" : "text-danger-700"}`}>
                     {state.message}
                   </p>
                 </div>
@@ -497,17 +347,10 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
       </ModalBody>
 
       <ModalFooter>
-        <Button
-          className="font-medium"
-          color="danger"
-          variant="light"
-          onPress={onClose}
-        >
+        <Button color="danger" variant="light" onPress={onClose}>
           Cancel
         </Button>
-
         <Button
-          className="font-medium bg-gradient-to-r from-blue-500 to-purple-600 text-white"
           color="primary"
           form="addBreakdownForm"
           isDisabled={
@@ -515,12 +358,13 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
             !selectedUnitId ||
             !selectedShift ||
             !selectedPriority ||
+            !selectedUserId ||
             isPending
           }
           isLoading={isPending}
           type="submit"
         >
-          {isPending ? "Reporting..." : "Report Breakdown"}
+          {isPending ? "Creating..." : "Create WO"}
         </Button>
       </ModalFooter>
     </>

@@ -87,7 +87,7 @@ export async function GET(req: NextRequest) {
             reportedBy: {
               select: { id: true, name: true, email: true, department: true, photo: true },
             },
-            inProgressBy: { select: { id: true, name: true, email: true } },
+            inProgressBy: { select: { id: true, name: true, email: true, photo: true } },
             unit: {
               select: {
                 id: true,
@@ -99,10 +99,12 @@ export async function GET(req: NextRequest) {
                 status: true,
               },
             },
+            components: true,
             rfuReport: {
               include: {
-                resolvedBy: { select: { id: true, name: true, email: true } },
-                actions: { orderBy: { actionTime: "asc" } },
+                resolvedBy: {
+                  select: { id: true, name: true, email: true, photo: true },
+                },
               },
             },
           },

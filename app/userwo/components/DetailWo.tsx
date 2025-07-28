@@ -14,7 +14,7 @@ import {
   CardHeader,
   ModalFooter,
 } from "@heroui/react";
-import { CalendarIcon, CheckCircleIcon, ClockIcon, FileTextIcon, HardDriveIcon, LayersIcon, UserIcon, WrenchIcon, XIcon } from "lucide-react";
+import { CalendarIcon, CheckCircleIcon, CircleCheckBig, ClockIcon, FileTextIcon, HardDriveIcon, LayersIcon, UserIcon, WrenchIcon } from "lucide-react";
 
 // Tipe data breakdown, bisa diimpor dari file types jika ada
 type Breakdown = {
@@ -32,10 +32,12 @@ type Breakdown = {
   reportedBy: {
     name: string | null;
     email: string;
+    photo?: string | null;
   };
   inProgressBy?: {
     name: string | null;
     email: string;
+    photo?: string | null;
   } | null;
   inProgressAt?: Date | null;
   components: {
@@ -47,11 +49,11 @@ type Breakdown = {
     id: string;
     solution: string;
     resolvedAt: Date;
-    resolvedById: string;
     resolvedBy: {
       id: string;
       name: string;
       email: string;
+      photo?: string;
     };
     actions?: {
       id: string;
@@ -121,7 +123,7 @@ export default function DetailWo({
                 </div>
                 <div className="flex items-center gap-2 pr-4">
                   <Chip
-                    className="text-sm font-semibold px-3 py-1 uppercase tracking-wider"
+                    className="text-sm font-semibold p-1 uppercase tracking-wider"
                     color={getStatusColor(breakdown.status) as any}
                     variant="shadow"
                     radius="sm"
@@ -190,6 +192,13 @@ export default function DetailWo({
                           <div>
                             <p className="text-xs dark:text-default-400 text-gray-500">Reported By</p>
                             <User
+                              avatarProps={{
+                                radius: "lg",
+                                src: breakdown.reportedBy?.photo || "",
+                                size: "sm",
+                                className:
+                                  "w-8 h-8 rounded-full object-cover flex-shrink-0",
+                              }}
                               classNames={{
                                 name: "text-sm font-medium dark:text-white text-gray-900",
                                 description: "text-xs dark:text-default-400 text-gray-500",
@@ -207,6 +216,13 @@ export default function DetailWo({
                             <div>
                               <p className="text-xs dark:text-default-400 text-gray-500">Technician</p>
                               <User
+                                avatarProps={{
+                                  radius: "lg",
+                                  src: breakdown.inProgressBy?.photo || "",
+                                  size: "sm",
+                                  className:
+                                    "w-8 h-8 rounded-full object-cover flex-shrink-0",
+                                }}
                                 classNames={{
                                   name: "text-sm font-medium dark:text-white text-gray-900",
                                   description: "text-xs dark:text-default-400 text-gray-500",
@@ -216,6 +232,34 @@ export default function DetailWo({
                               />
                             </div>
                           </div>
+                        )}
+
+                        {breakdown.rfuReport && (                          
+                            <div className="flex items-center gap-3">
+                              <div className="p-2 rounded-lg dark:bg-[#2a2342] bg-gray-100">
+                                <CircleCheckBig size={20} className="dark:text-green-400 text-green-600" />
+                              </div>
+                              <div>
+                              <p className="text-xs dark:text-default-400 text-gray-500">RFU by</p>
+                                <User
+                                  avatarProps={{
+                                    radius: "lg",
+                                    src: breakdown.rfuReport.resolvedBy?.photo || "",
+                                    size: "sm",
+                                    className:
+                                      "w-8 h-8 rounded-full object-cover flex-shrink-0",
+                                  }}
+                                  classNames={{
+                                    name: "text-sm font-medium dark:text-white text-gray-900",
+                                    description: "text-xs dark:text-default-400 text-gray-500",
+                                  }}
+                                  description={
+                                    breakdown.rfuReport.resolvedBy?.email || "-"
+                                  }
+                                  name={breakdown.rfuReport.resolvedBy?.name || "-"}
+                                />  
+                              </div>
+                            </div>
                         )}
                       </div>
                     </CardBody>
@@ -383,10 +427,19 @@ export default function DetailWo({
             <ModalFooter className="dark:bg-[#1b1a1c] bg-white border-t dark:border-[#272727] border-gray-200 rounded-b-xl">
               <div className="flex justify-between w-full">
                 <div className="flex items-center gap-2">
-                  {/* <ClockIcon size={16} className="dark:text-default-400 text-gray-500" /> */}
-                  <span className="text-xs dark:text-default-400 text-gray-500">
-                    {/* Last updated: {new Date(breakdown.updatedAt).toLocaleString()} */}
-                  </span>
+                  <ClockIcon size={16} className="dark:text-default-400 text-gray-500" />
+                  {breakdown.rfuReport && (
+                    <div className="flex items-center gap-2">
+                        <span className="text-xs lg:text-sm text-default-500">
+                          RFU : {new Date(
+                            breakdown.rfuReport.resolvedAt,
+                          ).toLocaleString("id-ID", {
+                            dateStyle: "long",
+                            timeStyle: "short",
+                          })}
+                        </span>
+                    </div>                    
+                  )}
                 </div>
                 <Button
                   color="danger"

@@ -6,6 +6,15 @@ import { prisma } from "@/lib/prisma";
 
 export async function createBreakdown(prevState: any, formData: FormData) {
   try {
+    // Debug: Log all form data
+    console.log("=== Form Data Received ===");
+    const formDataObj: Record<string, any> = {};
+    formData.forEach((value, key) => {
+      formDataObj[key] = value;
+    });
+    console.log(formDataObj);
+    console.log("========================");
+
     // Required fields
     const breakdownNumber = formData.get("breakdownNumber") as string;
     const description = formData.get("description") as string;
@@ -59,28 +68,21 @@ export async function createBreakdown(prevState: any, formData: FormData) {
     }
 
     const unitExists = await prisma.unit.findUnique({ where: { id: unitId } });
+    console.log("Unit ID from form:", unitId);
+    console.log("Unit exists in DB:", unitExists);
     if (!unitExists) {
       return { success: false, message: "Unit not found!" };
     }
 
     const reporterExists = await prisma.user.findUnique({ where: { id: reportedById } });
+    console.log("Reporter ID from form:", reportedById);
+    console.log("Reporter exists in DB:", reporterExists);
     if (!reporterExists) {
       return { success: false, message: "Reporter user not found!" };
     }
 
-    const user = await prisma.user.findUnique({
-      where: { id: reportedById },
-      select: { role: true },
-    });
-
-    const prefix =
-      user?.role === "super_admin" || user?.role === "admin_elec"
-        ? "WOIT-"
-        : "WO-";
-
     const newBreakdownNumber = await prisma.$transaction(async (tx) => {
       const last = await tx.breakdown.findFirst({
-        where: { breakdownNumber: { startsWith: prefix } },
         orderBy: { breakdownNumber: "desc" },
       });
 
@@ -92,7 +94,7 @@ export async function createBreakdown(prevState: any, formData: FormData) {
         }
       }
 
-      return `${prefix}${nextNumber.toString().padStart(4, "0")}`;
+      return `WO-${nextNumber.toString().padStart(4, "0")}`;
     });
 
     const newBreakdown = await prisma.breakdown.create({
@@ -116,6 +118,7 @@ export async function createBreakdown(prevState: any, formData: FormData) {
       include: {
         components: true,
         unit: true,
+        reportedBy: true,
       },
     });
 
@@ -123,7 +126,7 @@ export async function createBreakdown(prevState: any, formData: FormData) {
       data: {
         logType: "breakdown",
         referenceId: newBreakdown.id,
-        message: `Breakdown reported for ${newBreakdown.unit.name} (${newBreakdown.unit.assetTag})`,
+        message: `Breakdown reported for ${newBreakdown.unit.name} (${newBreakdown.unit.assetTag}) by ${newBreakdown.reportedBy.name}`,
         unitId,
       },
     });
@@ -148,5 +151,24 @@ export async function createBreakdown(prevState: any, formData: FormData) {
       success: false,
       message: "Failed to report breakdown. Please try again.",
     };
+  }
+}
+
+export async function getUsers() {
+  try {
+    const users = await prisma.user.findMany({
+      select: {
+        id: true,
+        name: true,
+        email: true,
+      },
+      orderBy: {
+        name: "asc",
+      },
+    });
+    return users;
+  } catch (error) {
+    console.error("Error fetching users:", error);
+    return [];
   }
 }

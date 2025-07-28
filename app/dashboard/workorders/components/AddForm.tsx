@@ -520,7 +520,7 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
           isLoading={isPending}
           type="submit"
         >
-          {isPending ? "Reporting..." : "Report Breakdown"}
+          {isPending ? "Creating..." : "Create WO"}
         </Button>
       </ModalFooter>
     </>
