@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+
 import UsersClientPage from "./UsersClientPage";
 
 export const metadata: Metadata = {

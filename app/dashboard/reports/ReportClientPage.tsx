@@ -5,12 +5,14 @@ import { Input } from "@heroui/react";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
-import ListReportButton from './components/ListReportButton';
+
+import ListReportButton from "./components/ListReportButton";
 import TableReport from "./components/TableReport";
 
 // Simple fetch function for recent activities
 const fetchRecentActivities = async () => {
   const response = await axios.get("/api/dashboard/recent-activities");
+
   return response.data?.data || response.data;
 };
 
@@ -19,13 +21,18 @@ export default function ReportClientPage() {
   const [showModal, setShowModal] = useState(false);
 
   // Use React Query to fetch recent activities
-  const { data: recentActivities = [], isLoading: loading, error, refetch } = useQuery({
+  const {
+    data: recentActivities = [],
+    isLoading: loading,
+    error,
+    refetch,
+  } = useQuery({
     queryKey: ["recent-activities"],
     queryFn: fetchRecentActivities,
     refetchInterval: 30000, // Auto refresh every 30 seconds
     staleTime: 25000, // Data fresh for 25 seconds
     retry: 2, // Retry max 2 times
-    refetchOnWindowFocus: false
+    refetchOnWindowFocus: false,
   });
 
   const handleRetry = () => {
@@ -72,14 +79,13 @@ export default function ReportClientPage() {
       </div>
 
       {/* List Report Button */}
-      <ListReportButton searchQuery={searchQuery} loading={loading} />
-      <TableReport 
-        recentActivities={recentActivities}
-        loading={loading}
+      <ListReportButton loading={loading} searchQuery={searchQuery} />
+      <TableReport
         error={error?.message || null}
+        loading={loading}
+        recentActivities={recentActivities}
         onRetry={handleRetry}
       />
     </div>
   );
 }
-

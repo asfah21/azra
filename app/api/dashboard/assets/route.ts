@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
+
+import { prisma } from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
 
 // GET /api/dashboard/assets
@@ -54,6 +55,7 @@ export async function GET(req: NextRequest) {
 
     const totalAssets = allAssets.length;
     const startOfMonth = new Date();
+
     startOfMonth.setDate(1);
     startOfMonth.setHours(0, 0, 0, 0);
 
@@ -107,9 +109,10 @@ export async function GET(req: NextRequest) {
     });
   } catch (error) {
     console.error("Error fetching assets data:", error);
+
     return NextResponse.json(
       { allAssets: [], assetStats: {}, users: [] },
-      { status: 500 }
+      { status: 500 },
     );
   }
-} 
+}

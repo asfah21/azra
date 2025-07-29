@@ -44,6 +44,7 @@ interface EditAssetModalProps {
   users: Array<{ id: string; name: string }>;
   onClose: () => void;
   onAssetUpdated?: () => void;
+  userRole: string;
 }
 
 export function EditAssetModal({
@@ -51,13 +52,14 @@ export function EditAssetModal({
   users,
   onClose,
   onAssetUpdated,
+  userRole,
 }: EditAssetModalProps) {
   const queryClient = useQueryClient();
 
   // React Query mutation untuk update asset
   const mutation = useMutation({
     mutationFn: async (formData: FormData) => {
-      return await updateAsset(null, formData);
+      return await updateAsset(null, formData, userRole);
     },
     onSuccess: (data) => {
       // Invalidate cache assets agar data ter-refresh
@@ -95,13 +97,14 @@ export function EditAssetModal({
 
       <ModalBody className="max-h-[60vh] overflow-y-auto">
         <form
+          className="space-y-4"
+          id="editAssetForm"
           onSubmit={(e) => {
             e.preventDefault();
             const formData = new FormData(e.currentTarget);
+
             handleSubmit(formData);
           }}
-          className="space-y-4"
-          id="editAssetForm"
         >
           {/* Required Fields */}
           <Input

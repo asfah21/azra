@@ -1,7 +1,11 @@
 "use client";
 
 import { Settings } from "lucide-react";
-import { useQuery, QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import {
+  useQuery,
+  QueryClient,
+  QueryClientProvider,
+} from "@tanstack/react-query";
 import axios from "axios";
 
 import ProfileSetting from "./components/ProfileSetting";
@@ -36,13 +40,12 @@ interface SettingsClientPageProps {
   };
 }
 
-function SettingsClientPageContent({
-  initialData,
-}: SettingsClientPageProps) {
+function SettingsClientPageContent({ initialData }: SettingsClientPageProps) {
   const { data, isLoading, isError } = useQuery({
     queryKey: ["settings"],
     queryFn: async () => {
       const res = await axios.get("/api/settings");
+
       return res.data;
     },
     refetchInterval: 30000,
@@ -93,4 +96,4 @@ export default function SettingsClientPage(props: SettingsClientPageProps) {
       <SettingsClientPageContent {...props} />
     </QueryClientProvider>
   );
-} 
+}

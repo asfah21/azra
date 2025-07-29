@@ -1,14 +1,15 @@
 // Improvement Tips: Lakukan pemisahan tanggung jawab (separation of concerns).
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
+import * as XLSX from "xlsx";
+
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import * as XLSX from "xlsx";
 
 export async function GET(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions); //Proteksi API
-    
+
     if (!session) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
@@ -20,14 +21,14 @@ export async function GET(request: NextRequest) {
     if (!format || !type) {
       return NextResponse.json(
         { error: "Missing required parameters: format and type" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     if (format !== "excel") {
       return NextResponse.json(
         { error: "Only excel format is supported" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -40,36 +41,46 @@ export async function GET(request: NextRequest) {
           include: {
             category: true,
             createdBy: {
-              select: { name: true, email: true }
+              select: { name: true, email: true },
             },
             assignedTo: {
-              select: { name: true, email: true }
-            }
+              select: { name: true, email: true },
+            },
           },
-          orderBy: { createdAt: "desc" }
+          orderBy: { createdAt: "desc" },
         });
-        
+
         // Transform data for Excel
         data = data.map((unit) => ({
           "Asset Tag": unit.assetTag,
-          "Nama": unit.name,
-          "Deskripsi": unit.description || "",
-          "Kategori": unit.category?.name || "",
-          "Status": unit.status,
-          "Kondisi": unit.condition || "",
+          Nama: unit.name,
+          Deskripsi: unit.description || "",
+          Kategori: unit.category?.name || "",
+          Status: unit.status,
+          Kondisi: unit.condition || "",
           "Serial Number": unit.serialNumber || "",
-          "Lokasi": unit.location || "",
-          "Departemen": unit.department || "",
-          "Manufacturer": unit.manufacturer || "",
-          "Tanggal Install": unit.installDate ? new Date(unit.installDate).toLocaleDateString("id-ID") : "",
-          "Warranty Expiry": unit.warrantyExpiry ? new Date(unit.warrantyExpiry).toLocaleDateString("id-ID") : "",
-          "Last Maintenance": unit.lastMaintenance ? new Date(unit.lastMaintenance).toLocaleDateString("id-ID") : "",
-          "Next Maintenance": unit.nextMaintenance ? new Date(unit.nextMaintenance).toLocaleDateString("id-ID") : "",
+          Lokasi: unit.location || "",
+          Departemen: unit.department || "",
+          Manufacturer: unit.manufacturer || "",
+          "Tanggal Install": unit.installDate
+            ? new Date(unit.installDate).toLocaleDateString("id-ID")
+            : "",
+          "Warranty Expiry": unit.warrantyExpiry
+            ? new Date(unit.warrantyExpiry).toLocaleDateString("id-ID")
+            : "",
+          "Last Maintenance": unit.lastMaintenance
+            ? new Date(unit.lastMaintenance).toLocaleDateString("id-ID")
+            : "",
+          "Next Maintenance": unit.nextMaintenance
+            ? new Date(unit.nextMaintenance).toLocaleDateString("id-ID")
+            : "",
           "Asset Value": unit.assetValue || 0,
           "Utilization Rate": unit.utilizationRate || 0,
           "Dibuat Oleh": unit.createdBy?.name || "",
           "Assigned To": unit.assignedTo?.name || "",
-          "Tanggal Dibuat": new Date(unit.createdAt).toLocaleDateString("id-ID")
+          "Tanggal Dibuat": new Date(unit.createdAt).toLocaleDateString(
+            "id-ID",
+          ),
         }));
         filename = "List_Asset";
         break;
@@ -83,18 +94,20 @@ export async function GET(request: NextRequest) {
             email: true,
             department: true,
             role: true,
-            createdAt: true
+            createdAt: true,
           },
-          orderBy: { createdAt: "desc" }
+          orderBy: { createdAt: "desc" },
         });
-        
+
         data = data.map((user) => ({
-          "ID": user.id,
-          "Nama": user.name || "",
-          "Email": user.email || "",
-          "Departemen": user.department || "",
-          "Role": user.role || "",
-          "Tanggal Dibuat": new Date(user.createdAt).toLocaleDateString("id-ID")
+          ID: user.id,
+          Nama: user.name || "",
+          Email: user.email || "",
+          Departemen: user.department || "",
+          Role: user.role || "",
+          "Tanggal Dibuat": new Date(user.createdAt).toLocaleDateString(
+            "id-ID",
+          ),
         }));
         filename = "List_Activity";
         break;
@@ -103,32 +116,36 @@ export async function GET(request: NextRequest) {
         data = await prisma.breakdown.findMany({
           include: {
             unit: {
-              select: { assetTag: true, name: true }
+              select: { assetTag: true, name: true },
             },
             reportedBy: {
-              select: { name: true, email: true }
+              select: { name: true, email: true },
             },
             inProgressBy: {
-              select: { name: true, email: true }
-            }
+              select: { name: true, email: true },
+            },
           },
-          orderBy: { createdAt: "desc" }
+          orderBy: { createdAt: "desc" },
         });
-        
+
         data = data.map((wo) => ({
           "Breakdown Number": wo.breakdownNumber || "",
-          "Deskripsi": wo.description || "",
-          "Unit": wo.unit?.name || "",
+          Deskripsi: wo.description || "",
+          Unit: wo.unit?.name || "",
           "Asset Tag": wo.unit?.assetTag || "",
-          "Status": wo.status,
-          "Priority": wo.priority || "",
-          "Shift": wo.shift || "",
+          Status: wo.status,
+          Priority: wo.priority || "",
+          Shift: wo.shift || "",
           "Working Hours": wo.workingHours || 0,
-          "Breakdown Time": wo.breakdownTime ? new Date(wo.breakdownTime).toLocaleDateString("id-ID") : "",
+          "Breakdown Time": wo.breakdownTime
+            ? new Date(wo.breakdownTime).toLocaleDateString("id-ID")
+            : "",
           "Reported By": wo.reportedBy?.name || "",
           "In Progress By": wo.inProgressBy?.name || "",
-          "In Progress At": wo.inProgressAt ? new Date(wo.inProgressAt).toLocaleDateString("id-ID") : "",
-          "Tanggal Dibuat": new Date(wo.createdAt).toLocaleDateString("id-ID")
+          "In Progress At": wo.inProgressAt
+            ? new Date(wo.inProgressAt).toLocaleDateString("id-ID")
+            : "",
+          "Tanggal Dibuat": new Date(wo.createdAt).toLocaleDateString("id-ID"),
         }));
         filename = "List_Work_Order";
         break;
@@ -139,29 +156,31 @@ export async function GET(request: NextRequest) {
             breakdown: {
               include: {
                 unit: {
-                  select: { assetTag: true, name: true }
-                }
-              }
+                  select: { assetTag: true, name: true },
+                },
+              },
             },
             resolvedBy: {
-              select: { name: true, email: true }
+              select: { name: true, email: true },
             },
             actions: {
-              orderBy: { actionTime: "asc" }
-            }
+              orderBy: { actionTime: "asc" },
+            },
           },
-          orderBy: { resolvedAt: "desc" }
+          orderBy: { resolvedAt: "desc" },
         });
-        
+
         data = data.map((report) => ({
-          "ID": report.id,
-          "Unit": report.breakdown?.unit?.name || "",
+          ID: report.id,
+          Unit: report.breakdown?.unit?.name || "",
           "Asset Tag": report.breakdown?.unit?.assetTag || "",
-          "Solution": report.solution || "",
+          Solution: report.solution || "",
           "Work Details": report.workDetails || "",
           "Resolved By": report.resolvedBy?.name || "",
-          "Resolved At": report.resolvedAt ? new Date(report.resolvedAt).toLocaleDateString("id-ID") : "",
-          "Actions Count": report.actions?.length || 0
+          "Resolved At": report.resolvedAt
+            ? new Date(report.resolvedAt).toLocaleDateString("id-ID")
+            : "",
+          "Actions Count": report.actions?.length || 0,
         }));
         filename = "Riwayat_Maintenance";
         break;
@@ -169,34 +188,42 @@ export async function GET(request: NextRequest) {
       case "breakdowns":
         data = await prisma.breakdown.findMany({
           where: {
-            status: "rfu"
+            status: "rfu",
           },
           include: {
             unit: {
-              select: { assetTag: true, name: true }
+              select: { assetTag: true, name: true },
             },
             reportedBy: {
-              select: { name: true }
+              select: { name: true },
             },
             rfuReport: {
-              select: { solution: true, resolvedAt: true }
-            }
+              select: { solution: true, resolvedAt: true },
+            },
           },
-          orderBy: { createdAt: "desc" }
+          orderBy: { createdAt: "desc" },
         });
-        
+
         data = data.map((breakdown) => ({
           "Breakdown Number": breakdown.breakdownNumber || "",
-          "Unit": breakdown.unit?.name || "",
+          Unit: breakdown.unit?.name || "",
           "Asset Tag": breakdown.unit?.assetTag || "",
-          "Deskripsi": breakdown.description || "",
-          "Priority": breakdown.priority || "",
-          "Status": breakdown.status,
+          Deskripsi: breakdown.description || "",
+          Priority: breakdown.priority || "",
+          Status: breakdown.status,
           "Reported By": breakdown.reportedBy?.name || "",
-          "Solution": breakdown.rfuReport?.solution || "",
-          "Breakdown Time": breakdown.breakdownTime ? new Date(breakdown.breakdownTime).toLocaleDateString("id-ID") : "",
-          "Resolved At": breakdown.rfuReport?.resolvedAt ? new Date(breakdown.rfuReport.resolvedAt).toLocaleDateString("id-ID") : "",
-          "Tanggal Dibuat": new Date(breakdown.createdAt).toLocaleDateString("id-ID")
+          Solution: breakdown.rfuReport?.solution || "",
+          "Breakdown Time": breakdown.breakdownTime
+            ? new Date(breakdown.breakdownTime).toLocaleDateString("id-ID")
+            : "",
+          "Resolved At": breakdown.rfuReport?.resolvedAt
+            ? new Date(breakdown.rfuReport.resolvedAt).toLocaleDateString(
+                "id-ID",
+              )
+            : "",
+          "Tanggal Dibuat": new Date(breakdown.createdAt).toLocaleDateString(
+            "id-ID",
+          ),
         }));
         filename = "Breakdown_Assets";
         break;
@@ -205,7 +232,7 @@ export async function GET(request: NextRequest) {
         // Get asset readiness by location
         data = await prisma.unit.findMany({
           where: {
-            status: "operational"
+            status: "operational",
           },
           select: {
             assetTag: true,
@@ -213,22 +240,22 @@ export async function GET(request: NextRequest) {
             location: true,
             department: true,
             status: true,
-            condition: true
+            condition: true,
           },
-          orderBy: [
-            { location: "asc" },
-            { department: "asc" }
-          ]
+          orderBy: [{ location: "asc" }, { department: "asc" }],
         });
-        
+
         data = data.map((unit) => ({
           "Asset Tag": unit.assetTag,
-          "Nama": unit.name,
-          "Lokasi": unit.location || "",
-          "Departemen": unit.department || "",
-          "Status": unit.status,
-          "Kondisi": unit.condition || "",
-          "Ready": unit.status === "operational" && unit.condition !== "broken" ? "Ya" : "Tidak"
+          Nama: unit.name,
+          Lokasi: unit.location || "",
+          Departemen: unit.department || "",
+          Status: unit.status,
+          Kondisi: unit.condition || "",
+          Ready:
+            unit.status === "operational" && unit.condition !== "broken"
+              ? "Ya"
+              : "Tidak",
         }));
         filename = "Ketersediaan_Asset";
         break;
@@ -236,43 +263,51 @@ export async function GET(request: NextRequest) {
       default:
         return NextResponse.json(
           { error: "Invalid report type" },
-          { status: 400 }
+          { status: 400 },
         );
     }
 
     if (data.length === 0) {
       return NextResponse.json(
         { error: "No data found for the requested report" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
     // Create Excel workbook
     const worksheet = XLSX.utils.json_to_sheet(data);
     const workbook = XLSX.utils.book_new();
+
     XLSX.utils.book_append_sheet(workbook, worksheet, "Report");
 
     // Generate Excel buffer
-    const excelBuffer = XLSX.write(workbook, { 
-      bookType: "xlsx", 
-      type: "buffer" 
+    const excelBuffer = XLSX.write(workbook, {
+      bookType: "xlsx",
+      type: "buffer",
     });
 
     // Set headers for file download
     const headers = new Headers();
-    headers.set("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-    headers.set("Content-Disposition", `attachment; filename="${filename}_${new Date().toISOString().split('T')[0]}.xlsx"`);
+
+    headers.set(
+      "Content-Type",
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    );
+    headers.set(
+      "Content-Disposition",
+      `attachment; filename="${filename}_${new Date().toISOString().split("T")[0]}.xlsx"`,
+    );
 
     return new NextResponse(excelBuffer, {
       status: 200,
-      headers
+      headers,
     });
-
   } catch (error) {
     console.error("Download error:", error);
+
     return NextResponse.json(
       { error: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

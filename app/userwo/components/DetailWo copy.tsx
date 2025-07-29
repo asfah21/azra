@@ -37,22 +37,22 @@ type Breakdown = {
   status: string;
   shift: string | null;
   unit: {
-    id: string;
-    assetTag: string;
     name: string;
+    assetTag: string;
     location: string;
-    department: string | null;
-    categoryId: number;
-    status: string;
     serialNumber: string;
   };
   reportedBy: {
-    id: string;
-    name: string;
+    name: string | null;
     email: string;
-    department: string | null;
     photo?: string | null;
   };
+  inProgressBy?: {
+    name: string | null;
+    email: string;
+    photo?: string | null;
+  } | null;
+  inProgressAt?: Date | null;
   components: {
     id: string;
     component: string;
@@ -62,12 +62,11 @@ type Breakdown = {
     id: string;
     solution: string;
     resolvedAt: Date;
-    resolvedById: string;
     resolvedBy: {
       id: string;
       name: string;
       email: string;
-      photo?: string | null;
+      photo?: string;
     };
     actions?: {
       id: string;
@@ -75,14 +74,6 @@ type Breakdown = {
       description: string | null;
       actionTime: Date;
     }[];
-  } | null;
-  inProgressById: string | null;
-  inProgressAt: Date | null;
-  inProgressBy?: {
-    id: string;
-    name: string;
-    email: string;
-    photo?: string | null;
   } | null;
 };
 
@@ -92,7 +83,7 @@ interface BreakdownDetailModalProps {
   breakdown: Breakdown | null;
 }
 
-export default function BreakdownDetailModal({
+export default function DetailWo({
   isOpen,
   onClose,
   breakdown,
@@ -223,7 +214,7 @@ export default function BreakdownDetailModal({
                               Shift
                             </p>
                             <p className="text-sm font-medium dark:text-white text-gray-900 capitalize">
-                              {breakdown.shift || "-"}
+                              {breakdown.shift}
                             </p>
                           </div>
                         </div>
@@ -448,7 +439,6 @@ export default function BreakdownDetailModal({
                       </CardBody>
                     </Card>
                   </div>
-                  {/* <p>{breakdown.rfuReport?.actions?.[0]?.action}</p> */}
 
                   {/* RFU Report */}
                   {breakdown.rfuReport && (
@@ -483,15 +473,7 @@ export default function BreakdownDetailModal({
                                 </p>
                                 <div className="space-y-3">
                                   {breakdown.rfuReport.actions.map(
-                                    (
-                                      action: {
-                                        id: string;
-                                        action: string;
-                                        description: string | null;
-                                        actionTime: Date;
-                                      },
-                                      index: number,
-                                    ) => (
+                                    (action, index) => (
                                       <div
                                         key={action.id}
                                         className="border dark:border-[#272727] border-gray-200 rounded-lg p-3 dark:bg-[#252346] bg-gray-50"

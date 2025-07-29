@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useSession } from "next-auth/react";
 import {
   Modal,
@@ -13,10 +13,9 @@ import {
   Chip,
 } from "@heroui/react";
 import { Trash2, AlertTriangle } from "lucide-react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { deleteUser } from "../action";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
 
 interface User {
   id: string;
@@ -49,8 +48,12 @@ export function DeleteConfirmModal({
     mutationFn: async () => {
       if (!user) return { success: false, message: "User tidak ditemukan!" };
       if (session?.user?.role !== "super_admin") {
-        return { success: false, message: "Unauthorized: Hanya Super Admin yang dapat menghapus user." };
+        return {
+          success: false,
+          message: "Unauthorized: Hanya Super Admin yang dapat menghapus user.",
+        };
       }
+
       // Pastikan deleteUser mengembalikan { success, message }
       return await deleteUser(user.id, session.user.role);
     },
@@ -139,14 +142,18 @@ export function DeleteConfirmModal({
                   <div className="flex items-center gap-2">
                     <span
                       className={`text-lg ${
-                        mutation.data.success ? "text-success-600" : "text-danger-600"
+                        mutation.data.success
+                          ? "text-success-600"
+                          : "text-danger-600"
                       }`}
                     >
                       {mutation.data.success ? "✅" : "❌"}
                     </span>
                     <span
                       className={`font-medium ${
-                        mutation.data.success ? "text-success-800" : "text-danger-800"
+                        mutation.data.success
+                          ? "text-success-800"
+                          : "text-danger-800"
                       }`}
                     >
                       {mutation.data.message}
@@ -258,7 +265,9 @@ export function DeleteConfirmModal({
                     isDisabled={session?.user?.role !== "super_admin"}
                     isLoading={mutation.isPending}
                     startContent={
-                      !mutation.isPending ? <Trash2 className="w-4 h-4" /> : undefined
+                      !mutation.isPending ? (
+                        <Trash2 className="w-4 h-4" />
+                      ) : undefined
                     }
                     onPress={handleDelete}
                   >

@@ -22,7 +22,6 @@ interface AddFormProps {
   onUnitAdded?: () => void;
   categories?: Array<{ id: number; name: string }>;
   users?: Array<{ id: string; name: string }>;
-  currentUserId?: string;
 }
 
 export function AddForms({
@@ -34,7 +33,11 @@ export function AddForms({
   const { data: session } = useSession();
   const currentUserId = session?.user?.id || "";
 
-  const [state, formAction, isPending] = useActionState(createUnit, null);
+  const [state, formAction, isPending] = useActionState(
+    (prevState: any, formData: FormData) =>
+      createUnit(prevState, formData, session?.user?.role || "user"),
+    null,
+  );
 
   // Debugging - tampilkan userId di console
   useEffect(() => {

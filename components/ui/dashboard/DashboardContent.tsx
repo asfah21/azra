@@ -1,7 +1,24 @@
 "use client";
 
-import { Card, CardHeader, CardBody, Divider, Chip, Button, User, Progress } from "@heroui/react";
-import { LayoutDashboardIcon, Activity, Clock, CheckCircle2, AlertTriangle, Mail, Shield, Package, Wrench, TrendingUp } from "lucide-react";
+import {
+  Card,
+  CardHeader,
+  CardBody,
+  Divider,
+  Chip,
+  Progress,
+} from "@heroui/react";
+import {
+  Activity,
+  CheckCircle2,
+  AlertTriangle,
+  Mail,
+  Shield,
+  Package,
+  Wrench,
+  TrendingUp,
+} from "lucide-react";
+
 import DashboardCharts from "@/components/ui/dashboard/DashboardCharts";
 import { DashboardSkeleton } from "@/components/ui/skeleton";
 
@@ -77,7 +94,7 @@ export default function DashboardContent({
   // PERBAIKAN: Handle error state dengan retry button
   if (error) {
     return (
-      <div>        
+      <div>
         <div className="flex justify-center items-center h-64">
           <div className="text-center">
             <p className="text-danger mb-2">Error loading dashboard:</p>
@@ -155,8 +172,8 @@ export default function DashboardContent({
                 Total Assets
               </p>
               <p className="text-xs sm:text-small text-primary-600">
-              All Equipment
-            </p>
+                All Equipment
+              </p>
             </div>
           </CardHeader>
           <Divider className="bg-primary-200" />
@@ -200,7 +217,9 @@ export default function DashboardContent({
               <p className="text-sm sm:text-lg font-semibold text-primary-800 truncate">
                 Active Assets
               </p>
-              <p className="text-xs sm:text-small text-success-600">Operational</p>
+              <p className="text-xs sm:text-small text-success-600">
+                Operational
+              </p>
             </div>
           </CardHeader>
           <Divider className="bg-success-200" />
@@ -252,13 +271,15 @@ export default function DashboardContent({
         <Card className="bg-gradient-to-br from-warning-50 to-warning-100 border-warning-200">
           <CardHeader className="flex gap-2 sm:gap-3 pb-2">
             <div className="p-1.5 sm:p-2 bg-warning-500 rounded-lg">
-              <Wrench className="w-4 h-4 sm:w-6 sm:h-6 text-white"/>
+              <Wrench className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
             </div>
             <div className="flex flex-col min-w-0">
               <p className="text-sm sm:text-lg font-semibold text-warning-800 truncate">
                 Work Orders
               </p>
-              <p className="text-xs sm:text-small text-warning-600">Active WO</p>
+              <p className="text-xs sm:text-small text-warning-600">
+                Active WO
+              </p>
             </div>
           </CardHeader>
           <Divider className="bg-warning-200" />
@@ -316,7 +337,9 @@ export default function DashboardContent({
               <p className="text-sm sm:text-lg font-semibold text-danger-800 truncate">
                 Critical Assets
               </p>
-              <p className="text-xs sm:text-small text-danger-600">Need Attention</p>
+              <p className="text-xs sm:text-small text-danger-600">
+                Need Attention
+              </p>
             </div>
           </CardHeader>
           <Divider className="bg-danger-200" />

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import prisma from "@/lib/prisma";
 import { getServerSession } from "next-auth";
+
+import prisma from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
 
 // GET /api/dashboard/users
@@ -29,6 +30,7 @@ export async function GET(req: NextRequest) {
     // Statistik
     const totalUsers = allUsers.length;
     const startOfMonth = new Date();
+
     startOfMonth.setDate(1);
     startOfMonth.setHours(0, 0, 0, 0);
 
@@ -37,6 +39,7 @@ export async function GET(req: NextRequest) {
     ).length;
 
     const thirtyDaysAgo = new Date();
+
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
     const activeUsers = allUsers.filter(
@@ -71,7 +74,7 @@ export async function GET(req: NextRequest) {
           stats: { total: 0, new: 0, active: 0, inactive: 0 },
         },
       },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

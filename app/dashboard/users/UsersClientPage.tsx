@@ -2,9 +2,11 @@
 
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
+import { Users } from "lucide-react";
+
 import UserCardGrids from "./components/CardGrid";
 import UserTables from "./components/UserTable";
-import { Users } from "lucide-react";
+
 import { CardGridSkeleton, TableSkeleton } from "@/components/ui/skeleton";
 
 export default function UsersClientPage() {
@@ -12,6 +14,7 @@ export default function UsersClientPage() {
     queryKey: ["users-data"],
     queryFn: async () => {
       const res = await axios.get("/api/dashboard/users");
+
       return res.data.data;
     },
     refetchInterval: 5000,

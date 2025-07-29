@@ -12,10 +12,10 @@ import {
   Select,
   Input,
 } from "@heroui/react";
-
-import { addUsers } from "../action";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
+
+import { addUsers } from "../action";
 
 interface AddUserFormProps {
   onClose: () => void;

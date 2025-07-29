@@ -1,15 +1,34 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import dynamic from 'next/dynamic';
+import dynamic from "next/dynamic";
 
 // Dynamically import the Table component with SSR disabled
-const DynamicTable = dynamic(() => import('@heroui/react').then(mod => mod.Table), { ssr: false });
-const DynamicTableHeader = dynamic(() => import('@heroui/react').then(mod => mod.TableHeader), { ssr: false });
-const DynamicTableColumn = dynamic(() => import('@heroui/react').then(mod => mod.TableColumn), { ssr: false });
-const DynamicTableBody = dynamic(() => import('@heroui/react').then(mod => mod.TableBody), { ssr: false });
-const DynamicTableRow = dynamic(() => import('@heroui/react').then(mod => mod.TableRow), { ssr: false });
-const DynamicTableCell = dynamic(() => import('@heroui/react').then(mod => mod.TableCell), { ssr: false });
+const DynamicTable = dynamic(
+  () => import("@heroui/react").then((mod) => mod.Table),
+  { ssr: false },
+);
+const DynamicTableHeader = dynamic(
+  () => import("@heroui/react").then((mod) => mod.TableHeader),
+  { ssr: false },
+);
+const DynamicTableColumn = dynamic(
+  () => import("@heroui/react").then((mod) => mod.TableColumn),
+  { ssr: false },
+);
+const DynamicTableBody = dynamic(
+  () => import("@heroui/react").then((mod) => mod.TableBody),
+  { ssr: false },
+);
+const DynamicTableRow = dynamic(
+  () => import("@heroui/react").then((mod) => mod.TableRow),
+  { ssr: false },
+);
+const DynamicTableCell = dynamic(
+  () => import("@heroui/react").then((mod) => mod.TableCell),
+  { ssr: false },
+);
+
 import {
   Table,
   TableHeader,
@@ -26,18 +45,18 @@ import {
   Chip,
   User,
   Pagination,
-  SortDescriptor
+  SortDescriptor,
 } from "@heroui/react";
 
 export const columns = [
-  {name: "ID", uid: "id", sortable: true},
-  {name: "NAME", uid: "name", sortable: true},
-  {name: "AGE", uid: "age", sortable: true},
-  {name: "ROLE", uid: "role", sortable: true},
-  {name: "TEAM", uid: "team"},
-  {name: "EMAIL", uid: "email"},
-  {name: "STATUS", uid: "status", sortable: true},
-  {name: "ACTIONS", uid: "actions"},
+  { name: "ID", uid: "id", sortable: true },
+  { name: "NAME", uid: "name", sortable: true },
+  { name: "AGE", uid: "age", sortable: true },
+  { name: "ROLE", uid: "role", sortable: true },
+  { name: "TEAM", uid: "team" },
+  { name: "EMAIL", uid: "email" },
+  { name: "STATUS", uid: "status", sortable: true },
+  { name: "ACTIONS", uid: "actions" },
 ];
 
 type User = {
@@ -45,7 +64,7 @@ type User = {
   name: string;
   role: string;
   team: string;
-  status: 'active' | 'paused' | 'vacation';
+  status: "active" | "paused" | "vacation";
   age: string;
   avatar: string;
   email: string;
@@ -53,9 +72,9 @@ type User = {
 };
 
 export const statusOptions = [
-  {name: "Active", uid: "active"},
-  {name: "Paused", uid: "paused"},
-  {name: "Vacation", uid: "vacation"},
+  { name: "Active", uid: "active" },
+  { name: "Paused", uid: "paused" },
+  { name: "Vacation", uid: "vacation" },
 ];
 
 export const users: User[] = [
@@ -292,25 +311,24 @@ export const PlusIcon = ({ size = 24, ...props }) => {
 };
 
 export const VerticalDotsIcon = ({ size = 24, ...props }) => {
-    return (
-      <svg
-        aria-hidden="true"
-        fill="none"
-        focusable="false"
-        role="presentation"
-        viewBox="0 0 24 24"
-        width={size}
-        height={size}
-        {...props}
-      >
-        <path
-          d="M12 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0-6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 12c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"
-          fill="currentColor"
-        />
-      </svg>
-    );
-  };
-  
+  return (
+    <svg
+      aria-hidden="true"
+      fill="none"
+      focusable="false"
+      height={size}
+      role="presentation"
+      viewBox="0 0 24 24"
+      width={size}
+      {...props}
+    >
+      <path
+        d="M12 10c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0-6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm0 12c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2z"
+        fill="currentColor"
+      />
+    </svg>
+  );
+};
 
 export const SearchIcon = (props: React.SVGProps<SVGSVGElement>) => {
   return (
@@ -342,7 +360,7 @@ export const SearchIcon = (props: React.SVGProps<SVGSVGElement>) => {
   );
 };
 
-export const ChevronDownIcon = ({strokeWidth = 1.5, ...otherProps}) => {
+export const ChevronDownIcon = ({ strokeWidth = 1.5, ...otherProps }) => {
   return (
     <svg
       aria-hidden="true"
@@ -366,8 +384,14 @@ export const ChevronDownIcon = ({strokeWidth = 1.5, ...otherProps}) => {
   );
 };
 
-type Status = 'active' | 'paused' | 'vacation';
-type ColorVariant = 'success' | 'danger' | 'warning' | 'default' | 'primary' | 'secondary';
+type Status = "active" | "paused" | "vacation";
+type ColorVariant =
+  | "success"
+  | "danger"
+  | "warning"
+  | "default"
+  | "primary"
+  | "secondary";
 
 const statusColorMap: Record<Status, ColorVariant> = {
   active: "success",
@@ -392,16 +416,24 @@ function TableContent() {
 }
 
 function App() {
-    
   const [filterValue, setFilterValue] = React.useState("");
-  const [selectedKeys, setSelectedKeys] = React.useState<Set<string | number> | 'all'>(new Set());
+  const [selectedKeys, setSelectedKeys] = React.useState<
+    Set<string | number> | "all"
+  >(new Set());
 
   // Handle selection change from the Table component
-  const handleSelectionChange = React.useCallback((keys: Set<string | number> | 'all') => {
-    setSelectedKeys(keys);
-  }, []);
-  const [visibleColumns, setVisibleColumns] = React.useState(new Set(INITIAL_VISIBLE_COLUMNS));
-  const [statusFilter, setStatusFilter] = React.useState<Set<string>>(new Set(["all"]));
+  const handleSelectionChange = React.useCallback(
+    (keys: Set<string | number> | "all") => {
+      setSelectedKeys(keys);
+    },
+    [],
+  );
+  const [visibleColumns, setVisibleColumns] = React.useState(
+    new Set(INITIAL_VISIBLE_COLUMNS),
+  );
+  const [statusFilter, setStatusFilter] = React.useState<Set<string>>(
+    new Set(["all"]),
+  );
   const [rowsPerPage, setRowsPerPage] = React.useState(5);
   const [sortDescriptor, setSortDescriptor] = React.useState<SortDescriptor>({
     column: "age",
@@ -427,7 +459,7 @@ function App() {
     }
     if (!statusFilter.has("all") && statusFilter.size > 0) {
       filteredUsers = filteredUsers.filter((user) =>
-        statusFilter.has(user.status)
+        statusFilter.has(user.status),
       );
     }
 
@@ -443,8 +475,6 @@ function App() {
     return filteredItems.slice(start, end);
   }, [page, filteredItems, rowsPerPage]);
 
-
-
   const sortedItems = React.useMemo(() => {
     return [...items].sort((a: User, b: User) => {
       const column = sortDescriptor.column as keyof User;
@@ -456,54 +486,64 @@ function App() {
     });
   }, [sortDescriptor, items]);
 
-  const renderCell = React.useCallback((user: User, columnKey: string | number) => {
-    const cellValue = user[columnKey];
+  const renderCell = React.useCallback(
+    (user: User, columnKey: string | number) => {
+      const cellValue = user[columnKey];
 
-    switch (columnKey) {
-      case "name":
-        return (
-          <User
-            avatarProps={{radius: "lg", src: user.avatar}}
-            description={user.email}
-            name={cellValue}
-          >
-            {user.email}
-          </User>
-        );
-      case "role":
-        return (
-          <div className="flex flex-col">
-            <p className="text-bold text-small capitalize">{cellValue}</p>
-            <p className="text-bold text-tiny capitalize text-default-400">{user.team}</p>
-          </div>
-        );
-      case "status":
-        return (
-          <Chip className="capitalize" color={statusColorMap[user.status]} size="sm" variant="flat">
-            {cellValue}
-          </Chip>
-        );
-      case "actions":
-        return (
-          <div className="relative flex justify-end items-center gap-2">
-            <Dropdown>
-              <DropdownTrigger>
-                <Button isIconOnly size="sm" variant="light">
-                  <VerticalDotsIcon className="text-default-300" />
-                </Button>
-              </DropdownTrigger>
-              <DropdownMenu>
-                <DropdownItem key="view">View</DropdownItem>
-                <DropdownItem key="edit">Edit</DropdownItem>
-                <DropdownItem key="delete">Delete</DropdownItem>
-              </DropdownMenu>
-            </Dropdown>
-          </div>
-        );
-      default:
-        return cellValue;
-    }
-  }, []);
+      switch (columnKey) {
+        case "name":
+          return (
+            <User
+              avatarProps={{ radius: "lg", src: user.avatar }}
+              description={user.email}
+              name={cellValue}
+            >
+              {user.email}
+            </User>
+          );
+        case "role":
+          return (
+            <div className="flex flex-col">
+              <p className="text-bold text-small capitalize">{cellValue}</p>
+              <p className="text-bold text-tiny capitalize text-default-400">
+                {user.team}
+              </p>
+            </div>
+          );
+        case "status":
+          return (
+            <Chip
+              className="capitalize"
+              color={statusColorMap[user.status]}
+              size="sm"
+              variant="flat"
+            >
+              {cellValue}
+            </Chip>
+          );
+        case "actions":
+          return (
+            <div className="relative flex justify-end items-center gap-2">
+              <Dropdown>
+                <DropdownTrigger>
+                  <Button isIconOnly size="sm" variant="light">
+                    <VerticalDotsIcon className="text-default-300" />
+                  </Button>
+                </DropdownTrigger>
+                <DropdownMenu>
+                  <DropdownItem key="view">View</DropdownItem>
+                  <DropdownItem key="edit">Edit</DropdownItem>
+                  <DropdownItem key="delete">Delete</DropdownItem>
+                </DropdownMenu>
+              </Dropdown>
+            </div>
+          );
+        default:
+          return cellValue;
+      }
+    },
+    [],
+  );
 
   const onNextPage = React.useCallback(() => {
     if (page < pages) {
@@ -517,10 +557,13 @@ function App() {
     }
   }, [page]);
 
-  const onRowsPerPageChange = React.useCallback((e: React.ChangeEvent<HTMLSelectElement>) => {
-    setRowsPerPage(Number(e.target.value));
-    setPage(1);
-  }, []);
+  const onRowsPerPageChange = React.useCallback(
+    (e: React.ChangeEvent<HTMLSelectElement>) => {
+      setRowsPerPage(Number(e.target.value));
+      setPage(1);
+    },
+    [],
+  );
 
   const onSearchChange = React.useCallback((value: string) => {
     if (value) {
@@ -552,7 +595,10 @@ function App() {
           <div className="flex gap-3">
             <Dropdown>
               <DropdownTrigger className="hidden sm:flex">
-                <Button endContent={<ChevronDownIcon className="text-small" />} variant="flat">
+                <Button
+                  endContent={<ChevronDownIcon className="text-small" />}
+                  variant="flat"
+                >
                   Status
                 </Button>
               </DropdownTrigger>
@@ -563,8 +609,8 @@ function App() {
                 selectedKeys={statusFilter}
                 selectionMode="multiple"
                 onSelectionChange={(keys) => {
-                  if (keys === 'all') {
-                    setStatusFilter(new Set(['all']));
+                  if (keys === "all") {
+                    setStatusFilter(new Set(["all"]));
                   } else {
                     setStatusFilter(keys as Set<string>);
                   }
@@ -579,7 +625,10 @@ function App() {
             </Dropdown>
             <Dropdown>
               <DropdownTrigger className="hidden sm:flex">
-                <Button endContent={<ChevronDownIcon className="text-small" />} variant="flat">
+                <Button
+                  endContent={<ChevronDownIcon className="text-small" />}
+                  variant="flat"
+                >
                   Columns
                 </Button>
               </DropdownTrigger>
@@ -590,7 +639,10 @@ function App() {
                 selectedKeys={visibleColumns}
                 selectionMode="multiple"
                 onSelectionChange={(keys) => {
-                  const stringKeys = new Set(Array.from(keys).map(key => String(key)));
+                  const stringKeys = new Set(
+                    Array.from(keys).map((key) => String(key)),
+                  );
+
                   setVisibleColumns(stringKeys);
                 }}
               >
@@ -607,7 +659,9 @@ function App() {
           </div>
         </div>
         <div className="flex justify-between items-center">
-          <span className="text-default-400 text-small">Total {users.length} users</span>
+          <span className="text-default-400 text-small">
+            Total {users.length} users
+          </span>
           <label className="flex items-center text-default-400 text-small">
             Rows per page:
             <select
@@ -636,7 +690,7 @@ function App() {
     return (
       <div className="py-2 px-2 flex justify-between items-center">
         <span className="w-[30%] text-small text-default-400">
-          {selectedKeys === 'all'
+          {selectedKeys === "all"
             ? `All ${filteredItems.length} items selected`
             : `${selectedKeys.size} of ${filteredItems.length} selected`}
         </span>
@@ -650,10 +704,20 @@ function App() {
           onChange={setPage}
         />
         <div className="hidden sm:flex w-[30%] justify-end gap-2">
-          <Button isDisabled={pages === 1} size="sm" variant="flat" onPress={onPreviousPage}>
+          <Button
+            isDisabled={pages === 1}
+            size="sm"
+            variant="flat"
+            onPress={onPreviousPage}
+          >
             Previous
           </Button>
-          <Button isDisabled={pages === 1} size="sm" variant="flat" onPress={onNextPage}>
+          <Button
+            isDisabled={pages === 1}
+            size="sm"
+            variant="flat"
+            onPress={onNextPage}
+          >
             Next
           </Button>
         </div>
@@ -690,7 +754,9 @@ function App() {
       <TableBody emptyContent={"No users found"} items={sortedItems}>
         {(item) => (
           <TableRow key={item.id}>
-            {(columnKey) => <TableCell>{renderCell(item, columnKey)}</TableCell>}
+            {(columnKey) => (
+              <TableCell>{renderCell(item, columnKey)}</TableCell>
+            )}
           </TableRow>
         )}
       </TableBody>

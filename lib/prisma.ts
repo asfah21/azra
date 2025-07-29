@@ -21,6 +21,7 @@ if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
 
 // Handle connection issues
 prisma.$connect().catch((error) => {
+  // eslint-disable-next-line no-console
   console.error("Failed to connect to database:", error);
 });
 

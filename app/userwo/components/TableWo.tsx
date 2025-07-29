@@ -21,22 +21,15 @@ import {
   useDisclosure,
   Modal,
   ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
   Pagination,
   Input,
 } from "@heroui/react";
 import {
   Wrench,
   Clock,
-  Filter,
   MoreVertical,
   Eye,
-  Edit,
-  Trash2,
   Zap,
-  CheckSquare,
   PlusIcon,
   Search,
   MapPin,
@@ -52,18 +45,8 @@ import {
 } from "react-icons/tb";
 import { useQueryClient } from "@tanstack/react-query";
 
-import {
-  // deleteBreakdown,
-  // updateBreakdownStatusWithActions,
-  // updateBreakdownStatusWithUnitStatus,
-} from "@/app/userwo/action";
-
 import { AddWoForm } from "./AddWo";
 import DetailWo from "./DetailWo";
-// import RFUReportActionModal from "./RFUReportActionModal";
-// import InProgressModal from "./InProgressModal";
-
-// Tambahkan import untuk mendapatkan current user
 
 interface BreakdownPayload {
   id: string;
@@ -85,6 +68,7 @@ interface BreakdownPayload {
     department: string | null; // Updated to allow null
     categoryId: number;
     status: string;
+    serialNumber: string;
   };
   reportedBy: {
     id: string;
@@ -108,6 +92,12 @@ interface BreakdownPayload {
       name: string;
       email: string;
     };
+    actions?: {
+      id: string;
+      action: string;
+      description: string | null;
+      actionTime: Date;
+    }[];
   } | null;
   inProgressById: string | null;
   inProgressAt: Date | null;
@@ -128,9 +118,25 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
   const { data: session } = useSession();
   const queryClient = useQueryClient();
 
-  // State untuk modal detail 
+  // State untuk modal detail
   const [selectedBreakdown, setSelectedBreakdown] =
     useState<BreakdownPayload | null>(null);
+  // Transformed breakdown for DetailWo component
+  const transformedBreakdown = selectedBreakdown
+    ? {
+        ...selectedBreakdown,
+        unit: {
+          id: selectedBreakdown.unit.id,
+          name: selectedBreakdown.unit.name,
+          assetTag: selectedBreakdown.unit.assetTag,
+          location: selectedBreakdown.unit.location,
+          department: selectedBreakdown.unit.department,
+          categoryId: selectedBreakdown.unit.categoryId,
+          status: selectedBreakdown.unit.status,
+          serialNumber: selectedBreakdown.unit.serialNumber,
+        },
+      }
+    : null;
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
   // State untuk modal RFU
@@ -212,133 +218,16 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
     }
   };
 
-  const handleMarkAsRfu = (breakdown: BreakdownPayload) => {
-    setSelectedBreakdownForRFU(breakdown);
-    setIsRFUModalOpen(true);
-  };
-
-  // const handleRFUComplete = async (
-  //   solution: string,
-  //   actions: Array<{ action: string; description: string }>,
-  // ) => {
-  //   if (!selectedBreakdownForRFU) return;
-
-  //   const currentUserId = session?.user?.id;
-
-  //   if (!currentUserId) {
-  //     console.error("User ID not found");
-
-  //     return;
-  //   }
-
-  //   try {
-  //     const result = await updateBreakdownStatusWithActions(
-  //       selectedBreakdownForRFU.id,
-  //       "rfu",
-  //       solution,
-  //       actions,
-  //       currentUserId,
-  //     );
-
-  //     if (result.success) {
-  //       console.log(result.message);
-  //       router.refresh(); // Refresh halaman untuk update data
-  //     } else {
-  //       console.error(result.message);
-  //     }
-  //   } catch (error) {
-  //     console.error("An unexpected error occurred:", error);
-  //   }
+  // const handleUserAdded = () => {
+  //   // Refresh halaman untuk update data setelah user ditambah
+  //   router.refresh();
+  //   onOpenChange();
   // };
 
-  const handleMarkAsInProgress = (breakdown: BreakdownPayload) => {
-    setSelectedBreakdownForInProgress(breakdown);
-    setIsInProgressModalOpen(true);
-  };
-
-  // const handleInProgressComplete = async (
-  //   unitStatus: string,
-  //   priority: string,
-  //   notes?: string,
-  // ) => {
-  //   if (!selectedBreakdownForInProgress) return;
-
-  //   const currentUserId = session?.user?.id;
-
-  //   if (currentUserId) {
-  //     await handleAction(() =>
-  //       updateBreakdownStatusWithUnitStatus(
-  //         selectedBreakdownForInProgress.id,
-  //         "in_progress",
-  //         unitStatus,
-  //         priority,
-  //         notes,
-  //         currentUserId,
-  //       ),
-  //     );
-  //   } else {
-  //     await handleAction(() =>
-  //       updateBreakdownStatusWithUnitStatus(
-  //         selectedBreakdownForInProgress.id,
-  //         "in_progress",
-  //         unitStatus,
-  //         priority,
-  //         notes,
-  //       ),
-  //     );
-  //   }
-  // };
-
-  const handleCloseInProgressModal = () => {
-    setIsInProgressModalOpen(false);
-    setSelectedBreakdownForInProgress(null);
-  };
-
-  const handleDelete = (breakdown: BreakdownPayload) => {
-    // Validasi role user sebelum membuka modal
-    if (session?.user?.role !== "super_admin") {
-      console.error("Unauthorized: Only super_admin can delete work orders");
-
-      return;
-    }
-
-    setSelectedBreakdownForDelete(breakdown);
-    setIsDeleteModalOpen(true);
-  };
-
-  // const handleConfirmDelete = async () => {
-  //   if (!selectedBreakdownForDelete) return;
-
-  //   // Validasi role user sebelum melakukan delete
-  //   if (session?.user?.role !== "super_admin") {
-  //     console.error("Unauthorized: Only super_admin can delete work orders");
-  //     setIsDeleteModalOpen(false);
-  //     setSelectedBreakdownForDelete(null);
-
-  //     return;
-  //   }
-
-  //   setIsDeleting(true);
-  //   try {
-  //     await handleAction(() => deleteBreakdown(selectedBreakdownForDelete.id));
-  //     setIsDeleteModalOpen(false);
-  //     setSelectedBreakdownForDelete(null);
-  //   } catch (error) {
-  //     console.error("Error deleting breakdown:", error);
-  //   } finally {
-  //     setIsDeleting(false);
-  //   }
-  // };
-
-  const handleCloseDeleteModal = () => {
-    setIsDeleteModalOpen(false);
-    setSelectedBreakdownForDelete(null);
-  };
-
-  const handleUserAdded = () => {
-    // Refresh halaman untuk update data setelah user ditambah
-    router.refresh();
-    onOpenChange();
+  // Refresh halaman untuk update data setelah wo ditambahkan
+  const handleUserAdded = async () => {
+    await queryClient.invalidateQueries({ queryKey: ["breakdowns"] });
+    onOpenChange(); // Tutup modal
   };
 
   const handleViewDetails = (breakdown: BreakdownPayload) => {
@@ -484,15 +373,6 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
               variant="flat"
               onValueChange={handleSearchChange}
             />
-            {/* <Button
-              className="flex-1 sm:flex-none"
-              color="default"
-              size="sm"
-              startContent={<Filter className="w-4 h-4" />}
-              variant="flat"
-            >
-              Filter
-            </Button> */}
             <Button
               className="flex-1 sm:flex-none"
               color="primary"
@@ -627,15 +507,6 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
                           order.inProgressBy && (
                             <div className="ml-2 text-xs text-default-500">
                               By {order.inProgressBy.name}
-                              {/* {order.inProgressAt && (
-                              <span className="ml-2">
-                                {new Date(order.inProgressAt).toLocaleDateString("en-GB", {
-                                  day: "numeric",
-                                  month: "2-digit",
-                                  year: "2-digit",
-                                })}
-                              </span>
-                            )} */}
                             </div>
                           )}
                       </div>
@@ -689,62 +560,6 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
                             >
                               View Details
                             </DropdownItem>
-                            {/* <DropdownItem
-                              key="edit"
-                              isDisabled
-                              startContent={<Edit className="w-4 h-4" />}
-                              onPress={() =>
-                                router.push(`/dashboard/workorders/${order.id}/edit`)
-                              }
-                            >
-                              Edit Order
-                            </DropdownItem>
-                            {order.status === "in_progress" ? (
-                              <DropdownItem
-                                key="completed"
-                                className="text-primary"
-                                color="primary"
-                                startContent={
-                                  <CheckSquare className="w-4 h-4" />
-                                }
-                                onPress={() => handleMarkAsRfu(order)}
-                              >
-                                Mark as RFU
-                              </DropdownItem>
-                            ) : null}
-                            {order.status === "pending" ? (
-                              <DropdownItem
-                                key="in-progress"
-                                className="text-success"
-                                color="success"
-                                startContent={<Clock className="w-4 h-4" />}
-                                onPress={() => handleMarkAsInProgress(order)}
-                              >
-                                Mark as In Progress
-                              </DropdownItem>
-                            ) : null}
-
-                            {session?.user?.role === "super_admin" ? (
-                              <DropdownItem
-                                key="cancel"
-                                className="text-danger"
-                                color="danger"
-                                startContent={<Trash2 className="w-4 h-4" />}
-                                onPress={() => handleDelete(order)}
-                              >
-                                Delete Order
-                              </DropdownItem>
-                            ) : null} */}
-
-                            {/* <DropdownItem
-                              key="cancel"
-                              className="text-danger"
-                              color="danger"
-                              startContent={<Trash2 className="w-4 h-4" />}
-                              onPress={() => handleDelete(order.id)}
-                            >
-                              Delete Order
-                            </DropdownItem> */}
                           </DropdownMenu>
                         </Dropdown>
                       </div>
@@ -759,6 +574,7 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
       {/* Modal */}
       <div className="mx-4">
         <Modal
+          backdrop="opaque"
           isOpen={isOpen}
           placement="top-center"
           size="2xl"
@@ -774,79 +590,10 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
 
       {/* Modal untuk Detail Breakdown */}
       <DetailWo
-        breakdown={selectedBreakdown}
+        breakdown={transformedBreakdown}
         isOpen={isDetailModalOpen}
         onClose={handleCloseDetailModal}
       />
-
-      {/* RFU Report Action Modal */}
-      {/* <RFUReportActionModal
-        breakdownId={selectedBreakdownForRFU?.id || ""}
-        breakdownNumber={selectedBreakdownForRFU?.breakdownNumber || ""}
-        isOpen={isRFUModalOpen}
-        onClose={handleCloseRFUModal}
-        onRFUComplete={handleRFUComplete}
-      /> */}
-
-      {/* In Progress Modal */}
-      {/* <InProgressModal
-        breakdownNumber={selectedBreakdownForInProgress?.breakdownNumber || ""}
-        isOpen={isInProgressModalOpen}
-        unitAssetTag={selectedBreakdownForInProgress?.unit.assetTag || ""}
-        unitName={selectedBreakdownForInProgress?.unit.name || ""}
-        onClose={handleCloseInProgressModal}
-        onConfirm={handleInProgressComplete}
-      /> */}
-
-      {/* Modal konfirmasi delete */}
-      {/* <Modal
-        isOpen={isDeleteModalOpen}
-        placement="center"
-        size="sm"
-        onOpenChange={setIsDeleteModalOpen}
-      >
-        <ModalContent>
-          {(_onClose) => (
-            <>
-              <ModalHeader className="flex flex-col gap-1">
-                <div className="flex items-center gap-2">
-                  <Trash2 className="w-5 h-5 text-danger" />
-                  <span>Konfirmasi Hapus</span>
-                </div>
-              </ModalHeader>
-              <ModalBody>
-                <p>
-                  Apakah Anda yakin ingin menghapus work order{" "}
-                  <span className="font-semibold">
-                    {selectedBreakdownForDelete?.breakdownNumber}
-                  </span>
-                  ?
-                </p>
-                <p className="text-sm text-default-500">
-                  Tindakan ini tidak dapat dibatalkan.
-                </p>
-              </ModalBody>
-              <ModalFooter>
-                <Button
-                  color="default"
-                  variant="flat"
-                  onPress={handleCloseDeleteModal}
-                >
-                  Batal
-                </Button>
-                <Button
-                  color="danger"
-                  onPress={handleConfirmDelete}
-                  isLoading={isDeleting}
-                  disabled={isDeleting}
-                >
-                  {isDeleting ? "Menghapus..." : "Hapus"}
-                </Button>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
-      </Modal> */}
     </div>
   );
 }

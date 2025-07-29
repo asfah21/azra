@@ -10,20 +10,12 @@ import {
   Button,
   addToast,
 } from "@heroui/react";
-import {
-  Eye,
-  EyeOff,
-  Image,
-  Mail,
-  MapPin,
-  Phone,
-  Save,
-  User,
-} from "lucide-react";
+import { Image, Mail, MapPin, Phone, Save, User } from "lucide-react";
 import { useState, useEffect } from "react";
 
-import { useUpdateProfile, useUpdatePhoto } from "@/hooks/useSettings";
 import ChangePhotoModal from "./ChangePhotoModal";
+
+import { useUpdateProfile, useUpdatePhoto } from "@/hooks/useSettings";
 
 export default function ProfileSetting({ profile }: { profile: any }) {
   const [darkMode, setDarkMode] = useState(false);
@@ -43,9 +35,8 @@ export default function ProfileSetting({ profile }: { profile: any }) {
   const [email, setEmail] = useState(profile?.email || "");
   const [phone, setPhone] = useState(profile?.phone || "");
   const [location, setLocation] = useState(profile?.location || "");
-  const [photo, setPhoto] = useState(
-    profile?.photo || "https://i.pravatar.cc/150?img=12",
-  );
+  // const [photo, setPhoto] = useState(profile?.photo || "https://i.pravatar.cc/150?img=12");
+  const [photo, setPhoto] = useState(profile?.photo || null);
 
   // React Query mutations
   const updateProfileMutation = useUpdateProfile();
@@ -69,12 +60,12 @@ export default function ProfileSetting({ profile }: { profile: any }) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
       const result = await updateProfileMutation.mutateAsync({
         phone,
       });
-      
+
       if (result.success) {
         addToast({
           title: "Berhasil Disimpan",
@@ -105,25 +96,26 @@ export default function ProfileSetting({ profile }: { profile: any }) {
         description: "Ukuran gambar maksimal 1MB.",
         color: "danger",
       });
+
       return;
     }
-    
+
     try {
       const result = await updatePhotoMutation.mutateAsync({
         photo: file,
       });
-      
+
       if (result.success) {
         addToast({
           title: "Berhasil",
           description: result.message || "Foto berhasil diupdate.",
           color: "success",
         });
-        
+
         if (result.photoUrl) {
           setPhoto(result.photoUrl);
         }
-        
+
         setShowPhotoModal(false);
       } else {
         addToast({
@@ -151,9 +143,7 @@ export default function ProfileSetting({ profile }: { profile: any }) {
           </div>
           <div>
             <p className="text-lg font-semibold">Setting Profile</p>
-            <p className="text-small text-default-600">
-              Update data diri anda
-            </p>
+            <p className="text-small text-default-600">Update data diri anda</p>
           </div>
         </CardHeader>
         <Divider />
@@ -165,18 +155,18 @@ export default function ProfileSetting({ profile }: { profile: any }) {
               <div className="py-3 sm:flex-1 sm:space-y-3">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <Input
+                    disabled
                     label="Nama Lengkap"
                     placeholder="Enter your name"
                     size="sm"
                     value={name}
-                    disabled
                     onChange={(e) => setName(e.target.value)}
                   />
                   <Input
+                    disabled
                     label="Department"
                     placeholder="Enter your department"
                     size="sm"
-                    disabled
                     value={department}
                     onChange={(e) => setDepartment(e.target.value)}
                   />
@@ -184,11 +174,11 @@ export default function ProfileSetting({ profile }: { profile: any }) {
                 <Button
                   className="mt-2"
                   color="success"
+                  isLoading={updatePhotoMutation.isPending}
                   size="sm"
-                  startContent={<Image className="w-4 h-4"/>}
+                  startContent={<Image className="w-4 h-4" />}
                   type="button"
                   onPress={() => setShowPhotoModal(true)}
-                  isLoading={updatePhotoMutation.isPending}
                 >
                   Ganti Foto
                 </Button>
@@ -209,12 +199,12 @@ export default function ProfileSetting({ profile }: { profile: any }) {
               </h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <Input
+                  disabled
                   label="Email"
                   placeholder="your@email.com"
                   size="sm"
                   startContent={<Mail className="w-4 h-4 text-default-400" />}
                   value={email}
-                  disabled
                   onChange={(e) => setEmail(e.target.value)}
                 />
                 <Input
@@ -229,6 +219,7 @@ export default function ProfileSetting({ profile }: { profile: any }) {
                   value={phone}
                   onChange={(e) => {
                     let value = e.target.value;
+
                     value = value.replace(/[^0-9+]/g, "");
                     if (value.startsWith("+")) {
                       value = "+" + value.slice(1).replace(/\+/g, "");
@@ -248,12 +239,12 @@ export default function ProfileSetting({ profile }: { profile: any }) {
               </h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <Input
+                  disabled
                   label="Lokasi"
                   placeholder="Enter your location"
                   size="sm"
                   startContent={<MapPin className="w-4 h-4 text-default-400" />}
                   value={location}
-                  disabled
                   onChange={(e) => setLocation(e.target.value)}
                 />
               </div>
@@ -263,9 +254,9 @@ export default function ProfileSetting({ profile }: { profile: any }) {
             <div className="flex justify-end pt-4">
               <Button
                 color="primary"
-                type="submit"
-                startContent={<Save className="w-4 h-4" />}
                 isLoading={updateProfileMutation.isPending}
+                startContent={<Save className="w-4 h-4" />}
+                type="submit"
               >
                 Simpan Perubahan
               </Button>

@@ -22,6 +22,17 @@ export async function addUsers(
     const password = formData.get("password") as string;
     const role = formData.get("role") as Role;
     const department = formData.get("department") as string;
+    const currentUserRole = formData.get("currentUserRole") as string;
+
+    // Validasi role - hanya super_admin yang dapat menambahkan user
+    if (currentUserRole !== "super_admin") {
+      return {
+        errors: {
+          general:
+            "Unauthorized: Hanya Super Admin yang dapat menambahkan user.",
+        },
+      };
+    }
 
     // Validasi
     if (!name || !email || !password || !role) {
@@ -57,7 +68,7 @@ export async function addUsers(
       },
     });
 
-    revalidatePath("/users");
+    revalidatePath("/dashboard/users");
 
     return { message: "User berhasil ditambahkan!" };
   } catch (error) {

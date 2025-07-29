@@ -2,7 +2,6 @@ import {
   SiNextdotjs,
   SiTypescript,
   SiTailwindcss,
-  SiPostgresql,
   SiNextui,
   SiPrisma,
 } from "react-icons/si";

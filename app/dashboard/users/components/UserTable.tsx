@@ -31,7 +31,6 @@ import {
 import {
   Users,
   UserPlus,
-  Filter,
   MoreVertical,
   Eye,
   Edit,
@@ -354,7 +353,7 @@ export default function UserTables({ usersTable }: UserManagementClientProps) {
               variant="flat"
               onValueChange={handleSearchChange}
             />
-            <Button
+            {/* <Button
               className="flex-1 sm:flex-none"
               color="default"
               size="sm"
@@ -362,8 +361,19 @@ export default function UserTables({ usersTable }: UserManagementClientProps) {
               variant="flat"
             >
               Filter
-            </Button>
-            <Button
+            </Button> */}
+            {session?.user?.role === "super_admin" ? (
+              <Button
+                className="flex-1 sm:flex-none"
+                color="primary"
+                size="sm"
+                startContent={<UserPlus className="w-4 h-4" />}
+                onPress={onOpen}
+              >
+                Add User
+              </Button>
+            ) : null}
+            {/* <Button
               className="flex-1 sm:flex-none"
               color="primary"
               size="sm"
@@ -371,7 +381,7 @@ export default function UserTables({ usersTable }: UserManagementClientProps) {
               onPress={onOpen}
             >
               Add User
-            </Button>
+            </Button> */}
           </div>
         </CardHeader>
         <Divider />
@@ -466,7 +476,8 @@ export default function UserTables({ usersTable }: UserManagementClientProps) {
                         avatarProps={{
                           radius: "lg",
                           src: user.photo,
-                          className:"w-8 h-8 rounded-full object-cover flex-shrink-0",
+                          className:
+                            "w-8 h-8 rounded-full object-cover flex-shrink-0",
                         }}
                         classNames={{
                           description: "text-default-500",

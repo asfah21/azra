@@ -1,4 +1,5 @@
 import { Metadata } from "next";
+
 import AssetsClientPage from "./AssetsClientPage";
 
 export const metadata: Metadata = {
@@ -7,7 +8,5 @@ export const metadata: Metadata = {
 };
 
 export default function AssetsPage() {
-  return (
-    <AssetsClientPage />
-  );
+  return <AssetsClientPage />;
 }

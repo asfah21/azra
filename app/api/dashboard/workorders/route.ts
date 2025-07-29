@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+
 import { prisma } from "@/lib/prisma";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/lib/auth";
 
 export async function GET(req: NextRequest) {
   // const session = await getServerSession(authOptions); //Proteksi API
@@ -48,6 +47,7 @@ export async function GET(req: NextRequest) {
 
         let nextNum = 1;
         const match = last?.breakdownNumber?.match(/\d+$/);
+
         if (match) nextNum = parseInt(match[0], 10) + 1;
 
         return `${prefix}${nextNum.toString().padStart(4, "0")}`;
@@ -63,9 +63,11 @@ export async function GET(req: NextRequest) {
         include: {
           unit: true,
           reportedBy: { select: { name: true, email: true, id: true } },
-          inProgressBy: { select: { name: true, email: true, id: true } },
+          inProgressBy: {
+            select: { name: true, email: true, id: true, photo: true },
+          },
           components: true,
-          rfuReport: { include: { resolvedBy: true } },
+          rfuReport: { include: { resolvedBy: true, actions: true } },
         },
       });
 
@@ -85,9 +87,17 @@ export async function GET(req: NextRequest) {
         const allBreakdowns = await prisma.breakdown.findMany({
           include: {
             reportedBy: {
-              select: { id: true, name: true, email: true, department: true, photo: true },
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                department: true,
+                photo: true,
+              },
             },
-            inProgressBy: { select: { id: true, name: true, email: true, photo: true } },
+            inProgressBy: {
+              select: { id: true, name: true, email: true, photo: true },
+            },
             unit: {
               select: {
                 id: true,
@@ -97,6 +107,7 @@ export async function GET(req: NextRequest) {
                 department: true,
                 categoryId: true,
                 status: true,
+                serialNumber: true,
               },
             },
             components: true,
@@ -105,6 +116,7 @@ export async function GET(req: NextRequest) {
                 resolvedBy: {
                   select: { id: true, name: true, email: true, photo: true },
                 },
+                actions: true,
               },
             },
           },
@@ -113,6 +125,7 @@ export async function GET(req: NextRequest) {
 
         const now = new Date();
         const thirtyDaysAgo = new Date(now);
+
         thirtyDaysAgo.setDate(now.getDate() - 30);
 
         // Prehitung statistik tanpa mutasi array berkali-kali
@@ -138,14 +151,21 @@ export async function GET(req: NextRequest) {
         });
       } catch (error) {
         lastError = error;
-        if (i < maxRetries) await new Promise((res) => setTimeout(res, 1000 * i));
+        if (i < maxRetries)
+          await new Promise((res) => setTimeout(res, 1000 * i));
       }
     }
 
     return NextResponse.json(
       {
         allBreakdowns: [],
-        breakdownStats: { total: 0, progress: 0, rfu: 0, pending: 0, overdue: 0 },
+        breakdownStats: {
+          total: 0,
+          progress: 0,
+          rfu: 0,
+          pending: 0,
+          overdue: 0,
+        },
       },
       { status: 500 },
     );

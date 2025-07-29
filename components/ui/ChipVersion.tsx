@@ -6,7 +6,8 @@ export function VersionApp() {
       <span className="text-xl font-bold text-foreground">AZRA</span>
       <span className="inline-flex items-center ml-1 px-1 py-0 rounded-full text-xs text-default-500 bg-default-400/20 dark:bg-default-500/20">
         v0.2.0
-      </span><p className="text-xs text-default-500">(MVP)</p>
+      </span>
+      <p className="text-xs text-default-500">(MVP)</p>
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { Divider, Tooltip, Button } from "@heroui/react";
 import { memo } from "react";
 
 import { VersionApp } from "../ChipVersion";
+
 import { Logo } from "@/components/icons";
 
 interface SidebarProps {
@@ -21,45 +22,47 @@ interface SidebarProps {
 }
 
 // Memoized NavButton untuk mencegah re-render yang tidak perlu
-const NavButton = memo(({ 
-  item, 
-  isActive, 
-  sidebarCollapsed, 
-  onPress 
-}: {
-  item: any;
-  isActive: boolean;
-  sidebarCollapsed: boolean;
-  onPress: () => void;
-}) => (
-  <Tooltip
-    content={item.title}
-    isDisabled={!sidebarCollapsed}
-    placement="right"
-  >
-    <Button
-      className={`w-full transition-all duration-200 ease-out ${
-        sidebarCollapsed
-          ? "justify-center min-w-12 px-0"
-          : "justify-start"
-      } h-12`}
-      color={isActive ? "primary" : "default"}
-      startContent={<span className="text-lg flex-shrink-0">{item.icon}</span>}
-      variant={isActive ? "flat" : "light"}
-      onPress={onPress}
+const NavButton = memo(
+  ({
+    item,
+    isActive,
+    sidebarCollapsed,
+    onPress,
+  }: {
+    item: any;
+    isActive: boolean;
+    sidebarCollapsed: boolean;
+    onPress: () => void;
+  }) => (
+    <Tooltip
+      content={item.title}
+      isDisabled={!sidebarCollapsed}
+      placement="right"
     >
-      <span
-        className={`transition-all duration-200 ease-out whitespace-nowrap ${
-          sidebarCollapsed
-            ? "opacity-0 w-0 overflow-hidden ml-0"
-            : "opacity-100 w-auto ml-2"
-        }`}
+      <Button
+        className={`w-full transition-all duration-200 ease-out ${
+          sidebarCollapsed ? "justify-center min-w-12 px-0" : "justify-start"
+        } h-12`}
+        color={isActive ? "primary" : "default"}
+        startContent={
+          <span className="text-lg flex-shrink-0">{item.icon}</span>
+        }
+        variant={isActive ? "flat" : "light"}
+        onPress={onPress}
       >
-        {item.title}
-      </span>
-    </Button>
-  </Tooltip>
-));
+        <span
+          className={`transition-all duration-200 ease-out whitespace-nowrap ${
+            sidebarCollapsed
+              ? "opacity-0 w-0 overflow-hidden ml-0"
+              : "opacity-100 w-auto ml-2"
+          }`}
+        >
+          {item.title}
+        </span>
+      </Button>
+    </Tooltip>
+  ),
+);
 
 NavButton.displayName = "NavButton";
 
@@ -78,8 +81,8 @@ export const Sidebar = memo(function Sidebar({
       } hidden md:flex flex-col relative`}
       style={{
         // Force hardware acceleration untuk smooth transitions
-        transform: 'translateZ(0)',
-        willChange: 'width'
+        transform: "translateZ(0)",
+        willChange: "width",
       }}
     >
       {/* Header Section */}
@@ -116,8 +119,8 @@ export const Sidebar = memo(function Sidebar({
           return (
             <NavButton
               key={item.id}
-              item={item}
               isActive={isActive}
+              item={item}
               sidebarCollapsed={sidebarCollapsed}
               onPress={() => openNewTab(item)}
             />

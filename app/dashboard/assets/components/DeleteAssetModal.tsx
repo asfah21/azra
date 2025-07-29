@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useSession } from "next-auth/react";
 import {
   Modal,
@@ -12,8 +12,8 @@ import {
   Chip,
 } from "@heroui/react";
 import { Trash2, AlertTriangle, Package } from "lucide-react";
-
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+
 import { deleteAsset } from "../action";
 
 interface Unit {
@@ -60,8 +60,13 @@ export function DeleteAssetModal({
     mutationFn: async () => {
       if (!asset) return { success: false, message: "Asset tidak ditemukan!" };
       if (session?.user?.role !== "super_admin") {
-        return { success: false, message: "Unauthorized: Hanya Super Admin yang dapat menghapus asset." };
+        return {
+          success: false,
+          message:
+            "Unauthorized: Hanya Super Admin yang dapat menghapus asset.",
+        };
       }
+
       return await deleteAsset(asset.id, session.user.role);
     },
     onSuccess: (data) => {
@@ -143,14 +148,18 @@ export function DeleteAssetModal({
                   <div className="flex items-center gap-2">
                     <span
                       className={`text-lg ${
-                        mutation.data.success ? "text-success-600" : "text-danger-600"
+                        mutation.data.success
+                          ? "text-success-600"
+                          : "text-danger-600"
                       }`}
                     >
                       {mutation.data.success ? "✅" : "❌"}
                     </span>
                     <span
                       className={`font-medium ${
-                        mutation.data.success ? "text-success-800" : "text-danger-800"
+                        mutation.data.success
+                          ? "text-success-800"
+                          : "text-danger-800"
                       }`}
                     >
                       {mutation.data.message}
@@ -287,7 +296,9 @@ export function DeleteAssetModal({
                     isDisabled={session?.user?.role !== "super_admin"}
                     isLoading={mutation.isPending}
                     startContent={
-                      !mutation.isPending ? <Trash2 className="w-4 h-4" /> : undefined
+                      !mutation.isPending ? (
+                        <Trash2 className="w-4 h-4" />
+                      ) : undefined
                     }
                     onPress={handleDelete}
                   >

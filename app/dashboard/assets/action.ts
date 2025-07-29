@@ -4,8 +4,20 @@ import { revalidatePath } from "next/cache";
 
 import { prisma } from "@/lib/prisma";
 
-export async function createUnit(prevState: any, formData: FormData) {
+export async function createUnit(
+  prevState: any,
+  formData: FormData,
+  userRole: string,
+) {
   try {
+    // Validasi role - hanya super_admin yang bisa menambahkan asset
+    if (userRole !== "super_admin") {
+      return {
+        success: false,
+        message:
+          "Unauthorized: Hanya Super Admin yang dapat menambahkan asset.",
+      };
+    }
     // Required fields
     const assetTag = formData.get("assetTag") as string;
     const name = formData.get("name") as string;
@@ -101,8 +113,8 @@ export async function createUnit(prevState: any, formData: FormData) {
       },
     });
 
-    revalidatePath("/units"); // revalidate list page
-    revalidatePath("/docs"); // revalidate current page
+    revalidatePath("/dashboard/assets"); // revalidate list page
+    // revalidatePath("/dashboard/assets"); // revalidate current page
 
     return {
       success: true,
@@ -133,8 +145,20 @@ export async function createUnit(prevState: any, formData: FormData) {
   }
 }
 
-export async function updateAsset(prevState: any, formData: FormData) {
+export async function updateAsset(
+  prevState: any,
+  formData: FormData,
+  userRole: string,
+) {
   try {
+    // Validasi role - hanya super_admin yang bisa mengedit asset
+    if (userRole !== "super_admin") {
+      return {
+        success: false,
+        message: "Unauthorized: Hanya Super Admin yang dapat mengedit asset.",
+      };
+    }
+
     // Required fields
     const id = formData.get("id") as string;
     const assetTag = formData.get("assetTag") as string;

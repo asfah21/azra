@@ -2,18 +2,20 @@
 
 import { useSession, signOut } from "next-auth/react";
 import { useRouter, usePathname } from "next/navigation";
-import { useEffect, useState, useCallback, useMemo, useRef, useTransition } from "react";
 import {
-  FiSettings,
-  FiPackage,
-  FiBarChart2,
-  FiUsers,
-  FiCodesandbox,
-} from "react-icons/fi";
+  useEffect,
+  useState,
+  useCallback,
+  useMemo,
+  useRef,
+  useTransition,
+} from "react";
+import { FiSettings, FiPackage, FiBarChart2, FiUsers } from "react-icons/fi";
 import { PiWrench } from "react-icons/pi";
 import { LuLayoutDashboard } from "react-icons/lu";
 
 import { LoadingSpinner } from "../skeleton";
+
 import { Sidebar } from "./Sidebar";
 import { Topbar } from "./Topbar";
 
@@ -44,83 +46,95 @@ export default function UIDashboardLayout({
   const [activeTabs, setActiveTabs] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState("");
   const [isInitialized, setIsInitialized] = useState(false);
-  
+
   // Ref untuk tracking navigation state
   const isNavigatingRef = useRef(false);
   const lastPathnameRef = useRef(pathname);
 
-  const navItems = useMemo(() => [
-    {
-      id: "dashboard",
-      title: "Dashboard",
-      path: "/dashboard",
-      icon: <LuLayoutDashboard />,
-    },
-    {
-      id: "workorders",
-      title: "Work Orders",
-      path: "/dashboard/workorders",
-      icon: <PiWrench />,
-    },
-    {
-      id: "assets",
-      title: "Assets",
-      path: "/dashboard/assets",
-      icon: <FiPackage />,
-    },
-    {
-      id: "reports",
-      title: "Reports",
-      path: "/dashboard/reports",
-      icon: <FiBarChart2 />,
-    },
-    {
-      id: "user",
-      title: "Users",
-      path: "/dashboard/users",
-      icon: <FiUsers />,
-    },
-    {
-      id: "settings",
-      title: "Settings",
-      path: "/dashboard/settings",
-      icon: <FiSettings />,
-    },
-  ], []);
+  const navItems = useMemo(
+    () => [
+      {
+        id: "dashboard",
+        title: "Dashboard",
+        path: "/dashboard",
+        icon: <LuLayoutDashboard />,
+      },
+      {
+        id: "workorders",
+        title: "Work Orders",
+        path: "/dashboard/workorders",
+        icon: <PiWrench />,
+      },
+      {
+        id: "assets",
+        title: "Assets",
+        path: "/dashboard/assets",
+        icon: <FiPackage />,
+      },
+      {
+        id: "reports",
+        title: "Reports",
+        path: "/dashboard/reports",
+        icon: <FiBarChart2 />,
+      },
+      {
+        id: "user",
+        title: "Users",
+        path: "/dashboard/users",
+        icon: <FiUsers />,
+      },
+      {
+        id: "settings",
+        title: "Settings",
+        path: "/dashboard/settings",
+        icon: <FiSettings />,
+      },
+    ],
+    [],
+  );
 
   // Optimized pathname matcher
-  const getMatchedItem = useCallback((path: string) => {
-    // Direct match first (most common case)
-    const directMatch = navItems.find((item) => item.path === path);
-    if (directMatch) return directMatch;
+  const getMatchedItem = useCallback(
+    (path: string) => {
+      // Direct match first (most common case)
+      const directMatch = navItems.find((item) => item.path === path);
 
-    // Prefix match (excluding dashboard for specificity)
-    const prefixMatch = navItems.find(
-      (item) => path.startsWith(item.path) && item.path !== "/dashboard",
-    );
-    if (prefixMatch) return prefixMatch;
+      if (directMatch) return directMatch;
 
-    // Dashboard fallback for any /dashboard/* path
-    if (path.startsWith("/dashboard")) {
-      return navItems.find((item) => item.id === "dashboard");
-    }
+      // Prefix match (excluding dashboard for specificity)
+      const prefixMatch = navItems.find(
+        (item) => path.startsWith(item.path) && item.path !== "/dashboard",
+      );
 
-    return null;
-  }, [navItems]);
+      if (prefixMatch) return prefixMatch;
+
+      // Dashboard fallback for any /dashboard/* path
+      if (path.startsWith("/dashboard")) {
+        return navItems.find((item) => item.id === "dashboard");
+      }
+
+      return null;
+    },
+    [navItems],
+  );
 
   // Optimized storage operations dengan batching
-  const saveTabsToStorage = useCallback((tabs: any[], currentActiveTab: string) => {
-    // Batch storage operations
-    requestAnimationFrame(() => {
-      try {
-        const tabsForStorage = tabs.map(({ icon: _icon, ...tab }) => tab);
-        localStorage.setItem(ACTIVE_TABS_KEY, JSON.stringify(tabsForStorage));
-        localStorage.setItem(ACTIVE_TAB_KEY, currentActiveTab);
-      } catch (error) {
-        console.error("Error saving tabs to storage:", error);
-      }
-    });
-  }, []);
+  const saveTabsToStorage = useCallback(
+    (tabs: any[], currentActiveTab: string) => {
+      // Batch storage operations
+      requestAnimationFrame(() => {
+        try {
+          const tabsForStorage = tabs.map(({ icon: _icon, ...tab }) => tab);
+
+          localStorage.setItem(ACTIVE_TABS_KEY, JSON.stringify(tabsForStorage));
+          localStorage.setItem(ACTIVE_TAB_KEY, currentActiveTab);
+        } catch (error) {
+          console.error("Error saving tabs to storage:", error);
+        }
+      });
+    },
+    [],
+  );
 
   const loadTabsFromStorage = useCallback(() => {
     try {
@@ -132,6 +146,7 @@ export default function UIDashboardLayout({
         const validTabs = parsedTabs
           .map((tab: any) => {
             const navItem = navItems.find((item) => item.id === tab.id);
+
             return navItem ? { ...navItem } : null;
           })
           .filter(Boolean);
@@ -143,7 +158,7 @@ export default function UIDashboardLayout({
 
           return {
             tabs: validTabs,
-            activeTab: isValidActiveTab ? savedActiveTab : validTabs[0].id
+            activeTab: isValidActiveTab ? savedActiveTab : validTabs[0].id,
           };
         }
       }
@@ -171,16 +186,25 @@ export default function UIDashboardLayout({
 
     if (savedData) {
       // Check if current path matches the active tab
-      const savedActiveTab = navItems.find(item => item.id === savedData.activeTab);
-      const currentPathTab = navItems.find(item => item.path === pathname);
-      
-      if (currentPathTab && (!savedActiveTab || currentPathTab.id !== savedData.activeTab)) {
+      const savedActiveTab = navItems.find(
+        (item) => item.id === savedData.activeTab,
+      );
+      const currentPathTab = navItems.find((item) => item.path === pathname);
+
+      if (
+        currentPathTab &&
+        (!savedActiveTab || currentPathTab.id !== savedData.activeTab)
+      ) {
         // If current path doesn't match saved active tab, update to match current path
         setActiveTab(currentPathTab.id);
-        setActiveTabs(prevTabs => {
-          const tabExists = prevTabs.some(tab => tab.id === currentPathTab.id);
+        setActiveTabs((prevTabs) => {
+          const tabExists = prevTabs.some(
+            (tab) => tab.id === currentPathTab.id,
+          );
           const newTabs = tabExists ? prevTabs : [...prevTabs, currentPathTab];
+
           saveTabsToStorage(newTabs, currentPathTab.id);
+
           return newTabs;
         });
       } else {
@@ -196,44 +220,60 @@ export default function UIDashboardLayout({
     } else {
       // Fallback to dashboard
       const dashboardTab = navItems.find((item) => item.id === "dashboard");
+
       if (dashboardTab) {
         setActiveTabs([dashboardTab]);
         setActiveTab(dashboardTab.id);
         saveTabsToStorage([dashboardTab], dashboardTab.id);
       }
     }
-    
+
     setIsInitialized(true);
 
     setIsInitialized(true);
-  }, [status, session, pathname, getMatchedItem, loadTabsFromStorage, saveTabsToStorage, navItems, isInitialized]);
+  }, [
+    status,
+    session,
+    pathname,
+    getMatchedItem,
+    loadTabsFromStorage,
+    saveTabsToStorage,
+    navItems,
+    isInitialized,
+  ]);
 
   // Optimized pathname sync dengan debouncing
   useEffect(() => {
     if (!isInitialized || isNavigatingRef.current) return;
-    
+
     // Skip jika pathname tidak berubah
     if (lastPathnameRef.current === pathname) return;
     lastPathnameRef.current = pathname;
 
     const currentMatchedItem = getMatchedItem(pathname);
+
     if (!currentMatchedItem) return;
 
     // Batch state updates
     const updateTabs = () => {
-      setActiveTabs(prevTabs => {
-        const existingTab = prevTabs.find(tab => tab.id === currentMatchedItem.id);
-        
+      setActiveTabs((prevTabs) => {
+        const existingTab = prevTabs.find(
+          (tab) => tab.id === currentMatchedItem.id,
+        );
+
         if (existingTab) {
           if (activeTab !== currentMatchedItem.id) {
             setActiveTab(currentMatchedItem.id);
             saveTabsToStorage(prevTabs, currentMatchedItem.id);
           }
+
           return prevTabs;
         } else {
           const newTabs = [...prevTabs, currentMatchedItem];
+
           setActiveTab(currentMatchedItem.id);
           saveTabsToStorage(newTabs, currentMatchedItem.id);
+
           return newTabs;
         }
       });
@@ -244,14 +284,17 @@ export default function UIDashboardLayout({
   }, [pathname, isInitialized, getMatchedItem, saveTabsToStorage, activeTab]);
 
   // Navigation state
-  const [pendingNavigation, setPendingNavigation] = useState<{path: string; tabId: string} | null>(null);
+  const [pendingNavigation, setPendingNavigation] = useState<{
+    path: string;
+    tabId: string;
+  } | null>(null);
   const [isPending, startTransition] = useTransition();
-  
+
   // Handle navigation after state updates
   useEffect(() => {
     if (pendingNavigation) {
       isNavigatingRef.current = true;
-      
+
       startTransition(() => {
         router.push(pendingNavigation.path);
         // Reset flag after navigation
@@ -259,62 +302,79 @@ export default function UIDashboardLayout({
           isNavigatingRef.current = false;
         }, 100);
       });
-      
+
       setPendingNavigation(null);
     }
   }, [pendingNavigation, router]);
 
-  const handleTabClick = useCallback((tab: any) => {
-    if (activeTab === tab.id) return;
-    
-    setActiveTab(tab.id);
-    saveTabsToStorage(activeTabs, tab.id);
-    setPendingNavigation({ path: tab.path, tabId: tab.id });
-  }, [activeTab, activeTabs, saveTabsToStorage]);
+  const handleTabClick = useCallback(
+    (tab: any) => {
+      if (activeTab === tab.id) return;
 
-  const openNewTab = useCallback((tab: any) => {
-    if (activeTab === tab.id) return;
-    
-    setActiveTabs(prevTabs => {
-      const existingTab = prevTabs.find(t => t.id === tab.id);
-      const newTabs = existingTab ? prevTabs : [...prevTabs, tab];
-      return newTabs;
-    });
-    
-    setActiveTab(tab.id);
-    saveTabsToStorage(activeTabs, tab.id);
-    setPendingNavigation({ path: tab.path, tabId: tab.id });
-  }, [activeTab, activeTabs, saveTabsToStorage]);
+      setActiveTab(tab.id);
+      saveTabsToStorage(activeTabs, tab.id);
+      setPendingNavigation({ path: tab.path, tabId: tab.id });
+    },
+    [activeTab, activeTabs, saveTabsToStorage],
+  );
 
-  const closeTab = useCallback((tabId: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    
-    setActiveTabs(prevTabs => {
-      const newTabs = prevTabs.filter(tab => tab.id !== tabId);
+  const openNewTab = useCallback(
+    (tab: any) => {
+      if (activeTab === tab.id) return;
 
-      if (newTabs.length === 0) {
-        const dashboardTab = navItems.find(item => item.id === "dashboard");
-        if (dashboardTab) {
-          setActiveTab(dashboardTab.id);
-          saveTabsToStorage([dashboardTab], dashboardTab.id);
-          setPendingNavigation({ path: dashboardTab.path, tabId: dashboardTab.id });
-          return [dashboardTab];
+      setActiveTabs((prevTabs) => {
+        const existingTab = prevTabs.find((t) => t.id === tab.id);
+        const newTabs = existingTab ? prevTabs : [...prevTabs, tab];
+
+        return newTabs;
+      });
+
+      setActiveTab(tab.id);
+      saveTabsToStorage(activeTabs, tab.id);
+      setPendingNavigation({ path: tab.path, tabId: tab.id });
+    },
+    [activeTab, activeTabs, saveTabsToStorage],
+  );
+
+  const closeTab = useCallback(
+    (tabId: string, e: React.MouseEvent) => {
+      e.stopPropagation();
+
+      setActiveTabs((prevTabs) => {
+        const newTabs = prevTabs.filter((tab) => tab.id !== tabId);
+
+        if (newTabs.length === 0) {
+          const dashboardTab = navItems.find((item) => item.id === "dashboard");
+
+          if (dashboardTab) {
+            setActiveTab(dashboardTab.id);
+            saveTabsToStorage([dashboardTab], dashboardTab.id);
+            setPendingNavigation({
+              path: dashboardTab.path,
+              tabId: dashboardTab.id,
+            });
+
+            return [dashboardTab];
+          }
+
+          return prevTabs;
         }
-        return prevTabs;
-      }
 
-      if (activeTab === tabId) {
-        const lastTab = newTabs[newTabs.length - 1];
-        setActiveTab(lastTab.id);
-        saveTabsToStorage(newTabs, lastTab.id);
-        setPendingNavigation({ path: lastTab.path, tabId: lastTab.id });
-      } else {
-        saveTabsToStorage(newTabs, activeTab);
-      }
+        if (activeTab === tabId) {
+          const lastTab = newTabs[newTabs.length - 1];
 
-      return newTabs;
-    });
-  }, [activeTab, saveTabsToStorage, navItems]);
+          setActiveTab(lastTab.id);
+          saveTabsToStorage(newTabs, lastTab.id);
+          setPendingNavigation({ path: lastTab.path, tabId: lastTab.id });
+        } else {
+          saveTabsToStorage(newTabs, activeTab);
+        }
+
+        return newTabs;
+      });
+    },
+    [activeTab, saveTabsToStorage, navItems],
+  );
 
   // Handle sign out with tab state cleanup
   const handleSignOut = useCallback(() => {

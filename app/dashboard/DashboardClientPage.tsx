@@ -2,14 +2,15 @@
 
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
-import DashboardContent from "@/components/ui/dashboard/DashboardContent";
 import { LayoutDashboardIcon } from "lucide-react";
+
+import DashboardContent from "@/components/ui/dashboard/DashboardContent";
 
 // Simple fetch function
 const fetchDashboard = async () => {
   const [dashboardRes] = await Promise.all([
     axios.get("/api/dashboard"),
-   //axios.get("/api/dashboard/recent-activities")
+    //axios.get("/api/dashboard/recent-activities")
   ]);
 
   return {
@@ -25,7 +26,7 @@ export default function DashboardClientPage({ user }: { user: any }) {
     refetchInterval: 30000, // Auto refresh setiap 30 detik
     staleTime: 25000, // Data fresh selama 25 detik
     retry: 2, // Retry maksimal 2x
-    refetchOnWindowFocus: false
+    refetchOnWindowFocus: false,
   });
 
   return (

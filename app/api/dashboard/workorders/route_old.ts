@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
 import { getServerSession } from "next-auth";
+
+import { prisma } from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
 
 // GET /api/dashboard/workorders
@@ -13,7 +14,7 @@ export async function GET(req: NextRequest) {
 
   try {
     const { searchParams } = new URL(req.url);
-    
+
     const id = searchParams.get("id");
     const units = searchParams.get("units");
     const nextNumber = searchParams.get("nextNumber");
@@ -31,7 +32,8 @@ export async function GET(req: NextRequest) {
 
     // GET next breakdown number
     if (nextNumber === "true" && role) {
-      const prefix = role === "super_admin" || role === "admin_elec" ? "WOIT-" : "WO-";
+      const prefix =
+        role === "super_admin" || role === "admin_elec" ? "WOIT-" : "WO-";
 
       const nextBreakdownNumber = await prisma.$transaction(async (tx) => {
         const last = await tx.breakdown.findFirst({
@@ -40,8 +42,10 @@ export async function GET(req: NextRequest) {
         });
 
         let nextNumber = 1;
+
         if (last?.breakdownNumber) {
           const match = last.breakdownNumber.match(/\d+$/);
+
           if (match) nextNumber = parseInt(match[0], 10) + 1;
         }
 
@@ -65,6 +69,7 @@ export async function GET(req: NextRequest) {
       });
 
       if (!breakdown) return NextResponse.json(null, { status: 404 });
+
       return NextResponse.json(breakdown);
     }
 
@@ -108,6 +113,7 @@ export async function GET(req: NextRequest) {
         const rfu = allBreakdowns.filter((b) => b.status === "rfu").length;
 
         const thirtyDaysAgo = new Date();
+
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
         const overdue = allBreakdowns.filter(

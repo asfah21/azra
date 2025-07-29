@@ -1,4 +1,5 @@
 // import { Zap } from "lucide-react";
+import Image from "next/image";
 import {
   RiAdminFill,
   RiAedFill,
@@ -36,7 +37,9 @@ export default function HeroAlpha() {
             </div>
           </div>
           <p className="w-full md:w-1/2 my-2 text-medium lg:text-large font-normal text-default-500 block max-w-full">
-            Our Work Order dashboard is designed with operational efficiency and accessibility in mind — helping every user monitor and manage tasks effortlessly.
+            Our Work Order dashboard is designed with operational efficiency and
+            accessibility in mind — helping every user monitor and manage tasks
+            effortlessly.
             {/* &nbsp;ensuring exceptional accessibility support as a top priority. */}
           </p>
         </div>
@@ -68,10 +71,12 @@ export default function HeroAlpha() {
             </a>
           </div>
           <div className="flex relative w-full bg-gradient-to-r from-[#4ADE80] to-[#06B6D4] rounded-2xl h-full min-h-[200px] lg:min-h-[390px] max-h-[300px] lg:px-4 lg:py-8 items-center lg:items-start justify-center">
-            <img
-              src="/wo-2.png"
+            <Image
               alt="Work Order"
               className="object-cover rounded-2xl"
+              height={400}
+              src="/wo-2.png"
+              width={500}
             />
           </div>
         </div>

@@ -14,11 +14,13 @@ import {
   Input,
   Textarea,
   Chip,
+  Autocomplete,
+  AutocompleteItem,
 } from "@heroui/react";
 import axios from "axios";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { createBreakdown } from "../action";
-import { useQueryClient } from "@tanstack/react-query";
 
 interface AddWoFormProps {
   onClose: () => void;
@@ -44,7 +46,7 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
   const [components, setComponents] = useState<Component[]>([]);
   const [subcomponentInput, setSubcomponentInput] = useState("");
   const [selectedShift, setSelectedShift] = useState<string>("");
-  const [selectedPriority, setSelectedPriority] = useState<string>("medium");
+  const [selectedPriority, setSelectedPriority] = useState<string>("low");
 
   const [units, setUnits] = useState<Unit[]>([]);
   const [selectedUnitId, setSelectedUnitId] = useState<string>("");
@@ -204,8 +206,61 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
             variant="bordered"
           />
 
-          {/* Required Fields */}
-          <Select
+          {/* Unit Selection */}
+          <Autocomplete
+            isRequired
+            classNames={{
+              base: [
+                "text-black/50 dark:text-white/90",
+                "bg-default-200/50",
+                "dark:bg-default/60 rounded-xl",
+                "backdrop-blur-xl",
+                "backdrop-saturate-200",
+                "hover:bg-default-200/70",
+                "dark:hover:bg-default/70",
+                "group-data-[focused=true]:bg-default-200/50",
+                "dark:group-data-[focused=true]:bg-default/60",
+              ],
+              // trigger: [
+              //   "bg-default-200/50",
+              //   "dark:bg-default/60",
+              //   "backdrop-blur-xl",
+              //   "backdrop-saturate-200",
+              //   "hover:bg-default-200/70",
+              //   "dark:hover:bg-default/70",
+              //   "group-data-[focused=true]:bg-default-200/50",
+              //   "dark:group-data-[focused=true]:bg-default/60",
+              // ],
+              // value: "text-black/90 dark:text-white/90",
+            }}
+            defaultItems={units}
+            isLoading={loadingUnits}
+            label="Unit"
+            placeholder={loadingUnits ? "Loading units..." : "Select unit"}
+            selectedKey={selectedUnitId}
+            variant="bordered"
+            onSelectionChange={(key) =>
+              setSelectedUnitId(key?.toString() || "")
+            }
+          >
+            {(item) => (
+              <AutocompleteItem
+                key={item.id}
+                textValue={`${item.name} (${item.assetTag})`}
+              >
+                {item.name} ({item.assetTag})
+              </AutocompleteItem>
+            )}
+          </Autocomplete>
+          <input name="unitId" type="hidden" value={selectedUnitId} />
+          {/* Debug: Display selected values */}
+          {/* <div className="text-xs text-gray-500">
+            Selected Unit ID: {selectedUnitId || "None"}
+            Selected User ID: {selectedUserId || "None"}
+          </div> */}
+
+          {/* Select Unit Fields */}
+          {/* <Select
             isRequired
             classNames={{
               label: "text-black/50 dark:text-white/90",
@@ -244,43 +299,43 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
                 {unit.name} ({unit.assetTag})
               </SelectItem>
             ))}
-          </Select>
+          </Select> */}
 
           <Input
-                isRequired
-                classNames={{
-                  label: "text-black/50 dark:text-white/90",
-                  input: [
-                    "bg-transparent",
-                    "text-black/90 dark:text-white/90",
-                    "placeholder:text-default-700/50 dark:placeholder:text-white/60",
-                  ],
-                  innerWrapper: "bg-transparent",
-                  inputWrapper: [
-                    "bg-default-200/50",
-                    "dark:bg-default/60",
-                    "backdrop-blur-xl",
-                    "backdrop-saturate-200",
-                    "hover:bg-default-200/70",
-                    "dark:hover:bg-default/70",
-                    "group-data-[focused=true]:bg-default-200/50",
-                    "dark:group-data-[focused=true]:bg-default/60",
-                    "!cursor-text",
-                  ],
-                }}
-                endContent={
-                  <div className="pointer-events-none flex items-center">
-                    <span className="text-default-400 text-small">hours</span>
-                  </div>
-                }
-                label="Hours Meter"
-                min="0"
-                name="workingHours"
-                placeholder="Enter unit HM"
-                step="0.1"
-                type="number"
-                variant="bordered"
-              />
+            isRequired
+            classNames={{
+              label: "text-black/50 dark:text-white/90",
+              input: [
+                "bg-transparent",
+                "text-black/90 dark:text-white/90",
+                "placeholder:text-default-700/50 dark:placeholder:text-white/60",
+              ],
+              innerWrapper: "bg-transparent",
+              inputWrapper: [
+                "bg-default-200/50",
+                "dark:bg-default/60",
+                "backdrop-blur-xl",
+                "backdrop-saturate-200",
+                "hover:bg-default-200/70",
+                "dark:hover:bg-default/70",
+                "group-data-[focused=true]:bg-default-200/50",
+                "dark:group-data-[focused=true]:bg-default/60",
+                "!cursor-text",
+              ],
+            }}
+            endContent={
+              <div className="pointer-events-none flex items-center">
+                <span className="text-default-400 text-small">hours</span>
+              </div>
+            }
+            label="Hours Meter"
+            min="0"
+            name="workingHours"
+            placeholder="Enter unit HM"
+            step="0.1"
+            type="number"
+            variant="bordered"
+          />
 
           <Textarea
             isRequired
@@ -341,11 +396,11 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
                 name="breakdownTime"
                 type="datetime-local"
                 variant="bordered"
-              />              
+              />
             </div>
 
             <div className="space-y-4">
-            <Select
+              <Select
                 isRequired
                 classNames={{
                   label: "text-black/50 dark:text-white/90",
@@ -374,7 +429,7 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
               >
                 <SelectItem key="siang">Siang</SelectItem>
                 <SelectItem key="malam">Malam</SelectItem>
-              </Select>              
+              </Select>
             </div>
 
             <div className="space-y-4 hidden">
@@ -409,7 +464,6 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
                 <SelectItem key="medium">Medium</SelectItem>
                 <SelectItem key="high">High</SelectItem>
               </Select>
-
             </div>
           </div>
 

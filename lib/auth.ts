@@ -68,6 +68,7 @@ export const authOptions: NextAuthOptions = {
             role: user.role,
           };
         } catch (error) {
+          // eslint-disable-next-line no-console
           console.error("Auth error:", error);
           throw new Error("Database connection error. Please try again.");
         }

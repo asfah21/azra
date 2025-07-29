@@ -137,12 +137,11 @@ export function TableSkeleton() {
   );
 }
 
-export function TableReportSkeletons (){
+export function TableReportSkeletons() {
   return (
-    
-      <div className="grid grid-cols-1 gap-6 mb-8">
-        {[...Array(1)].map((_, i) => (
-          <Card key={i}className="h-full">
+    <div className="grid grid-cols-1 gap-6 mb-8">
+      {[...Array(1)].map((_, i) => (
+        <Card key={i} className="h-full">
           <div className="flex p-4">
             <Skeleton className="p-1.5 sm:p-2 rounded-lg w-10 h-10" />
             <div className="pl-3 flex flex-col min-w-0 flex-1">
@@ -150,17 +149,16 @@ export function TableReportSkeletons (){
               <Skeleton className="h-4 w-32" />
             </div>
           </div>
-          <Divider/>
+          <Divider />
           <Card className="h-72 p-4">
-              <Skeleton className="h-full rounded-lg">
-                <div className="h-full w-full rounded-lg bg-secondary" />
-              </Skeleton>
+            <Skeleton className="h-full rounded-lg">
+              <div className="h-full w-full rounded-lg bg-secondary" />
+            </Skeleton>
           </Card>
         </Card>
-        ))}
-      </div>
-    
-  )
+      ))}
+    </div>
+  );
 }
 
 export function DashboardSkeleton() {
@@ -200,21 +198,21 @@ export function DashboardSkeleton() {
       {/* Charts skeleton */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
         {[...Array(4)].map((_, i) => (
-          <Card key={i}className="h-full">
-          <div className="flex p-4">
-            <Skeleton className="p-1.5 sm:p-2 rounded-lg w-10 h-10" />
-            <div className="pl-3 flex flex-col min-w-0 flex-1">
-              <Skeleton className="h-5 w-40 mb-1" />
-              <Skeleton className="h-4 w-32" />
+          <Card key={i} className="h-full">
+            <div className="flex p-4">
+              <Skeleton className="p-1.5 sm:p-2 rounded-lg w-10 h-10" />
+              <div className="pl-3 flex flex-col min-w-0 flex-1">
+                <Skeleton className="h-5 w-40 mb-1" />
+                <Skeleton className="h-4 w-32" />
+              </div>
             </div>
-          </div>
-          <Divider/>
-          <Card className="h-72 p-4">
+            <Divider />
+            <Card className="h-72 p-4">
               <Skeleton className="h-full rounded-lg">
                 <div className="h-full w-full rounded-lg bg-secondary" />
               </Skeleton>
+            </Card>
           </Card>
-        </Card>
         ))}
       </div>
 
@@ -451,7 +449,7 @@ export function AssetSkeleton() {
 }
 
 export function SettingsSkeleton() {
-  return (   
+  return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-7">
       {/* Profile Setting Skeleton */}
       <div className="lg:col-span-2">
@@ -471,13 +469,13 @@ export function SettingsSkeleton() {
                 <Skeleton className="w-16 h-16 sm:w-20 sm:h-20 rounded-full" />
                 <div className="py-3 sm:flex-1 sm:space-y-3">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <Skeleton className="h-12 w-full rounded-lg" />                  
-                    <Skeleton className="h-12 w-full rounded-lg" />                    
+                    <Skeleton className="h-12 w-full rounded-lg" />
+                    <Skeleton className="h-12 w-full rounded-lg" />
                   </div>
                   <Skeleton className="mt-2 h-8 w-32 rounded-lg" />
                 </div>
               </div>
-              
+
               {/* Form Fields */}
               <div className="mt-4 space-y-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-4">
@@ -485,7 +483,7 @@ export function SettingsSkeleton() {
                   <Skeleton className="h-12 w-full rounded-lg" />
                 </div>
                 <div className="space-y-4">
-                  <p className="h-3 w-40"></p>
+                  <p className="h-3 w-40" />
                   {/* <Skeleton className="h-4 w-40" /> */}
                   <Skeleton className="h-12 w-full rounded-lg" />
                 </div>
@@ -493,9 +491,8 @@ export function SettingsSkeleton() {
                   <Skeleton className="h-5 w-40" />
                   <Skeleton className="h-12 w-full rounded-lg" />
                 </div>
-                
               </div>
-              
+
               {/* Save Button */}
               <div className="flex justify-end">
                 <Skeleton className="h-10 w-40 rounded-lg" />
@@ -531,12 +528,11 @@ export function SettingsSkeleton() {
                   <div className="flex items-center justify-between">
                     <Skeleton className="h-7 w-full rounded-lg" />
                   </div>
-                  
                 </div>
               </div>
-              
+
               <Divider />
-              
+
               {/* Theme Settings */}
               <div className="space-y-4">
                 <Skeleton className="h-4 w-24" />
@@ -548,7 +544,8 @@ export function SettingsSkeleton() {
                     <Skeleton className="h-7 w-full rounded-lg" />
                   </div>
                   <div className="pt-2 pb-16">
-                  <Skeleton className="h-4 w-[50%]" /></div>
+                    <Skeleton className="h-4 w-[50%]" />
+                  </div>
                 </div>
               </div>
             </div>

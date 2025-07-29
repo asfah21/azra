@@ -3,8 +3,10 @@
 import { Package } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
+
 import AssetCardGrids from "./components/CardGrid";
 import TableDatas from "./components/TableData";
+
 import { AssetSkeleton } from "@/components/ui/skeleton";
 
 export default function AssetsClientPage() {
@@ -12,6 +14,7 @@ export default function AssetsClientPage() {
     queryKey: ["assets"],
     queryFn: async () => {
       const res = await axios.get("/api/dashboard/assets");
+
       return res.data;
     },
     refetchInterval: 10000, // polling setiap 10 detik

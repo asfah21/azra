@@ -1,7 +1,13 @@
 // ProfileProvider.tsx
 "use client";
 
-import { createContext, useContext, useState, useEffect, useCallback } from "react";
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useCallback,
+} from "react";
 import axios from "axios";
 
 type Profile = {
@@ -36,6 +42,7 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
     setIsLoading(true);
     try {
       const res = await axios.get("/api/settings");
+
       if (res.data?.success && res.data?.profile) {
         setProfile(res.data.profile);
       } else {
@@ -53,7 +60,9 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
   }, [fetchProfile]);
 
   return (
-    <ProfileContext.Provider value={{ profile, isLoading, refreshProfile: fetchProfile }}>
+    <ProfileContext.Provider
+      value={{ profile, isLoading, refreshProfile: fetchProfile }}
+    >
       {children}
     </ProfileContext.Provider>
   );

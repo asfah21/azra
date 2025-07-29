@@ -30,10 +30,8 @@ import {
 import {
   Wrench,
   Clock,
-  Filter,
   MoreVertical,
   Eye,
-  Edit,
   Trash2,
   Zap,
   CheckSquare,
@@ -85,6 +83,7 @@ interface BreakdownPayload {
     department: string | null; // Updated to allow null
     categoryId: number;
     status: string;
+    serialNumber: string;
   };
   reportedBy: {
     id: string;
@@ -108,6 +107,12 @@ interface BreakdownPayload {
       name: string;
       email: string;
     };
+    actions?: {
+      id: string;
+      action: string;
+      description: string | null;
+      actionTime: Date;
+    }[];
   } | null;
   inProgressById: string | null;
   inProgressAt: Date | null;
@@ -128,7 +133,7 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
   const { data: session } = useSession();
   const queryClient = useQueryClient();
 
-  // State untuk modal detail 
+  // State untuk modal detail
   const [selectedBreakdown, setSelectedBreakdown] =
     useState<BreakdownPayload | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
@@ -335,10 +340,16 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
     setSelectedBreakdownForDelete(null);
   };
 
-  const handleUserAdded = () => {
-    // Refresh halaman untuk update data setelah user ditambah
-    router.refresh();
-    onOpenChange();
+  // const handleUserAdded = () => {
+  //   // Refresh halaman untuk update data setelah user ditambah
+  //   router.refresh();
+  //   onOpenChange();
+  // };
+
+  // Refresh halaman untuk update data setelah wo ditambahkan
+  const handleUserAdded = async () => {
+    await queryClient.invalidateQueries({ queryKey: ["breakdowns"] });
+    onOpenChange(); // Tutup modal
   };
 
   const handleViewDetails = (breakdown: BreakdownPayload) => {
@@ -484,7 +495,7 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
               variant="flat"
               onValueChange={handleSearchChange}
             />
-            <Button
+            {/* <Button
               className="flex-1 sm:flex-none"
               color="default"
               size="sm"
@@ -492,7 +503,7 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
               variant="flat"
             >
               Filter
-            </Button>
+            </Button> */}
             <Button
               className="flex-1 sm:flex-none"
               color="primary"
@@ -689,7 +700,7 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
                             >
                               View Details
                             </DropdownItem>
-                            <DropdownItem
+                            {/* <DropdownItem
                               key="edit"
                               isDisabled
                               startContent={<Edit className="w-4 h-4" />}
@@ -698,7 +709,7 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
                               }
                             >
                               Edit Order
-                            </DropdownItem>
+                            </DropdownItem> */}
                             {order.status === "in_progress" ? (
                               <DropdownItem
                                 key="completed"
@@ -836,9 +847,9 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
                 </Button>
                 <Button
                   color="danger"
-                  onPress={handleConfirmDelete}
-                  isLoading={isDeleting}
                   disabled={isDeleting}
+                  isLoading={isDeleting}
+                  onPress={handleConfirmDelete}
                 >
                   {isDeleting ? "Menghapus..." : "Hapus"}
                 </Button>

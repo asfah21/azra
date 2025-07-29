@@ -13,6 +13,7 @@ import {
   Select,
   Input,
 } from "@heroui/react";
+
 import { updateUser } from "../action";
 
 interface User {
@@ -57,6 +58,7 @@ export function EditUserModal({
     e.preventDefault();
     if (user) {
       const formData = new FormData(e.currentTarget);
+
       formData.append("id", user.id);
       if (session?.user?.role) {
         formData.append("currentUserRole", session.user.role);
@@ -75,7 +77,7 @@ export function EditUserModal({
       </ModalHeader>
 
       <ModalBody>
-        <form onSubmit={handleSubmit} className="space-y-4" id="editUserForm">
+        <form className="space-y-4" id="editUserForm" onSubmit={handleSubmit}>
           <Input
             isRequired
             defaultValue={user.name}
@@ -94,7 +96,7 @@ export function EditUserModal({
             variant="bordered"
           />
           <Input
-            label="New Password (leave empty to keep current)"
+            label="New Password (empty to keep current)"
             name="password"
             placeholder="Enter new password (optional)"
             type="password"

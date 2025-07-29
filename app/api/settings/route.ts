@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
+
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 
@@ -11,7 +12,7 @@ export async function GET(req: NextRequest) {
     if (!userId) {
       return NextResponse.json(
         { success: false, message: "Unauthorized" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -33,7 +34,7 @@ export async function GET(req: NextRequest) {
     if (!profile) {
       return NextResponse.json(
         { success: false, message: "Profile not found" },
-        { status: 404 }
+        { status: 404 },
       );
     }
 
@@ -43,9 +44,10 @@ export async function GET(req: NextRequest) {
     });
   } catch (error) {
     console.error("Error fetching settings:", error);
+
     return NextResponse.json(
       { success: false, message: "Internal server error" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
@@ -58,7 +60,7 @@ export async function PUT(req: NextRequest) {
     if (!userId) {
       return NextResponse.json(
         { success: false, message: "Unauthorized" },
-        { status: 401 }
+        { status: 401 },
       );
     }
 
@@ -69,7 +71,7 @@ export async function PUT(req: NextRequest) {
     if (phone && !/^\+?[0-9]{0,15}$/.test(phone)) {
       return NextResponse.json(
         { success: false, message: "Invalid phone number format" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -96,9 +98,10 @@ export async function PUT(req: NextRequest) {
     });
   } catch (error) {
     console.error("Error updating profile:", error);
+
     return NextResponse.json(
       { success: false, message: "Failed to update profile" },
-      { status: 500 }
+      { status: 500 },
     );
   }
-} 
+}

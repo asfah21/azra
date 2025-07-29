@@ -5,12 +5,10 @@ import { HeroBgAtas } from "@/components/home/HeroBg";
 import BuildWith from "@/components/home/BuildWith";
 import Cards from "@/components/home/Card";
 import HeroAlpha from "@/components/home/HeroAlpha";
-import HeroGamma from "@/components/home/HeroGamma";
 import HeroDelta from "@/components/home/HeroDelta";
 import FooterBefore from "@/components/home/FooterBefore";
 import WithLove from "@/components/home/WithLove";
 import CardBawah from "@/components/home/CardBawah";
-import InteractiveHero from "@/components/home/InteractiveHero";
 
 export default function Home() {
   return (

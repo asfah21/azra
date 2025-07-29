@@ -10,6 +10,7 @@ import {
   Pagination,
 } from "@heroui/react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import {
   useState,
   useMemo,
@@ -148,6 +149,7 @@ export default function TableDatas({
   dataTable,
   users,
 }: ManagementClientProps) {
+  const { data: session } = useSession();
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const {
     isOpen: isDetailOpen,
@@ -187,7 +189,7 @@ export default function TableDatas({
   // Memoize users lookup untuk performa
   const usersMap = useMemo(() => {
     return new Map(
-      users.map((user) => [user.id, { name: user.name, photo: user.photo }])
+      users.map((user) => [user.id, { name: user.name, photo: user.photo }]),
     );
   }, [users]);
 
@@ -428,13 +430,15 @@ export default function TableDatas({
             >
               View Details
             </DropdownItem>
-            <DropdownItem
-              key="edit"
-              startContent={<Edit className="w-4 h-4" />}
-              onPress={() => handleEditAsset(asset)}
-            >
-              Edit Asset
-            </DropdownItem>
+            {session?.user?.role === "super_admin" ? (
+              <DropdownItem
+                key="edit"
+                startContent={<Edit className="w-4 h-4" />}
+                onPress={() => handleEditAsset(asset)}
+              >
+                Edit Asset
+              </DropdownItem>
+            ) : null}
             <DropdownItem
               key="maintenance"
               startContent={<Wrench className="w-4 h-4" />}
@@ -612,7 +616,8 @@ export default function TableDatas({
                             // radius: "lg",
                             size: "sm",
                             src: getUserPhoto(asset.assignedToId),
-                            className: "w-8 h-8 rounded-full object-cover flex-shrink-0",
+                            className:
+                              "w-8 h-8 rounded-full object-cover flex-shrink-0",
                           }}
                           classNames={{
                             name: "text-sm font-medium",
@@ -645,7 +650,9 @@ export default function TableDatas({
                       <TableCell>
                         <div className="flex items-center gap-1">
                           <MapPin className="w-3 h-3 text-default-500" />
-                          <span className="text-sm truncate">{asset.location}</span>
+                          <span className="text-sm truncate">
+                            {asset.location}
+                          </span>
                         </div>
                       </TableCell>
                       <TableCell>
@@ -714,6 +721,7 @@ export default function TableDatas({
             {(onClose) => (
               <EditAssetModal
                 asset={selectedAsset}
+                userRole={session?.user?.role || ""}
                 users={users}
                 onAssetUpdated={handleAssetUpdated}
                 onClose={onClose}

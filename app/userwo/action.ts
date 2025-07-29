@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { BreakdownStatus } from "@prisma/client";
+
 import { prisma } from "@/lib/prisma";
 
 export async function createBreakdown(prevState: any, formData: FormData) {
@@ -9,6 +10,7 @@ export async function createBreakdown(prevState: any, formData: FormData) {
     // Debug: Log all form data
     console.log("=== Form Data Received ===");
     const formDataObj: Record<string, any> = {};
+
     formData.forEach((value, key) => {
       formDataObj[key] = value;
     });
@@ -32,7 +34,9 @@ export async function createBreakdown(prevState: any, formData: FormData) {
     while (formData.get(`components[${index}][component]`)) {
       components.push({
         component: formData.get(`components[${index}][component]`) as string,
-        subcomponent: formData.get(`components[${index}][subcomponent]`) as string,
+        subcomponent: formData.get(
+          `components[${index}][subcomponent]`,
+        ) as string,
       });
       index++;
     }
@@ -58,23 +62,29 @@ export async function createBreakdown(prevState: any, formData: FormData) {
     }
 
     const validPriorities = ["low", "medium", "high"];
+
     if (!validPriorities.includes(priority)) {
       return { success: false, message: "Invalid priority value!" };
     }
 
     const validShifts = ["siang", "malam"];
+
     if (!validShifts.includes(shift)) {
       return { success: false, message: "Invalid shift value!" };
     }
 
     const unitExists = await prisma.unit.findUnique({ where: { id: unitId } });
+
     console.log("Unit ID from form:", unitId);
     console.log("Unit exists in DB:", unitExists);
     if (!unitExists) {
       return { success: false, message: "Unit not found!" };
     }
 
-    const reporterExists = await prisma.user.findUnique({ where: { id: reportedById } });
+    const reporterExists = await prisma.user.findUnique({
+      where: { id: reportedById },
+    });
+
     console.log("Reporter ID from form:", reportedById);
     console.log("Reporter exists in DB:", reporterExists);
     if (!reporterExists) {
@@ -87,8 +97,10 @@ export async function createBreakdown(prevState: any, formData: FormData) {
       });
 
       let nextNumber = 1;
+
       if (last?.breakdownNumber) {
         const match = last.breakdownNumber.match(/\d+$/);
+
         if (match) {
           nextNumber = parseInt(match[0], 10) + 1;
         }
@@ -131,7 +143,7 @@ export async function createBreakdown(prevState: any, formData: FormData) {
       },
     });
 
-    revalidatePath("/dashboard/workorders");
+    revalidatePath("/userwo");
 
     return {
       success: true,
@@ -140,7 +152,11 @@ export async function createBreakdown(prevState: any, formData: FormData) {
   } catch (error: unknown) {
     console.error("Error creating breakdown:", error);
 
-    if (error instanceof Error && "code" in error && (error as any).code === "P2003") {
+    if (
+      error instanceof Error &&
+      "code" in error &&
+      (error as any).code === "P2003"
+    ) {
       return {
         success: false,
         message: "Invalid unit or user reference!",
@@ -166,9 +182,11 @@ export async function getUsers() {
         name: "asc",
       },
     });
+
     return users;
   } catch (error) {
     console.error("Error fetching users:", error);
+
     return [];
   }
 }

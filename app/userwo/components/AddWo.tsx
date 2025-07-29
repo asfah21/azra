@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
 import {
   ModalHeader,
   ModalBody,
@@ -17,9 +17,9 @@ import {
   AutocompleteItem,
 } from "@heroui/react";
 import axios from "axios";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { createBreakdown, getUsers } from "@/app/userwo/action";
-import { useQueryClient } from "@tanstack/react-query";
 
 interface AddWoFormProps {
   onClose: () => void;
@@ -59,18 +59,34 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
 
   const [breakdownNumber, setBreakdownNumber] = useState("");
   const queryClient = useQueryClient();
+  const firstInputRef = useRef<HTMLInputElement>(null);
+
+  // Focus the first input when modal opens
+  useEffect(() => {
+    if (firstInputRef.current) {
+      const timer = setTimeout(() => {
+        firstInputRef.current?.focus();
+      }, 100);
+
+      return () => clearTimeout(timer);
+    }
+  }, []);
 
   // Load units and users data on component mount
   useEffect(() => {
     const fetchData = async () => {
       try {
         // Fetch units
-        const unitsRes = await axios.get("/api/dashboard/workorders?units=true");
+        const unitsRes = await axios.get(
+          "/api/dashboard/workorders?units=true",
+        );
+
         setUnits(unitsRes.data);
         setLoadingUnits(false);
 
         // Fetch users
         const usersRes = await getUsers();
+
         setUsers(usersRes);
         setLoadingUsers(false);
       } catch (error) {
@@ -114,11 +130,13 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
 
   const removeComponent = (index: number) => {
     const newComponents = [...components];
+
     newComponents.splice(index, 1);
     const reIndexed = newComponents.map((comp, idx) => ({
       ...comp,
       component: `${idx + 1}.`,
     }));
+
     setComponents(reIndexed);
   };
 
@@ -129,6 +147,7 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
       console.log(key, value);
     });
     const formDataObj: Record<string, any> = {};
+
     Array.from(formData.entries()).forEach(([key, value]) => {
       formDataObj[key] = value;
     });
@@ -175,23 +194,24 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
           <div className="flex flex-col gap-2">
             <Autocomplete
               isRequired
-              label="Reported By"
-              placeholder={
-                loadingUsers
-                  ? "Loading users..."
-                  : "Select user"
-              }
-              defaultItems={users}
-              selectedKey={selectedUserId}
-              variant="bordered"
-              onSelectionChange={(key) => setSelectedUserId(key?.toString() || "")}
-              isLoading={loadingUsers}
               classNames={{
                 base: "min-h-unit-16 py-2",
               }}
+              defaultItems={users}
+              isLoading={loadingUsers}
+              label="Reported By"
+              placeholder={loadingUsers ? "Loading users..." : "Select user"}
+              selectedKey={selectedUserId}
+              variant="bordered"
+              onSelectionChange={(key) =>
+                setSelectedUserId(key?.toString() || "")
+              }
             >
               {(item) => (
-                <AutocompleteItem key={item.id} textValue={`${item.name} (${item.email})`}>
+                <AutocompleteItem
+                  key={item.id}
+                  textValue={`${item.name} (${item.email})`}
+                >
                   <div className="flex flex-col">
                     <span>{item.name}</span>
                     <span className="text-xs text-gray-500">{item.email}</span>
@@ -199,27 +219,32 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
                 </AutocompleteItem>
               )}
             </Autocomplete>
-            <input type="hidden" name="reportedById" value={selectedUserId} />
+            <input name="reportedById" type="hidden" value={selectedUserId} />
           </div>
 
           {/* Unit Selection */}
           <Autocomplete
             isRequired
+            defaultItems={units}
+            isLoading={loadingUnits}
             label="Unit"
             placeholder={loadingUnits ? "Loading units..." : "Select unit"}
-            defaultItems={units}
             selectedKey={selectedUnitId}
             variant="bordered"
-            onSelectionChange={(key) => setSelectedUnitId(key?.toString() || "")}
-            isLoading={loadingUnits}
+            onSelectionChange={(key) =>
+              setSelectedUnitId(key?.toString() || "")
+            }
           >
             {(item) => (
-              <AutocompleteItem key={item.id} textValue={`${item.name} (${item.assetTag})`}>
+              <AutocompleteItem
+                key={item.id}
+                textValue={`${item.name} (${item.assetTag})`}
+              >
                 {item.name} ({item.assetTag})
               </AutocompleteItem>
             )}
           </Autocomplete>
-          <input type="hidden" name="unitId" value={selectedUnitId} />
+          <input name="unitId" type="hidden" value={selectedUnitId} />
           {/* Debug: Display selected values */}
           {/* <div className="text-xs text-gray-500">
             Selected Unit ID: {selectedUnitId || "None"}
@@ -227,6 +252,7 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
           </div> */}
 
           <Input
+            ref={firstInputRef}
             isRequired
             endContent={
               <div className="pointer-events-none flex items-center">
@@ -271,13 +297,14 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
               variant="bordered"
               onSelectionChange={(keys) => {
                 const keyArray = Array.from(keys);
+
                 setSelectedShift(keyArray[0]?.toString() || "");
               }}
             >
               <SelectItem key="siang">Siang</SelectItem>
               <SelectItem key="malam">Malam</SelectItem>
             </Select>
-            
+
             <div className="space-y-4 hidden">
               <Select
                 isRequired
@@ -288,6 +315,7 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
                 variant="bordered"
                 onSelectionChange={(keys) => {
                   const keyArray = Array.from(keys);
+
                   setSelectedPriority(keyArray[0]?.toString() || "");
                 }}
               >
@@ -332,11 +360,21 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
 
           {/* Status Messages */}
           {state?.message && (
-            <Card className={state.success ? "border-success-200 bg-success-50" : "border-danger-200 bg-danger-50"}>
+            <Card
+              className={
+                state.success
+                  ? "border-success-200 bg-success-50"
+                  : "border-danger-200 bg-danger-50"
+              }
+            >
               <CardBody className="py-3">
                 <div className="flex items-center gap-2">
-                  <div className={`w-2 h-2 rounded-full ${state.success ? "bg-success-500" : "bg-danger-500"}`} />
-                  <p className={`text-sm font-medium ${state.success ? "text-success-700" : "text-danger-700"}`}>
+                  <div
+                    className={`w-2 h-2 rounded-full ${state.success ? "bg-success-500" : "bg-danger-500"}`}
+                  />
+                  <p
+                    className={`text-sm font-medium ${state.success ? "text-success-700" : "text-danger-700"}`}
+                  >
                     {state.message}
                   </p>
                 </div>

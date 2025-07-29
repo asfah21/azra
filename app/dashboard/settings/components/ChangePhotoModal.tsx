@@ -7,7 +7,6 @@ import {
   ModalBody,
   ModalFooter,
   Button,
-  Input,
   addToast,
   Spinner,
   Card,
@@ -15,6 +14,7 @@ import {
 } from "@heroui/react";
 import { Image, Upload } from "lucide-react";
 import { useState } from "react";
+
 import { useProfile } from "@/app/context/ProfileContext"; // refresh setelah upload
 
 interface ChangePhotoModalProps {
@@ -35,20 +35,23 @@ export default function ChangePhotoModal({
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+
     if (file) {
       if (file.size > 1024 * 1024) {
         setErrorMessage("Ukuran gambar terlalu besar! Maksimal 1MB.");
         setSelectedFile(null);
         setPreview(null);
         e.target.value = "";
+
         return;
       }
 
       setErrorMessage(null);
       setSelectedFile(file);
-      
+
       // Create preview
       const reader = new FileReader();
+
       reader.onload = (e) => {
         setPreview(e.target?.result as string);
       };
@@ -85,19 +88,17 @@ export default function ChangePhotoModal({
     onClose();
   };
 
-  
-
   return (
-    <Modal 
-      isOpen={isOpen} 
-      onClose={handleClose} 
-      size="md"
-      placement="center"
+    <Modal
       classNames={{
         base: "mx-4",
         wrapper: "items-center justify-center",
         backdrop: "bg-black/50",
       }}
+      isOpen={isOpen}
+      placement="center"
+      size="md"
+      onClose={handleClose}
     >
       <ModalContent className="max-w-md mx-auto">
         <ModalHeader className="flex flex-col gap-1">
@@ -105,20 +106,18 @@ export default function ChangePhotoModal({
         </ModalHeader>
         <ModalBody>
           <div className="space-y-4">
-            
-            
             <Card className="border-2 border-dashed border-default-300">
               <CardBody className="p-6 flex flex-col items-center gap-4">
                 <div>
-                {preview && (
-              <div className="text-center mb-4">
-                <img
-                  src={preview}
-                  alt="Preview"
-                  className="w-32 h-32 rounded-full mx-auto object-cover border-2 border-primary/30"
-                />
-              </div>
-            )}
+                  {preview && (
+                    <div className="text-center mb-4">
+                      <img
+                        alt="Preview"
+                        className="w-32 h-32 rounded-full mx-auto object-cover border-2 border-primary/30"
+                        src={preview}
+                      />
+                    </div>
+                  )}
                   {/* <Image className="w-8 h-8 text-primary-600" /> */}
                 </div>
                 {/* <div className="text-center">
@@ -130,19 +129,19 @@ export default function ChangePhotoModal({
                 <input
                   accept="image/*"
                   className="hidden"
+                  disabled={isUploading}
                   id="photoFile"
                   name="photo"
                   type="file"
                   onChange={handleFileChange}
-                  disabled={isUploading}
                 />
                 <Button
                   as="label"
                   color="primary"
                   htmlFor="photoFile"
+                  isDisabled={isUploading}
                   startContent={<Upload className="w-4 h-4" />}
                   variant="flat"
-                  isDisabled={isUploading}
                 >
                   Pilih Foto
                 </Button>
@@ -161,14 +160,25 @@ export default function ChangePhotoModal({
           </div>
         </ModalBody>
         <ModalFooter>
-          <Button color="danger" variant="light" onPress={handleClose} isDisabled={isUploading}>
+          <Button
+            color="danger"
+            isDisabled={isUploading}
+            variant="light"
+            onPress={handleClose}
+          >
             Batal
           </Button>
           <Button
             color="primary"
-            onPress={handleUpload}
             isDisabled={!selectedFile || isUploading}
-            startContent={isUploading ? <Spinner size="sm" /> : <Image className="w-4 h-4" />}
+            startContent={
+              isUploading ? (
+                <Spinner size="sm" />
+              ) : (
+                <Image className="w-4 h-4" />
+              )
+            }
+            onPress={handleUpload}
           >
             {isUploading ? "Mengupload..." : "Upload Foto"}
           </Button>

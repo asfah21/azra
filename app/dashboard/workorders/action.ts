@@ -400,9 +400,9 @@ export async function deleteBreakdown(id: string) {
       await tx.rFUReportAction.deleteMany({
         where: {
           rfuReport: {
-            breakdownId: id
-          }
-        }
+            breakdownId: id,
+          },
+        },
       });
 
       // 2. Baru hapus RFUReport
@@ -436,6 +436,7 @@ export async function deleteBreakdown(id: string) {
     return { success: true, message: "Breakdown deleted successfully!" };
   } catch (error) {
     console.error("Error deleting breakdown:", error);
+
     return { success: false, message: "Failed to delete breakdown." };
   }
 }
