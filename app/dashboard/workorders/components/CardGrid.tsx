@@ -11,7 +11,9 @@ import {
 import {
   Activity,
   AlertTriangle,
+  BookmarkCheck,
   Calendar,
+  CircleCheckBig,
   Clock,
   FileText,
   SquareCheckBig,
@@ -40,9 +42,8 @@ interface WoStatsCardsProps {
 }
 
 export default function GammaCardGrid({ stats }: WoStatsCardsProps) {
-  // Mock data untuk work orders
   const workOrderStats = {
-    completionRate: 89.2,
+    completionRate: ((stats.rfu / stats.total) * 100).toFixed(1),
   };
 
   return (
@@ -80,45 +81,83 @@ export default function GammaCardGrid({ stats }: WoStatsCardsProps) {
             </div>
             <div className="flex justify-between items-center">
               <span className="text-xl sm:text-2xl font-bold text-primary-700">
-                {stats.rfu}
+                {stats.overdue}
               </span>
               <Chip
                 color="primary"
                 size="sm"
-                startContent={<SquareCheckBig className="w-3 h-3" />}
+                startContent={<Calendar className="w-3 h-3" />}
                 variant="flat"
               >
-                Completed {/* {userStats.growthRate} */}
+                Overdue {/* {userStats.growthRate} */}
               </Chip>
             </div>
           </div>
         </CardBody>
       </Card>
 
-      {/* In Progress Orders Card */}
-      <Card className="bg-gradient-to-br from-success-50 to-success-100 border-success-200">
+      {/* Open Orders Card */}
+      <Card className="bg-gradient-to-br from-danger-50 to-danger-100 border-danger-200">
         <CardHeader className="flex gap-2 sm:gap-3 pb-2">
-          <div className="p-1.5 sm:p-2 bg-success-500 rounded-lg">
+          <div className="p-1.5 sm:p-2 bg-danger-500 rounded-lg">
+            <Clock className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
+          </div>
+          <div className="flex flex-col min-w-0">
+            <p className="text-sm sm:text-lg font-semibold text-danger-800 truncate">
+              Open
+            </p>
+            <p className="text-xs sm:text-small text-danger-600 truncate">
+              Awaiting
+            </p>
+          </div>
+        </CardHeader>
+        <Divider className="bg-danger-200" />
+        <CardBody className="px-3 sm:px-6 py-2 sm:py-4">
+          <div className="space-y-2 sm:space-y-3">
+            <div className="flex justify-between items-center">
+              <span className="text-xl sm:text-2xl font-bold text-danger-700">
+                {stats.pending}
+              </span>
+              <Chip
+                color="danger"
+                size="sm"
+                startContent={<UserIcon className="w-3 h-3" />}
+                variant="flat"
+              >
+                Queue
+              </Chip>
+            </div>
+            <p className="text-xs sm:text-small text-default-600">
+              Need assignment
+            </p>
+          </div>
+        </CardBody>
+      </Card>
+
+      {/* In Progress Orders Card */}
+      <Card className="bg-gradient-to-br from-warning-50 to-warning-100 border-warning-200">
+        <CardHeader className="flex gap-2 sm:gap-3 pb-2">
+          <div className="p-1.5 sm:p-2 bg-warning-500 rounded-lg">
             <Activity className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
           </div>
           <div className="flex flex-col min-w-0">
-            <p className="text-sm sm:text-lg font-semibold text-success-800 truncate">
+            <p className="text-sm sm:text-lg font-semibold text-warning-800 truncate">
               In Progress
             </p>
-            <p className="text-xs sm:text-small text-success-600 truncate">
+            <p className="text-xs sm:text-small text-warning-600 truncate">
               Active Tasks
             </p>
           </div>
         </CardHeader>
-        <Divider className="bg-success-200" />
+        <Divider className="bg-warning-200" />
         <CardBody className="px-3 sm:px-6 py-2 sm:py-4">
           <div className="space-y-2 sm:space-y-3">
             <div className="flex justify-between items-center">
-              <span className="text-xl sm:text-2xl font-bold text-success-700">
+              <span className="text-xl sm:text-2xl font-bold text-warning-700">
                 {stats.progress}
               </span>
               <Chip
-                color="success"
+                color="warning"
                 size="sm"
                 startContent={<GoTasklist className="w-3.5 h-3.5" />}
                 variant="flat"
@@ -138,86 +177,48 @@ export default function GammaCardGrid({ stats }: WoStatsCardsProps) {
               <Progress
                 aria-label="Loading..."
                 className="max-w-full"
-                color="success"
+                color="warning"
                 size="sm"
-                value={workOrderStats.completionRate}
+                value={Number(workOrderStats.completionRate)}
               />
             </div>
           </div>
         </CardBody>
       </Card>
 
-      {/* Pending Orders Card */}
-      <Card className="bg-gradient-to-br from-warning-50 to-warning-100 border-warning-200">
+      {/* Close Orders Card */}
+      <Card className="bg-gradient-to-br from-success-50 to-success-100 border-success-200">
         <CardHeader className="flex gap-2 sm:gap-3 pb-2">
-          <div className="p-1.5 sm:p-2 bg-warning-500 rounded-lg">
-            <Clock className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
+          <div className="p-1.5 sm:p-2 bg-success-500 rounded-lg">
+            <CircleCheckBig className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
           </div>
           <div className="flex flex-col min-w-0">
-            <p className="text-sm sm:text-lg font-semibold text-warning-800 truncate">
-              Pending
+            <p className="text-sm sm:text-lg font-semibold text-success-800 truncate">
+              Close
             </p>
-            <p className="text-xs sm:text-small text-warning-600 truncate">
-              Awaiting
+            <p className="text-xs sm:text-small text-success-600 truncate">
+              RFU
             </p>
           </div>
         </CardHeader>
-        <Divider className="bg-warning-200" />
+        <Divider className="bg-success-200" />
         <CardBody className="px-3 sm:px-6 py-2 sm:py-4">
           <div className="space-y-2 sm:space-y-3">
             <div className="flex justify-between items-center">
-              <span className="text-xl sm:text-2xl font-bold text-warning-700">
-                {stats.pending}
+              <span className="text-xl sm:text-2xl font-bold text-success-700">
+                {stats.rfu}
               </span>
               <Chip
-                color="warning"
+                color="success"
                 size="sm"
-                startContent={<UserIcon className="w-3 h-3" />}
+                startContent={<BookmarkCheck className="w-3 h-3" />}
                 variant="flat"
               >
-                Queue
+                Completed
               </Chip>
             </div>
             <p className="text-xs sm:text-small text-default-600">
-              Need assignment
-            </p>
-          </div>
-        </CardBody>
-      </Card>
-
-      {/* Overdue Orders Card */}
-      <Card className="bg-gradient-to-br from-danger-50 to-danger-100 border-danger-200">
-        <CardHeader className="flex gap-2 sm:gap-3 pb-2">
-          <div className="p-1.5 sm:p-2 bg-danger-500 rounded-lg">
-            <AlertTriangle className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
-          </div>
-          <div className="flex flex-col min-w-0">
-            <p className="text-sm sm:text-lg font-semibold text-danger-800 truncate">
-              Overdue
-            </p>
-            <p className="text-xs sm:text-small text-danger-600 truncate">
-              Past Due
-            </p>
-          </div>
-        </CardHeader>
-        <Divider className="bg-danger-200" />
-        <CardBody className="px-3 sm:px-6 py-2 sm:py-4">
-          <div className="space-y-2 sm:space-y-3">
-            <div className="flex justify-between items-center">
-              <span className="text-xl sm:text-2xl font-bold text-danger-700">
-                {stats.overdue}
-              </span>
-              <Chip
-                color="danger"
-                size="sm"
-                startContent={<Calendar className="w-3 h-3" />}
-                variant="flat"
-              >
-                Late
-              </Chip>
-            </div>
-            <p className="text-xs sm:text-small text-default-600">
-              Need attention
+              Ready for Use
             </p>
           </div>
         </CardBody>

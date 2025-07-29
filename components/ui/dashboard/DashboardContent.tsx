@@ -25,6 +25,7 @@ import { DashboardSkeleton } from "@/components/ui/skeleton";
 interface DashboardContentProps {
   user: any;
   dashboardData: {
+    roundedGrowthRate: number;
     assetStats: {
       total: number;
       active: number;
@@ -62,6 +63,7 @@ interface DashboardContentProps {
 export default function DashboardContent({
   user,
   dashboardData = {
+    roundedGrowthRate: 0,
     assetStats: { total: 0, active: 0, maintenance: 0, critical: 0 },
     workOrderStats: { total: 0, pending: 0, inProgress: 0, rfu: 0, overdue: 0 },
     monthlyBreakdowns: [],
@@ -157,6 +159,8 @@ export default function DashboardContent({
     }
   };
 
+  const growthRate = "90";
+
   return (
     <div>
       {/* KPI Cards Grid */}
@@ -181,11 +185,10 @@ export default function DashboardContent({
             <div className="space-y-2 sm:space-y-3">
               <div className="flex justify-between items-center">
                 <span className="text-xl sm:text-2xl font-bold text-primary-700">
-                  {dashboardData?.assetStats?.total || 0}
+                  {dashboardData?.assetStats?.total || 0}                  
                 </span>
                 <Chip color="primary" size="sm" variant="flat">
-                  <TrendingUp className="w-3 h-3 mr-1" />
-                  +5.2%
+                  Unit
                 </Chip>
               </div>
               <div className="space-y-2">
@@ -193,14 +196,14 @@ export default function DashboardContent({
                   <span className="text-small text-default-600">
                     Growth Rate
                   </span>
-                  <span className="text-small font-medium">5.2%</span>
+                  <span className="text-small font-medium">{dashboardData?.roundedGrowthRate}%</span>
                 </div>
                 <Progress
                   aria-label="Loading..."
                   className="max-w-full"
                   color="primary"
                   size="sm"
-                  value={85}
+                  value={Number(dashboardData?.roundedGrowthRate)}
                 />
               </div>
             </div>
@@ -210,11 +213,11 @@ export default function DashboardContent({
         {/* Active Assets */}
         <Card className="bg-gradient-to-br from-success-50 to-success-100 border-success-200">
           <CardHeader className="flex gap-2 sm:gap-3 pb-2">
-            <div className="p-1.5 sm:p-2 bg-primary-500 rounded-lg">
+            <div className="p-1.5 sm:p-2 bg-success-500 rounded-lg">
               <Activity className="w-4 h-4 sm:w-6 sm:h-6 text-white" />
             </div>
             <div className="flex flex-col min-w-0">
-              <p className="text-sm sm:text-lg font-semibold text-primary-800 truncate">
+              <p className="text-sm sm:text-lg font-semibold text-success-800 truncate">
                 Active Assets
               </p>
               <p className="text-xs sm:text-small text-success-600">
@@ -226,7 +229,7 @@ export default function DashboardContent({
           <CardBody className="px-3 sm:px-6 py-2 sm:py-4">
             <div className="space-y-2 sm:space-y-3">
               <div className="flex justify-between items-center">
-                <span className="text-xl sm:text-2xl font-bold text-primary-700">
+                <span className="text-xl sm:text-2xl font-bold text-success-700">
                   {dashboardData?.assetStats?.active || 0}
                 </span>
                 <Chip color="success" size="sm" variant="flat">
@@ -240,13 +243,9 @@ export default function DashboardContent({
                   </span>
                   <span className="text-small font-medium">
                     {dashboardData?.assetStats?.total
-                      ? Math.round(
-                          (dashboardData?.assetStats?.active /
-                            dashboardData?.assetStats?.total) *
-                            100,
-                        )
-                      : 0}
-                    %
+                    ? ((dashboardData?.assetStats?.active / dashboardData?.assetStats?.total) * 100).toFixed(1)
+                    : "0.0"}
+                  %
                   </span>
                 </div>
                 <Progress
@@ -286,7 +285,7 @@ export default function DashboardContent({
           <CardBody className="px-3 sm:px-6 py-2 sm:py-4">
             <div className="space-y-2 sm:space-y-3">
               <div className="flex justify-between items-center">
-                <span className="text-xl sm:text-2xl font-bold text-primary-700">
+                <span className="text-xl sm:text-2xl font-bold text-warning-700">
                   {dashboardData?.workOrderStats?.total || 0}
                 </span>
                 <Chip color="warning" size="sm" variant="flat">
@@ -299,14 +298,10 @@ export default function DashboardContent({
                     Completion
                   </span>
                   <span className="text-small font-medium">
-                    {dashboardData?.workOrderStats?.total
-                      ? Math.round(
-                          (dashboardData?.workOrderStats?.rfu /
-                            dashboardData?.workOrderStats?.total) *
-                            100,
-                        )
-                      : 0}
-                    %
+                  {dashboardData?.workOrderStats?.total
+                    ? ((dashboardData?.workOrderStats?.rfu / dashboardData?.workOrderStats?.total) * 100).toFixed(1)
+                    : "0.0"}
+                  %
                   </span>
                 </div>
                 <Progress

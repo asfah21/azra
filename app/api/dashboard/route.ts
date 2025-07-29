@@ -4,6 +4,8 @@ import { getServerSession } from "next-auth";
 import { prisma } from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
 
+import { startOfMonth, endOfMonth, subMonths } from "date-fns";
+
 // GET /api/dashboard
 export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions); //Proteksi API
@@ -84,6 +86,7 @@ export async function GET(req: NextRequest) {
     const assets = await prisma.unit.findMany({
       where: assetWhereClause,
       select: {
+        createdAt: true,
         status: true,
         condition: true,
         categoryId: true,
@@ -123,6 +126,41 @@ export async function GET(req: NextRequest) {
       ).length,
       inactive: assets.filter((asset) => asset.status === "inactive").length,
     };
+
+    // ✅ Calculate growth rate   
+    const now = new Date();
+    const startThisMonth = startOfMonth(now);
+    const endThisMonth = endOfMonth(now);
+    const startLastMonth = startOfMonth(subMonths(now, 1));
+    const endLastMonth = endOfMonth(subMonths(now, 1));
+
+    // Ganti `arrivalDate` dengan field waktu aset datang, misal: createdAt
+    const assetsThisMonth = assets.filter((asset) => {
+      const date = new Date(asset.createdAt);
+      return date >= startThisMonth && date <= endThisMonth;
+    });
+
+    const assetsLastMonth = assets.filter((asset) => {
+      const date = new Date(asset.createdAt);
+      return date >= startLastMonth && date <= endLastMonth;
+    });
+
+    // Hitung growth rate terpisah
+    let growthRate = 0;
+    if (assetsLastMonth.length > 0) {
+      growthRate =
+        ((assetsThisMonth.length - assetsLastMonth.length) /
+          assetsLastMonth.length) *
+        100;
+    } else if (assetsThisMonth.length > 0) {
+      growthRate = 100;
+    } else {
+      growthRate = 0;
+    }
+
+    // Bulatkan ke 1 angka di belakang koma
+    const roundedGrowthRate = parseFloat(growthRate.toFixed(1));
+
 
     // ✅ Calculate work order stats
     const workOrderStats = {
@@ -244,6 +282,7 @@ export async function GET(req: NextRequest) {
     // ✅ Structured response format
     const dashboardData = {
       assetStats,
+      roundedGrowthRate,
       workOrderStats,
       monthlyBreakdowns,
       categoryDistribution,

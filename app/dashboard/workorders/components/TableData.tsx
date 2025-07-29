@@ -247,7 +247,7 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
 
       if (result.success) {
         console.log(result.message);
-        router.refresh(); // Refresh halaman untuk update data
+        await queryClient.invalidateQueries({ queryKey: ["breakdowns"] }); //Invalidate query to update data
       } else {
         console.error(result.message);
       }
@@ -346,7 +346,7 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
   //   onOpenChange();
   // };
 
-  // Refresh halaman untuk update data setelah wo ditambahkan
+  // Otomatis update halaman ketika data wo ditambahkan
   const handleUserAdded = async () => {
     await queryClient.invalidateQueries({ queryKey: ["breakdowns"] });
     onOpenChange(); // Tutup modal
@@ -417,13 +417,13 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
   const getWoIcon = (status: string | null) => {
     switch (status) {
       case "rfu":
-        return <CircleCheckBig className="w-3 h-3 text-primary" />;
+        return <CircleCheckBig className="w-3 h-3 text-success" />;
       case "in_progress":
-        return <Zap className="w-3 h-3 text-success" />;
+        return <Zap className="w-3 h-3 text-warning" />;
       case "pending":
-        return <Clock className="w-3 h-3 text-warning" />;
-      default:
         return <Clock className="w-3 h-3 text-danger" />;
+      default:
+        return <Clock className="w-3 h-3 text-primary" />;
     }
   };
 
@@ -456,13 +456,13 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
   const getStatusLabel = (status: string) => {
     switch (status) {
       case "rfu":
-        return <span className="text-primary">completed</span>;
+        return <span className="text-success">close</span>;
       case "in_progress":
-        return <span className="text-success">in-progress</span>;
+        return <span className="text-warning">in-progress</span>;
       case "pending":
-        return <span className="text-warning">pending</span>;
+        return <span className="text-danger">open</span>;
       case "overdue":
-        return <span className="text-danger">overdue</span>;
+        return <span className="text-primary">overdue</span>;
       default:
         return status;
     }

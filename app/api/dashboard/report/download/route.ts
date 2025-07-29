@@ -129,23 +129,27 @@ export async function GET(request: NextRequest) {
         });
 
         data = data.map((wo) => ({
-          "Breakdown Number": wo.breakdownNumber || "",
-          Deskripsi: wo.description || "",
-          Unit: wo.unit?.name || "",
-          "Asset Tag": wo.unit?.assetTag || "",
-          Status: wo.status,
-          Priority: wo.priority || "",
-          Shift: wo.shift || "",
-          "Working Hours": wo.workingHours || 0,
-          "Breakdown Time": wo.breakdownTime
+          "HARI/TANGGAL": new Date(wo.createdAt).toLocaleDateString("id-ID"),
+          "STATUS": wo.status,
+          "NO REGISTER": wo.breakdownNumber || "",  
+          "NAMA": wo.reportedBy?.name || "",
+          "HOUR REPORT": wo.reportedAt
+            ? new Date(wo.reportedAt).toLocaleDateString("id-ID")
+            : "",
+          "HOUR DOWN UNIT": wo.breakdownTime
             ? new Date(wo.breakdownTime).toLocaleDateString("id-ID")
             : "",
-          "Reported By": wo.reportedBy?.name || "",
-          "In Progress By": wo.inProgressBy?.name || "",
-          "In Progress At": wo.inProgressAt
+          "SHIFT": wo.shift || "",
+          "KODE UNIT": wo.unit?.assetTag || "",
+          "HM / KM": wo.workingHours || 0,
+          "LOKASI": wo.description || "",
+          
+          "UNIT": wo.unit?.name || "",
+          "PRIORITY": wo.priority || "",
+          "IN PROGRESS BY": wo.inProgressBy?.name || "",
+          "IN PROGRESS AT": wo.inProgressAt
             ? new Date(wo.inProgressAt).toLocaleDateString("id-ID")
             : "",
-          "Tanggal Dibuat": new Date(wo.createdAt).toLocaleDateString("id-ID"),
         }));
         filename = "List_Work_Order";
         break;
