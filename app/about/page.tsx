@@ -1,10 +1,20 @@
-import { title } from "@/components/primitives";
+import AboutClientPage from "./AboutClientPage";
+
+import { Navbar } from "@/components/navbar";
+import Footer from "@/components/Footer";
+
+export const metadata = {
+  title: "About PT GSI",
+};
 
 export default function AboutPage() {
   return (
-    <div>
-      <h1 className={title()}>About</h1>
-      <div className="container mx-auto px-4 mt-10" />
+    <div className="flex flex-col min-h-screen">
+      <Navbar />
+      <main className="flex-1">
+        <AboutClientPage />
+      </main>
+      <Footer />
     </div>
   );
 }

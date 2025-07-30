@@ -26,6 +26,7 @@ import {
   UserIcon,
   WrenchIcon,
 } from "lucide-react";
+import Image from "next/image";
 
 // Tipe data breakdown, bisa diimpor dari file types jika ada
 type Breakdown = {
@@ -36,6 +37,7 @@ type Breakdown = {
   workingHours: number;
   status: string;
   shift: string | null;
+  photo?: string | null;
   unit: {
     id: string;
     assetTag: string;
@@ -99,23 +101,39 @@ export default function BreakdownDetailModal({
 }: BreakdownDetailModalProps) {
   if (!breakdown) return null;
 
+  const getBreakdownStatus = (status: string) => {
+    switch (status) {
+      case "completed":
+      case "rfu":
+        return "CLOSE";
+      case "in_progress":
+        return "IN PROGRESS";
+      case "pending":
+        return "OPEN";
+      case "overdue":
+        return "OVERDUE";
+      default:
+        return "default";
+    }
+  };
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case "completed":
       case "rfu":
         return "success";
       case "in_progress":
-        return "primary";
-      case "pending":
         return "warning";
-      case "overdue":
+      case "pending":
         return "danger";
+      case "overdue":
+        return "primary";
       default:
         return "default";
     }
   };
 
-  return (
+ return (
     <Modal
       backdrop="blur"
       classNames={{
@@ -151,7 +169,7 @@ export default function BreakdownDetailModal({
                     radius="sm"
                     variant="shadow"
                   >
-                    {breakdown.status.replace("_", " ")}
+                    {getBreakdownStatus(breakdown.status)}
                   </Chip>
                   {/* <Button
                     isIconOnly
@@ -166,8 +184,21 @@ export default function BreakdownDetailModal({
                 </div>
               </div>
             </ModalHeader>
-            <ModalBody className="pb-6 px-0">
+            
+            <ModalBody className="py-6 px-0">
               <div className="space-y-6 px-6">
+                {/* Photo Display */}
+                {breakdown.photo && (
+                  <Card>
+                    <Image
+                        src={breakdown.photo} 
+                        alt="Breakdown evidence" 
+                        width={500}
+                        height={400}
+                        className="w-full h-auto object-contain max-h-64"
+                      />
+                  </Card>
+                )}
                 {/* Summary Information */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <Card className="dark:bg-gradient-to-br dark:from-[#1b1a1c] dark:to-[#19172c] bg-white border dark:border-[#272727] border-gray-200">
@@ -564,7 +595,7 @@ export default function BreakdownDetailModal({
                   variant="shadow"
                   onPress={onClose}
                 >
-                  Close
+                  Exit
                 </Button>
               </div>
             </ModalFooter>

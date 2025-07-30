@@ -54,12 +54,53 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
   const [selectedUnitId, setSelectedUnitId] = useState("");
   const [loadingUnits, setLoadingUnits] = useState(true);
   const [loadingUsers, setLoadingUsers] = useState(true);
+  const [photo, setPhoto] = useState<File | null>(null);
+  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
+  const [photoError, setPhotoError] = useState<string | null>(null);
 
   const [state, formAction, isPending] = useActionState(createBreakdown, null);
 
   const [breakdownNumber, setBreakdownNumber] = useState("");
   const queryClient = useQueryClient();
   const firstInputRef = useRef<HTMLInputElement>(null);
+
+
+  // Handle photo selection
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Reset errors
+    setPhotoError(null);
+
+    // Validate file type
+    if (!file.type.startsWith("image/")) {
+      setPhotoError("Please select an image file (JPEG, PNG, etc.)");
+      return;
+    }
+
+    // Validate file size (3MB limit)
+    if (file.size > 3 * 1024 * 1024) {
+      setPhotoError("File size exceeds 3MB limit");
+      return;
+    }
+
+    setPhoto(file);
+    
+    // Create preview
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      setPhotoPreview(e.target?.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // Remove selected photo
+  const removePhoto = () => {
+    setPhoto(null);
+    setPhotoPreview(null);
+    setPhotoError(null);
+  };
 
   // Focus the first input when modal opens
   useEffect(() => {
@@ -141,18 +182,32 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
   };
 
   const handleSubmit = async (formData: FormData) => {
-    // Debug: Log form data
-    console.log("Form Data being submitted:");
-    Array.from(formData.entries()).forEach(([key, value]) => {
-      console.log(key, value);
-    });
-    const formDataObj: Record<string, any> = {};
+    try {
+      // Create a new FormData object to ensure we're working with the latest data
+      const newFormData = new FormData();
+      
+      // Copy all existing form data
+      formData.forEach((value, key) => {
+        newFormData.append(key, value);
+      });
 
-    Array.from(formData.entries()).forEach(([key, value]) => {
-      formDataObj[key] = value;
-    });
-    console.log(formDataObj);
-    await formAction(formData);
+      // Append photo to formData if available
+      if (photo && photo instanceof File) {
+        newFormData.append('photo', photo);
+      }
+
+      // Debug: Log form data
+      console.log("Form Data being submitted:");
+      Array.from(newFormData.entries()).forEach(([key, value]) => {
+        console.log(key, value);
+      });
+
+      await formAction(newFormData);
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      // Set error state to display to user
+      // You might want to add an error state to display this to the user
+    }
   };
 
   return (
@@ -324,6 +379,71 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
                 <SelectItem key="high">High</SelectItem>
               </Select>
             </div>
+          </div>
+
+          {/* Photo Upload Section */}
+          <div className="space-y-2">
+            <h3 className="text-sm font-medium">Photo Upload</h3>
+            <div className="flex flex-col gap-2">
+              <label className="flex flex-col items-center justify-center border-2 border-dashed rounded-lg cursor-pointer bg-default-100 hover:bg-default-200 transition-colors p-4">
+                {photoPreview ? (
+                  <div className="relative w-full h-32">
+                    <img 
+                      src={photoPreview} 
+                      alt="Preview" 
+                      className="w-full h-full object-contain rounded-md"
+                    />
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                    <svg 
+                      className="w-8 h-8 mb-2 text-gray-400" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      viewBox="0 0 24 24" 
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round" 
+                        strokeWidth="2" 
+                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                      ></path>
+                    </svg>
+                    <p className="text-xs text-gray-500">Upload Photo</p>
+                  </div>
+                )}
+                <input 
+                  type="file" 
+                  className="hidden" 
+                  accept="image/*" 
+                  onChange={handlePhotoChange}
+                />
+              </label>
+              {photo && (
+                <div className="flex flex-col">
+                  <p className="text-sm font-medium">{photo.name}</p>
+                  <p className="text-xs text-gray-500">
+                    {(photo.size / 1024 / 1024).toFixed(2)} MB
+                  </p>
+                  <Button 
+                    color="danger" 
+                    size="sm" 
+                    variant="light" 
+                    onPress={removePhoto}
+                    className="mt-2 w-fit"
+                  >
+                    Remove
+                  </Button>
+                </div>
+              )}
+            </div>
+            {photoError && (
+              <p className="text-sm text-danger-500">{photoError}</p>
+            )}
+            <p className="text-xs text-gray-500">
+              Max file size: 3MB. Formats: JPEG, PNG, GIF.
+            </p>
           </div>
 
           {/* Components Section */}

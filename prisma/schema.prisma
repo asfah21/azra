@@ -79,6 +79,7 @@ model Breakdown {
   shift           String?
   inProgressById  String?
   inProgressAt    DateTime?
+  photo           String?              
   reportedBy      User                 @relation("ReportedBy", fields: [reportedById], references: [id])
   inProgressBy    User?                @relation("InProgressBy", fields: [inProgressById], references: [id])
   unit            Unit                 @relation(fields: [unitId], references: [id])

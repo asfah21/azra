@@ -822,19 +822,19 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
               <ModalHeader className="flex flex-col gap-1">
                 <div className="flex items-center gap-2">
                   <Trash2 className="w-5 h-5 text-danger" />
-                  <span>Konfirmasi Hapus</span>
+                  <span>Delete Confirmation</span>
                 </div>
               </ModalHeader>
               <ModalBody>
                 <p>
-                  Apakah Anda yakin ingin menghapus work order{" "}
+                  Are you sure you want to delete work order{" "}
                   <span className="font-semibold">
                     {selectedBreakdownForDelete?.breakdownNumber}
                   </span>
                   ?
                 </p>
                 <p className="text-sm text-default-500">
-                  Tindakan ini tidak dapat dibatalkan.
+                  This action cannot be undone.
                 </p>
               </ModalBody>
               <ModalFooter>
@@ -843,7 +843,7 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
                   variant="flat"
                   onPress={handleCloseDeleteModal}
                 >
-                  Batal
+                  Cancel
                 </Button>
                 <Button
                   color="danger"
@@ -851,7 +851,7 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
                   isLoading={isDeleting}
                   onPress={handleConfirmDelete}
                 >
-                  {isDeleting ? "Menghapus..." : "Hapus"}
+                  {isDeleting ? "Deleting..." : "Delete"}
                 </Button>
               </ModalFooter>
             </>

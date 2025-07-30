@@ -2,6 +2,10 @@
 
 import { revalidatePath } from "next/cache";
 import { BreakdownStatus } from "@prisma/client";
+import { writeFile, mkdir } from "fs/promises";
+import { join } from "path";
+import sharp from "sharp";
+import { randomUUID } from "crypto";
 
 import { prisma } from "@/lib/prisma";
 
@@ -29,6 +33,55 @@ export async function createBreakdown(prevState: any, formData: FormData) {
         ) as string,
       });
       index++;
+    }
+
+    // Handle photo upload if present
+    let photoPath: string | null = null;
+    const photo = formData.get("photo") as File | null;
+
+    if (photo && photo.size > 0) {
+      try {
+        // Validate file type
+        if (!photo.type.startsWith("image/")) {
+          return { success: false, message: "Invalid file type. Please upload an image." };
+        }
+
+        // Validate file size (3MB limit)
+        if (photo.size > 3 * 1024 * 1024) {
+          return { success: false, message: "File size exceeds 3MB limit." };
+        }
+
+        // Convert file to buffer for sharp processing
+        const bytes = await photo.arrayBuffer();
+        const buffer = Buffer.from(bytes);
+
+        // Generate unique filename
+        const fileId = randomUUID();
+        const fileExtension = photo.type.split("/")[1] || "jpg";
+        const filename = `breakdown-${fileId}.${fileExtension}`;
+        
+        // Compress image using Sharp to target 0.5-1MB
+        const compressedBuffer = await sharp(buffer)
+          .resize({ width: 1024, height: 1024, fit: 'inside', withoutEnlargement: true })
+          .jpeg({ quality: 80 })
+          .toBuffer();
+
+        // Ensure upload directory exists
+        const uploadDir = join(process.cwd(), "public", "uploads", "workorders");
+        const fullPath = join(uploadDir, filename);
+        
+        // Create directory if it doesn't exist
+        await mkdir(uploadDir, { recursive: true });
+        
+        // Save compressed image
+        await writeFile(fullPath, compressedBuffer);
+        
+        // Store relative path for database storage
+        photoPath = `/uploads/workorders/${filename}`;
+      } catch (error) {
+        console.error("Error processing photo:", error);
+        return { success: false, message: "Failed to process photo upload." };
+      }
     }
 
     // Validation
@@ -135,6 +188,7 @@ export async function createBreakdown(prevState: any, formData: FormData) {
         status: BreakdownStatus.pending,
         unitId,
         reportedById,
+        photo: photoPath,
         components: {
           create: components.map((comp) => ({
             component: comp.component,

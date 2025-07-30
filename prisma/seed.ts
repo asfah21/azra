@@ -23,7 +23,7 @@ async function main() {
       password: hashedPassword,
       role: "super_admin",
       department: "IT Operations",
-      avatar: "https://i.pravatar.cc/150?u=1",
+      // avatar: "https://i.pravatar.cc/150?u=1",
       status: "online",
       lastActive: new Date(),
       tasksCompleted: 1,
