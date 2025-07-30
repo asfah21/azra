@@ -58,12 +58,12 @@ export function DeleteAssetModal({
   // React Query mutation untuk delete asset
   const mutation = useMutation({
     mutationFn: async () => {
-      if (!asset) return { success: false, message: "Asset tidak ditemukan!" };
+      if (!asset) return { success: false, message: "Asset not found!" };
       if (session?.user?.role !== "super_admin") {
         return {
           success: false,
           message:
-            "Unauthorized: Hanya Super Admin yang dapat menghapus asset.",
+            "Unauthorized: Only Super Admin can delete assets.",
         };
       }
 
@@ -131,7 +131,7 @@ export function DeleteAssetModal({
                   <Trash2 className="w-5 h-5 text-danger-600" />
                 </div>
                 <span className="text-lg font-semibold">
-                  Konfirmasi Hapus Asset
+                  Delete Asset Confirmation
                 </span>
               </div>
             </ModalHeader>
@@ -173,11 +173,11 @@ export function DeleteAssetModal({
                       <div className="flex items-center gap-2 mb-2">
                         <AlertTriangle className="w-5 h-5 text-danger-600" />
                         <span className="font-medium text-danger-800">
-                          Akses Ditolak
+                          Access Denied
                         </span>
                       </div>
                       <p className="text-danger-700 text-sm">
-                        Hanya Super Admin yang dapat menghapus asset.
+                        Only Super Admin can delete assets.
                       </p>
                     </div>
                   )}
@@ -186,11 +186,11 @@ export function DeleteAssetModal({
                     <div className="flex items-center gap-2 mb-2">
                       <AlertTriangle className="w-5 h-5 text-warning-600" />
                       <span className="font-medium text-warning-800">
-                        Peringatan
+                        Warning
                       </span>
                     </div>
                     <p className="text-warning-700 text-sm">
-                      Asset yang dihapus tidak dapat dipulihkan.
+                      Asset that is deleted cannot be restored.
                     </p>
                   </div>
 
@@ -212,7 +212,7 @@ export function DeleteAssetModal({
                     <div className="space-y-2">
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-medium text-default-600">
-                          Kategori:
+                          Category:
                         </span>
                         <Chip color="default" size="sm" variant="flat">
                           {getCategoryName(asset.categoryId)}
@@ -234,7 +234,7 @@ export function DeleteAssetModal({
 
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-medium text-default-600">
-                          Lokasi:
+                          Location:
                         </span>
                         <span className="text-sm text-default-700">
                           {asset.location}
@@ -244,7 +244,7 @@ export function DeleteAssetModal({
                       {asset.department && (
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-medium text-default-600">
-                            Departemen:
+                            Department:
                           </span>
                           <span className="text-sm text-default-700">
                             {asset.department}
@@ -254,7 +254,7 @@ export function DeleteAssetModal({
 
                       <div className="flex items-center gap-2">
                         <span className="text-sm font-medium text-default-600">
-                          Dibuat:
+                          Created:
                         </span>
                         <span className="text-sm text-default-700">
                           {new Date(asset.createdAt).toLocaleDateString(
@@ -289,7 +289,7 @@ export function DeleteAssetModal({
                     variant="light"
                     onPress={onClose}
                   >
-                    Batal
+                    Cancel
                   </Button>
                   <Button
                     color="danger"
@@ -302,13 +302,13 @@ export function DeleteAssetModal({
                     }
                     onPress={handleDelete}
                   >
-                    {mutation.isPending ? "Menghapus..." : "Hapus Asset"}
+                    {mutation.isPending ? "Deleting..." : "Delete Asset"}
                   </Button>
                 </>
               )}
               {mutation.data && (
                 <Button color="primary" onPress={onClose}>
-                  Tutup
+                  Close
                 </Button>
               )}
             </ModalFooter>

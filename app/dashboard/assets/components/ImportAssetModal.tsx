@@ -291,27 +291,24 @@ export function ImportAssetModal({
     // Add header row with field descriptions
     const headerData = [
       {
-        assetTag: "Asset Tag (Wajib) - Contoh: DT.02.100",
-        name: "Nama Asset (Wajib) - Contoh: Dump Truck",
+        assetTag: "DT.02.100",
+        name: "Dump Truck",
         description: "Deskripsi (Opsional)",
-        categoryId: "Category ID (Wajib) - 1=Alat Berat, 2=Elektronik",
+        categoryId: "1",
         status:
-          "Status (Opsional) - operational/maintenance/repair/decommissioned",
-        condition: "Kondisi (Opsional) - excellent/good/fair/poor",
-        serialNumber: "Nomor Seri (Opsional)",
-        location: "Lokasi (Wajib) - Contoh: Site Wolo",
-        department: "Departemen (Opsional)",
-        manufacturer: "Pabrikan (Opsional)",
-        installDate: "Tanggal Instalasi (Opsional) - Format: YYYY-MM-DD",
-        warrantyExpiry:
-          "Tanggal Garansi Berakhir (Opsional) - Format: YYYY-MM-DD",
-        lastMaintenance:
-          "Tanggal Maintenance Terakhir (Opsional) - Format: YYYY-MM-DD",
-        nextMaintenance:
-          "Tanggal Maintenance Berikutnya (Opsional) - Format: YYYY-MM-DD",
-        assetValue: "Nilai Asset (Opsional) - Angka tanpa koma",
-        utilizationRate: "Tingkat Pemanfaatan % (Opsional) - 0-100",
-        assignedToId: "Ditugaskan Kepada (Opsional) - Nama user",
+          "operational",
+        condition: "excellent",
+        serialNumber: "SN12345678",
+        location: "Site Wolo",
+        department: "Operation",
+        manufacturer: "Mitshubishi Fuso",
+        installDate: "2025-01-15",
+        warrantyExpiry: "2027-01-15",
+        lastMaintenance: "2025-06-01",
+        nextMaintenance: "2025-12-01",
+        assetValue: 500000000,
+        utilizationRate: 85,
+        assignedToId: "",
       },
     ];
 
@@ -327,9 +324,9 @@ export function ImportAssetModal({
   return (
     <>
       <ModalHeader className="flex flex-col gap-1">
-        <h2 className="text-xl font-semibold">Import Assets dari Excel</h2>
+        <h2 className="text-xl font-semibold">Import Assets</h2>
         <p className="text-sm text-default-600">
-          Upload file Excel (.xlsx) untuk mengimpor data asset secara massal
+          Using Excel file for massal import
         </p>
       </ModalHeader>
 
@@ -344,7 +341,7 @@ export function ImportAssetModal({
                     Download Template Excel
                   </h3>
                   <p className="text-xs text-primary-600 mt-1">
-                    Download template untuk memastikan format data yang benar
+                    Download template for correct data format
                   </p>
                 </div>
                 <Button
@@ -353,7 +350,7 @@ export function ImportAssetModal({
                   variant="flat"
                   onPress={downloadTemplate}
                 >
-                  Download Template
+                  Template
                 </Button>
               </div>
             </CardBody>
@@ -367,9 +364,9 @@ export function ImportAssetModal({
                   <FileSpreadsheet className="w-8 h-8 text-primary-600" />
                 </div>
                 <div className="text-center">
-                  <h3 className="text-lg font-medium">Upload File Excel</h3>
+                  <h3 className="text-lg font-medium">Upload Excel</h3>
                   <p className="text-sm text-default-600">
-                    Drag and drop file Excel atau klik untuk memilih file
+                    Drag and drop Excel file or click to select file
                   </p>
                 </div>
                 <input
@@ -386,11 +383,11 @@ export function ImportAssetModal({
                   startContent={<Upload className="w-4 h-4" />}
                   variant="flat"
                 >
-                  Pilih File Excel
+                  Select Excel File
                 </Button>
                 {uploadedFileName && (
                   <p className="text-sm text-success-600">
-                    File terpilih: {uploadedFileName}
+                    File selected: {uploadedFileName}
                   </p>
                 )}
               </div>

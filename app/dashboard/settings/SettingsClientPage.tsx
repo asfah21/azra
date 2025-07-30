@@ -74,11 +74,11 @@ function SettingsClientPageContent({ initialData }: SettingsClientPageProps) {
         <SettingsSkeleton />
       ) : isError ? (
         <div className="text-center py-10 text-red-500">
-          Gagal memuat data settings.
+          Failed to load settings data.
         </div>
       ) : !data?.success || !profile ? (
         <div className="text-center py-10 text-red-500">
-          Data profil tidak ditemukan.
+          Data profile not found.
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

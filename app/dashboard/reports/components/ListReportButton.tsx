@@ -12,7 +12,6 @@ import {
 } from "lucide-react";
 import { Card, Skeleton } from "@heroui/react";
 import { useMemo, useState } from "react";
-
 import { VersiApp } from "@/components/ui/ChipVersion";
 
 interface Props {
@@ -84,45 +83,46 @@ export default function ListReportButton({
   const reports = [
     {
       key: "assets",
-      title: "List Asset",
-      desc: "Laporan berisi daftar seluruh aset/barang beserta detailnya.",
+      title: "Asset List",
+      desc: "Report containing a list of all assets/items with their details.",
       icon: (
         <Package className="w-7 h-7 text-primary-600 dark:text-primary-400" />
       ),
     },
     {
       key: "users",
-      title: "List User",
-      desc: "Laporan daftar pengguna beserta perannya.",
+      title: "User List",
+      desc: "Report listing all users along with their roles.",
       icon: <Users className="w-7 h-7 text-green-600 dark:text-green-400" />,
     },
     {
       key: "workorders",
-      title: "List Work Order",
-      desc: "Laporan WO yang masuk beserta statusnya.",
+      title: "Work Orders",
+      desc: "Report of submitted work orders and their statuses.",
       icon: (
         <ClipboardList className="w-7 h-7 text-purple-600 dark:text-purple-400" />
       ),
     },
     {
       key: "maintenance",
-      title: "Riwayat Maintenance",
-      desc: "Laporan riwayat perawatan dan perbaikan asset / unit.",
+      title: "Maintenance History",
+      desc: "Report of asset/unit maintenance and repair history.",
       icon: <Wrench className="w-7 h-7 text-amber-600 dark:text-amber-400" />,
     },
     {
       key: "breakdowns",
-      title: "Breakdown assets",
-      desc: "Laporan kerusakan barang beserta penanganannya.",
+      title: "Asset Breakdowns",
+      desc: "Report of item breakdowns and how they were handled.",
       icon: <ListChecks className="w-7 h-7 text-rose-600 dark:text-rose-400" />,
     },
     {
       key: "readiness",
-      title: "Ketersediaan Asset",
-      desc: "Laporan unit ready di setiap lokasi/unit.",
+      title: "Asset Availability",
+      desc: "Report on asset readiness at each location/unit.",
       icon: <Layers className="w-7 h-7 text-blue-600 dark:text-blue-400" />,
     },
   ];
+  
 
   const filteredReports = useMemo(() => {
     if (!searchQuery.trim()) return reports;
@@ -153,7 +153,7 @@ export default function ListReportButton({
 
   return (
     <>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         {loading
           ? // Show skeleton when loading
             Array.from({ length: 6 }).map((_, index) => (
@@ -196,7 +196,19 @@ export default function ListReportButton({
             ))}
       </div>
 
-      <Card className="bg-white dark:bg-neutral-900 p-1 my-6">
+      <Card className="bg-white dark:bg-neutral-900 p-1 my-6 mt-8 mb-8">
+        <div className="flex flex-col items-center gap-2 py-2">
+          <p className="text-gray-700 dark:text-gray-300 text-center text-base">
+            You're using{" "}
+            <span className="bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent font-semibold hover:from-green-600 hover:to-blue-600 transition-all duration-300">
+              AZRA
+            </span>{" "}
+            <VersiApp />, our MVP release. This is an early version, and some features are still being built. Stay tuned for updates!
+          </p>
+        </div>
+      </Card>
+
+      {/* <Card className="bg-white dark:bg-neutral-900 p-1 my-6">
         <div className="flex flex-col items-center gap-2 py-2">
           <p className="text-gray-700 dark:text-gray-300 text-center text-base">
             Halaman ini masih dalam tahap{" "}
@@ -207,7 +219,7 @@ export default function ListReportButton({
             ini.
           </p>
         </div>
-      </Card>
+      </Card> */}
     </>
   );
 }

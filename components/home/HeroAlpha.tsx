@@ -70,15 +70,18 @@ export default function HeroAlpha() {
               Learn more
             </a>
           </div>
-          <div className="flex relative w-full bg-gradient-to-r from-[#4ADE80] to-[#06B6D4] rounded-2xl h-full min-h-[200px] lg:min-h-[390px] max-h-[300px] lg:px-4 lg:py-8 items-center lg:items-start justify-center">
-            <Image
-              alt="Work Order"
-              className="object-cover rounded-2xl"
-              height={400}
-              src="/wo-2.png"
-              width={500}
-            />
-          </div>
+          <div className="hidden lg:flex relative w-full bg-gradient-to-r from-[#4ADE80] to-[#06B6D4] rounded-2xl min-h-[390px] px-4 py-8 items-start justify-center">
+  <div className="relative h-full w-full">
+    <Image
+      alt="Work Order"
+      src="/wo-2.png"
+      fill
+      className="object-cover rounded-2xl"
+      sizes="(min-width: 1024px) 50vw, 0"
+      priority={false} // Tidak perlu prioritas karena hanya muncul di desktop
+    />
+  </div>
+</div>
         </div>
       </div>
     </section>

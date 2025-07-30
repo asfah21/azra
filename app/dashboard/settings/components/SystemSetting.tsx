@@ -13,14 +13,14 @@ export default function SystemSetting() {
           </div>
           <div>
             <p className="text-lg font-semibold">System</p>
-            <p className="text-small text-default-600">Konfigurasi System</p>
+            <p className="text-small text-default-600">System Configuration</p>
           </div>
         </CardHeader>
         <Divider />
         <CardBody className="space-y-4">
           {/* Data Management */}
           <div className="space-y-3">
-            <p className="font-medium text-small">Managemen Data</p>
+            <p className="font-medium text-small">Data Management</p>
             <div className="space-y-2">
               <Button
                 className="w-full justify-start"
@@ -76,9 +76,7 @@ export default function SystemSetting() {
               </Button>
             </div>
           </div>
-          <p className="text-xs text-warning">
-            Fitur belum tersedia untuk saat ini
-          </p>
+          <p className="text-xs text-warning">Feature not available yet</p>
         </CardBody>
       </Card>
     </>

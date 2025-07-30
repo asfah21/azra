@@ -6,6 +6,7 @@ import axios from "axios";
 
 import CardWo from "./components/CardWo";
 import GammaTableData from "./components/TableWo";
+import Attention from "./components/Attention";
 
 import { CardGridSkeleton, TableSkeleton } from "@/components/ui/skeleton";
 
@@ -78,7 +79,10 @@ export default function WorkorderClientPage({
           Gagal memuat data work order.
         </div>
       ) : (
-        <GammaTableData dataTable={allBreakdowns} />
+        <>
+          <GammaTableData dataTable={allBreakdowns} />
+          <Attention />
+        </>
       )}
     </div>
   );

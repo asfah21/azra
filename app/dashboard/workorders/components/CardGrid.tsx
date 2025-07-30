@@ -10,13 +10,11 @@ import {
 } from "@heroui/react";
 import {
   Activity,
-  AlertTriangle,
   BookmarkCheck,
   Calendar,
   CircleCheckBig,
   Clock,
   FileText,
-  SquareCheckBig,
   TrendingUp,
   UserIcon,
 } from "lucide-react";

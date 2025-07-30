@@ -10,8 +10,8 @@ export const siteConfig = {
       href: "/",
     },
     {
-      label: "Docs",
-      href: "/docs",
+      label: "User WO",
+      href: "/userwo",
     },
     {
       label: "About",
@@ -20,8 +20,8 @@ export const siteConfig = {
   ],
   navMenuItems: [
     {
-      label: "Docs",
-      href: "/docs",
+      label: "User WO",
+      href: "/userwo",
     },
     {
       label: "About",

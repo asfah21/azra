@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
+import { startOfMonth, endOfMonth, subMonths } from "date-fns";
 
 import { prisma } from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
-
-import { startOfMonth, endOfMonth, subMonths } from "date-fns";
 
 // GET /api/dashboard
 export async function GET(req: NextRequest) {
@@ -127,7 +126,7 @@ export async function GET(req: NextRequest) {
       inactive: assets.filter((asset) => asset.status === "inactive").length,
     };
 
-    // ✅ Calculate growth rate   
+    // ✅ Calculate growth rate
     const now = new Date();
     const startThisMonth = startOfMonth(now);
     const endThisMonth = endOfMonth(now);
@@ -137,16 +136,19 @@ export async function GET(req: NextRequest) {
     // Ganti `arrivalDate` dengan field waktu aset datang, misal: createdAt
     const assetsThisMonth = assets.filter((asset) => {
       const date = new Date(asset.createdAt);
+
       return date >= startThisMonth && date <= endThisMonth;
     });
 
     const assetsLastMonth = assets.filter((asset) => {
       const date = new Date(asset.createdAt);
+
       return date >= startLastMonth && date <= endLastMonth;
     });
 
     // Hitung growth rate terpisah
     let growthRate = 0;
+
     if (assetsLastMonth.length > 0) {
       growthRate =
         ((assetsThisMonth.length - assetsLastMonth.length) /
@@ -160,7 +162,6 @@ export async function GET(req: NextRequest) {
 
     // Bulatkan ke 1 angka di belakang koma
     const roundedGrowthRate = parseFloat(growthRate.toFixed(1));
-
 
     // ✅ Calculate work order stats
     const workOrderStats = {

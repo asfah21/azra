@@ -143,7 +143,9 @@ export default function ProfileSetting({ profile }: { profile: any }) {
           </div>
           <div>
             <p className="text-lg font-semibold">Setting Profile</p>
-            <p className="text-small text-default-600">Update data diri anda</p>
+            <p className="text-small text-default-600">
+              Update your profile data
+            </p>
           </div>
         </CardHeader>
         <Divider />
@@ -180,7 +182,7 @@ export default function ProfileSetting({ profile }: { profile: any }) {
                   type="button"
                   onPress={() => setShowPhotoModal(true)}
                 >
-                  Ganti Foto
+                  Change Photo
                 </Button>
               </div>
             </div>
@@ -195,7 +197,7 @@ export default function ProfileSetting({ profile }: { profile: any }) {
             {/* Contact Information */}
             <div className="space-y-3 mt-4">
               <h4 className="font-semibold text-default-700">
-                Informasi Kontak
+                Contact Information
               </h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <Input
@@ -234,9 +236,7 @@ export default function ProfileSetting({ profile }: { profile: any }) {
 
             {/* Location Information */}
             <div className="mt-4 space-y-3">
-              <h4 className="font-semibold text-default-700">
-                Informasi Lokasi
-              </h4>
+              <h4 className="font-semibold text-default-700">Location</h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <Input
                   disabled
@@ -258,7 +258,7 @@ export default function ProfileSetting({ profile }: { profile: any }) {
                 startContent={<Save className="w-4 h-4" />}
                 type="submit"
               >
-                Simpan Perubahan
+                Save Changes
               </Button>
             </div>
           </form>

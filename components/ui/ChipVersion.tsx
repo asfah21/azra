@@ -18,7 +18,7 @@ export function VersiApp() {
       <span className="inline-flex items-center px-1 py-0 rounded-full text-xs text-default-500 bg-default-400/20 dark:bg-default-500/20">
         v0.2.0
       </span>
-      <span className="text-xs text-default-500 ml-1">(MVP)</span>
+      {/* <span className="text-xs text-default-500 ml-1">(MVP)</span> */}
     </>
   );
 }

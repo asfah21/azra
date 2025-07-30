@@ -143,11 +143,11 @@ export default function ChangePhotoModal({
                   startContent={<Upload className="w-4 h-4" />}
                   variant="flat"
                 >
-                  Pilih Foto
+                  Select Photo
                 </Button>
                 <div className="text-center space-y-1">
                   <p className="text-xs text-default-500">
-                    Format: JPG, PNG. Maksimal 1MB
+                    Format: JPG, PNG. Max 1MB
                   </p>
                   {errorMessage && (
                     <p className="text-xs text-danger-500 font-medium bg-danger-50 px-2 py-1 rounded">
@@ -166,7 +166,7 @@ export default function ChangePhotoModal({
             variant="light"
             onPress={handleClose}
           >
-            Batal
+            Cancel
           </Button>
           <Button
             color="primary"
@@ -180,7 +180,7 @@ export default function ChangePhotoModal({
             }
             onPress={handleUpload}
           >
-            {isUploading ? "Mengupload..." : "Upload Foto"}
+            {isUploading ? "Uploading..." : "Upload Photo"}
           </Button>
         </ModalFooter>
       </ModalContent>

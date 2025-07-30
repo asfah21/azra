@@ -16,7 +16,6 @@ import {
   Shield,
   Package,
   Wrench,
-  TrendingUp,
 } from "lucide-react";
 
 import DashboardCharts from "@/components/ui/dashboard/DashboardCharts";
@@ -185,7 +184,7 @@ export default function DashboardContent({
             <div className="space-y-2 sm:space-y-3">
               <div className="flex justify-between items-center">
                 <span className="text-xl sm:text-2xl font-bold text-primary-700">
-                  {dashboardData?.assetStats?.total || 0}                  
+                  {dashboardData?.assetStats?.total || 0}
                 </span>
                 <Chip color="primary" size="sm" variant="flat">
                   Unit
@@ -196,7 +195,9 @@ export default function DashboardContent({
                   <span className="text-small text-default-600">
                     Growth Rate
                   </span>
-                  <span className="text-small font-medium">{dashboardData?.roundedGrowthRate}%</span>
+                  <span className="text-small font-medium">
+                    {dashboardData?.roundedGrowthRate}%
+                  </span>
                 </div>
                 <Progress
                   aria-label="Loading..."
@@ -243,9 +244,13 @@ export default function DashboardContent({
                   </span>
                   <span className="text-small font-medium">
                     {dashboardData?.assetStats?.total
-                    ? ((dashboardData?.assetStats?.active / dashboardData?.assetStats?.total) * 100).toFixed(1)
-                    : "0.0"}
-                  %
+                      ? (
+                          (dashboardData?.assetStats?.active /
+                            dashboardData?.assetStats?.total) *
+                          100
+                        ).toFixed(1)
+                      : "0.0"}
+                    %
                   </span>
                 </div>
                 <Progress
@@ -298,10 +303,14 @@ export default function DashboardContent({
                     Completion
                   </span>
                   <span className="text-small font-medium">
-                  {dashboardData?.workOrderStats?.total
-                    ? ((dashboardData?.workOrderStats?.rfu / dashboardData?.workOrderStats?.total) * 100).toFixed(1)
-                    : "0.0"}
-                  %
+                    {dashboardData?.workOrderStats?.total
+                      ? (
+                          (dashboardData?.workOrderStats?.rfu /
+                            dashboardData?.workOrderStats?.total) *
+                          100
+                        ).toFixed(1)
+                      : "0.0"}
+                    %
                   </span>
                 </div>
                 <Progress
