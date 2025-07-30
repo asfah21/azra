@@ -417,8 +417,7 @@ export default function DashboardContent({
       />
 
       {/* User Info Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        {/* User Name Card */}
+      {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
         <Card className="bg-gradient-to-br from-primary-50 to-primary-100 border-primary-200">
           <CardHeader className="flex gap-3">
             <div className="p-2 bg-primary-500 rounded-lg">
@@ -450,10 +449,10 @@ export default function DashboardContent({
               </div>
             </div>
           </CardBody>
-        </Card>
+        </Card> */}
 
         {/* User Role Card */}
-        <Card className="bg-gradient-to-br from-success-50 to-success-100 border-success-200">
+        {/* <Card className="bg-gradient-to-br from-success-50 to-success-100 border-success-200">
           <CardHeader className="flex gap-3">
             <div className="p-2 bg-success-500 rounded-lg">
               <Shield className="w-6 h-6 text-white" />
@@ -479,10 +478,10 @@ export default function DashboardContent({
               </div>
             </div>
           </CardBody>
-        </Card>
+        </Card> */}
 
         {/* Email Card */}
-        <Card className="bg-gradient-to-br from-warning-50 to-warning-100 border-warning-200">
+        {/* <Card className="bg-gradient-to-br from-warning-50 to-warning-100 border-warning-200">
           <CardHeader className="flex gap-3">
             <div className="p-2 bg-warning-500 rounded-lg">
               <Mail className="w-6 h-6 text-white" />
@@ -511,8 +510,8 @@ export default function DashboardContent({
               </div>
             </div>
           </CardBody>
-        </Card>
-      </div>
+        </Card> */}
+      {/* </div> */}
 
       {/* Recent Activities Detail */}
       {/* <Card className="bg-gradient-to-br from-secondary-50 to-secondary-100">

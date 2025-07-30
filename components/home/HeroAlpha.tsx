@@ -31,9 +31,9 @@ export default function HeroAlpha() {
               <h1 className="tracking-tight inline font-semibold from-[#6FEE8D] to-[#17c964] text-4xl lg:text-6xl bg-clip-text text-transparent bg-gradient-to-b">
                 Work Order&nbsp;
               </h1>
-              <h1 className="tracking-tight inline font-semibold text-4xl lg:text-6xl">
+              {/* <h1 className="tracking-tight inline font-semibold text-4xl lg:text-6xl">
                 System.
-              </h1>
+              </h1> */}
             </div>
           </div>
           <p className="w-full md:w-1/2 my-2 text-medium lg:text-large font-normal text-default-500 block max-w-full">
@@ -44,8 +44,8 @@ export default function HeroAlpha() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-          <div aria-hidden="true" className="flex flex-col mt-8 lg:mt-16 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-1 gap-4">
+          <div aria-hidden="true" className="flex flex-col mt-8 lg:mt-12 gap-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
               {features.map((feature, index) => (
                 <div
@@ -70,18 +70,18 @@ export default function HeroAlpha() {
               Learn more
             </a>
           </div>
-          <div className="hidden lg:flex relative w-full bg-gradient-to-r from-[#4ADE80] to-[#06B6D4] rounded-2xl min-h-[390px] px-4 py-8 items-start justify-center">
-  <div className="relative h-full w-full">
-    <Image
-      alt="Work Order"
-      src="/wo-2.png"
-      fill
-      className="object-cover rounded-2xl"
-      sizes="(min-width: 1024px) 50vw, 0"
-      priority={false} // Tidak perlu prioritas karena hanya muncul di desktop
-    />
-  </div>
-</div>
+          {/* <div className="hidden lg:flex relative w-full bg-gradient-to-r from-[#4ADE80] to-[#06B6D4] rounded-2xl min-h-[390px] px-4 py-8 items-start justify-center">
+            <div className="relative h-full w-full">
+              <Image
+                alt="Work Order"
+                src="/wo-2.png"
+                fill
+                className="object-cover rounded-2xl"
+                sizes="(min-width: 1024px) 50vw, 0"
+                priority={false} // Tidak perlu prioritas karena hanya muncul di desktop
+              />
+            </div>
+          </div> */}
         </div>
       </div>
     </section>

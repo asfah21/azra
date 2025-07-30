@@ -33,6 +33,12 @@ export async function GET(request: NextRequest) {
             description: true,
             breakdownTime: true,
             status: true,
+            components: {
+              select: {
+                component: true,
+                subcomponent: true,
+              },
+            },
           },
         },
         actions: {

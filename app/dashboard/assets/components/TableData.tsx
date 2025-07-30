@@ -457,9 +457,9 @@ export default function TableDatas({
             </DropdownItem>
           </DropdownMenu>
         </Dropdown>
-        <Button isIconOnly size="sm" variant="flat">
+        {/* <Button isIconOnly size="sm" variant="flat">
           <Activity className="w-4 h-4" />
-        </Button>
+        </Button> */}
       </div>
     ),
     [handleViewAsset, handleEditAsset, handleMaintenanceLog, handleDeleteAsset],

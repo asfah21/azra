@@ -21,7 +21,7 @@ export default function HeroSection({ fadeIn, staggerContainer }: HeroSectionPro
         className={title({ size: "lg", color: "blue", class: "mb-6" })}
         variants={fadeIn}
       >
-        About Us
+        About PT GSI
       </motion.h1>
       
       <motion.div 

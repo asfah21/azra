@@ -7,6 +7,15 @@ import {
   CardHeader,
   Chip,
   Divider,
+  Input,
+  Pagination,
+  Table,
+  TableHeader,
+  TableColumn,
+  TableBody,
+  TableRow,
+  TableCell,
+  User,
 } from "@heroui/react";
 import {
   Activity,
@@ -15,10 +24,12 @@ import {
   Clock,
   Download,
   Package,
+  Search,
   Users,
   Wrench,
 } from "lucide-react";
 import * as XLSX from "xlsx";
+import { useState, useMemo, useCallback, useDeferredValue, startTransition } from "react";
 
 import { TableReportSkeletons } from "@/components/ui/skeleton";
 
@@ -35,23 +46,68 @@ interface TableReportProps {
   loading?: boolean;
   error?: string | null;
   onRetry?: () => void;
+  currentPage?: number;
+  totalPages?: number;
+  totalActivities?: number;
+  onPageChange?: (page: number) => void;
 }
+
+const ROWS_PER_PAGE = 10;
 
 export default function TableReport({
   recentActivities,
   loading,
   error,
   onRetry,
+  currentPage = 0,
+  totalPages = 0,
+  totalActivities = 0,
+  onPageChange,
 }: TableReportProps) {
+  // State management for search
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Use deferred value untuk mengurangi re-render saat typing
+  const deferredSearchQuery = useDeferredValue(searchQuery);
+
+  // Optimized search dengan useCallback
+  const handleSearchChange = useCallback((value: string) => {
+    startTransition(() => {
+      setSearchQuery(value);
+    });
+  }, []);
+
+  // Callback untuk pagination
+  const handlePageChange = useCallback((newPage: number) => {
+    onPageChange && onPageChange(newPage);
+  }, [onPageChange]);
+
+  // Filter data berdasarkan deferred search query (client-side search)
+  const filteredData = useMemo(() => {
+    if (!deferredSearchQuery.trim()) {
+      return recentActivities;
+    }
+
+    const query = deferredSearchQuery.toLowerCase();
+
+    return recentActivities.filter((activity) => {
+      return (
+        (activity.user && activity.user.toLowerCase().includes(query)) ||
+        (activity.action && activity.action.toLowerCase().includes(query)) ||
+        (activity.type && activity.type.toLowerCase().includes(query)) ||
+        (activity.time && activity.time.toLowerCase().includes(query))
+      );
+    });
+  }, [recentActivities, deferredSearchQuery]);
   const getActivityIcon = (type: string) => {
     switch (type) {
       case "asset":
         return <Package className="w-3 h-3" />;
-      case "work_order":
+      case "workorder":
         return <Wrench className="w-3 h-3" />;
       case "maintenance":
         return <CheckCircle2 className="w-3 h-3" />;
-      case "alert":
+      case "breakdown":
         return <AlertTriangle className="w-3 h-3" />;
       default:
         return <Activity className="w-3 h-3" />;
@@ -62,11 +118,11 @@ export default function TableReport({
     switch (type) {
       case "asset":
         return "primary";
-      case "work_order":
+      case "workorder":
         return "warning";
       case "maintenance":
         return "success";
-      case "alert":
+      case "breakdown":
         return "danger";
       default:
         return "default";
@@ -77,12 +133,12 @@ export default function TableReport({
     switch (type) {
       case "asset":
         return "Asset";
-      case "work_order":
+      case "workorder":
         return "Work Order";
       case "maintenance":
         return "Maintenance";
-      case "alert":
-        return "Alert";
+      case "breakdown":
+        return "Breakdown";
       default:
         return "Activity";
     }
@@ -91,9 +147,9 @@ export default function TableReport({
   const ErrorState = () => (
     <div className="text-center py-8">
       <AlertTriangle className="w-8 h-8 mx-auto mb-2 text-danger-500" />
-      <p className="text-danger-600 mb-4">Gagal memuat aktivitas terbaru</p>
+      <p className="text-danger-600 mb-4">Failed to load recent activities</p>
       <Button color="danger" size="sm" variant="flat" onPress={onRetry}>
-        Coba Lagi
+        Try Again
       </Button>
     </div>
   );
@@ -101,7 +157,7 @@ export default function TableReport({
   const EmptyState = () => (
     <div className="text-center py-8 text-default-500">
       <Activity className="w-8 h-8 mx-auto mb-2 text-default-400" />
-      <p>Tidak ada aktivitas terbaru</p>
+      <p>No recent activities found</p>
     </div>
   );
 
@@ -139,93 +195,152 @@ export default function TableReport({
     );
   }
 
-  // Setelah loading selesai, tampilkan isi card
+  // Setelah loading selesai, tampilkan isi table
   return (
-    <Card className="bg-gradient-to-br from-secondary-50 to-secondary-100">
-      <CardHeader className="flex gap-3">
-        <div className="p-2 bg-secondary-500 rounded-lg">
-          <Clock className="w-6 h-6 text-white" />
+    <Card className="bg-content1 dark:bg-content1 border border-divider rounded-large shadow-sm">
+      <CardHeader className="flex flex-col gap-3 sm:flex-row">
+        <div className="flex items-center gap-3 flex-1 justify-start self-start">
+          <div className="p-2 bg-primary rounded-lg">
+            <Clock className="w-6 h-6 text-primary-foreground" />
+          </div>
+          <div className="flex flex-col flex-1 text-left">
+            <div className="flex items-center gap-2">
+              <p className="text-xl font-semibold text-foreground text-left">
+                Log Activity
+              </p>
+              <Chip
+                className="text-sm font-bold"
+                color="success"
+                radius="sm"
+                size="sm"
+                variant="flat"
+              >
+                {filteredData.length}
+              </Chip>
+            </div>
+            <p className="text-xs sm:block text-foreground-500">
+              Log activity system and user
+            </p>
+          </div>
         </div>
-        <div className="flex flex-col flex-1">
-          <p className="text-xl font-semibold text-secondary-800">
-            Log Activity
-          </p>
-          <p className="text-xs hidden sm:block text-secondary-600">
-            Log activity system and user
-          </p>
+        <div className="flex gap-2 w-full sm:w-auto">
+          <Input
+            className="hidden sm:flex w-64"
+            placeholder="Search activities..."
+            size="sm"
+            startContent={<Search className="w-4 h-4 text-default-400" />}
+            value={searchQuery}
+            variant="flat"
+            onValueChange={handleSearchChange}
+          />
+          <Button
+            color="success"
+            isDisabled={recentActivities.length === 0}
+            size="sm"
+            startContent={<Download className="w-4 h-4" />}
+            variant="flat"
+            onPress={handleDownloadXLS}
+          >
+            <p className="text-md font-bold">XLS</p>
+          </Button>
         </div>
-        <Button
-          color="secondary"
-          isDisabled={recentActivities.length === 0}
-          size="sm"
-          startContent={<Download className="w-4 h-4" />}
-          variant="flat"
-          onPress={handleDownloadXLS}
-        >
-          <p className="text-md font-bold">XLS</p>
-        </Button>
       </CardHeader>
 
-      <Divider className="bg-secondary-200" />
-      <CardBody className="px-4 py-2">
+      <Divider className="bg-divider" />
+      <CardBody className="px-0">
+        {/* Search input untuk mobile */}
+        <div className="px-6 pb-4 sm:hidden">
+          <Input
+            placeholder="Search activities..."
+            size="sm"
+            startContent={<Search className="w-4 h-4 text-default-400" />}
+            value={searchQuery}
+            variant="flat"
+            onValueChange={handleSearchChange}
+          />
+        </div>
+
         {error ? (
           <ErrorState />
-        ) : recentActivities.length > 0 ? (
-          <div className="space-y-2">
-            {recentActivities.map((activity) => (
-              <div
-                key={activity.id}
-                className="flex items-center justify-between gap-4 p-2 rounded-xl hover:bg-secondary-100 transition-colors"
-              >
-                {/* Kiri: User Info */}
-                <div className="flex items-center gap-3 min-w-[512px] flex-1">
-                  <div
-                    className={`p-2 rounded-full flex-shrink-0 ${activity.user === "System" ? "bg-secondary-200" : "bg-primary-200"}`}
-                  >
-                    {activity.user === "System" ? (
-                      <Activity className="w-5 h-5 text-secondary-600" />
-                    ) : (
-                      <Users className="w-5 h-5 text-primary-600" />
-                    )}
-                  </div>
-                  <div className="flex flex-col min-w-0">
-                    <span className="font-semibold text-default-700 truncate">
-                      {activity.user}
-                    </span>
-                    <span className="text-xs text-default-500 truncate">
-                      {activity.action}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Kanan: Info Tags */}
-                <div className="flex items-center gap-2 flex-shrink-0">
-                  <div className="hidden sm:block">
-                    {getActivityIcon(activity.type)}
-                  </div>
-                  <Chip
-                    color={getActivityColor(activity.type) as any}
-                    size="sm"
-                    variant="flat"
-                  >
-                    {getActivityLabel(activity.type)}
-                  </Chip>
-                  <Chip
-                    color="default"
-                    size="sm"
-                    startContent={<Clock className="w-3 h-3" />}
-                    variant="flat"
-                  >
-                    {activity.time}
-                  </Chip>
-                </div>
-              </div>
-            ))}
+        ) : filteredData.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <Activity className="w-12 h-12 text-foreground-400 mb-4" />
+            <p className="text-foreground-500">
+              {deferredSearchQuery
+                ? "No activities found matching your search"
+                : "No activities available"}
+            </p>
           </div>
         ) : (
-          <EmptyState />
-        )}
-      </CardBody>
-    </Card>
-  );
+          <div className="overflow-x-auto">
+            <Table
+              aria-label="Activity log table"
+              bottomContent={
+                totalPages > 1 && (
+                  <div className="flex w-full justify-center">
+                    <Pagination
+                      isCompact
+                      showControls
+                      showShadow
+                      color="primary"
+                      page={currentPage + 1} // Convert to 1-indexed for UI
+                      total={totalPages}
+                      onChange={(newPage) => handlePageChange(newPage - 1)} // Convert back to 0-indexed
+                    />
+                  </div>
+                )
+              }
+            >
+              <TableHeader>
+                <TableColumn className="text-foreground">USER</TableColumn>
+                <TableColumn className="text-foreground">ACTION</TableColumn>
+                {/* <TableColumn className="text-foreground">TYPE</TableColumn> */}
+                <TableColumn className="text-foreground">TIME</TableColumn>
+              </TableHeader>
+              <TableBody items={filteredData}>
+                {(activity: any) => (
+                  <TableRow key={activity.id}>
+                    <TableCell>
+                      <User
+                        avatarProps={{
+                          size: "sm",
+                          src: activity.avatar || undefined,
+                          className: "w-8 h-8 rounded-full object-cover flex-shrink-0",
+                        }}
+                        classNames={{
+                          name: "text-sm font-medium text-foreground",
+                          description: "text-xs text-foreground-500",
+                          wrapper: "truncate",
+                        }}
+                        description={activity.user === "System" ? "System" : "User"}
+                        name={activity.user}
+                      />
+                    </TableCell>
+                    <TableCell className="text-sm text-foreground">
+                      <p className="truncate max-w-full">{activity.action}</p>
+                    </TableCell>
+                    {/* <TableCell>
+                      <Chip
+                        className="capitalize"
+                        color={getActivityColor(activity.type)}
+                        variant="flat"
+                      >
+                        {activity.type}
+                      </Chip>
+                    </TableCell> */}
+                    <TableCell className="text-sm text-foreground">
+                      <div className="flex items-center gap-1">
+                        <Clock className="w-4 h-4 text-warning" />
+                        <span className="truncate max-w-full">{activity.time}</span>
+                      </div>
+                    </TableCell>  
+                  </TableRow>
+                )}
+              </TableBody>
+          </Table>
+        </div>
+      )}
+    </CardBody>
+  </Card>
+);
 }

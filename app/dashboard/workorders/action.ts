@@ -207,7 +207,7 @@ export async function createBreakdown(prevState: any, formData: FormData) {
       data: {
         logType: "breakdown",
         referenceId: newBreakdown.id,
-        message: `Breakdown reported for ${newBreakdown.unit.name} (${newBreakdown.unit.assetTag})`,
+        message: `Workorder reported for ${newBreakdown.unit.name} (${newBreakdown.unit.assetTag})`,
         unitId,
       },
     });
@@ -281,7 +281,7 @@ export async function updateBreakdownStatus(
       data: {
         logType: "status_update",
         referenceId: updatedBreakdown.id,
-        message: `Status for breakdown ${updatedBreakdown.breakdownNumber} on unit ${updatedBreakdown.unit.name} updated to ${status} by ${updatedBreakdown.inProgressBy?.name || "unknown user"}.`,
+        message: `Status for workorder ${updatedBreakdown.breakdownNumber} on unit ${updatedBreakdown.unit.name} updated to ${status} by ${updatedBreakdown.inProgressBy?.name || "unknown user"}.`,
         unitId: updatedBreakdown.unitId,
       },
     });
@@ -336,7 +336,8 @@ export async function updateBreakdownStatusWithActions(
       data: {
         logType: "status_update",
         referenceId: updatedBreakdown.id,
-        message: `Status for breakdown ${updatedBreakdown.breakdownNumber} on unit ${updatedBreakdown.unit.name} updated to ${status} with ${actions.length} actions.`,
+        message: `Status for workorder ${updatedBreakdown.breakdownNumber} on unit ${updatedBreakdown.unit.name} updated to ${status.toUpperCase()} with ${actions.length} actions.`,
+        // message: `Status for workorder ${updatedBreakdown.breakdownNumber} on unit ${updatedBreakdown.unit.name} updated to ${status} with ${actions.length} actions.`,
         unitId: updatedBreakdown.unitId,
       },
     });
@@ -400,7 +401,7 @@ export async function updateBreakdownStatusWithUnitStatus(
         data: {
           logType: "status_update",
           referenceId: breakdown.id,
-          message: `Breakdown ${breakdown.breakdownNumber} marked as in progress. Unit status updated to ${unitStatus}.${notes ? ` Notes: ${notes}` : ""}`,
+          message: `Workorder ${breakdown.breakdownNumber} marked as in progress. Unit status updated to ${unitStatus}.${notes ? ` Notes: ${notes}` : ""}`,
           unitId: breakdown.unitId,
         },
       });
@@ -410,7 +411,7 @@ export async function updateBreakdownStatusWithUnitStatus(
         data: {
           logType: "unit_status_change",
           referenceId: breakdown.id,
-          message: `Unit status changed to ${unitStatus} due to breakdown ${breakdown.breakdownNumber}.${notes ? ` Notes: ${notes}` : ""}`,
+          message: `Unit status changed to ${unitStatus} due to workorder ${breakdown.breakdownNumber}.${notes ? ` Notes: ${notes}` : ""}`,
           unitId: breakdown.unitId,
         },
       });

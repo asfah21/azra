@@ -1,33 +1,62 @@
 "use client";
 
 import { BarChart3, Search } from "lucide-react";
-import { Input } from "@heroui/react";
-import { useState } from "react";
+import { Input, Pagination } from "@heroui/react";
+import { useState, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 
 import ListReportButton from "./components/ListReportButton";
 import TableReport from "./components/TableReport";
 
-// Simple fetch function for recent activities
-const fetchRecentActivities = async () => {
-  const response = await axios.get("/api/dashboard/recent-activities");
+interface Activity {
+  id: string;
+  user: string;
+  action: string;
+  time: string;
+  avatar: string;
+  type: string;
+  createdAt: Date;
+}
 
-  return response.data?.data || response.data;
+interface ApiResponse {
+  success: boolean;
+  data: Activity[];
+  metadata: {
+    total: number;
+    page: number;
+    limit: number;
+    lastUpdated: string;
+  };
+}
+
+// Fetch function for recent activities with pagination support
+const fetchRecentActivities = async ({ queryKey }: { queryKey: [string, number, number] }): Promise<ApiResponse> => {
+  const [_, page, limit] = queryKey;
+  const params = new URLSearchParams({
+    page: page.toString(),
+    limit: limit.toString(),
+  });
+
+  const response = await axios.get<ApiResponse>(`/api/dashboard/recent-activities?${params}`);
+  
+  return response.data;
 };
 
 export default function ReportClientPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [showModal, setShowModal] = useState(false);
+  const [page, setPage] = useState(0); // 0-indexed page
+  const [limit] = useState(10); // Fixed limit per page
 
   // Use React Query to fetch recent activities
   const {
-    data: recentActivities = [],
+    data: activitiesResponse,
     isLoading: loading,
     error,
     refetch,
   } = useQuery({
-    queryKey: ["recent-activities"],
+    queryKey: ["recent-activities", page, limit],
     queryFn: fetchRecentActivities,
     refetchInterval: 30000, // Auto refresh every 30 seconds
     staleTime: 25000, // Data fresh for 25 seconds
@@ -35,13 +64,23 @@ export default function ReportClientPage() {
     refetchOnWindowFocus: false,
   });
 
+  const handlePageChange = useCallback((newPage: number) => {
+    setPage(newPage);
+  }, []);
+
   const handleRetry = () => {
     refetch();
   };
 
   const handleSearchChange = (value: string) => {
     setSearchQuery(value);
+    setPage(0); // Reset to first page when searching
   };
+
+  // Extract data and metadata from response
+  const recentActivities = activitiesResponse?.data || [];
+  const totalActivities = activitiesResponse?.metadata?.total || 0;
+  const totalPages = Math.ceil(totalActivities / limit);
 
   return (
     <div className="p-0 md:p-5 max-w-7xl mx-auto">
@@ -85,6 +124,10 @@ export default function ReportClientPage() {
         loading={loading}
         recentActivities={recentActivities}
         onRetry={handleRetry}
+        currentPage={page}
+        totalPages={totalPages}
+        totalActivities={totalActivities}
+        onPageChange={handlePageChange}
       />
     </div>
   );
