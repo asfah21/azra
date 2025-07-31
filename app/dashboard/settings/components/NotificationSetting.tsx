@@ -62,7 +62,7 @@ export default function NotificationSetting() {
                   color="primary"
                   isSelected={notifications.email}
                   size="sm"
-                  onValueChange={(value) =>
+                  onValueChange={(value: boolean) =>
                     handleNotificationChange("email", value)
                   }
                 />
@@ -78,7 +78,7 @@ export default function NotificationSetting() {
                   color="primary"
                   isSelected={notifications.push}
                   size="sm"
-                  onValueChange={(value) =>
+                  onValueChange={(value: boolean) =>
                     handleNotificationChange("push", value)
                   }
                 />
@@ -94,7 +94,7 @@ export default function NotificationSetting() {
                   color="primary"
                   isSelected={notifications.sms}
                   size="sm"
-                  onValueChange={(value) =>
+                  onValueChange={(value: boolean) =>
                     handleNotificationChange("sms", value)
                   }
                 />
@@ -118,7 +118,7 @@ export default function NotificationSetting() {
                   color="primary"
                   isSelected={notifications.workOrders}
                   size="sm"
-                  onValueChange={(value) =>
+                  onValueChange={(value: boolean) =>
                     handleNotificationChange("workOrders", value)
                   }
                 />
@@ -133,7 +133,7 @@ export default function NotificationSetting() {
                   color="success"
                   isSelected={notifications.maintenance}
                   size="sm"
-                  onValueChange={(value) =>
+                  onValueChange={(value: boolean) =>
                     handleNotificationChange("maintenance", value)
                   }
                 />
@@ -148,7 +148,7 @@ export default function NotificationSetting() {
                   color="danger"
                   isSelected={notifications.alerts}
                   size="sm"
-                  onValueChange={(value) =>
+                  onValueChange={(value: boolean) =>
                     handleNotificationChange("alerts", value)
                   }
                 />

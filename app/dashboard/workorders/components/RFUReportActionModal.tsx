@@ -214,7 +214,7 @@ export default function RFUReportActionModal({
                                 label="Nama Action"
                                 placeholder="Contoh: Penggantian bearing, Pembersihan filter..."
                                 value={action.action}
-                                onValueChange={(value) =>
+                                onValueChange={(value: string) =>
                                   updateAction(index, "action", value)
                                 }
                               />
@@ -226,7 +226,7 @@ export default function RFUReportActionModal({
                                 placeholder="Jelaskan detail action yang dilakukan..."
                                 // value={action.description}
                                 value="Optional"
-                                onValueChange={(value) =>
+                                onValueChange={(value: string) =>
                                   updateAction(index, "description", value)
                                 }
                               />
