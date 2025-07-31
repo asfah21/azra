@@ -37,6 +37,27 @@ import {
   DropdownMenu,
   DropdownItem,
 } from "@heroui/react";
+
+// Function to convert photo URL for proper serving
+const convertPhotoUrl = (url: string | null | undefined) => {
+  if (!url) return undefined;
+
+  // If it's already an API route or external URL, use as is
+  if (url.startsWith("/api/") || url.startsWith("http")) {
+    return url;
+  }
+
+  // If it's a direct uploads path, convert to API route
+  if (url.startsWith("/uploads/")) {
+    const fileName = url.split("/").pop();
+
+    return `/api/settings/photo?file=${fileName}`;
+  }
+
+  // For any other case, use as is
+  return url;
+};
+
 import {
   UserPlus,
   MoreVertical,
@@ -206,12 +227,7 @@ export default function TableDatas({
       if (!userId) return undefined;
       const photo = usersMap.get(userId)?.photo;
 
-      if (!photo) return undefined;
-      // Jika sudah ada /uploads/ di depannya, return apa adanya
-      if (photo.startsWith("/uploads/")) return photo;
-
-      // Jika hanya nama file, tambahkan prefix
-      return `/uploads/${photo}`;
+      return convertPhotoUrl(photo);
     },
     [usersMap],
   );

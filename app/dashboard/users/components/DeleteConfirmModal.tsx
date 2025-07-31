@@ -17,6 +17,26 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { deleteUser } from "../action";
 
+// Function to convert photo URL for proper serving
+const convertPhotoUrl = (url: string | null | undefined) => {
+  if (!url) return undefined;
+
+  // If it's already an API route or external URL, use as is
+  if (url.startsWith("/api/") || url.startsWith("http")) {
+    return url;
+  }
+
+  // If it's a direct uploads path, convert to API route
+  if (url.startsWith("/uploads/")) {
+    const fileName = url.split("/").pop();
+
+    return `/api/settings/photo?file=${fileName}`;
+  }
+
+  // For any other case, use as is
+  return url;
+};
+
 interface User {
   id: string;
   name: string;

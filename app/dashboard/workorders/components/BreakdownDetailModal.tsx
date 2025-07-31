@@ -28,6 +28,26 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 
+// Function to convert photo URL for proper serving
+const convertPhotoUrl = (url: string | null | undefined) => {
+  if (!url) return undefined;
+
+  // If it's already an API route or external URL, use as is
+  if (url.startsWith("/api/") || url.startsWith("http")) {
+    return url;
+  }
+
+  // If it's a direct uploads path, convert to API route
+  if (url.startsWith("/uploads/")) {
+    const fileName = url.split("/").pop();
+
+    return `/api/settings/photo?file=${fileName}`;
+  }
+
+  // For any other case, use as is
+  return url;
+};
+
 // Tipe data breakdown, bisa diimpor dari file types jika ada
 type Breakdown = {
   id: string;
@@ -279,7 +299,9 @@ export default function BreakdownDetailModal({
                             <User
                               avatarProps={{
                                 radius: "lg",
-                                src: breakdown.reportedBy?.photo || "",
+                                src: convertPhotoUrl(
+                                  breakdown.reportedBy?.photo || "",
+                                ),
                                 size: "sm",
                                 className:
                                   "w-8 h-8 rounded-full object-cover flex-shrink-0",
@@ -289,8 +311,8 @@ export default function BreakdownDetailModal({
                                 description:
                                   "text-xs dark:text-default-400 text-gray-500",
                               }}
-                              description={breakdown.reportedBy.email}
-                              name={breakdown.reportedBy.name}
+                              description={breakdown.reportedBy?.email}
+                              name={breakdown.reportedBy?.name}
                             />
                           </div>
                         </div>
@@ -309,7 +331,9 @@ export default function BreakdownDetailModal({
                               <User
                                 avatarProps={{
                                   radius: "lg",
-                                  src: breakdown.inProgressBy?.photo || "",
+                                  src: convertPhotoUrl(
+                                    breakdown.inProgressBy?.photo || "",
+                                  ),
                                   size: "sm",
                                   className:
                                     "w-8 h-8 rounded-full object-cover flex-shrink-0",
@@ -319,8 +343,8 @@ export default function BreakdownDetailModal({
                                   description:
                                     "text-xs dark:text-default-400 text-gray-500",
                                 }}
-                                description={breakdown.inProgressBy.email}
-                                name={breakdown.inProgressBy.name}
+                                description={breakdown.inProgressBy?.email}
+                                name={breakdown.inProgressBy?.name}
                               />
                             </div>
                           </div>
@@ -341,8 +365,9 @@ export default function BreakdownDetailModal({
                               <User
                                 avatarProps={{
                                   radius: "lg",
-                                  src:
+                                  src: convertPhotoUrl(
                                     breakdown.rfuReport.resolvedBy?.photo || "",
+                                  ),
                                   size: "sm",
                                   className:
                                     "w-8 h-8 rounded-full object-cover flex-shrink-0",
@@ -353,11 +378,9 @@ export default function BreakdownDetailModal({
                                     "text-xs dark:text-default-400 text-gray-500",
                                 }}
                                 description={
-                                  breakdown.rfuReport.resolvedBy?.email || "-"
+                                  breakdown.rfuReport.resolvedBy?.email
                                 }
-                                name={
-                                  breakdown.rfuReport.resolvedBy?.name || "-"
-                                }
+                                name={breakdown.rfuReport.resolvedBy?.name}
                               />
                             </div>
                           </div>

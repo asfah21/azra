@@ -27,6 +27,27 @@ import {
   Pagination,
   Input,
 } from "@heroui/react";
+
+// Function to convert photo URL for proper serving
+const convertPhotoUrl = (url: string | null | undefined) => {
+  if (!url) return undefined;
+
+  // If it's already an API route or external URL, use as is
+  if (url.startsWith("/api/") || url.startsWith("http")) {
+    return url;
+  }
+
+  // If it's a direct uploads path, convert to API route
+  if (url.startsWith("/uploads/")) {
+    const fileName = url.split("/").pop();
+
+    return `/api/settings/photo?file=${fileName}`;
+  }
+
+  // For any other case, use as is
+  return url;
+};
+
 import {
   Wrench,
   Clock,
@@ -580,17 +601,17 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
                       <User
                         avatarProps={{
                           radius: "lg",
-                          src: order.reportedBy.photo || undefined,
-                          // src: order.assigneeAvatar,
+                          src: convertPhotoUrl(
+                            order.reportedBy.photo || undefined,
+                          ),
                           size: "sm",
                           className:
                             "w-8 h-8 rounded-full object-cover flex-shrink-0",
                         }}
                         classNames={{
                           description: "text-default-500",
-                          wrapper: "truncate",
                         }}
-                        description={order.reportedBy.department}
+                        description={order.reportedBy.email}
                         name={order.reportedBy.name}
                       />
                     </TableCell>

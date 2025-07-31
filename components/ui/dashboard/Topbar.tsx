@@ -20,6 +20,26 @@ import { ThemeSwitch } from "@/components/theme-switch";
 import { Logo, SearchIcon } from "@/components/icons";
 import { useProfile } from "@/app/context/ProfileContext";
 
+// Function to convert photo URL for proper serving
+const convertPhotoUrl = (url: string | null) => {
+  if (!url) return "https://i.pravatar.cc/150?img=12";
+
+  // If it's already an API route or external URL, use as is
+  if (url.startsWith("/api/") || url.startsWith("http")) {
+    return url;
+  }
+
+  // If it's a direct uploads path, convert to API route
+  if (url.startsWith("/uploads/")) {
+    const fileName = url.split("/").pop();
+
+    return `/api/settings/photo?file=${fileName}`;
+  }
+
+  // For any other case, use as is
+  return url;
+};
+
 interface TopbarProps {
   menuOpen: boolean;
   setMenuOpen: (open: boolean) => void;
@@ -117,8 +137,8 @@ export function Topbar({
                 className="cursor-pointer"
                 // name={getFirstName(session?.user?.name || "User")}
                 size="sm"
+                src={convertPhotoUrl(profile?.photo || null)}
                 // src={session?.user?.photo || "https://i.pravatar.cc/150?img=12"}
-                src={profile?.photo || "https://i.pravatar.cc/150?img=12"}
               />
             </DropdownTrigger>
             <DropdownMenu aria-label="User actions">
@@ -215,7 +235,7 @@ export function Topbar({
                 <Avatar
                   // name={getFirstName(session?.user?.name || "User")}
                   size="sm"
-                  src={profile?.photo}
+                  src={convertPhotoUrl(profile?.photo || null)}
                   // src={session?.user?.photo || "https://i.pravatar.cc/150?img=12"}
                 />
                 <div className="hidden lg:flex flex-col items-start">

@@ -35,8 +35,28 @@ export default function ProfileSetting({ profile }: { profile: any }) {
   const [email, setEmail] = useState(profile?.email || "");
   const [phone, setPhone] = useState(profile?.phone || "");
   const [location, setLocation] = useState(profile?.location || "");
-  // const [photo, setPhoto] = useState(profile?.photo || "https://i.pravatar.cc/150?img=12");
-  const [photo, setPhoto] = useState(profile?.photo || null);
+
+  // Function to convert photo URL for proper serving
+  const convertPhotoUrl = (url: string | null | undefined) => {
+    if (!url) return "https://i.pravatar.cc/150?img=12";
+
+    // If it's already an API route or external URL, use as is
+    if (url.startsWith("/api/") || url.startsWith("http")) {
+      return url;
+    }
+
+    // If it's a direct uploads path, convert to API route
+    if (url.startsWith("/uploads/")) {
+      const fileName = url.split("/").pop();
+
+      return `/api/settings/photo?file=${fileName}`;
+    }
+
+    // For any other case, use as is
+    return url;
+  };
+
+  const [photo, setPhoto] = useState(convertPhotoUrl(profile?.photo));
 
   // React Query mutations
   const updateProfileMutation = useUpdateProfile();
@@ -48,7 +68,7 @@ export default function ProfileSetting({ profile }: { profile: any }) {
     setEmail(profile?.email || "");
     setPhone(profile?.phone || "");
     setLocation(profile?.location || "");
-    setPhoto(profile?.photo || "https://i.pravatar.cc/150?img=12");
+    setPhoto(convertPhotoUrl(profile?.photo));
   }, [profile]);
 
   const handleNotificationChange = (key: string, value: boolean) => {
@@ -113,7 +133,8 @@ export default function ProfileSetting({ profile }: { profile: any }) {
         });
 
         if (result.photoUrl) {
-          setPhoto(result.photoUrl);
+          // Convert the photo URL to use the API route
+          setPhoto(convertPhotoUrl(result.photoUrl));
         }
 
         setShowPhotoModal(false);

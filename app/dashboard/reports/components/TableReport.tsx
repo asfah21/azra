@@ -15,7 +15,6 @@ import {
   TableBody,
   TableRow,
   TableCell,
-  User,
 } from "@heroui/react";
 import {
   Activity,
@@ -25,6 +24,7 @@ import {
   Download,
   Package,
   Search,
+  Users,
   Wrench,
 } from "lucide-react";
 import * as XLSX from "xlsx";
@@ -309,7 +309,7 @@ export default function TableReport({
                 {(activity: any) => (
                   <TableRow key={activity.id}>
                     <TableCell>
-                      <User
+                      {/* <User
                         avatarProps={{
                           size: "sm",
                           src: activity.avatar || undefined,
@@ -325,7 +325,26 @@ export default function TableReport({
                           activity.user === "System" ? "System" : "User"
                         }
                         name={activity.user}
-                      />
+                      /> */}
+                      <div className="flex items-center gap-3 min-w-[256px] flex-1">
+                        <div
+                          className={`p-2 rounded-full flex-shrink-0 ${activity.user === "System" ? "bg-secondary-200" : "bg-primary-200"}`}
+                        >
+                          {activity.user === "System" ? (
+                            <Activity className="w-5 h-5 text-secondary-600" />
+                          ) : (
+                            <Users className="w-5 h-5 text-primary-600" />
+                          )}
+                        </div>
+                        <div className="flex flex-col min-w-0">
+                          <span className="font-semibold text-default-700 truncate">
+                            {activity.user}
+                          </span>
+                          {/* <span className="text-xs text-default-500 truncate">
+                            {activity.action}
+                          </span> */}
+                        </div>
+                      </div>
                     </TableCell>
                     <TableCell className="text-sm text-foreground">
                       <p className="truncate max-w-full">{activity.action}</p>
