@@ -608,7 +608,7 @@ function App() {
                 closeOnSelect={false}
                 selectedKeys={statusFilter}
                 selectionMode="multiple"
-                onSelectionChange={(keys) => {
+                onSelectionChange={(keys: any) => {
                   if (keys === "all") {
                     setStatusFilter(new Set(["all"]));
                   } else {
@@ -638,7 +638,7 @@ function App() {
                 closeOnSelect={false}
                 selectedKeys={visibleColumns}
                 selectionMode="multiple"
-                onSelectionChange={(keys) => {
+                onSelectionChange={(keys: any) => {
                   const stringKeys = new Set(
                     Array.from(keys).map((key) => String(key)),
                   );

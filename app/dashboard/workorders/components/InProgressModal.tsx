@@ -115,7 +115,7 @@ export default function InProgressModal({
                   placeholder="Select priority"
                   selectedKeys={priority ? [priority] : []}
                   variant="bordered"
-                  onSelectionChange={(keys) => {
+                  onSelectionChange={(keys: any) => {
                     const keyArray = Array.from(keys);
 
                     setPriority(keyArray[0]?.toString() || "");
@@ -149,7 +149,7 @@ export default function InProgressModal({
                   placeholder="Select unit status"
                   selectedKeys={unitStatus ? [unitStatus] : []}
                   variant="bordered"
-                  onSelectionChange={(keys) => {
+                  onSelectionChange={(keys: any) => {
                     const keyArray = Array.from(keys);
 
                     setUnitStatus(keyArray[0]?.toString() || "");

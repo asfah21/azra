@@ -287,7 +287,7 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
             placeholder={loadingUnits ? "Loading units..." : "Select unit"}
             selectedKey={selectedUnitId}
             variant="bordered"
-            onSelectionChange={(key) =>
+            onSelectionChange={(key: any) =>
               setSelectedUnitId(key?.toString() || "")
             }
           >
@@ -336,7 +336,7 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
             }}
             selectedKeys={selectedUnitId ? [selectedUnitId] : []}
             variant="bordered"
-            onSelectionChange={(keys) => {
+            onSelectionChange={(keys: any) => {
               const keyArray = Array.from(keys);
 
               setSelectedUnitId(keyArray[0]?.toString() || "");
@@ -469,7 +469,7 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
                 placeholder="Select shift"
                 selectedKeys={selectedShift ? [selectedShift] : []}
                 variant="bordered"
-                onSelectionChange={(keys) => {
+                onSelectionChange={(keys: any) => {
                   const keyArray = Array.from(keys);
 
                   setSelectedShift(keyArray[0]?.toString() || "");
@@ -502,7 +502,7 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
                 placeholder="Select priority"
                 selectedKeys={selectedPriority ? [selectedPriority] : []}
                 variant="bordered"
-                onSelectionChange={(keys) => {
+                onSelectionChange={(keys: any) => {
                   const keyArray = Array.from(keys);
 
                   setSelectedPriority(keyArray[0]?.toString() || "");
