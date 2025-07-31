@@ -63,7 +63,7 @@ export default function QuickSettingCard() {
                 minValue={10}
                 step={5}
                 value={autoRefresh}
-                onChange={(value) =>
+                onChange={(value: number | number[]) =>
                   setAutoRefresh(Array.isArray(value) ? value[0] : value)
                 }
               />
