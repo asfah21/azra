@@ -152,7 +152,9 @@ export default function LoginPage() {
                 type="email"
                 value={email}
                 variant="bordered"
-                onChange={(e) => setEmail(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setEmail(e.target.value)
+                }
               />
             </div>
 
@@ -199,7 +201,9 @@ export default function LoginPage() {
                 type={isVisible ? "text" : "password"}
                 value={password}
                 variant="bordered"
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setPassword(e.target.value)
+                }
               />
             </div>
 

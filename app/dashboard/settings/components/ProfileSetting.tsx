@@ -162,7 +162,9 @@ export default function ProfileSetting({ profile }: { profile: any }) {
                     placeholder="Enter your name"
                     size="sm"
                     value={name}
-                    onChange={(e) => setName(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setName(e.target.value)
+                    }
                   />
                   <Input
                     disabled
@@ -170,7 +172,9 @@ export default function ProfileSetting({ profile }: { profile: any }) {
                     placeholder="Enter your department"
                     size="sm"
                     value={department}
-                    onChange={(e) => setDepartment(e.target.value)}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                      setDepartment(e.target.value)
+                    }
                   />
                 </div>
                 <Button
@@ -207,7 +211,9 @@ export default function ProfileSetting({ profile }: { profile: any }) {
                   size="sm"
                   startContent={<Mail className="w-4 h-4 text-default-400" />}
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setEmail(e.target.value)
+                  }
                 />
                 <Input
                   color="success"
@@ -219,7 +225,7 @@ export default function ProfileSetting({ profile }: { profile: any }) {
                   startContent={<Phone className="w-4 h-4 text-default-400" />}
                   type="tel"
                   value={phone}
-                  onChange={(e) => {
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                     let value = e.target.value;
 
                     value = value.replace(/[^0-9+]/g, "");
@@ -245,7 +251,9 @@ export default function ProfileSetting({ profile }: { profile: any }) {
                   size="sm"
                   startContent={<MapPin className="w-4 h-4 text-default-400" />}
                   value={location}
-                  onChange={(e) => setLocation(e.target.value)}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                    setLocation(e.target.value)
+                  }
                 />
               </div>
             </div>

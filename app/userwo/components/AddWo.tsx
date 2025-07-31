@@ -457,7 +457,9 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
               placeholder="Tyre no 10 bocor"
               value={subcomponentInput}
               variant="bordered"
-              onChange={(e) => setSubcomponentInput(e.target.value)}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setSubcomponentInput(e.target.value)
+              }
             />
             <Button
               color="primary"
