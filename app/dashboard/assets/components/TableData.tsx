@@ -45,7 +45,6 @@ import {
   Trash2,
   MapPin,
   Wrench,
-  Activity,
   Package,
   Search,
   Download,

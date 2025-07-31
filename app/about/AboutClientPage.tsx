@@ -8,15 +8,15 @@ import CTASection from "./components/CTASection";
 export default function AboutPage() {
   const fadeIn = {
     hidden: { opacity: 0, y: 20 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
+    visible: { opacity: 1, y: 0, transition: { duration: 0.6 } },
   };
 
   const staggerContainer = {
     visible: {
       transition: {
-        staggerChildren: 0.2
-      }
-    }
+        staggerChildren: 0.2,
+      },
+    },
   };
 
   return (

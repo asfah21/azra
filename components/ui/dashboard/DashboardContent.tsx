@@ -12,8 +12,6 @@ import {
   Activity,
   CheckCircle2,
   AlertTriangle,
-  Mail,
-  Shield,
   Package,
   Wrench,
 } from "lucide-react";
@@ -451,8 +449,8 @@ export default function DashboardContent({
           </CardBody>
         </Card> */}
 
-        {/* User Role Card */}
-        {/* <Card className="bg-gradient-to-br from-success-50 to-success-100 border-success-200">
+      {/* User Role Card */}
+      {/* <Card className="bg-gradient-to-br from-success-50 to-success-100 border-success-200">
           <CardHeader className="flex gap-3">
             <div className="p-2 bg-success-500 rounded-lg">
               <Shield className="w-6 h-6 text-white" />
@@ -480,8 +478,8 @@ export default function DashboardContent({
           </CardBody>
         </Card> */}
 
-        {/* Email Card */}
-        {/* <Card className="bg-gradient-to-br from-warning-50 to-warning-100 border-warning-200">
+      {/* Email Card */}
+      {/* <Card className="bg-gradient-to-br from-warning-50 to-warning-100 border-warning-200">
           <CardHeader className="flex gap-3">
             <div className="p-2 bg-warning-500 rounded-lg">
               <Mail className="w-6 h-6 text-white" />

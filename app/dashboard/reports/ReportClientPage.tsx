@@ -1,7 +1,7 @@
 "use client";
 
 import { BarChart3, Search } from "lucide-react";
-import { Input, Pagination } from "@heroui/react";
+import { Input } from "@heroui/react";
 import { useState, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
@@ -31,15 +31,21 @@ interface ApiResponse {
 }
 
 // Fetch function for recent activities with pagination support
-const fetchRecentActivities = async ({ queryKey }: { queryKey: [string, number, number] }): Promise<ApiResponse> => {
+const fetchRecentActivities = async ({
+  queryKey,
+}: {
+  queryKey: [string, number, number];
+}): Promise<ApiResponse> => {
   const [_, page, limit] = queryKey;
   const params = new URLSearchParams({
     page: page.toString(),
     limit: limit.toString(),
   });
 
-  const response = await axios.get<ApiResponse>(`/api/dashboard/recent-activities?${params}`);
-  
+  const response = await axios.get<ApiResponse>(
+    `/api/dashboard/recent-activities?${params}`,
+  );
+
   return response.data;
 };
 
@@ -120,14 +126,14 @@ export default function ReportClientPage() {
       {/* List Report Button */}
       <ListReportButton loading={loading} searchQuery={searchQuery} />
       <TableReport
+        currentPage={page}
         error={error?.message || null}
         loading={loading}
         recentActivities={recentActivities}
-        onRetry={handleRetry}
-        currentPage={page}
-        totalPages={totalPages}
         totalActivities={totalActivities}
+        totalPages={totalPages}
         onPageChange={handlePageChange}
+        onRetry={handleRetry}
       />
     </div>
   );

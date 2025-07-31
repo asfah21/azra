@@ -1,11 +1,12 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
-import { BreakdownStatus } from "@prisma/client";
 import { writeFile, mkdir } from "fs/promises";
 import { join } from "path";
-import sharp from "sharp";
 import { randomUUID } from "crypto";
+
+import { revalidatePath } from "next/cache";
+import { BreakdownStatus } from "@prisma/client";
+import sharp from "sharp";
 
 import { prisma } from "@/lib/prisma";
 
@@ -93,12 +94,17 @@ export async function createBreakdown(prevState: any, formData: FormData) {
         // Validate file type
         if (!photo.type.startsWith("image/")) {
           console.log("Invalid file type detected:", photo.type);
-          return { success: false, message: "Invalid file type. Please upload an image." };
+
+          return {
+            success: false,
+            message: "Invalid file type. Please upload an image.",
+          };
         }
 
         // Validate file size (3MB limit)
         if (photo.size > 3 * 1024 * 1024) {
           console.log("File size exceeds limit:", photo.size);
+
           return { success: false, message: "File size exceeds 3MB limit." };
         }
 
@@ -106,28 +112,37 @@ export async function createBreakdown(prevState: any, formData: FormData) {
         console.log("Converting file to buffer...");
         const bytes = await photo.arrayBuffer();
         const buffer = Buffer.from(bytes);
+
         console.log("Buffer size:", buffer.length);
 
         // Generate unique filename
         const fileId = randomUUID();
         const fileExtension = photo.type.split("/")[1] || "jpg";
         const filename = `breakdown-${fileId}.${fileExtension}`;
+
         console.log("Generated filename:", filename);
-        
+
         // Compress image using Sharp to target 0.5-1MB
         console.log("Compressing image...");
         const compressedBuffer = await sharp(buffer)
-          .resize({ width: 1024, height: 1024, fit: 'inside', withoutEnlargement: true })
+          .resize({
+            width: 1024,
+            height: 1024,
+            fit: "inside",
+            withoutEnlargement: true,
+          })
           .jpeg({ quality: 80 })
           .toBuffer();
+
         console.log("Compressed buffer size:", compressedBuffer.length);
 
         // Ensure upload directory exists
         const uploadDir = join(process.cwd(), "public", "uploads", "userwo");
         const fullPath = join(uploadDir, filename);
+
         console.log("Upload directory:", uploadDir);
         console.log("Full path:", fullPath);
-        
+
         // Create directory if it doesn't exist
         try {
           await mkdir(uploadDir, { recursive: true });
@@ -136,17 +151,18 @@ export async function createBreakdown(prevState: any, formData: FormData) {
           console.error("Error creating upload directory:", error);
           // Continue anyway as writeFile might still work
         }
-        
+
         // Save compressed image
         console.log("Saving compressed image...");
         await writeFile(fullPath, compressedBuffer);
         console.log("Image saved successfully");
-        
+
         // Store relative path for database storage
         photoPath = `/uploads/userwo/${filename}`;
         console.log("Photo path set to:", photoPath);
       } catch (error) {
         console.error("Error processing photo:", error);
+
         return { success: false, message: "Failed to process photo upload." };
       }
     } else {

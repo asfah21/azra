@@ -184,19 +184,19 @@ export default function DetailWo({
                 </div>
               </div>
             </ModalHeader>
-            
+
             <ModalBody className="py-6 px-0">
               <div className="space-y-6 px-6">
                 {/* Photo Display */}
                 {breakdown.photo && (
                   <Card>
                     <Image
-                        src={breakdown.photo} 
-                        alt="Breakdown evidence" 
-                        width={500}
-                        height={400}
-                        className="w-full h-auto object-contain max-h-64"
-                      />
+                      alt="Breakdown evidence"
+                      className="w-full h-auto object-contain max-h-64"
+                      height={400}
+                      src={breakdown.photo}
+                      width={500}
+                    />
                   </Card>
                 )}
                 {/* Summary Information */}

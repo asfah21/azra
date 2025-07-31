@@ -62,8 +62,7 @@ export function DeleteAssetModal({
       if (session?.user?.role !== "super_admin") {
         return {
           success: false,
-          message:
-            "Unauthorized: Only Super Admin can delete assets.",
+          message: "Unauthorized: Only Super Admin can delete assets.",
         };
       }
 

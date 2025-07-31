@@ -25,11 +25,16 @@ import {
   Download,
   Package,
   Search,
-  Users,
   Wrench,
 } from "lucide-react";
 import * as XLSX from "xlsx";
-import { useState, useMemo, useCallback, useDeferredValue, startTransition } from "react";
+import {
+  useState,
+  useMemo,
+  useCallback,
+  useDeferredValue,
+  startTransition,
+} from "react";
 
 import { TableReportSkeletons } from "@/components/ui/skeleton";
 
@@ -78,9 +83,12 @@ export default function TableReport({
   }, []);
 
   // Callback untuk pagination
-  const handlePageChange = useCallback((newPage: number) => {
-    onPageChange && onPageChange(newPage);
-  }, [onPageChange]);
+  const handlePageChange = useCallback(
+    (newPage: number) => {
+      onPageChange && onPageChange(newPage);
+    },
+    [onPageChange],
+  );
 
   // Filter data berdasarkan deferred search query (client-side search)
   const filteredData = useMemo(() => {
@@ -305,14 +313,17 @@ export default function TableReport({
                         avatarProps={{
                           size: "sm",
                           src: activity.avatar || undefined,
-                          className: "w-8 h-8 rounded-full object-cover flex-shrink-0",
+                          className:
+                            "w-8 h-8 rounded-full object-cover flex-shrink-0",
                         }}
                         classNames={{
                           name: "text-sm font-medium text-foreground",
                           description: "text-xs text-foreground-500",
                           wrapper: "truncate",
                         }}
-                        description={activity.user === "System" ? "System" : "User"}
+                        description={
+                          activity.user === "System" ? "System" : "User"
+                        }
                         name={activity.user}
                       />
                     </TableCell>
@@ -331,16 +342,18 @@ export default function TableReport({
                     <TableCell className="text-sm text-foreground">
                       <div className="flex items-center gap-1">
                         <Clock className="w-4 h-4 text-warning" />
-                        <span className="truncate max-w-full">{activity.time}</span>
+                        <span className="truncate max-w-full">
+                          {activity.time}
+                        </span>
                       </div>
-                    </TableCell>  
+                    </TableCell>
                   </TableRow>
                 )}
               </TableBody>
-          </Table>
-        </div>
-      )}
-    </CardBody>
-  </Card>
-);
+            </Table>
+          </div>
+        )}
+      </CardBody>
+    </Card>
+  );
 }

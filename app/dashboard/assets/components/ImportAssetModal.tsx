@@ -295,8 +295,7 @@ export function ImportAssetModal({
         name: "Dump Truck",
         description: "Deskripsi (Opsional)",
         categoryId: "1",
-        status:
-          "operational",
+        status: "operational",
         condition: "excellent",
         serialNumber: "SN12345678",
         location: "Site Wolo",

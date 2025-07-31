@@ -37,13 +37,13 @@ export async function GET(request: NextRequest) {
 
     // Define the status type
     type BreakdownStatus = "pending" | "in_progress" | "rfu" | "overdue";
-    
+
     // Status mapping for display
     const statusDisplayMap: Record<BreakdownStatus, string> = {
       pending: "Open",
       in_progress: "In Progress",
       rfu: "Closed",
-      overdue: "Overdue"
+      overdue: "Overdue",
     };
 
     switch (type) {
@@ -141,25 +141,25 @@ export async function GET(request: NextRequest) {
 
         data = data.map((wo) => ({
           "HARI/TANGGAL": new Date(wo.createdAt).toLocaleDateString("id-ID"),
-          "STATUS": statusDisplayMap[wo.status as BreakdownStatus] || wo.status,
+          STATUS: statusDisplayMap[wo.status as BreakdownStatus] || wo.status,
           "NO REGISTER": wo.breakdownNumber || "",
-          "NAMA": wo.reportedBy?.name || "",
+          NAMA: wo.reportedBy?.name || "",
           "HOUR REPORT": wo.reportedAt
             ? new Date(wo.reportedAt).toLocaleDateString("id-ID")
             : "",
           "HOUR DOWN UNIT": wo.breakdownTime
             ? new Date(wo.breakdownTime).toLocaleDateString("id-ID")
             : "",
-          "SHIFT": wo.shift || "",
+          SHIFT: wo.shift || "",
           "CODE UNIT": wo.unit?.assetTag || "",
           "HM / KM": wo.workingHours || 0,
-          "LOKATION": wo.description || "",
+          LOKATION: wo.description || "",
           "PROBLEM DESCRIPTION": wo.description || "",
-          "MANPOWER": wo.manpower || "",
+          MANPOWER: wo.manpower || "",
           "STATUS UNIT": wo.unit?.status || "",
           // "UNIT": wo.unit?.name || "",
           "KET MAINTENANCE": wo.unit?.maintenance || "",
-          // "PRIORITY": wo.priority || "",          
+          // "PRIORITY": wo.priority || "",
           "IN PROGRESS BY": wo.inProgressBy?.name || "",
           "IN PROGRESS AT": wo.inProgressAt
             ? new Date(wo.inProgressAt).toLocaleDateString("id-ID")
