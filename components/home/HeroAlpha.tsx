@@ -44,7 +44,7 @@ export default function HeroAlpha() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-1 gap-4">
-          <div aria-hidden="true" className="flex flex-col mt-8 lg:mt-12 gap-6">
+          <div className="flex flex-col mt-8 lg:mt-12 gap-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
               {features.map((feature, index) => (
                 <div

@@ -4,16 +4,16 @@ import { FiBell, FiLogOut, FiMenu, FiX, FiSettings } from "react-icons/fi";
 import { Input } from "@heroui/input";
 import { Kbd } from "@heroui/kbd";
 import { Button } from "@heroui/button";
-import { Card, CardBody } from "@heroui/card";
+import { Card, CardBody } from "@heroui/react";
 import { GoSidebarExpand, GoSidebarCollapse } from "react-icons/go";
 import { FiXCircle } from "react-icons/fi";
-import { Avatar } from "@heroui/avatar";
+import { Avatar } from "@heroui/react";
 import {
   Dropdown,
   DropdownTrigger,
   DropdownMenu,
   DropdownItem,
-} from "@heroui/dropdown";
+} from "@heroui/react";
 import { useRouter } from "next/navigation";
 
 import { ThemeSwitch } from "@/components/theme-switch";

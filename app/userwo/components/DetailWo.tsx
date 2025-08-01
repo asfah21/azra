@@ -135,7 +135,7 @@ export default function DetailWo({
 
   return (
     <Modal
-      backdrop="blur"
+      backdrop="opaque"
       classNames={{
         base: "dark:bg-[#121214] bg-white border dark:border-[#272727] border-gray-200",
         header: "border-b dark:border-[#272727] border-gray-200",

@@ -30,10 +30,10 @@ import {
   MoreVertical,
   Eye,
   Zap,
-  PlusIcon,
   Search,
   MapPin,
   CircleCheckBig,
+  CirclePlus,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useMemo } from "react";
@@ -377,7 +377,7 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
               className="flex-1 sm:flex-none"
               color="primary"
               size="sm"
-              startContent={<PlusIcon className="w-4 h-4" />}
+              startContent={<CirclePlus className="w-4 h-4" />}
               onPress={onOpen}
             >
               Create WO
@@ -574,9 +574,11 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
       {/* Modal */}
       <div className="mx-4">
         <Modal
+          disableAnimation
           backdrop="opaque"
           isOpen={isOpen}
           placement="top-center"
+          scrollBehavior="outside"
           size="2xl"
           onOpenChange={onOpenChange}
         >

@@ -248,10 +248,24 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
             variant="bordered"
           />
 
+          <Autocomplete
+            isRequired
+            className="max-w-xs"
+            defaultItems={users}
+            defaultSelectedKey="cat"
+            label="Favorite Animal"
+            placeholder="Search an animal"
+          >
+            {(item) => (
+              <AutocompleteItem key={item.id}>{item.name}</AutocompleteItem>
+            )}
+          </Autocomplete>
+
           {/* User Selection */}
           <div className="flex flex-col gap-2">
             <Autocomplete
               isRequired
+              allowsCustomValue={false}
               classNames={{
                 base: "min-h-unit-16 py-2",
               }}
@@ -283,6 +297,7 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
           {/* Unit Selection */}
           <Autocomplete
             isRequired
+            allowsCustomValue={false}
             defaultItems={units}
             isLoading={loadingUnits}
             label="Unit"
