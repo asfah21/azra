@@ -770,6 +770,7 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
       {/* Modal */}
       <div className="mx-4">
         <Modal
+          isDismissable={false}
           isOpen={isOpen}
           placement="top-center"
           size="2xl"

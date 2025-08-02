@@ -12,7 +12,6 @@ import {
   SelectItem,
   Select,
   Input,
-  Textarea,
   Chip,
   Autocomplete,
   AutocompleteItem,
@@ -45,7 +44,6 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
 
   const [components, setComponents] = useState<Component[]>([]);
   const [subcomponentInput, setSubcomponentInput] = useState("");
-  const [selectedShift, setSelectedShift] = useState<string>("");
   const [selectedPriority, setSelectedPriority] = useState<string>("low");
 
   const [units, setUnits] = useState<Unit[]>([]);
@@ -198,6 +196,11 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
     );
   }
 
+  const shifts = [
+    {key: "siang", label: "Siang"},
+    {key: "malam", label: "Malam"},
+  ];
+
   return (
     <>
       <ModalHeader className="flex flex-col gap-1">
@@ -257,36 +260,15 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
           {/* Unit Selection */}
           <Autocomplete
             isRequired
-            classNames={{
-              base: [
-                "text-black/50 dark:text-white/90",
-                "bg-default-200/50",
-                "dark:bg-default/60 rounded-xl",
-                "backdrop-blur-xl",
-                "backdrop-saturate-200",
-                "hover:bg-default-200/70",
-                "dark:hover:bg-default/70",
-                "group-data-[focused=true]:bg-default-200/50",
-                "dark:group-data-[focused=true]:bg-default/60",
-              ],
-              // trigger: [
-              //   "bg-default-200/50",
-              //   "dark:bg-default/60",
-              //   "backdrop-blur-xl",
-              //   "backdrop-saturate-200",
-              //   "hover:bg-default-200/70",
-              //   "dark:hover:bg-default/70",
-              //   "group-data-[focused=true]:bg-default-200/50",
-              //   "dark:group-data-[focused=true]:bg-default/60",
-              // ],
-              // value: "text-black/90 dark:text-white/90",
-            }}
             defaultItems={units}
             isLoading={loadingUnits}
             label="Unit"
+            labelPlacement="outside-top"
             placeholder={loadingUnits ? "Loading units..." : "Select unit"}
             selectedKey={selectedUnitId}
+            style={{ outline: "none" }}
             variant="bordered"
+            onFocus={(e) => (e.target.style.outline = "none")}
             onSelectionChange={(key: any) =>
               setSelectedUnitId(key?.toString() || "")
             }
@@ -351,132 +333,65 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
 
           <Input
             isRequired
-            classNames={{
-              label: "text-black/50 dark:text-white/90",
-              input: [
-                "bg-transparent",
-                "text-black/90 dark:text-white/90",
-                "placeholder:text-default-700/50 dark:placeholder:text-white/60",
-              ],
-              innerWrapper: "bg-transparent",
-              inputWrapper: [
-                "bg-default-200/50",
-                "dark:bg-default/60",
-                "backdrop-blur-xl",
-                "backdrop-saturate-200",
-                "hover:bg-default-200/70",
-                "dark:hover:bg-default/70",
-                "group-data-[focused=true]:bg-default-200/50",
-                "dark:group-data-[focused=true]:bg-default/60",
-                "!cursor-text",
-              ],
-            }}
             endContent={
               <div className="pointer-events-none flex items-center">
                 <span className="text-default-400 text-small">hours</span>
               </div>
             }
             label="Hours Meter"
+            labelPlacement="outside-top"
             min="0"
             name="workingHours"
             placeholder="Enter unit HM"
             step="0.1"
+            style={{ outline: "none" }}
             type="number"
             variant="bordered"
+            onFocus={(e) => (e.target.style.outline = "none")}
           />
 
-          <Textarea
+          <Input
             isRequired
-            classNames={{
-              label: "text-black/50 dark:text-white/90",
-              input: [
-                "bg-transparent",
-                "text-black/90 dark:text-white/90",
-                "placeholder:text-default-700/50 dark:placeholder:text-white/60",
-              ],
-              innerWrapper: "bg-transparent",
-              inputWrapper: [
-                "bg-default-200/50",
-                "dark:bg-default/60",
-                "backdrop-blur-xl",
-                "backdrop-saturate-200",
-                "hover:bg-default-200/70",
-                "dark:hover:bg-default/70",
-                "group-data-[focused=true]:bg-default-200/50",
-                "dark:group-data-[focused=true]:bg-default/60",
-                "!cursor-text",
-              ],
-            }}
             label="Position"
+            labelPlacement="outside-top"
             name="description"
             placeholder="Describe your current position in detail"
+            style={{ outline: "none" }}
             variant="bordered"
+            onFocus={(e) => (e.target.style.outline = "none")}
           />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-4">
               <Input
                 isRequired
-                classNames={{
-                  label: "text-black/50 dark:text-white/90",
-                  input: [
-                    "bg-transparent",
-                    "text-black/90 dark:text-white/90",
-                    "placeholder:text-default-700/50 dark:placeholder:text-white/60",
-                  ],
-                  innerWrapper: "bg-transparent",
-                  inputWrapper: [
-                    "bg-default-200/50",
-                    "dark:bg-default/60",
-                    "backdrop-blur-xl",
-                    "backdrop-saturate-200",
-                    "hover:bg-default-200/70",
-                    "dark:hover:bg-default/70",
-                    "group-data-[focused=true]:bg-default-200/50",
-                    "dark:group-data-[focused=true]:bg-default/60",
-                    "!cursor-text",
-                  ],
-                }}
+                isReadOnly
                 defaultValue={new Date(Date.now() + 8 * 60 * 60 * 1000)
                   .toISOString()
                   .slice(0, 16)}
-                label="Breakdown Time"
+                label="Time"
+                labelPlacement="outside-left"
                 name="breakdownTime"
+                style={{ outline: "none" }}
                 type="datetime-local"
                 variant="bordered"
+                onFocus={(e) => (e.target.style.outline = "none")}
               />
             </div>
 
             <div className="space-y-4">
               <Select
                 isRequired
-                classNames={{
-                  label: "text-black/50 dark:text-white/90",
-                  trigger: [
-                    "bg-default-200/50",
-                    "dark:bg-default/60",
-                    "backdrop-blur-xl",
-                    "backdrop-saturate-200",
-                    "hover:bg-default-200/70",
-                    "dark:hover:bg-default/70",
-                    "group-data-[focused=true]:bg-default-200/50",
-                    "dark:group-data-[focused=true]:bg-default/60",
-                  ],
-                  value: "text-black/90 dark:text-white/90",
-                }}
                 label="Shift"
+                labelPlacement="outside-left"
+                defaultSelectedKeys={["siang"]}
                 name="shift"
                 placeholder="Select shift"
-                selectedKeys={selectedShift ? [selectedShift] : []}
                 variant="bordered"
-                onSelectionChange={(keys: any) => {
-                  const keyArray = Array.from(keys);
-
-                  setSelectedShift(keyArray[0]?.toString() || "");
-                }}
               >
-                <SelectItem key="siang">Siang</SelectItem>
-                <SelectItem key="malam">Malam</SelectItem>
+                {shifts.map((shift) => (
+                <SelectItem key={shift.key}>{shift.label}</SelectItem>
+              ))}
               </Select>
             </div>
 
@@ -582,35 +497,18 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
 
           {/* Components Section */}
           <div className="space-y-2">
-            <h3 className="text-sm font-medium">Report</h3>
             <div className="grid grid-cols-1 gap-4">
               <Input
-                classNames={{
-                  input: [
-                    "bg-transparent",
-                    "text-black/90 dark:text-white/90",
-                    "placeholder:text-default-700/50 dark:placeholder:text-white/60",
-                  ],
-                  innerWrapper: "bg-transparent",
-                  inputWrapper: [
-                    "bg-default-200/50",
-                    "dark:bg-default/60",
-                    "backdrop-blur-xl",
-                    "backdrop-saturate-200",
-                    "hover:bg-default-200/70",
-                    "dark:hover:bg-default/70",
-                    "group-data-[focused=true]:bg-default-200/50",
-                    "dark:group-data-[focused=true]:bg-default/60",
-                    "!cursor-text",
-                  ],
-                }}
-                label="Report Description"
+                label="Report"
+                labelPlacement="outside-top"
                 placeholder="Tyre no 10 bocor"
+                style={{ outline: "none" }}
                 value={subcomponentInput}
                 variant="bordered"
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   setSubcomponentInput(e.target.value)
                 }
+                onFocus={(e) => (e.target.style.outline = "none")}
               />
             </div>
             <Button
@@ -682,7 +580,6 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
           isDisabled={
             components.length === 0 ||
             !selectedUnitId ||
-            !selectedShift ||
             !selectedPriority ||
             isPending
           }

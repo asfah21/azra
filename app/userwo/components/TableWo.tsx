@@ -574,8 +574,8 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
       {/* Modal */}
       <div className="mx-4">
         <Modal
-          disableAnimation
           backdrop="opaque"
+          isDismissable={false}
           isOpen={isOpen}
           placement="top-center"
           scrollBehavior="outside"

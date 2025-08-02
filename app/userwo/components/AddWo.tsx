@@ -11,7 +11,6 @@ import {
   SelectItem,
   Select,
   Input,
-  Textarea,
   Chip,
   Autocomplete,
   AutocompleteItem,
@@ -46,7 +45,6 @@ interface User {
 export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
   const [components, setComponents] = useState<Component[]>([]);
   const [subcomponentInput, setSubcomponentInput] = useState("");
-  const [selectedShift, setSelectedShift] = useState<string>("");
   const [selectedPriority, setSelectedPriority] = useState("low");
   const [selectedUserId, setSelectedUserId] = useState("");
   const [units, setUnits] = useState<Unit[]>([]);
@@ -213,6 +211,11 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
     }
   };
 
+  const shifts = [
+    {key: "siang", label: "Siang"},
+    {key: "malam", label: "Malam"},
+  ];
+
   return (
     <>
       <ModalHeader className="flex flex-col gap-1">
@@ -248,19 +251,6 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
             variant="bordered"
           />
 
-          <Autocomplete
-            isRequired
-            className="max-w-xs"
-            defaultItems={users}
-            defaultSelectedKey="cat"
-            label="Favorite Animal"
-            placeholder="Search an animal"
-          >
-            {(item) => (
-              <AutocompleteItem key={item.id}>{item.name}</AutocompleteItem>
-            )}
-          </Autocomplete>
-
           {/* User Selection */}
           <div className="flex flex-col gap-2">
             <Autocomplete
@@ -272,9 +262,12 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
               defaultItems={users}
               isLoading={loadingUsers}
               label="Reported By"
+              labelPlacement="outside-top"
               placeholder={loadingUsers ? "Loading users..." : "Select user"}
               selectedKey={selectedUserId}
+              style={{ outline: "none" }}
               variant="bordered"
+              onFocus={(e) => (e.target.style.outline = "none")}
               onSelectionChange={(key: any) =>
                 setSelectedUserId(key?.toString() || "")
               }
@@ -301,9 +294,12 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
             defaultItems={units}
             isLoading={loadingUnits}
             label="Unit"
+            labelPlacement="outside-top"
             placeholder={loadingUnits ? "Loading units..." : "Select unit"}
             selectedKey={selectedUnitId}
+            style={{ outline: "none" }}
             variant="bordered"
+            onFocus={(e) => (e.target.style.outline = "none")}
             onSelectionChange={(key: any) =>
               setSelectedUnitId(key?.toString() || "")
             }
@@ -333,49 +329,57 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
               </div>
             }
             label="Hours Meter"
+            labelPlacement="outside-top"
             min="0"
             name="workingHours"
             placeholder="Enter unit HM"
             step="0.1"
+            style={{ outline: "none" }}
             type="number"
             variant="bordered"
+            onFocus={(e) => (e.target.style.outline = "none")}
           />
 
-          <Textarea
+          <Input
             isRequired
             label="Position"
+            labelPlacement="outside-top"
             name="description"
             placeholder="Describe your current position in detail"
+            style={{ outline: "none" }}
             variant="bordered"
+            onFocus={(e) => (e.target.style.outline = "none")}
           />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input
               isRequired
+              isReadOnly
               defaultValue={new Date(Date.now() + 8 * 60 * 60 * 1000)
                 .toISOString()
                 .slice(0, 16)}
-              label="Breakdown Time"
+              label="Time"
+              labelPlacement="outside-left"
               name="breakdownTime"
+              style={{ outline: "none" }}
               type="datetime-local"
               variant="bordered"
+              onFocus={(e) => (e.target.style.outline = "none")}
             />
 
             <Select
               isRequired
-              label="Shift"
               name="shift"
-              placeholder="Select shift"
-              selectedKeys={selectedShift ? [selectedShift] : []}
+              labelPlacement="outside-left"
+              className="max-w-xs"
+              defaultSelectedKeys={["siang"]}
+              label="Shift"
               variant="bordered"
-              onSelectionChange={(keys: any) => {
-                const keyArray = Array.from(keys);
-
-                setSelectedShift(keyArray[0]?.toString() || "");
-              }}
+              placeholder="Select shift"
             >
-              <SelectItem key="siang">Siang</SelectItem>
-              <SelectItem key="malam">Malam</SelectItem>
+              {shifts.map((shift) => (
+                <SelectItem key={shift.key}>{shift.label}</SelectItem>
+              ))}
             </Select>
 
             <div className="space-y-4 hidden">
@@ -466,15 +470,17 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
 
           {/* Components Section */}
           <div className="space-y-2">
-            <h3 className="text-sm font-medium">Report</h3>
             <Input
-              label="Report Description"
+              label="Report"
+              labelPlacement="outside-top"
               placeholder="Tyre no 10 bocor"
+              style={{ outline: "none" }}
               value={subcomponentInput}
               variant="bordered"
               onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                 setSubcomponentInput(e.target.value)
               }
+              onFocus={(e) => (e.target.style.outline = "none")}
             />
             <Button
               color="primary"
@@ -534,7 +540,6 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
           isDisabled={
             components.length === 0 ||
             !selectedUnitId ||
-            !selectedShift ||
             !selectedPriority ||
             !selectedUserId ||
             isPending
