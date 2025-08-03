@@ -7,10 +7,11 @@ import {
   ModalBody,
   ModalFooter,
   Button,
-  Select,
-  SelectItem,
   Card,
   CardBody,
+  Autocomplete,
+  AutocompleteItem,
+  Textarea,
 } from "@heroui/react";
 import { useState } from "react";
 
@@ -31,21 +32,14 @@ export default function InProgressModal({
   unitName,
   unitAssetTag,
 }: InProgressModalProps) {
-  const [unitStatus, setUnitStatus] = useState<string>("");
-  const [priority, setPriority] = useState<string>("");
+  const [unitStatus, setUnitStatus] = useState<string>("operational");
+  const [priority, setPriority] = useState<string>("low");
   const [notes, setNotes] = useState<string>("");
   const [isLoading, setIsLoading] = useState(false);
 
   const handleConfirm = async () => {
-    if (!unitStatus) {
-      alert("Please select unit status");
-
-      return;
-    }
-
-    if (!priority) {
-      alert("Please select priority");
-
+    if (!unitStatus || !priority) {
+      alert("Please complete all required fields.");
       return;
     }
 
@@ -61,12 +55,24 @@ export default function InProgressModal({
   };
 
   const handleClose = () => {
-    setUnitStatus("");
-    setPriority("");
+    setUnitStatus("operational");
+    setPriority("low");
     setNotes("");
     setIsLoading(false);
     onClose();
   };
+
+  const priorityList = [
+    { label: "Low", key: "low" },
+    { label: "Medium", key: "medium" },
+    { label: "High", key: "high" },
+  ];
+
+  const unitStatusList = [
+    { label: "Operational", key: "operational" },
+    { label: "Maintenance", key: "maintenance" },
+    { label: "Broken", key: "broken" },
+  ];
 
   return (
     <Modal isOpen={isOpen} placement="top-center" onOpenChange={handleClose}>
@@ -77,9 +83,6 @@ export default function InProgressModal({
         <ModalBody>
           <div className="space-y-4">
             <Card>
-              {/* <CardHeader>
-                <span className="font-semibold text-default-700">Info Breakdown</span>
-              </CardHeader> */}
               <CardBody className="space-y-2">
                 <p className="text-sm text-default-600">
                   <strong>No:</strong> {breakdownNumber}
@@ -91,87 +94,47 @@ export default function InProgressModal({
             </Card>
 
             <div className="space-y-4">
-              <div className="space-y-2">
-                {/* <label className="text-sm font-medium">Priority</label> */}
+              <Autocomplete
+                isRequired
+                label="Priority"
+                name="priority"
+                labelPlacement="outside-top"
+                placeholder="Select priority"
+                variant="bordered"
+                selectedKey={priority}
+                onSelectionChange={(key) => setPriority(key as string)}
+                defaultItems={priorityList}
+                style={{ outline: "none" }}
+                onFocus={(e) => (e.target.style.outline = "none")}
+              >
+                {(item) => (
+                  <AutocompleteItem key={item.key}>
+                    {item.label}
+                  </AutocompleteItem>
+                )}
+              </Autocomplete>
 
-                <Select
-                  isRequired
-                  classNames={{
-                    label: "text-black/50 dark:text-white/90",
-                    trigger: [
-                      "bg-default-200/50",
-                      "dark:bg-default/60",
-                      "backdrop-blur-xl",
-                      "backdrop-saturate-200",
-                      "hover:bg-default-200/70",
-                      "dark:hover:bg-default/70",
-                      "group-data-[focused=true]:bg-default-200/50",
-                      "dark:group-data-[focused=true]:bg-default/60",
-                    ],
-                    value: "text-black/90 dark:text-white/90",
-                  }}
-                  label="Priority"
-                  name="priority"
-                  placeholder="Select priority"
-                  selectedKeys={priority ? [priority] : []}
-                  variant="bordered"
-                  onSelectionChange={(keys: any) => {
-                    const keyArray = Array.from(keys);
+              <Autocomplete
+                isRequired
+                label="Unit Status"
+                name="unitStatus"
+                labelPlacement="outside-top"
+                placeholder="Select unit status"
+                variant="bordered"
+                selectedKey={unitStatus}
+                onSelectionChange={(key) => setUnitStatus(key as string)}
+                defaultItems={unitStatusList}
+                style={{ outline: "none" }}
+                onFocus={(e) => (e.target.style.outline = "none")}
+              >
+                {(item) => (
+                  <AutocompleteItem key={item.key}>
+                    {item.label}
+                  </AutocompleteItem>
+                )}
+              </Autocomplete>
 
-                    setPriority(keyArray[0]?.toString() || "");
-                  }}
-                >
-                  <SelectItem key="low">Low</SelectItem>
-                  <SelectItem key="medium">Medium</SelectItem>
-                  <SelectItem key="high">High</SelectItem>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Select
-                  isRequired
-                  classNames={{
-                    label: "text-sm font-medium",
-                    trigger: [
-                      "bg-default-200/50",
-                      "dark:bg-default/60",
-                      "backdrop-blur-xl",
-                      "backdrop-saturate-200",
-                      "hover:bg-default-200/70",
-                      "dark:hover:bg-default/70",
-                      "group-data-[focused=true]:bg-default-200/50",
-                      "dark:group-data-[focused=true]:bg-default/60",
-                    ],
-                    value: "text-black/90 dark:text-white/90",
-                  }}
-                  label="Unit Status"
-                  name="unitStatus"
-                  placeholder="Select unit status"
-                  selectedKeys={unitStatus ? [unitStatus] : []}
-                  variant="bordered"
-                  onSelectionChange={(keys: any) => {
-                    const keyArray = Array.from(keys);
-
-                    setUnitStatus(keyArray[0]?.toString() || "");
-                  }}
-                >
-                  <SelectItem key="operational">Operational</SelectItem>
-                  <SelectItem key="maintenance">Maintenance</SelectItem>
-                  <SelectItem key="broken">Broken</SelectItem>
-                  {/* Tambahkan opsi lain sesuai kebutuhan */}
-                </Select>
-              </div>
             </div>
-
-            {/* <div className="space-y-2">
-              <label className="text-sm font-medium">Notes (Optional)</label>
-              <Textarea
-                placeholder="Add any additional notes..."
-                value={notes}
-                onValueChange={setNotes}
-                minRows={3}
-              />
-            </div> */}
           </div>
         </ModalBody>
         <ModalFooter>
@@ -179,8 +142,8 @@ export default function InProgressModal({
             Cancel
           </Button>
           <Button
-            color="primary"
-            isDisabled={!unitStatus}
+            color="warning"
+            isDisabled={!unitStatus || !priority}
             isLoading={isLoading}
             onPress={handleConfirm}
           >

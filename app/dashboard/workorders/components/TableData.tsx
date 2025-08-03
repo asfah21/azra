@@ -713,8 +713,8 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
                             {order.status === "in_progress" ? (
                               <DropdownItem
                                 key="completed"
-                                className="text-primary"
-                                color="primary"
+                                className="text-success"
+                                color="success"
                                 startContent={
                                   <CheckSquare className="w-4 h-4" />
                                 }
@@ -726,8 +726,8 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
                             {order.status === "pending" ? (
                               <DropdownItem
                                 key="in-progress"
-                                className="text-success"
-                                color="success"
+                                className="text-warning"
+                                color="warning"
                                 startContent={<Clock className="w-4 h-4" />}
                                 onPress={() => handleMarkAsInProgress(order)}
                               >

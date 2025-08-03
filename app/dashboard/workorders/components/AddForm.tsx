@@ -59,6 +59,22 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
   const [breakdownNumber, setBreakdownNumber] = useState("");
   const queryClient = useQueryClient();
 
+  //Date time otomatis (Shift Siang/Malam)
+  const [datetime, setDatetime] = useState(() => {
+    const now = new Date(Date.now() + 8 * 60 * 60 * 1000) // WITA
+    return now.toISOString().slice(0, 16)
+  })
+  const [selectedShift, setSelectedShift] = useState<'siang' | 'malam'>('malam')
+
+  useEffect(() => {
+    const hour = new Date(datetime).getHours()
+    if (hour >= 18 || hour < 7) {
+      setSelectedShift('malam')
+    } else {
+      setSelectedShift('siang')
+    }
+  }, [datetime])
+
   // Load units data on component mount
   useEffect(() => {
     const fetchUnits = async () => {
@@ -289,48 +305,6 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
             Selected User ID: {selectedUserId || "None"}
           </div> */}
 
-          {/* Select Unit Fields */}
-          {/* <Select
-            isRequired
-            classNames={{
-              label: "text-black/50 dark:text-white/90",
-              trigger: [
-                "bg-default-200/50",
-                "dark:bg-default/60",
-                "backdrop-blur-xl",
-                "backdrop-saturate-200",
-                "hover:bg-default-200/70",
-                "dark:hover:bg-default/70",
-                "group-data-[focused=true]:bg-default-200/50",
-                "dark:group-data-[focused=true]:bg-default/60",
-              ],
-              value: "text-black/90 dark:text-white/90",
-            }}
-            label="Unit"
-            name="unitId"
-            placeholder={loadingUnits ? "Loading units..." : "Select unit"}
-            renderValue={(items) => {
-              return items.map((item) => {
-                const unit = units.find((u) => u.id === item.key);
-
-                return unit ? `${unit.name} (${unit.assetTag})` : "";
-              });
-            }}
-            selectedKeys={selectedUnitId ? [selectedUnitId] : []}
-            variant="bordered"
-            onSelectionChange={(keys: any) => {
-              const keyArray = Array.from(keys);
-
-              setSelectedUnitId(keyArray[0]?.toString() || "");
-            }}
-          >
-            {units.map((unit) => (
-              <SelectItem key={unit.id}>
-                {unit.name} ({unit.assetTag})
-              </SelectItem>
-            ))}
-          </Select> */}
-
           <Input
             isRequired
             endContent={
@@ -366,9 +340,8 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
               <Input
                 isRequired
                 isReadOnly
-                defaultValue={new Date(Date.now() + 8 * 60 * 60 * 1000)
-                  .toISOString()
-                  .slice(0, 16)}
+                value={datetime}
+                onChange={(e) => setDatetime(e.target.value)}
                 label="Time"
                 labelPlacement="outside-left"
                 name="breakdownTime"
@@ -380,19 +353,42 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
             </div>
 
             <div className="space-y-4">
-              <Select
+              <Input
                 isRequired
                 label="Shift"
                 labelPlacement="outside-left"
-                defaultSelectedKeys={["siang"]}
+                name="shift"
+                placeholder="Masukkan shift (siang/malam)"
+                variant="bordered"
+                value={selectedShift}
+                onChange={(e) => {
+                  const value = e.target.value.toLowerCase()
+                  if (value === "siang" || value === "malam") {
+                    setSelectedShift(value as 'siang' | 'malam')
+                  } else {
+                    setSelectedShift('siang')
+                  }
+                }}
+                style={{ outline: "none" }}
+                onFocus={(e) => (e.target.style.outline = "none")}
+              />
+              {/* <Select
+                isRequired
+                label="Shift"
+                labelPlacement="outside-left"
+                selectedKeys={[selectedShift]}
                 name="shift"
                 placeholder="Select shift"
                 variant="bordered"
+                onSelectionChange={(keys) => {
+                  const shift = Array.from(keys)[0] as 'siang' | 'malam'
+                  setSelectedShift(shift)
+                }}
               >
                 {shifts.map((shift) => (
                 <SelectItem key={shift.key}>{shift.label}</SelectItem>
               ))}
-              </Select>
+              </Select> */}
             </div>
 
             <div className="space-y-4 hidden">

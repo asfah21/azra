@@ -132,6 +132,7 @@ enum Role {
   admin_elec
   pengawas
   mekanik
+  guest
 }
 
 enum BreakdownStatus {

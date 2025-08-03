@@ -10,6 +10,8 @@ import {
   useDisclosure,
   Avatar,
   Input,
+  Select,
+  SelectItem,
 } from "@heroui/react";
 import { Autocomplete, AutocompleteItem } from "@heroui/react";
 import { SearchIcon } from "lucide-react";
@@ -120,6 +122,12 @@ export default function UnitPages() {
                     onFocus={(e) => (e.target.style.outline = "none")}
                   />
                 </div>
+
+                <Select className="max-w-xs my-5" isClearable={true} label="Favorite Animal">
+        {animals.map((animal) => (
+          <SelectItem key={animal.key}>{animal.label}</SelectItem>
+        ))}
+      </Select>
 
                 <Autocomplete
                   className="max-w-xs border-none"
@@ -241,6 +249,28 @@ export default function UnitPages() {
                     </AutocompleteItem>
                   )}
                 </Autocomplete>
+
+                <Select
+                  className="max-w-xs"
+                  autoFocus={true}
+                  items={users}
+                  label="Assigned to"
+                  labelPlacement="outside-left"
+                  placeholder="Select a user"
+                  variant="bordered"
+                >
+                  {(user) => (
+                    <SelectItem key={user.id} textValue={user.name}>
+                      <div className="flex gap-2 items-center">
+                        <Avatar alt={user.name} className="shrink-0" size="sm" src={user.avatar} />
+                        <div className="flex flex-col">
+                          <span className="text-small">{user.name}</span>
+                          <span className="text-tiny text-default-400">{user.email}</span>
+                        </div>
+                      </div>
+                    </SelectItem>
+                  )}
+                </Select>
 
                 <p>
                   Lorem ipsum dolor sit amet, consectetur adipiscing elit.

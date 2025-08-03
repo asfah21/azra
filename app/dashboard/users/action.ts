@@ -71,12 +71,24 @@ export async function addUsers(
     revalidatePath("/dashboard/users");
 
     return { message: "User berhasil ditambahkan!" };
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error adding user:", error);
+    
+    // Log detailed error information
+    if (error instanceof Error) {
+      console.error("Error name:", error.name);
+      console.error("Error message:", error.message);
+      if ('code' in error) {
+        console.error("Error code:", error.code);
+      }
+      if ('meta' in error) {
+        console.error("Error meta:", error.meta);
+      }
+    }
 
     return {
       errors: {
-        general: "Terjadi kesalahan saat menambahkan user.",
+        general: `Terjadi kesalahan saat menambahkan user: ${error.message || 'Unknown error'}`,
       },
     };
   }

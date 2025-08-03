@@ -137,7 +137,7 @@ export default function RFUReportActionModal({
                     Mark as RFU - #{breakdownNumber}
                   </h1>
                   <p className="text-sm text-default-500">
-                    Isi detail solusi dan action yang telah dikerjakan
+                    Fill solution and actions that have been done
                   </p>
                 </div>
               </div>
@@ -147,17 +147,14 @@ export default function RFUReportActionModal({
                 {/* Solution */}
                 <Card>
                   <CardBody>
-                    <h2 className="text-lg font-semibold mb-3">
-                      Solusi / Kesimpulan
-                    </h2>
-                    <Textarea
+                    <Input
                       isRequired
-                      label="Jelaskan solusi atau kesimpulan dari perbaikan"
-                      maxRows={5}
-                      minRows={3}
-                      placeholder="Contoh: Mesin sudah berfungsi normal setelah penggantian bearing..."
+                      label="Solution / Conclusion"
+                      labelPlacement="outside-top"
+                      placeholder="Contoh: Mesin sudah berfungsi normal..."
                       value={solution}
                       onValueChange={setSolution}
+                      onFocus={(e) => (e.target.style.outline = "none")}
                     />
                   </CardBody>
                 </Card>
@@ -167,7 +164,7 @@ export default function RFUReportActionModal({
                   <CardBody>
                     <div className="flex items-center justify-between mb-4">
                       <h2 className="text-lg font-semibold">
-                        Action yang Dikerjakan
+                        Actions List
                       </h2>
                       <Button
                         color="primary"
@@ -175,16 +172,16 @@ export default function RFUReportActionModal({
                         startContent={<Plus className="w-4 h-4" />}
                         onPress={addAction}
                       >
-                        Tambah Action
+                        Add Action
                       </Button>
                     </div>
 
                     {actions.length === 0 ? (
                       <div className="text-center py-8 text-default-500">
                         <Clock className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                        <p>Belum ada action yang ditambahkan</p>
+                        <p>No action added</p>
                         <p className="text-sm">
-                          Klik &quot;Tambah Action&quot; untuk menambahkan
+                          Click &quot;Add Action&quot; to add action
                         </p>
                       </div>
                     ) : (
@@ -209,11 +206,13 @@ export default function RFUReportActionModal({
                               </Button>
                             </div>
                             <div className="space-y-3">
-                              <Input
+                              <Input  
                                 isRequired
-                                label="Nama Action"
+                                // label="Action Name"
                                 placeholder="Contoh: Penggantian bearing, Pembersihan filter..."
                                 value={action.action}
+                                // labelPlacement="outside-top"
+                                onFocus={(e) => (e.target.style.outline = "none")}
                                 onValueChange={(value: string) =>
                                   updateAction(index, "action", value)
                                 }
@@ -249,12 +248,12 @@ export default function RFUReportActionModal({
                 Batal
               </Button>
               <Button
-                color="primary"
+                color="success"
                 isDisabled={!solution.trim() || actions.length === 0}
                 isLoading={isSubmitting}
                 onPress={handleSubmit}
               >
-                {isSubmitting ? "Menyimpan..." : "Mark as RFU"}
+                {isSubmitting ? "Updating..." : "Confirm"}
               </Button>
             </ModalFooter>
           </>

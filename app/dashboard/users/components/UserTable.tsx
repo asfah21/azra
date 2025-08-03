@@ -591,6 +591,7 @@ export default function UserTables({ usersTable }: UserManagementClientProps) {
       {/* Modal Add User */}
       <div className="mx-4">
         <Modal
+          isDismissable={false}
           isOpen={isOpen}
           placement="top-center"
           size="2xl"

@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, useState } from "react";
 import {
   ModalHeader,
   ModalBody,
@@ -11,9 +11,12 @@ import {
   SelectItem,
   Select,
   Input,
+  Autocomplete,
+  AutocompleteItem,
 } from "@heroui/react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
+import { useSession } from "next-auth/react";
 
 import { addUsers } from "../action";
 
@@ -25,6 +28,10 @@ interface AddUserFormProps {
 export function AddUserForms({ onClose, onUserAdded }: AddUserFormProps) {
   const [state, formAction, isPending] = useActionState(addUsers, null);
   const queryClient = useQueryClient();
+
+  // const [selectedRole, setSelectedRole] = useState("admin_heavy");
+
+  const { data: session } = useSession();
 
   const addUserMutation = useMutation({
     mutationFn: async (newUser) => {
@@ -56,16 +63,34 @@ export function AddUserForms({ onClose, onUserAdded }: AddUserFormProps) {
   }, [state?.message, state?.errors, onClose, onUserAdded]);
 
   const handleSubmit = async (formData: FormData) => {
-    await formAction(formData);
+    //Add user role to form data
+    if (session?.user?.role) {
+      formData.append("currentUserRole", session.user.role);
+    }
+    
+    // Log form data for debugging
+    const formDataObj: Record<string, any> = {};
+    formData.forEach((value, key) => {
+      formDataObj[key] = value;
+    });
+    console.log('Form data being submitted:', formDataObj);
+    
+    try {
+      await formAction(formData);
+    } catch (error) {
+      console.error('Error in form submission:', error);
+      throw error; // Re-throw to let the form handle the error
+    }
   };
 
   const userRoles = [
-    { key: "super_admin", label: "Super Admin" },
-    { key: "admin_heavy", label: "Admin Heavy" },
-    { key: "admin_elec", label: "Admin Electrical" },
-    { key: "pengawas", label: "Pengawas" },
-    { key: "mekanik", label: "Mekanik" },
-  ];
+    { label: "Super Admin", key: "super_admin" },
+    { label: "Admin Heavy", key: "admin_heavy" },
+    { label: "Admin Electrical", key: "admin_elec" },
+    { label: "Pengawas", key: "pengawas" },
+    { label: "Mekanik", key: "mekanik" },
+    { label: "Guest", key: "guest" },
+  ]
 
   return (
     <>
@@ -77,110 +102,97 @@ export function AddUserForms({ onClose, onUserAdded }: AddUserFormProps) {
         <form action={handleSubmit} className="space-y-4" id="addUserForm">
           <Input
             isRequired
-            classNames={{
-              label: "text-black/50 dark:text-white/90",
-              input: [
-                "bg-transparent",
-                "text-black/90 dark:text-white/90",
-                "placeholder:text-default-700/50 dark:placeholder:text-white/60",
-              ],
-              innerWrapper: "bg-transparent",
-              inputWrapper: [
-                // "shadow-xl",
-                "bg-default-200/50",
-                "dark:bg-default/60",
-                "backdrop-blur-xl",
-                "backdrop-saturate-200",
-                "hover:bg-default-200/70",
-                "dark:hover:bg-default/70",
-                "group-data-[focused=true]:bg-default-200/50",
-                "dark:group-data-[focused=true]:bg-default/60",
-                "!cursor-text",
-              ],
-            }}
+            labelPlacement="outside-top"
             label="Name"
             name="name"
             placeholder="Enter user name"
             variant="bordered"
+            onFocus={(e) => (e.target.style.outline = "none")}
           />
 
           <Input
             isRequired
-            classNames={{
-              label: "text-black/50 dark:text-white/90",
-              input: [
-                "bg-transparent",
-                "text-black/90 dark:text-white/90",
-                "placeholder:text-default-700/50 dark:placeholder:text-white/60",
-              ],
-              innerWrapper: "bg-transparent",
-              inputWrapper: [
-                // "shadow-xl",
-                "bg-default-200/50",
-                "dark:bg-default/60",
-                "backdrop-blur-xl",
-                "backdrop-saturate-200",
-                "hover:bg-default-200/70",
-                "dark:hover:bg-default/70",
-                "group-data-[focused=true]:bg-default-200/50",
-                "dark:group-data-[focused=true]:bg-default/60",
-                "!cursor-text",
-              ],
-            }}
+            labelPlacement="outside-top"
             label="Email"
             name="email"
             placeholder="Enter email address"
             type="email"
             variant="bordered"
+            onFocus={(e) => (e.target.style.outline = "none")}
           />
 
           <Input
             isRequired
-            classNames={{
-              label: "text-black/50 dark:text-white/90",
-              input: [
-                "bg-transparent",
-                "text-black/90 dark:text-white/90",
-                "placeholder:text-default-700/50 dark:placeholder:text-white/60",
-              ],
-              innerWrapper: "bg-transparent",
-              inputWrapper: [
-                // "shadow-xl",
-                "bg-default-200/50",
-                "dark:bg-default/60",
-                "backdrop-blur-xl",
-                "backdrop-saturate-200",
-                "hover:bg-default-200/70",
-                "dark:hover:bg-default/70",
-                "group-data-[focused=true]:bg-default-200/50",
-                "dark:group-data-[focused=true]:bg-default/60",
-                "!cursor-text",
-              ],
-            }}
+            labelPlacement="outside-top"
             label="Password"
             name="password"
             placeholder="Enter password"
             type="password"
             variant="bordered"
+            onFocus={(e) => (e.target.style.outline = "none")}
           />
 
-          <Select
+          <Autocomplete
+            defaultItems={userRoles}
+            defaultSelectedKey="admin_heavy"
+            label="User Roles"
+            name="role"
+            labelPlacement="outside-top"
+            placeholder="Search user roles"
+            style={{ outline: "none" }}
+            variant="bordered"
+            onFocus={(e) => (e.target.style.outline = "none")}
+          >
+            {(item) => (
+              <AutocompleteItem key={item.key} variant="flat">
+                {item.label}
+              </AutocompleteItem>
+            )}
+          </Autocomplete>
+
+          {/* <Autocomplete
+            defaultItems={userRoles}
+            defaultSelectedKey="admin_heavy"
+            label="User Roles"
+            name="role"
+            labelPlacement="outside-top"
+            placeholder="Search role"
+            style={{ outline: "none" }}
+            variant="bordered"
+            onFocus={(e) => (e.target.style.outline = "none")}
+          >
+            {(item) => (
+              <AutocompleteItem key={item.label} variant="flat">
+                {item.key}
+              </AutocompleteItem>
+            )}
+          </Autocomplete> */}
+
+          {/* <Autocomplete
+            defaultItems={userRoles}
+            selectedKey={selectedRole}
+            onSelectionChange={(key) => setSelectedRole(key as string)} // Update saat pilih
+            label="Roles"
+            name="role"
+            labelPlacement="outside-top"
+            placeholder="Search role"
+            style={{ outline: "none" }}
+            variant="bordered"
+            onFocus={(e) => (e.target.style.outline = "none")}
+          >
+            {(item) => (
+              <AutocompleteItem key={item.show} variant="flat">
+                {item.key}
+              </AutocompleteItem>
+            )}
+          </Autocomplete>
+
+          <input type="hidden" name="role" value={selectedRole || ""} /> */}
+
+
+          {/* <Select
             isRequired
-            classNames={{
-              label: "text-black/50 dark:text-white/90",
-              trigger: [
-                // "shadow-xl",
-                "bg-default-200/50",
-                "dark:bg-default/60",
-                "backdrop-blur-xl",
-                "backdrop-saturate-200",
-                "hover:bg-default-200/70",
-                "dark:hover:bg-default/70",
-                "group-data-[focused=true]:bg-default-200/50",
-                "dark:group-data-[focused=true]:bg-default/60",
-              ],
-              value: "text-black/90 dark:text-white/90",
-            }}
+            labelPlacement="outside"
             items={userRoles}
             label="Role"
             name="role"
@@ -188,39 +200,15 @@ export function AddUserForms({ onClose, onUserAdded }: AddUserFormProps) {
             variant="bordered"
           >
             {(userRole) => <SelectItem>{userRole.label}</SelectItem>}
-            {/* <SelectItem key="super_admin">Super Admin</SelectItem>
-            <SelectItem key="admin_heavy">Admin Heavy</SelectItem>
-            <SelectItem key="admin_elec">Admin Electrical</SelectItem>
-            <SelectItem key="pengawas">Pengawas</SelectItem>
-            <SelectItem key="mekanik">Mekanik</SelectItem> */}
-          </Select>
+          </Select> */}
 
           <Input
-            classNames={{
-              label: "text-black/50 dark:text-white/90",
-              input: [
-                "bg-transparent",
-                "text-black/90 dark:text-white/90",
-                "placeholder:text-default-700/50 dark:placeholder:text-white/60",
-              ],
-              innerWrapper: "bg-transparent",
-              inputWrapper: [
-                // "shadow-xl",
-                "bg-default-200/50",
-                "dark:bg-default/60",
-                "backdrop-blur-xl",
-                "backdrop-saturate-200",
-                "hover:bg-default-200/70",
-                "dark:hover:bg-default/70",
-                "group-data-[focused=true]:bg-default-200/50",
-                "dark:group-data-[focused=true]:bg-default/60",
-                "!cursor-text",
-              ],
-            }}
+            labelPlacement="outside-top"
             label="Department"
             name="department"
             placeholder="Enter department (optional)"
             variant="bordered"
+            onFocus={(e) => (e.target.style.outline = "none")}
           />
 
           {/* Success Message */}

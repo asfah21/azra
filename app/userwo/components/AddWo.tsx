@@ -62,6 +62,22 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
   const queryClient = useQueryClient();
   const firstInputRef = useRef<HTMLInputElement>(null);
 
+  //Date time otomatis (Shift Siang/Malam)
+    const [datetime, setDatetime] = useState(() => {
+      const now = new Date(Date.now() + 8 * 60 * 60 * 1000) // WITA
+      return now.toISOString().slice(0, 16)
+    })
+    const [selectedShift, setSelectedShift] = useState<'siang' | 'malam'>('malam')
+  
+    useEffect(() => {
+      const hour = new Date(datetime).getHours()
+      if (hour >= 18 || hour < 7) {
+        setSelectedShift('malam')
+      } else {
+        setSelectedShift('siang')
+      }
+    }, [datetime])
+
   // Handle photo selection
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -367,7 +383,45 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
               onFocus={(e) => (e.target.style.outline = "none")}
             />
 
-            <Select
+            <Input
+              isRequired
+              label="Shift"
+              labelPlacement="outside-left"
+              name="shift"
+              placeholder="Masukkan shift (siang/malam)"
+              variant="bordered"
+              value={selectedShift}
+              onChange={(e) => {
+                const value = e.target.value.toLowerCase()
+                if (value === "siang" || value === "malam") {
+                  setSelectedShift(value as 'siang' | 'malam')
+                } else {
+                  setSelectedShift('siang')
+                }
+              }}
+              style={{ outline: "none" }}
+              onFocus={(e) => (e.target.style.outline = "none")}
+            />
+
+            {/* <Select
+              isRequired
+              label="Shift"
+              labelPlacement="outside-left"
+              selectedKeys={[selectedShift]}
+              name="shift"
+              placeholder="Select shift"
+              variant="bordered"
+              onSelectionChange={(keys) => {
+                const shift = Array.from(keys)[0] as 'siang' | 'malam'
+                setSelectedShift(shift)
+              }}
+            >
+              {shifts.map((shift) => (
+                <SelectItem key={shift.key}>{shift.label}</SelectItem>
+              ))}
+            </Select> */}
+
+            {/* <Select
               isRequired
               name="shift"
               labelPlacement="outside-left"
@@ -380,7 +434,7 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
               {shifts.map((shift) => (
                 <SelectItem key={shift.key}>{shift.label}</SelectItem>
               ))}
-            </Select>
+            </Select> */}
 
             <div className="space-y-4 hidden">
               <Select

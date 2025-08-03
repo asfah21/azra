@@ -12,6 +12,8 @@ import {
   SelectItem,
   Select,
   Input,
+  Autocomplete,
+  AutocompleteItem,
 } from "@heroui/react";
 
 import { updateUser } from "../action";
@@ -69,6 +71,15 @@ export function EditUserModal({
 
   if (!user) return null;
 
+  const userRoles = [
+    { label: "Super Admin", key: "super_admin" },
+    { label: "Admin Heavy", key: "admin_heavy" },
+    { label: "Admin Electrical", key: "admin_elec" },
+    { label: "Pengawas", key: "pengawas" },
+    { label: "Mekanik", key: "mekanik" },
+    { label: "Guest", key: "guest" },
+  ];
+
   return (
     <>
       <ModalHeader className="flex flex-col gap-1">
@@ -85,6 +96,8 @@ export function EditUserModal({
             name="name"
             placeholder="Enter user name"
             variant="bordered"
+            onFocus={(e) => (e.target.style.outline = "none")}
+            labelPlacement="outside-top"
           />
           <Input
             isRequired
@@ -94,6 +107,8 @@ export function EditUserModal({
             placeholder="Enter email address"
             type="email"
             variant="bordered"
+            onFocus={(e) => (e.target.style.outline = "none")}
+            labelPlacement="outside-top"
           />
           <Input
             label="New Password (empty to keep current)"
@@ -101,8 +116,29 @@ export function EditUserModal({
             placeholder="Enter new password (optional)"
             type="password"
             variant="bordered"
+            onFocus={(e) => (e.target.style.outline = "none")}
+            labelPlacement="outside-top"
           />
-          <Select
+
+          <Autocomplete
+            defaultItems={userRoles}
+            defaultSelectedKey={user.role || ""}
+            label="User Roles"
+            name="role"
+            labelPlacement="outside-top"
+            placeholder="Search user roles"
+            style={{ outline: "none" }}
+            variant="bordered"
+            onFocus={(e) => (e.target.style.outline = "none")}
+          >
+            {(item) => (
+              <AutocompleteItem key={item.label} variant="flat">
+                {item.key}
+              </AutocompleteItem>
+            )}
+          </Autocomplete>
+
+          {/* <Select
             isRequired
             defaultSelectedKeys={[user.role]}
             label="Role"
@@ -115,13 +151,17 @@ export function EditUserModal({
             <SelectItem key="admin_elec">Admin Electrical</SelectItem>
             <SelectItem key="pengawas">Pengawas</SelectItem>
             <SelectItem key="mekanik">Mekanik</SelectItem>
-          </Select>
+            <SelectItem key="guest">Guest</SelectItem>
+          </Select> */}
+
           <Input
             defaultValue={user.department || ""}
             label="Department"
             name="department"
             placeholder="Enter department (optional)"
             variant="bordered"
+            onFocus={(e) => (e.target.style.outline = "none")}
+            labelPlacement="outside-top"
           />
 
           {/* Success Message */}
