@@ -144,8 +144,8 @@ export function AddUserForms({ onClose, onUserAdded }: AddUserFormProps) {
             onFocus={(e) => (e.target.style.outline = "none")}
           >
             {(item) => (
-              <AutocompleteItem key={item.key} variant="flat">
-                {item.label}
+              <AutocompleteItem key={item.label} variant="flat">
+                {item.key}
               </AutocompleteItem>
             )}
           </Autocomplete>

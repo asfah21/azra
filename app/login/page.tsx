@@ -18,6 +18,7 @@ import {
   EyeIcon,
   EyeSlashIcon,
 } from "@heroicons/react/24/outline";
+import { VersiApp } from "@/components/ui/ChipVersion";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -83,7 +84,7 @@ export default function LoginPage() {
       <Card className="w-full max-w-md shadow-2xl rounded-xl sm:rounded-2xl overflow-hidden border border-opacity-10 border-white dark:border-gray-700 backdrop-blur-sm bg-white/90 dark:bg-gray-900/30">
         <CardHeader className="flex flex-col gap-3 p-6 sm:p-8 pb-0">
           <div className="flex justify-center mb-2">
-            <div className="p-3 bg-blue-100 dark:bg-blue-900/50 rounded-full">
+            {/* <div className="p-3 bg-blue-100 dark:bg-blue-900/50 rounded-full">
               <svg
                 className="h-7 w-7 sm:h-8 sm:w-8 text-blue-600 dark:text-blue-400"
                 fill="none"
@@ -98,12 +99,12 @@ export default function LoginPage() {
                   strokeWidth={2}
                 />
               </svg>
-            </div>
+            </div> */}
           </div>
           <div className="flex flex-col text-center">
-            <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 dark:text-white">
-              Welcome Back
-            </h1>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-primary to-success bg-[length:200%_200%] animate-[gradient_4s_ease-in-out_infinite]">
+            AZRA <VersiApp />
+          </h1>
             <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1">
               Please enter your credentials to access your account
             </p>
@@ -155,6 +156,8 @@ export default function LoginPage() {
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   setEmail(e.target.value)
                 }
+                style={{ outline: "none" }}
+                onFocus={(e) => (e.target.style.outline = "none")}
               />
             </div>
 
@@ -166,12 +169,12 @@ export default function LoginPage() {
                 >
                   Password
                 </label>
-                <a
+                {/* <a
                   className="text-xs text-blue-600 hover:underline dark:text-blue-400"
                   href="/forgot-password"
                 >
                   Forgot password?
-                </a>
+                </a> */}
               </div>
               <Input
                 isRequired
@@ -204,6 +207,8 @@ export default function LoginPage() {
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   setPassword(e.target.value)
                 }
+                style={{ outline: "none" }}
+                onFocus={(e) => (e.target.style.outline = "none")}
               />
             </div>
 

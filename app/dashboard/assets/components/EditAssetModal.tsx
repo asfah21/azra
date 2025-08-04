@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
 import {
   ModalHeader,
   ModalBody,
@@ -12,6 +13,8 @@ import {
   Select,
   Input,
   Textarea,
+  Autocomplete,
+  AutocompleteItem,
 } from "@heroui/react";
 
 import { updateAsset } from "../action";
@@ -68,7 +71,7 @@ export function EditAssetModal({
       setTimeout(() => {
         onClose();
         if (onAssetUpdated) onAssetUpdated();
-      }, 500);
+      }, 1500);
     },
   });
 
@@ -87,6 +90,24 @@ export function EditAssetModal({
   };
 
   if (!asset) return null;
+
+  const unitStatus = [
+    { key: "operational", label: "Operational" },
+    { key: "maintenance", label: "Maintenance" },
+    { key: "repair", label: "Repair" },
+    { key: "decommissioned", label: "Decommissioned" },
+  ];
+  const [selectedStatus, setSelectedStatus] = useState(asset.status || "operational");
+
+  const unitConditions = [
+    { key: "excellent", label: "Excellent" },
+    { key: "good", label: "Good" },
+    { key: "fair", label: "Fair" },
+    { key: "poor", label: "Poor" },
+  ];
+  const [selectedCondition, setSelectedCondition] = useState(asset.condition || "good");
+  
+  const [selectedAssignedToId, setSelectedAssignedToId] = useState(asset.assignedToId || "");
 
   return (
     <>
@@ -109,49 +130,30 @@ export function EditAssetModal({
           {/* Required Fields */}
           <Input
             isRequired
-            classNames={{
-              label: "text-black/50 dark:text-white/90",
-              input: [
-                "bg-transparent",
-                "text-black/90 dark:text-white/90",
-                "placeholder:text-default-700/50 dark:placeholder:text-white/60",
-              ],
-              innerWrapper: "bg-transparent",
-              inputWrapper: [
-                "bg-default-200/50",
-                "dark:bg-default/60",
-                "backdrop-blur-xl",
-                "backdrop-saturate-200",
-                "hover:bg-default-200/70",
-                "dark:hover:bg-default/70",
-                "group-data-[focused=true]:bg-default-200/50",
-                "dark:group-data-[focused=true]:bg-default/60",
-                "!cursor-text",
-              ],
-            }}
+            labelPlacement="outside-top"
             defaultValue={asset.assetTag}
             label="Asset Tag"
             name="assetTag"
             placeholder="Enter unique asset tag"
             variant="bordered"
+            style={{ outline: "none" }}
+            onFocus={(e) => (e.target.style.outline = "none")}
           />
 
-          <Select
+          <Input
             isRequired
-            classNames={{
-              label: "text-black/50 dark:text-white/90",
-              trigger: [
-                "bg-default-200/50",
-                "dark:bg-default/60",
-                "backdrop-blur-xl",
-                "backdrop-saturate-200",
-                "hover:bg-default-200/70",
-                "dark:hover:bg-default/70",
-                "group-data-[focused=true]:bg-default-200/50",
-                "dark:group-data-[focused=true]:bg-default/60",
-              ],
-              value: "text-black/90 dark:text-white/90",
-            }}
+            labelPlacement="outside-top"
+            defaultValue={asset.name}
+            label="Unit Name"
+            name="name"
+            placeholder="Enter unit name"
+            variant="bordered"
+            style={{ outline: "none" }}
+            onFocus={(e) => (e.target.style.outline = "none")}
+          />
+
+          {/* <Select
+            isRequired
             defaultSelectedKeys={[asset.name]}
             label="Unit Name"
             name="name"
@@ -164,53 +166,35 @@ export function EditAssetModal({
             <SelectItem key="Motor Grader">Motor Grader</SelectItem>
             <SelectItem key="Laptop">Laptop</SelectItem>
             <SelectItem key="Printer">Printer</SelectItem>
-          </Select>
+          </Select> */}
 
           <Input
             isRequired
-            classNames={{
-              label: "text-black/50 dark:text-white/90",
-              input: [
-                "bg-transparent",
-                "text-black/90 dark:text-white/90",
-                "placeholder:text-default-700/50 dark:placeholder:text-white/60",
-              ],
-              innerWrapper: "bg-transparent",
-              inputWrapper: [
-                "bg-default-200/50",
-                "dark:bg-default/60",
-                "backdrop-blur-xl",
-                "backdrop-saturate-200",
-                "hover:bg-default-200/70",
-                "dark:hover:bg-default/70",
-                "group-data-[focused=true]:bg-default-200/50",
-                "dark:group-data-[focused=true]:bg-default/60",
-                "!cursor-text",
-              ],
-            }}
+            labelPlacement="outside-top"
             defaultValue={asset.location}
             label="Location"
             name="location"
             placeholder="Enter unit location"
             variant="bordered"
+            style={{ outline: "none" }}
+            onFocus={(e) => (e.target.style.outline = "none")}
           />
 
-          <Select
+          {/* <Input
             isRequired
-            classNames={{
-              label: "text-black/50 dark:text-white/90",
-              trigger: [
-                "bg-default-200/50",
-                "dark:bg-default/60",
-                "backdrop-blur-xl",
-                "backdrop-saturate-200",
-                "hover:bg-default-200/70",
-                "dark:hover:bg-default/70",
-                "group-data-[focused=true]:bg-default-200/50",
-                "dark:group-data-[focused=true]:bg-default/60",
-              ],
-              value: "text-black/90 dark:text-white/90",
-            }}
+            labelPlacement="outside-top"
+            defaultValue={asset.categoryId.toString()}
+            label="Category"
+            name="categoryId"
+            placeholder="Enter category"
+            variant="bordered"
+            style={{ outline: "none" }}
+            onFocus={(e) => (e.target.style.outline = "none")}
+          /> */}
+          <input type="hidden" name="categoryId" value={asset.categoryId.toString()} />
+
+          {/* <Select
+            isRequired
             defaultSelectedKeys={[asset.categoryId.toString()]}
             label="Category"
             name="categoryId"
@@ -219,55 +203,44 @@ export function EditAssetModal({
           >
             <SelectItem key="1">Alat Berat</SelectItem>
             <SelectItem key="2">Elektronik</SelectItem>
-          </Select>
+          </Select> */}
 
           {/* Optional Fields */}
-          <Textarea
-            classNames={{
-              label: "text-black/50 dark:text-white/90",
-              input: [
-                "bg-transparent",
-                "text-black/90 dark:text-white/90",
-                "placeholder:text-default-700/50 dark:placeholder:text-white/60",
-              ],
-              innerWrapper: "bg-transparent",
-              inputWrapper: [
-                "bg-default-200/50",
-                "dark:bg-default/60",
-                "backdrop-blur-xl",
-                "backdrop-saturate-200",
-                "hover:bg-default-200/70",
-                "dark:hover:bg-default/70",
-                "group-data-[focused=true]:bg-default-200/50",
-                "dark:group-data-[focused=true]:bg-default/60",
-                "!cursor-text",
-              ],
-            }}
+          <Input
             defaultValue={asset.description || ""}
             label="Description"
-            maxRows={4}
-            minRows={2}
+            labelPlacement="outside-top"
             name="description"
             placeholder="Enter unit description (optional)"
             variant="bordered"
+            style={{ outline: "none" }}
+            onFocus={(e) => (e.target.style.outline = "none")}
           />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Select
-              classNames={{
-                label: "text-black/50 dark:text-white/90",
-                trigger: [
-                  "bg-default-200/50",
-                  "dark:bg-default/60",
-                  "backdrop-blur-xl",
-                  "backdrop-saturate-200",
-                  "hover:bg-default-200/70",
-                  "dark:hover:bg-default/70",
-                  "group-data-[focused=true]:bg-default-200/50",
-                  "dark:group-data-[focused=true]:bg-default/60",
-                ],
-                value: "text-black/90 dark:text-white/90",
-              }}
+
+          <Autocomplete
+            defaultItems={unitStatus}
+            defaultInputValue={asset.status || ""}
+            selectedKey={selectedStatus}
+            onSelectionChange={(key) => setSelectedStatus(key as string)}
+            label="Status"
+            name="status"
+            labelPlacement="outside-top"
+            placeholder="Select status"
+            variant="bordered"
+            style={{ outline: "none" }}
+            onFocus={(e) => (e.target.style.outline = "none")}
+          >
+            {(item) => (
+              <AutocompleteItem key={item.key}>
+                {item.label}
+              </AutocompleteItem>
+            )}
+          </Autocomplete>
+          <input type="hidden" name="status" value={selectedStatus} />
+          
+            {/* <Select
               defaultSelectedKeys={[asset.status]}
               label="Status"
               name="status"
@@ -278,23 +251,30 @@ export function EditAssetModal({
               <SelectItem key="maintenance">Maintenance</SelectItem>
               <SelectItem key="repair">Repair</SelectItem>
               <SelectItem key="decommissioned">Decommissioned</SelectItem>
-            </Select>
+            </Select> */}
 
-            <Select
-              classNames={{
-                label: "text-black/50 dark:text-white/90",
-                trigger: [
-                  "bg-default-200/50",
-                  "dark:bg-default/60",
-                  "backdrop-blur-xl",
-                  "backdrop-saturate-200",
-                  "hover:bg-default-200/70",
-                  "dark:hover:bg-default/70",
-                  "group-data-[focused=true]:bg-default-200/50",
-                  "dark:group-data-[focused=true]:bg-default/60",
-                ],
-                value: "text-black/90 dark:text-white/90",
-              }}
+          <Autocomplete
+            defaultInputValue={asset.condition || ""}
+            defaultItems={unitConditions}
+            selectedKey={selectedCondition}
+            onSelectionChange={(key) => setSelectedCondition(key as string)}
+            label="Condition"
+            name="condition"
+            labelPlacement="outside-top"
+            placeholder="Select condition"
+            variant="bordered"
+            style={{ outline: "none" }}
+            onFocus={(e) => (e.target.style.outline = "none")}
+          >
+            {(item) => (
+              <AutocompleteItem key={item.key}>
+                {item.label}
+              </AutocompleteItem>
+            )}
+          </Autocomplete>
+          <input type="hidden" name="condition" value={selectedCondition} />
+
+            {/* <Select
               defaultSelectedKeys={asset.condition ? [asset.condition] : []}
               label="Condition"
               name="condition"
@@ -305,261 +285,157 @@ export function EditAssetModal({
               <SelectItem key="good">Good</SelectItem>
               <SelectItem key="fair">Fair</SelectItem>
               <SelectItem key="poor">Poor</SelectItem>
-            </Select>
+            </Select> */}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input
-              classNames={{
-                label: "text-black/50 dark:text-white/90",
-                input: [
-                  "bg-transparent",
-                  "text-black/90 dark:text-white/90",
-                  "placeholder:text-default-700/50 dark:placeholder:text-white/60",
-                ],
-                innerWrapper: "bg-transparent",
-                inputWrapper: [
-                  "bg-default-200/50",
-                  "dark:bg-default/60",
-                  "backdrop-blur-xl",
-                  "backdrop-saturate-200",
-                  "hover:bg-default-200/70",
-                  "dark:hover:bg-default/70",
-                  "group-data-[focused=true]:bg-default-200/50",
-                  "dark:group-data-[focused=true]:bg-default/60",
-                  "!cursor-text",
-                ],
-              }}
+              labelPlacement="outside-top"
               defaultValue={asset.serialNumber || ""}
               label="Serial Number"
               name="serialNumber"
               placeholder="Enter serial number"
               variant="bordered"
+              style={{ outline: "none" }}
+              onFocus={(e) => (e.target.style.outline = "none")}
             />
 
             <Input
-              classNames={{
-                label: "text-black/50 dark:text-white/90",
-                input: [
-                  "bg-transparent",
-                  "text-black/90 dark:text-white/90",
-                  "placeholder:text-default-700/50 dark:placeholder:text-white/60",
-                ],
-                innerWrapper: "bg-transparent",
-                inputWrapper: [
-                  "bg-default-200/50",
-                  "dark:bg-default/60",
-                  "backdrop-blur-xl",
-                  "backdrop-saturate-200",
-                  "hover:bg-default-200/70",
-                  "dark:hover:bg-default/70",
-                  "group-data-[focused=true]:bg-default-200/50",
-                  "dark:group-data-[focused=true]:bg-default/60",
-                  "!cursor-text",
-                ],
-              }}
+              labelPlacement="outside-top"
               defaultValue={asset.department || ""}
               label="Department"
               name="department"
               placeholder="Enter department"
               variant="bordered"
+              style={{ outline: "none" }}
+              onFocus={(e) => (e.target.style.outline = "none")}
             />
           </div>
 
           <Input
-            classNames={{
-              label: "text-black/50 dark:text-white/90",
-              input: [
-                "bg-transparent",
-                "text-black/90 dark:text-white/90",
-                "placeholder:text-default-700/50 dark:placeholder:text-white/60",
-              ],
-              innerWrapper: "bg-transparent",
-              inputWrapper: [
-                "bg-default-200/50",
-                "dark:bg-default/60",
-                "backdrop-blur-xl",
-                "backdrop-saturate-200",
-                "hover:bg-default-200/70",
-                "dark:hover:bg-default/70",
-                "group-data-[focused=true]:bg-default-200/50",
-                "dark:group-data-[focused=true]:bg-default/60",
-                "!cursor-text",
-              ],
-            }}
+            labelPlacement="outside-top"
             defaultValue={asset.manufacturer || ""}
             label="Manufacturer"
             name="manufacturer"
             placeholder="Enter manufacturer"
             variant="bordered"
+            style={{ outline: "none" }}
+            onFocus={(e) => (e.target.style.outline = "none")}
           />
 
-          <Select
-            classNames={{
-              label: "text-black/50 dark:text-white/90",
-              trigger: [
-                "bg-default-200/50",
-                "dark:bg-default/60",
-                "backdrop-blur-xl",
-                "backdrop-saturate-200",
-                "hover:bg-default-200/70",
-                "dark:hover:bg-default/70",
-                "group-data-[focused=true]:bg-default-200/50",
-                "dark:group-data-[focused=true]:bg-default/60",
-              ],
-              value: "text-black/90 dark:text-white/90",
-            }}
-            defaultSelectedKeys={asset.assignedToId ? [asset.assignedToId] : []}
+          {/* <Autocomplete
+            defaultItems={users.map((user) => ({
+              key: user.id,
+              label: user.name,
+            }))}
+            selectedKey={selectedAssignedToId}
+            onSelectionChange={(key) => 
+              setSelectedAssignedToId(typeof key === "string" ? key : "")}
             label="Assigned To"
             name="assignedToId"
             placeholder="Select user (optional)"
+            labelPlacement="outside-top"
             variant="bordered"
+            allowsEmptyCollection
+            allowsCustomValue={false}
+            style={{ outline: "none" }}
+            onFocus={(e) => (e.target.style.outline = "none")}
+          >
+            {(item) => (
+              <AutocompleteItem key={item.key}>
+                {item.label}
+              </AutocompleteItem>
+            )}
+          </Autocomplete>
+          <input type="hidden" name="assignedToId" value={selectedAssignedToId || ""} /> */}
+
+          <Select
+            defaultSelectedKeys={asset.assignedToId ? [asset.assignedToId] : []}
+            label="Assigned To"
+            labelPlacement="outside-left"
+            name="assignedToId"
+            placeholder="Select user (optional)"
+            variant="bordered"
+            style={{ outline: "none" }}
+            items={[
+              { id: "", name: "-- None --" },
+              ...users
+            ]}
+          >
+            {(item) => (
+              <SelectItem key={item.id}>
+                {item.name}
+              </SelectItem>
+            )}
+          </Select>
+
+          {/* <Select
+            defaultSelectedKeys={asset.assignedToId ? [asset.assignedToId] : []}
+            label="Assigned To"
+            labelPlacement="outside-left"
+            name="assignedToId"
+            placeholder="Select user (optional)"
+            variant="bordered"
+            style={{ outline: "none" }}
           >
             {users.map((user) => (
               <SelectItem key={user.id}>{user.name}</SelectItem>
             ))}
-          </Select>
+          </Select> */}
 
           {/* Date Fields */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input
-              classNames={{
-                label: "text-black/50 dark:text-white/90",
-                input: [
-                  "bg-transparent",
-                  "text-black/90 dark:text-white/90",
-                  "placeholder:text-default-700/50 dark:placeholder:text-white/60",
-                ],
-                innerWrapper: "bg-transparent",
-                inputWrapper: [
-                  "bg-default-200/50",
-                  "dark:bg-default/60",
-                  "backdrop-blur-xl",
-                  "backdrop-saturate-200",
-                  "hover:bg-default-200/70",
-                  "dark:hover:bg-default/70",
-                  "group-data-[focused=true]:bg-default-200/50",
-                  "dark:group-data-[focused=true]:bg-default/60",
-                  "!cursor-text",
-                ],
-              }}
+              labelPlacement="outside-top"
               defaultValue={formatDateForInput(asset.installDate)}
               label="Install Date"
               name="installDate"
               type="date"
               variant="bordered"
+              style={{ outline: "none" }}
+              onFocus={(e) => (e.target.style.outline = "none")}
             />
 
             <Input
-              classNames={{
-                label: "text-black/50 dark:text-white/90",
-                input: [
-                  "bg-transparent",
-                  "text-black/90 dark:text-white/90",
-                  "placeholder:text-default-700/50 dark:placeholder:text-white/60",
-                ],
-                innerWrapper: "bg-transparent",
-                inputWrapper: [
-                  "bg-default-200/50",
-                  "dark:bg-default/60",
-                  "backdrop-blur-xl",
-                  "backdrop-saturate-200",
-                  "hover:bg-default-200/70",
-                  "dark:hover:bg-default/70",
-                  "group-data-[focused=true]:bg-default-200/50",
-                  "dark:group-data-[focused=true]:bg-default/60",
-                  "!cursor-text",
-                ],
-              }}
+              labelPlacement="outside-top"
               defaultValue={formatDateForInput(asset.warrantyExpiry)}
               label="Warranty Expiry"
               name="warrantyExpiry"
               type="date"
               variant="bordered"
+              style={{ outline: "none" }}
+              onFocus={(e) => (e.target.style.outline = "none")}
             />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input
-              classNames={{
-                label: "text-black/50 dark:text-white/90",
-                input: [
-                  "bg-transparent",
-                  "text-black/90 dark:text-white/90",
-                  "placeholder:text-default-700/50 dark:placeholder:text-white/60",
-                ],
-                innerWrapper: "bg-transparent",
-                inputWrapper: [
-                  "bg-default-200/50",
-                  "dark:bg-default/60",
-                  "backdrop-blur-xl",
-                  "backdrop-saturate-200",
-                  "hover:bg-default-200/70",
-                  "dark:hover:bg-default/70",
-                  "group-data-[focused=true]:bg-default-200/50",
-                  "dark:group-data-[focused=true]:bg-default/60",
-                  "!cursor-text",
-                ],
-              }}
+              labelPlacement="outside-top"
               defaultValue={formatDateForInput(asset.lastMaintenance)}
               label="Last Maintenance"
               name="lastMaintenance"
               type="date"
               variant="bordered"
+              style={{ outline: "none" }}
+              onFocus={(e) => (e.target.style.outline = "none")}
             />
 
             <Input
-              classNames={{
-                label: "text-black/50 dark:text-white/90",
-                input: [
-                  "bg-transparent",
-                  "text-black/90 dark:text-white/90",
-                  "placeholder:text-default-700/50 dark:placeholder:text-white/60",
-                ],
-                innerWrapper: "bg-transparent",
-                inputWrapper: [
-                  "bg-default-200/50",
-                  "dark:bg-default/60",
-                  "backdrop-blur-xl",
-                  "backdrop-saturate-200",
-                  "hover:bg-default-200/70",
-                  "dark:hover:bg-default/70",
-                  "group-data-[focused=true]:bg-default-200/50",
-                  "dark:group-data-[focused=true]:bg-default/60",
-                  "!cursor-text",
-                ],
-              }}
+              labelPlacement="outside-top"
               defaultValue={formatDateForInput(asset.nextMaintenance)}
               label="Next Maintenance"
               name="nextMaintenance"
               type="date"
               variant="bordered"
+              style={{ outline: "none" }}
+              onFocus={(e) => (e.target.style.outline = "none")}
             />
           </div>
 
           {/* Numeric Fields */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input
-              classNames={{
-                label: "text-black/50 dark:text-white/90",
-                input: [
-                  "bg-transparent",
-                  "text-black/90 dark:text-white/90",
-                  "placeholder:text-default-700/50 dark:placeholder:text-white/60",
-                ],
-                innerWrapper: "bg-transparent",
-                inputWrapper: [
-                  "bg-default-200/50",
-                  "dark:bg-default/60",
-                  "backdrop-blur-xl",
-                  "backdrop-saturate-200",
-                  "hover:bg-default-200/70",
-                  "dark:hover:bg-default/70",
-                  "group-data-[focused=true]:bg-default-200/50",
-                  "dark:group-data-[focused=true]:bg-default/60",
-                  "!cursor-text",
-                ],
-              }}
+              labelPlacement="outside-top"
               defaultValue={asset.assetValue?.toString() || ""}
               label="Asset Value"
               name="assetValue"
@@ -572,29 +448,12 @@ export function EditAssetModal({
               step="0.01"
               type="number"
               variant="bordered"
+              style={{ outline: "none" }}
+              onFocus={(e) => (e.target.style.outline = "none")}
             />
 
             <Input
-              classNames={{
-                label: "text-black/50 dark:text-white/90",
-                input: [
-                  "bg-transparent",
-                  "text-black/90 dark:text-white/90",
-                  "placeholder:text-default-700/50 dark:placeholder:text-white/60",
-                ],
-                innerWrapper: "bg-transparent",
-                inputWrapper: [
-                  "bg-default-200/50",
-                  "dark:bg-default/60",
-                  "backdrop-blur-xl",
-                  "backdrop-saturate-200",
-                  "hover:bg-default-200/70",
-                  "dark:hover:bg-default/70",
-                  "group-data-[focused=true]:bg-default-200/50",
-                  "dark:group-data-[focused=true]:bg-default/60",
-                  "!cursor-text",
-                ],
-              }}
+              labelPlacement="outside-top"
               defaultValue={asset.utilizationRate?.toString() || ""}
               endContent={
                 <div className="pointer-events-none flex items-center">
@@ -608,6 +467,8 @@ export function EditAssetModal({
               placeholder="Enter utilization rate"
               type="number"
               variant="bordered"
+              style={{ outline: "none" }}
+              onFocus={(e) => (e.target.style.outline = "none")}
             />
           </div>
 

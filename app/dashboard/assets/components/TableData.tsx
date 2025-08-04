@@ -512,6 +512,8 @@ export default function TableDatas({
             >
               Export
             </Button>
+            
+            {session?.user?.role === "super_admin" ? (
             <Button
               className="flex-1 sm:flex-none"
               color="warning"
@@ -522,6 +524,9 @@ export default function TableDatas({
             >
               Import
             </Button>
+            ) : null}
+
+            {session?.user?.role === "super_admin" ? (
             <Button
               className="flex-1 sm:flex-none"
               color="primary"
@@ -531,6 +536,7 @@ export default function TableDatas({
             >
               Add Asset
             </Button>
+            ) : null}
           </div>
         </CardHeader>
         <Divider />

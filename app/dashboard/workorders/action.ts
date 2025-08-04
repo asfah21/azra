@@ -8,6 +8,9 @@ import { revalidatePath } from "next/cache";
 import { BreakdownStatus } from "@prisma/client";
 import sharp from "sharp";
 
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth"; // sesuaikan path kamu
+
 import { prisma } from "@/lib/prisma";
 
 export async function createBreakdown(prevState: any, formData: FormData) {
@@ -257,6 +260,7 @@ export async function updateBreakdownStatus(
   status: BreakdownStatus,
   resolvedById?: string,
 ) {
+
   try {
     const updateData: any = { status };
 
@@ -318,6 +322,14 @@ export async function updateBreakdownStatusWithActions(
   actions: Array<{ action: string; description: string }>,
   resolvedById?: string,
 ) {
+   //Tambahan Backend agar hanya super_admin, admin_heavy, pengawas, dan mekanik yang dapat mengubah status breakdown
+   const session = await getServerSession(authOptions);
+   const allowedRoles = ["super_admin", "admin_heavy", "pengawas", "mekanik"];
+ 
+   if (!session?.user?.role || !allowedRoles.includes(session.user.role)) {
+     return { success: false, message: "Unauthorized access." };
+   }
+   
   try {
     const updatedBreakdown = await prisma.breakdown.update({
       where: { id },
@@ -375,6 +387,14 @@ export async function updateBreakdownStatusWithUnitStatus(
   notes?: string,
   resolvedById?: string,
 ) {
+  //Tambahan Backend agar hanya super_admin, admin_heavy, pengawas, dan mekanik yang dapat mengubah status breakdown
+  const session = await getServerSession(authOptions);
+  const allowedRoles = ["super_admin", "admin_heavy", "pengawas", "mekanik"];
+
+  if (!session?.user?.role || !allowedRoles.includes(session.user.role)) {
+    return { success: false, message: "Unauthorized access." };
+  }
+
   try {
     const breakdown = await prisma.breakdown.findUnique({
       where: { id },

@@ -128,6 +128,7 @@ interface WoStatsCardsProps {
 }
 
 export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
+
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const router = useRouter();
   const { data: session } = useSession();
@@ -137,6 +138,10 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
   const [selectedBreakdown, setSelectedBreakdown] =
     useState<BreakdownPayload | null>(null);
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
+
+  // State untuk role
+  const allowedRolesToUpdateWO = ["super_admin", "admin_heavy", "pengawas", "mekanik"];
+  const userRole = session?.user?.role;
 
   // State untuk modal RFU
   const [isRFUModalOpen, setIsRFUModalOpen] = useState(false);
@@ -494,6 +499,8 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
               value={searchQuery}
               variant="flat"
               onValueChange={handleSearchChange}
+              style={{ outline: "none" }}
+              onFocus={(e) => (e.target.style.outline = "none")}
             />
             {/* <Button
               className="flex-1 sm:flex-none"
@@ -526,6 +533,8 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
               value={searchQuery}
               variant="flat"
               onValueChange={handleSearchChange}
+              style={{ outline: "none" }}
+              onFocus={(e) => (e.target.style.outline = "none")}
             />
           </div>
           <div className="overflow-x-auto">
@@ -692,7 +701,7 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
                               <MoreVertical className="w-4 h-4" />
                             </Button>
                           </DropdownTrigger>
-                          <DropdownMenu>
+                          <DropdownMenu>                          
                             <DropdownItem
                               key="details"
                               startContent={<Eye className="w-4 h-4" />}
@@ -700,39 +709,37 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
                             >
                               View Details
                             </DropdownItem>
-                            {/* <DropdownItem
-                              key="edit"
-                              isDisabled
-                              startContent={<Edit className="w-4 h-4" />}
-                              onPress={() =>
-                                router.push(`/dashboard/workorders/${order.id}/edit`)
-                              }
-                            >
-                              Edit Order
-                            </DropdownItem> */}
-                            {order.status === "in_progress" ? (
-                              <DropdownItem
-                                key="completed"
-                                className="text-success"
-                                color="success"
-                                startContent={
-                                  <CheckSquare className="w-4 h-4" />
-                                }
-                                onPress={() => handleMarkAsRfu(order)}
-                              >
-                                Mark as RFU
-                              </DropdownItem>
-                            ) : null}
-                            {order.status === "pending" ? (
-                              <DropdownItem
-                                key="in-progress"
-                                className="text-warning"
-                                color="warning"
-                                startContent={<Clock className="w-4 h-4" />}
-                                onPress={() => handleMarkAsInProgress(order)}
-                              >
-                                Mark as In Progress
-                              </DropdownItem>
+                            
+                            {(session?.user?.role === "super_admin" || 
+                              session?.user?.role === "admin_heavy" || 
+                              session?.user?.role === "pengawas" || 
+                              session?.user?.role === "mekanik") ? (
+                              <>
+                                {order.status === "in_progress" ? (
+                                  <DropdownItem
+                                    key="completed"
+                                    className="text-success"
+                                    color="success"
+                                    startContent={
+                                      <CheckSquare className="w-4 h-4" />
+                                    }
+                                    onPress={() => handleMarkAsRfu(order)}
+                                  >
+                                    Mark as RFU
+                                  </DropdownItem>
+                                ) : null}
+                                {order.status === "pending" ? (
+                                  <DropdownItem
+                                    key="in-progress"
+                                    className="text-warning"
+                                    color="warning"
+                                    startContent={<Clock className="w-4 h-4" />}
+                                    onPress={() => handleMarkAsInProgress(order)}
+                                  >
+                                    Mark as In Progress
+                                  </DropdownItem>
+                                ) : null}
+                              </>
                             ) : null}
 
                             {session?.user?.role === "super_admin" ? (

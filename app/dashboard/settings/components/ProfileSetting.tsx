@@ -159,6 +159,7 @@ export default function ProfileSetting({ profile }: { profile: any }) {
                   <Input
                     disabled
                     label="Nama Lengkap"
+                    labelPlacement="outside-top"
                     placeholder="Enter your name"
                     size="sm"
                     value={name}
@@ -169,6 +170,7 @@ export default function ProfileSetting({ profile }: { profile: any }) {
                   <Input
                     disabled
                     label="Department"
+                    labelPlacement="outside-top"
                     placeholder="Enter your department"
                     size="sm"
                     value={department}
@@ -208,6 +210,7 @@ export default function ProfileSetting({ profile }: { profile: any }) {
                   disabled
                   label="Email"
                   placeholder="your@email.com"
+                  labelPlacement="outside-top"
                   size="sm"
                   startContent={<Mail className="w-4 h-4 text-default-400" />}
                   value={email}
@@ -218,6 +221,7 @@ export default function ProfileSetting({ profile }: { profile: any }) {
                 <Input
                   color="success"
                   label="Telp"
+                  labelPlacement="outside-top"
                   maxLength={16}
                   pattern="^\+?[0-9]{0,15}$"
                   placeholder="+62 xxx xxxx xxxx"
@@ -225,6 +229,8 @@ export default function ProfileSetting({ profile }: { profile: any }) {
                   startContent={<Phone className="w-4 h-4 text-default-400" />}
                   type="tel"
                   value={phone}
+                  style={{ outline: "none" }}
+                  onFocus={(e) => (e.target.style.outline = "none")}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                     let value = e.target.value;
 
@@ -242,11 +248,12 @@ export default function ProfileSetting({ profile }: { profile: any }) {
 
             {/* Location Information */}
             <div className="mt-4 space-y-3">
-              <h4 className="font-semibold text-default-700">Location</h4>
+              {/* <h4 className="font-semibold text-default-700">Location</h4> */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <Input
                   disabled
                   label="Lokasi"
+                  labelPlacement="outside-top"
                   placeholder="Enter your location"
                   size="sm"
                   startContent={<MapPin className="w-4 h-4 text-default-400" />}

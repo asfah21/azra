@@ -233,6 +233,141 @@ export async function deleteUser(id: string, currentUserRole?: string) {
   }
 }
 
+export async function importUsersFromExcel(
+  prevState: any,
+  formData: FormData,
+) {
+  try {
+    const excelDataJson = formData.get("excelData") as string;
+    const createdById = formData.get("createdById") as string;
+
+    if (!excelDataJson || !createdById) {
+      return {
+        success: false,
+        message: "Data Excel atau User ID tidak ditemukan!",
+      };
+    }
+
+    const excelData = JSON.parse(excelDataJson) as any[];
+
+    if (!Array.isArray(excelData) || excelData.length === 0) {
+      return {
+        success: false,
+        message: "Data Excel kosong atau format tidak valid!",
+      };
+    }
+
+    // Validasi user exists
+    const userExists = await prisma.user.findUnique({
+      where: { id: createdById },
+    });
+
+    if (!userExists) {
+      return {
+        success: false,
+        message: "User tidak ditemukan!",
+      };
+    }
+
+    // Hash password jika ada, lalu buat user satu per satu
+    await Promise.all(
+      excelData.map(async (row) => {
+        const hashedPassword =
+          row.password && row.password.trim() !== ""
+            ? await bcrypt.hash(row.password, 10)
+            : undefined;
+
+        await prisma.user.create({
+          data: {
+            name: row.name,
+            email: row.email,
+            password: hashedPassword || "",
+            role: row.role,
+            department: row.department,
+          },
+        });
+      })
+    );
+
+    revalidatePath("/dashboard/users");
+
+    return {
+      success: true,
+      message: "Data users berhasil diimpor!",
+    };
+  } catch (error) {
+    console.error("Error importing users from Excel:", error);
+    return {
+      success: false,
+      message: "Terjadi kesalahan saat mengimpor data users dari Excel.",
+    };
+  }
+}
+
+// export async function importUsersFromExcel(
+//   prevState:any,
+//   formData:FormData,
+// ) {
+//   try {
+//     const excelDataJson = formData.get("excelData") as string;
+//     const createdById = formData.get("createdById") as string;
+
+//     if (!excelDataJson || !createdById) {
+//       return {
+//         success: false,
+//         message: "Data Excel atau User ID tidak ditemukan!",
+//       };
+//     }
+
+//     const excelData = JSON.parse(excelDataJson) as any[];
+
+//     if (!Array.isArray(excelData) || excelData.length === 0) {
+//       return {
+//         success: false,
+//         message: "Data Excel kosong atau format tidak valid!",
+//       };
+//     }
+
+//     // Validasi user exists
+//     const userExists = await prisma.user.findUnique({
+//       where: { id: createdById },
+//     });
+
+//     if (!userExists) {
+//       return {
+//         success: false,
+//         message: "User tidak ditemukan!",
+//       };
+//     }
+
+//     // Simpan data ke database
+//     const usersToCreate = excelData.map((row) => ({
+//       name: row.name,
+//       email: row.email,
+//       password: row.password,
+//       role: row.role,
+//       department: row.department,
+//     }));
+
+//     await prisma.user.createMany({
+//       data: usersToCreate,
+//     });
+
+//     revalidatePath("/dashboard/users");
+
+//     return {
+//       success: true,
+//       message: "Data users berhasil diimpor!",
+//     };
+//   } catch (error) {
+//     console.error("Error importing users from Excel:", error);
+//     return {
+//       success: false,
+//       message: "Terjadi kesalahan saat mengimpor data users dari Excel.",
+//     };
+//   }
+// }
+
 // export async function getUsersData() {
 //   try {
 //     const allUsers = await prisma.user.findMany({

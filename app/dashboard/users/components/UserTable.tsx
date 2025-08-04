@@ -8,7 +8,7 @@ import {
   Pagination,
 } from "@heroui/react";
 import { useRouter } from "next/navigation";
-import { useSession } from "next-auth/react";
+import { useSession, } from "next-auth/react";
 import {
   Card,
   CardHeader,
@@ -38,13 +38,17 @@ import {
   Search,
   ChevronUp,
   ChevronDown,
+  Upload,
+  Download,
 } from "lucide-react";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
+import * as XLSX from "xlsx";
 
 import { AddUserForms } from "./AddUserForm";
 import UserDetailModal from "./UserDetailModal";
 import { EditUserModal } from "./EditUserModal";
 import { DeleteConfirmModal } from "./DeleteConfirmModal";
+import { ImportUserModal } from "./ImportUserModal";
 
 interface User {
   id: string;
@@ -162,6 +166,12 @@ export default function UserTables({ usersTable }: UserManagementClientProps) {
     onDeleteOpenChange();
   };
 
+  const {
+    isOpen: isImportOpen,
+    onOpen: onImportOpen,
+    onOpenChange: onImportOpenChange,
+  } = useDisclosure();
+
   // Filter data berdasarkan search query
   const filteredData = useMemo(() => {
     if (!searchQuery.trim()) {
@@ -192,6 +202,61 @@ export default function UserTables({ usersTable }: UserManagementClientProps) {
       setSortDirection("asc");
     }
   };
+
+  // Callback untuk import complete
+  const handleUsersImported = () => {
+    // Refresh the user list after import
+    router.refresh();
+    onImportOpenChange();
+  };
+
+  // Callback untuk import complete
+  const handleAssetsImported = useCallback(() => {
+    router.refresh();
+    onImportOpenChange();
+  }, [router, onImportOpenChange]);
+
+  // Fungsi untuk export data ke Excel
+  const handleExportToExcel = useCallback(() => {
+    // Buat map untuk users lookup
+    const usersMap = new Map(usersTable.map((user) => [user.id, user.name]));
+
+    // Siapkan data untuk export
+    const exportData = filteredData.map((user, index) => ({      
+      "No": index + 1, // Menambahkan nomor urut mulai dari 1
+      // "User ID": user.id,
+      "Name": user.name,
+      "Email": user.email,
+      "Role": user.role,
+      "Department": user.department,
+      "Last Active": formatLastActive(user.lastActive),
+      // "Photo": user.photo,
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(exportData);
+
+    const columnWidths = [
+      { wch: 5 }, // No
+      { wch: 20 }, // Name
+      { wch: 25 }, // Email
+      { wch: 15 }, // Role
+      { wch: 12 }, // Department
+      { wch: 12 }, // Last Active
+    ];
+
+    ws["!cols"] = columnWidths;
+
+    const wb = XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(wb, ws, "Users");
+
+    // Generate nama file dengan timestamp
+    const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, "-");
+    const fileName = `users_${timestamp}.xlsx`;
+
+    // Download file
+    XLSX.writeFile(wb, fileName);
+  }, [filteredData, usersTable]);
 
   const SortIcon = ({
     active,
@@ -352,7 +417,33 @@ export default function UserTables({ usersTable }: UserManagementClientProps) {
               value={searchQuery}
               variant="flat"
               onValueChange={handleSearchChange}
+              style={{ outline: "none" }}
+              onFocus={(e) => (e.target.style.outline = "none")}
             />
+
+            <Button
+              className="flex-1 sm:flex-none"
+              color="success"
+              size="sm"
+              startContent={<Upload className="w-4 h-4" />}
+              variant="flat"
+              onPress={handleExportToExcel}
+            >
+              Export
+            </Button>
+            
+            {session?.user?.role === "super_admin" ? (
+            <Button
+              className="flex-1 sm:flex-none"
+              color="warning"
+              size="sm"
+              startContent={<Download className="w-4 h-4" />}
+              variant="flat"
+              onPress={onImportOpen}
+            >
+              Import
+            </Button>
+            ) : null}
             {/* <Button
               className="flex-1 sm:flex-none"
               color="default"
@@ -395,6 +486,8 @@ export default function UserTables({ usersTable }: UserManagementClientProps) {
               value={searchQuery}
               variant="flat"
               onValueChange={handleSearchChange}
+              style={{ outline: "none" }}
+              onFocus={(e) => (e.target.style.outline = "none")}
             />
           </div>
           <div className="overflow-x-auto">
@@ -639,6 +732,26 @@ export default function UserTables({ usersTable }: UserManagementClientProps) {
         onClose={onDeleteOpenChange}
         onUserDeleted={handleUserDeleted}
       />
+
+      {/* Modal Import Asset */}
+      <div className="mx-4">
+        <Modal
+          isOpen={isImportOpen}
+          placement="top-center"
+          size="4xl"
+          onOpenChange={onImportOpenChange}
+        >
+          <ModalContent>
+            {(onClose) => (
+              <ImportUserModal
+                users={selectedUser ? [{ id: selectedUser.id, name: selectedUser.name }] : []}
+                onUsersImported={handleUsersImported}
+                onClose={onClose}
+              />
+            )}
+          </ModalContent>
+        </Modal>
+      </div>
     </>
   );
 }

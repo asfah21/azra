@@ -291,11 +291,11 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
               {(item) => (
                 <AutocompleteItem
                   key={item.id}
-                  textValue={`${item.name} (${item.email})`}
+                  textValue={`${item.name}`}
                 >
                   <div className="flex flex-col">
                     <span>{item.name}</span>
-                    <span className="text-xs text-gray-500">{item.email}</span>
+                    {/* <span className="text-xs text-gray-500">{item.email}</span> */}
                   </div>
                 </AutocompleteItem>
               )}
