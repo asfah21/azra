@@ -1,3 +1,6 @@
+"use client";
+
+import { motion } from "framer-motion";
 import {
   SiNextdotjs,
   SiTypescript,
@@ -7,113 +10,127 @@ import {
 } from "react-icons/si";
 import { BiLogoPostgresql } from "react-icons/bi";
 
+const fadeIn = {
+  hidden: { opacity: 0, y: 30 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.5,
+      ease: "easeOut",
+      delayChildren: 0.2,
+      staggerChildren: 0.1,
+    },
+  },
+};
+
 export default function BuildWith() {
   return (
-    // <section className="px-6 md:px-20 relative z-10 flex flex-col text-center w-full mt-16 lg:mt-44 overflow-hidden">
-    <section className="relative z-10 flex flex-col gap-2 w-full text-center mt-24 lg:mt-32">
-      <h3 className="mb-8 text-large text-default-500">
+    <motion.section
+      className="relative z-10 flex flex-col gap-2 w-full text-center mt-24 lg:mt-32"
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, amount: 0.3 }}
+      variants={fadeIn}
+    >
+      <motion.h3
+        className="mb-8 text-large text-default-500"
+        variants={fadeIn}
+      >
         A full-stack application built with
-      </h3>
-      <div className="w-full flex flex-wrap gap-x-5 gap-y-3 justify-center items-center">
+      </motion.h3>
+
+      <motion.div
+        className="w-full flex flex-wrap gap-x-5 gap-y-3 justify-center items-center"
+        variants={fadeIn}
+      >
         <div className="flex flex-wrap justify-center gap-x-5 gap-y-4 sm:flex-nowrap sm:gap-x-8">
-          {/* Next.js - Black theme */}
-          <a
-            className="relative tap-highlight-transparent outline-none data-[focus-visible=true]:z-10 data-[focus-visible=true]:outline-2 data-[focus-visible=true]:outline-focus data-[focus-visible=true]:outline-offset-2 no-underline transition-all duration-300 flex flex-col items-center justify-center p-4 rounded-xl hover:bg-black/5 hover:shadow-lg hover:scale-105 group"
-            href="https://nextjs.org/"
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            <SiNextdotjs
-              className="text-black dark:text-white transition-colors duration-300 group-hover:scale-110"
-              size={48}
-            />
-            <span className="text-xs font-medium text-gray-600 dark:text-gray-400 mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-              Next.js
-            </span>
-          </a>
-
-          {/* TypeScript - Blue theme */}
-          <a
-            className="relative tap-highlight-transparent outline-none data-[focus-visible=true]:z-10 data-[focus-visible=true]:outline-2 data-[focus-visible=true]:outline-focus data-[focus-visible=true]:outline-offset-2 no-underline transition-all duration-300 flex flex-col items-center justify-center p-4 rounded-xl hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:shadow-lg hover:scale-105 group"
-            href="https://www.typescriptlang.org/"
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            <SiTypescript
-              className="text-blue-600 dark:text-blue-400 transition-all duration-300 group-hover:scale-110 group-hover:text-blue-700 dark:group-hover:text-blue-300"
-              size={48}
-            />
-            <span className="text-xs font-medium text-blue-600 dark:text-blue-400 mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-              TypeScript
-            </span>
-          </a>
-
-          {/* NextUI - Purple theme */}
-          <a
-            className="relative tap-highlight-transparent outline-none data-[focus-visible=true]:z-10 data-[focus-visible=true]:outline-2 data-[focus-visible=true]:outline-focus data-[focus-visible=true]:outline-offset-2 no-underline transition-all duration-300 flex flex-col items-center justify-center p-4 rounded-xl hover:bg-purple-50 dark:hover:bg-purple-900/20 hover:shadow-lg hover:scale-105 group"
-            href="https://www.heroui.com/"
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            <SiNextui
-              className="text-purple-600 dark:text-purple-400 transition-all duration-300 group-hover:scale-110 group-hover:text-purple-700 dark:group-hover:text-purple-300"
-              size={48}
-            />
-            <span className="text-xs font-medium text-purple-600 dark:text-purple-400 mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-              HeroUI
-            </span>
-          </a>
-
-          {/* Tailwind CSS - Cyan theme */}
-          <a
-            className="relative tap-highlight-transparent outline-none data-[focus-visible=true]:z-10 data-[focus-visible=true]:outline-2 data-[focus-visible=true]:outline-focus data-[focus-visible=true]:outline-offset-2 no-underline transition-all duration-300 flex flex-col items-center justify-center p-4 rounded-xl hover:bg-cyan-50 dark:hover:bg-cyan-900/20 hover:shadow-lg hover:scale-105 group"
-            href="https://tailwindcss.com/"
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            <SiTailwindcss
-              className="text-cyan-500 dark:text-cyan-400 transition-all duration-300 group-hover:scale-110 group-hover:text-cyan-600 dark:group-hover:text-cyan-300"
-              size={48}
-            />
-            <span className="text-xs font-medium text-cyan-500 dark:text-cyan-400 mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-              Tailwind CSS
-            </span>
-          </a>
-
-          {/* PostgreSQL - Green theme with text */}
-          <a
-            className="relative tap-highlight-transparent outline-none data-[focus-visible=true]:z-10 data-[focus-visible=true]:outline-2 data-[focus-visible=true]:outline-focus data-[focus-visible=true]:outline-offset-2 no-underline transition-all duration-300 flex flex-col items-center justify-center p-4 rounded-xl hover:bg-cyan-50 dark:hover:bg-cyan-900/20 hover:shadow-lg hover:scale-105 group"
-            href="https://postgresql.org/"
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            <BiLogoPostgresql
-              className="text-[#699eca] dark:text-[#699eca] transition-all duration-300 group-hover:scale-110 group-hover:text-[#699eca] dark:group-hover:text-[#699eca]"
-              size={52}
-            />
-            <span className="text-xs font-medium text-[#699eca] dark:text-[#699eca] mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-              {/* <span className="text-sm font-medium text-green-700 dark:text-green-300 transition-colors duration-300 group-hover:text-green-800 dark:group-hover:text-green-200"> */}
-              PostgreSQL
-            </span>
-          </a>
-
-          {/* Prisma - Indigo/Dark theme */}
-          <a
-            className="relative tap-highlight-transparent outline-none data-[focus-visible=true]:z-10 data-[focus-visible=true]:outline-2 data-[focus-visible=true]:outline-focus data-[focus-visible=true]:outline-offset-2 no-underline transition-all duration-300 flex flex-col items-center justify-center p-4 rounded-xl hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:shadow-lg hover:scale-105 group"
-            href="https://prisma.io"
-            rel="noopener noreferrer"
-            target="_blank"
-          >
-            <SiPrisma
-              className="text-indigo-700 dark:text-indigo-300 transition-all duration-300 group-hover:scale-110 group-hover:text-indigo-800 dark:group-hover:text-indigo-200"
-              size={43}
-            />
-            <span className="text-xs font-medium text-indigo-700 dark:text-indigo-300 mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-              Prisma
-            </span>
-          </a>
+          {[
+            {
+              href: "https://nextjs.org/",
+              icon: (
+                <SiNextdotjs
+                  className="text-black dark:text-white transition-colors duration-300 group-hover:scale-110"
+                  size={48}
+                />
+              ),
+              label: "Next.js",
+              className: "text-gray-600 dark:text-gray-400",
+            },
+            {
+              href: "https://www.typescriptlang.org/",
+              icon: (
+                <SiTypescript
+                  className="text-blue-600 dark:text-blue-400 transition-all duration-300 group-hover:scale-110 group-hover:text-blue-700 dark:group-hover:text-blue-300"
+                  size={48}
+                />
+              ),
+              label: "TypeScript",
+              className: "text-blue-600 dark:text-blue-400",
+            },
+            {
+              href: "https://www.heroui.com/",
+              icon: (
+                <SiNextui
+                  className="text-purple-600 dark:text-purple-400 transition-all duration-300 group-hover:scale-110 group-hover:text-purple-700 dark:group-hover:text-purple-300"
+                  size={48}
+                />
+              ),
+              label: "HeroUI",
+              className: "text-purple-600 dark:text-purple-400",
+            },
+            {
+              href: "https://tailwindcss.com/",
+              icon: (
+                <SiTailwindcss
+                  className="text-cyan-500 dark:text-cyan-400 transition-all duration-300 group-hover:scale-110 group-hover:text-cyan-600 dark:group-hover:text-cyan-300"
+                  size={48}
+                />
+              ),
+              label: "Tailwind CSS",
+              className: "text-cyan-500 dark:text-cyan-400",
+            },
+            {
+              href: "https://postgresql.org/",
+              icon: (
+                <BiLogoPostgresql
+                  className="text-[#699eca] dark:text-[#699eca] transition-all duration-300 group-hover:scale-110 group-hover:text-[#699eca] dark:group-hover:text-[#699eca]"
+                  size={52}
+                />
+              ),
+              label: "PostgreSQL",
+              className: "text-[#699eca] dark:text-[#699eca]",
+            },
+            {
+              href: "https://prisma.io",
+              icon: (
+                <SiPrisma
+                  className="text-indigo-700 dark:text-indigo-300 transition-all duration-300 group-hover:scale-110 group-hover:text-indigo-800 dark:group-hover:text-indigo-200"
+                  size={43}
+                />
+              ),
+              label: "Prisma",
+              className: "text-indigo-700 dark:text-indigo-300",
+            },
+          ].map((tech, i) => (
+            <motion.a
+              key={i}
+              href={tech.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="relative tap-highlight-transparent outline-none data-[focus-visible=true]:z-10 data-[focus-visible=true]:outline-2 data-[focus-visible=true]:outline-focus data-[focus-visible=true]:outline-offset-2 no-underline transition-all duration-300 flex flex-col items-center justify-center p-4 rounded-xl hover:shadow-lg hover:scale-105 group"
+              variants={fadeIn}
+            >
+              {tech.icon}
+              <span
+                className={`text-xs font-medium mt-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 ${tech.className}`}
+              >
+                {tech.label}
+              </span>
+            </motion.a>
+          ))}
         </div>
-      </div>
-    </section>
+      </motion.div>
+    </motion.section>
   );
 }

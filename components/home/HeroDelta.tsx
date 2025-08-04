@@ -5,8 +5,27 @@ import {
 } from "@heroicons/react/24/outline";
 import { Button, Link, Card, CardHeader, CardBody } from "@heroui/react";
 import { SiSmart, SiViaplay } from "react-icons/si";
-
+import { motion } from "framer-motion";
 import { HeroBgDelta } from "./HeroBg";
+
+// Motion variants
+const fadeIn = {
+  hidden: { opacity: 0, y: 30 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.5, ease: "easeOut" },
+  },
+};
+
+const staggerContainer = {
+  hidden: {},
+  visible: {
+    transition: {
+      staggerChildren: 0.15,
+    },
+  },
+};
 
 export const ArrowRightEndOnRectangleIcon = ({ size = 20, ...props }) => {
   return <Azvan height={size} width={size} {...props} />;
@@ -33,9 +52,18 @@ export default function HeroDelta() {
   ];
 
   return (
-    <section className="px-6 md:px-20 relative z-10 flex-col gap-2 bg-transparent dark:bg-transparent before:bg-background/10 before:content-[''] before:block before:z-[-1] before:absolute before:inset-0 before:backdrop-blur-md before:backdrop-saturate-200 border-t border-b border-divider w-full flex justify-center items-center mt-16 lg:mt-44">
+    <motion.section
+      className="px-6 md:px-20 relative z-10 flex-col gap-2 bg-transparent dark:bg-transparent before:bg-background/10 before:content-[''] before:block before:z-[-1] before:absolute before:inset-0 before:backdrop-blur-md before:backdrop-saturate-200 border-t border-b border-divider w-full flex justify-center items-center mt-16 lg:mt-44"
+      variants={staggerContainer}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, amount: 0.3 }}
+    >
       <div className=" w-full max-w-7xl py-10 grid grid-cols-12 gap-6 md:gap-0 z-20">
-        <div className="flex flex-col gap-2 col-span-12 md:col-span-6">
+        <motion.div
+          className="flex flex-col gap-2 col-span-12 md:col-span-6"
+          variants={fadeIn}
+        >
           <div className="flex flex-col">
             <h1 className="tracking-tight font-semibold text-[clamp(1rem,10vw,2rem)] sm:text-[clamp(1rem,10vw,3rem)] lg:text-5xl inline">
               Streamline Your
@@ -63,11 +91,15 @@ export default function HeroDelta() {
               Get Started
             </Button>
           </div>
-        </div>
-        <div className="col-span-12 md:col-span-6">
+        </motion.div>
+
+        <motion.div
+          className="col-span-12 md:col-span-6"
+          variants={staggerContainer}
+        >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:grid-cols-2">
             {features.map((feature, index) => (
-              <div key={index} className="flex gap-x-4 items-center">
+              <motion.div key={index} className="flex gap-x-4 items-center" variants={fadeIn}>
                 <Card
                   isPressable
                   as={Link}
@@ -87,12 +119,12 @@ export default function HeroDelta() {
                     <p>{feature.description}</p>
                   </CardBody>
                 </Card>
-              </div>
+              </motion.div>
             ))}
           </div>
-        </div>
+        </motion.div>
       </div>
       <HeroBgDelta />
-    </section>
+    </motion.section>
   );
 }

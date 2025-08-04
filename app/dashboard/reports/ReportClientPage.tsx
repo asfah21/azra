@@ -42,9 +42,12 @@ const fetchRecentActivities = async ({
     limit: limit.toString(),
   });
 
-  const response = await axios.get<ApiResponse>(
+    const response = await axios.get<ApiResponse>(
     `/api/dashboard/recent-activities?${params}`,
   );
+
+  // Log data yang diterima dari API
+  console.log('API Response:', response.data);
 
   return response.data;
 };

@@ -1,4 +1,5 @@
-// import { Zap } from "lucide-react";
+"use client";
+
 import {
   RiAdminFill,
   RiAedFill,
@@ -7,82 +8,88 @@ import {
   RiGlobalFill,
   RiTimerFlashFill,
 } from "react-icons/ri";
+import { motion } from "framer-motion";
+
+const fadeIn = {
+  hidden: { opacity: 0, y: 40 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.6,
+      ease: "easeOut",
+    },
+  },
+};
+
+const staggerContainer = {
+  hidden: {},
+  visible: {
+    transition: {
+      staggerChildren: 0.15,
+    },
+  },
+};
 
 export default function HeroAlpha() {
   const features = [
-    { title: "Managed focus", icon: <RiFocus2Fill size={24} /> },
-    { title: "Real-time data", icon: <RiTimerFlashFill size={24} /> },
-    { title: "Optimize Performance", icon: <RiAedFill size={24} /> },
-    { title: "Role-based access", icon: <RiAdminFill size={24} /> },
-    { title: "Consistent UI patterns", icon: <RiBlueskyFill size={24} /> },
-    { title: "Accessible from everywhere", icon: <RiGlobalFill size={24} /> },
+    { title: "Managed focus", icon: <RiFocus2Fill size={22} /> },
+    { title: "Real-time data", icon: <RiTimerFlashFill size={22} /> },
+    { title: "Optimize Performance", icon: <RiAedFill size={22} /> },
+    { title: "Role-based access", icon: <RiAdminFill size={22} /> },
+    { title: "Consistent UI patterns", icon: <RiBlueskyFill size={22} /> },
+    { title: "Accessible from everywhere", icon: <RiGlobalFill size={22} /> },
   ];
 
   return (
-    <section className="px-6 md:px-20 relative flex flex-col gap-2 w-full z-20 mt-16 lg:mt-32">
-      <div className="flex flex-col gap-8">
-        <div aria-hidden="true">
-          <div className="flex flex-col gap-2 items-start justify-center w-full">
-            <h1 className="tracking-tight inline font-semibold text-4xl lg:text-6xl">
-              Integrated
-            </h1>
-            <div>
-              <h1 className="tracking-tight inline font-semibold from-[#6FEE8D] to-[#17c964] text-4xl lg:text-6xl bg-clip-text text-transparent bg-gradient-to-b">
-                Work Order&nbsp;
-              </h1>
-              {/* <h1 className="tracking-tight inline font-semibold text-4xl lg:text-6xl">
-                System.
-              </h1> */}
-            </div>
-          </div>
-          <p className="w-full md:w-1/2 my-2 text-medium lg:text-large font-normal text-default-500 block max-w-full">
-            Our Work Order dashboard is designed with operational efficiency and
-            accessibility in mind — helping every user monitor and manage tasks
-            effortlessly.
-            {/* &nbsp;ensuring exceptional accessibility support as a top priority. */}
-          </p>
+    <motion.section
+      className="px-6 md:px-20 relative flex flex-col gap-10 w-full z-20 mt-16 lg:mt-32"
+      variants={staggerContainer}
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, amount: 0.3 }}
+    >
+      <motion.div className="flex flex-col gap-6" variants={fadeIn}>
+        <div className="flex flex-col gap-2 items-start justify-center">
+          <h1 className="tracking-tight font-semibold text-4xl lg:text-6xl">
+            Integrated
+          </h1>
+          <h1 className="tracking-tight font-semibold text-4xl lg:text-6xl bg-clip-text text-transparent bg-gradient-to-b from-[#6FEE8D] to-[#17c964]">
+            Work Order&nbsp;
+          </h1>
         </div>
+        <p className="w-full md:w-1/2 text-medium lg:text-large text-default-500">
+          Our Work Order dashboard is designed with operational efficiency and
+          accessibility in mind — helping every user monitor and manage tasks
+          effortlessly.
+        </p>
+      </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-1 gap-4">
-          <div className="flex flex-col mt-8 lg:mt-12 gap-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-4">
-              {features.map((feature, index) => (
-                <div
-                  key={index}
-                  className="flex flex-col relative overflow-hidden h-auto text-foreground box-border outline-none data-[focus-visible=true]:z-10 data-[focus-visible=true]:outline-2 data-[focus-visible=true]:outline-focus data-[focus-visible=true]:outline-offset-2 shadow-medium rounded-large transition-transform-background motion-reduce:transition-none border-transparent backdrop-blur-lg backdrop-saturate-[1.8] bg-white dark:bg-default-400/10"
-                >
-                  <div className="flex p-3 z-10 w-full justify-start items-center shrink-0 overflow-inherit color-inherit subpixel-antialiased rounded-t-large gap-2 pb-3">
-                    <div className="flex justify-center p-2 rounded-full items-center bg-default-100 dark:bg-transparent text-default-500/50">
-                      {feature.icon}
-                    </div>
-                    <p className="text-base font-semibold">{feature.title}</p>
-                  </div>
-                </div>
-              ))}
+      <motion.div
+        className="grid grid-cols-1 md:grid-cols-2 gap-4"
+        variants={staggerContainer}
+      >
+        {features.map((feature, index) => (
+          <motion.div key={index} variants={fadeIn}>
+            <div className="group relative flex items-center gap-3 p-4 rounded-xl transition-all duration-500 border border-default-200 dark:border-default-100/20 bg-white/70 dark:bg-white/5 hover:bg-white/90 dark:hover:bg-white/10 shadow-lg">
+              <div className="flex items-center justify-center p-2 rounded-full bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-300 transition-transform duration-500 group-hover:scale-110">
+                {feature.icon}
+              </div>
+              <p className="text-base font-medium">{feature.title}</p>
             </div>
-            <a
-              aria-label="Learn more about accessibility"
-              className="z-0 group relative inline-flex items-center justify-center box-border appearance-none select-none whitespace-nowrap font-normal subpixel-antialiased overflow-hidden tap-highlight-transparent transform-gpu data-[pressed=true]:scale-[0.97] outline-none data-[focus-visible=true]:z-10 data-[focus-visible=true]:outline-2 data-[focus-visible=true]:outline-focus data-[focus-visible=true]:outline-offset-2 px-3 min-w-16 h-8 text-tiny gap-2 rounded-full [&amp;&gt;svg]:max-w-[theme(spacing.8)] transition-transform-colors-opacity motion-reduce:transition-none bg-success/20 text-success-700 dark:text-success data-[hover=true]:opacity-hover max-w-fit"
-              href="/dashboard"
-              role="button"
-            >
-              Learn more
-            </a>
-          </div>
-          {/* <div className="hidden lg:flex relative w-full bg-gradient-to-r from-[#4ADE80] to-[#06B6D4] rounded-2xl min-h-[390px] px-4 py-8 items-start justify-center">
-            <div className="relative h-full w-full">
-              <Image
-                alt="Work Order"
-                src="/wo-2.png"
-                fill
-                className="object-cover rounded-2xl"
-                sizes="(min-width: 1024px) 50vw, 0"
-                priority={false} // Tidak perlu prioritas karena hanya muncul di desktop
-              />
-            </div>
-          </div> */}
-        </div>
-      </div>
-    </section>
+          </motion.div>
+        ))}
+      </motion.div>
+
+      <motion.div className="flex flex-col items-start mt-4 gap-4" variants={fadeIn}>
+        <a
+          href="/dashboard"
+          className="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-success/20 text-success-700 dark:text-success hover:opacity-80 transition"
+        >
+          Learn more
+        </a>
+        <p className="text-xs text-default-400">Made with ❤️ by Alpha</p>
+      </motion.div>
+    </motion.section>
   );
 }

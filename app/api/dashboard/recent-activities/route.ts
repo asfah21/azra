@@ -60,8 +60,8 @@ export async function GET(req: NextRequest) {
             select: {
               id: true,
               breakdownNumber: true,
-              reportedBy: { select: { name: true } },
-              inProgressBy: { select: { name: true } },
+              reportedBy: { select: { id: true, name: true, photo: true } },
+              inProgressBy: { select: { id: true, name: true, photo: true } },
             },
           })
         : [];
@@ -78,7 +78,7 @@ export async function GET(req: NextRequest) {
       userIds.length > 0
         ? await prisma.user.findMany({
             where: { id: { in: userIds } },
-            select: { id: true, name: true },
+            select: { id: true, name: true, photo: true },
           })
         : [];
 
@@ -90,11 +90,13 @@ export async function GET(req: NextRequest) {
       let userName = "System";
       let action = activity.message;
       let typeLabel = "default";
+      let userPhoto = null;
 
       switch (activity.logType) {
         case "breakdown":
           typeLabel = "breakdown";
           userName = breakdown?.reportedBy?.name || "Unknown User";
+          userPhoto = breakdown?.reportedBy?.photo || null;
           break;
         case "status_update":
           typeLabel = "workorder";
@@ -102,10 +104,15 @@ export async function GET(req: NextRequest) {
             breakdown?.inProgressBy?.name ||
             breakdown?.reportedBy?.name ||
             "Unknown User";
+          userPhoto =
+            breakdown?.inProgressBy?.photo ||
+            breakdown?.reportedBy?.photo ||
+            null;
           break;
         case "asset_created":
           typeLabel = "asset";
           userName = userObj?.name || "Admin";
+          userPhoto = userObj?.photo || null;
           break;
         case "unit_status_change":
           typeLabel = "maintenance";
@@ -146,16 +153,22 @@ export async function GET(req: NextRequest) {
         });
       }
 
+      // const finalAvatar = userPhoto || `https://i.pravatar.cc/150?u=${index + 1}`;
+      const finalAvatar = userPhoto || "";
+
       return {
         id: activity.id,
         user: userName,
         action: action,
         time: timeText,
-        avatar: `https://i.pravatar.cc/150?u=${index + 1}`,
-        type: type,
+        avatar: finalAvatar,
+        type: typeLabel,
         createdAt: activity.createdAt,
       };
     });
+
+    // Log data yang akan dikembalikan untuk debugging
+    console.log('Formatted activities with avatars:', JSON.stringify(formattedActivities, null, 2));
 
     return NextResponse.json({
       success: true,

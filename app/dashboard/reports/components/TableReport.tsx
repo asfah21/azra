@@ -16,6 +16,7 @@ import {
   TableRow,
   TableCell,
   User,
+  Avatar,
 } from "@heroui/react";
 import {
   Activity,
@@ -36,18 +37,22 @@ import {
   startTransition,
 } from "react";
 
+import { useProfile } from "@/app/context/ProfileContext";
+
 import { TableReportSkeletons } from "@/components/ui/skeleton";
 
+interface ActivityItem {
+  id: string;
+  user: string;
+  action: string;
+  time: string;
+  avatar: string;
+  type: string;
+  createdAt: Date;
+}
+
 interface TableReportProps {
-  recentActivities: Array<{
-    id: string;
-    user: string;
-    action: string;
-    time: string;
-    avatar: string;
-    type: string;
-    createdAt: Date;
-  }>;
+  recentActivities: ActivityItem[];
   loading?: boolean;
   error?: string | null;
   onRetry?: () => void;
@@ -81,6 +86,9 @@ export default function TableReport({
       setSearchQuery(value);
     });
   }, []);
+
+  // Use Profile
+  const { profile } = useProfile();
 
   // Callback untuk pagination
   const handlePageChange = useCallback(
@@ -309,12 +317,34 @@ export default function TableReport({
                 {(activity: any) => (
                   <TableRow key={activity.id}>
                     <TableCell>
-                      <User
+                    <div className="flex items-center gap-2">
+                      {activity.user === "System" ? (
+                        <div className="p-2 rounded-full bg-secondary-200 flex-shrink-0">
+                          <Activity className="w-5 h-5 text-secondary-600" />
+                        </div>
+                      ) : (
+                        <Avatar
+                          src={activity.avatar || "undefined"}
+                          alt={activity.user}
+                          className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                        />
+                      )}
+
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-sm font-medium text-foreground truncate">
+                          {activity.user}
+                        </span>
+                        <span className="text-xs text-foreground-500 truncate">
+                          {activity.user === "System" ? "System" : "User"}
+                        </span>
+                      </div>
+                    </div>
+
+                      {/* <User
                         avatarProps={{
                           size: "sm",
                           src: activity.avatar || undefined,
-                          className:
-                            "w-8 h-8 rounded-full object-cover flex-shrink-0",
+                          className: "w-8 h-8 rounded-full object-cover flex-shrink-0",
                         }}
                         classNames={{
                           name: "text-sm font-medium text-foreground",
@@ -325,7 +355,7 @@ export default function TableReport({
                           activity.user === "System" ? "System" : "User"
                         }
                         name={activity.user}
-                      />
+                      /> */}
                     </TableCell>
                     <TableCell className="text-sm text-foreground">
                       <p className="truncate max-w-full">{activity.action}</p>
