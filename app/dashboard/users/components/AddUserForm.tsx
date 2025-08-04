@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect } from "react";
 import {
   ModalHeader,
   ModalBody,
@@ -8,8 +8,6 @@ import {
   Button,
   Card,
   CardBody,
-  SelectItem,
-  Select,
   Input,
   Autocomplete,
   AutocompleteItem,
@@ -67,18 +65,19 @@ export function AddUserForms({ onClose, onUserAdded }: AddUserFormProps) {
     if (session?.user?.role) {
       formData.append("currentUserRole", session.user.role);
     }
-    
+
     // Log form data for debugging
     const formDataObj: Record<string, any> = {};
+
     formData.forEach((value, key) => {
       formDataObj[key] = value;
     });
-    console.log('Form data being submitted:', formDataObj);
-    
+    console.log("Form data being submitted:", formDataObj);
+
     try {
       await formAction(formData);
     } catch (error) {
-      console.error('Error in form submission:', error);
+      console.error("Error in form submission:", error);
       throw error; // Re-throw to let the form handle the error
     }
   };
@@ -90,7 +89,7 @@ export function AddUserForms({ onClose, onUserAdded }: AddUserFormProps) {
     { label: "Pengawas", key: "pengawas" },
     { label: "Mekanik", key: "mekanik" },
     { label: "Guest", key: "guest" },
-  ]
+  ];
 
   return (
     <>
@@ -102,8 +101,8 @@ export function AddUserForms({ onClose, onUserAdded }: AddUserFormProps) {
         <form action={handleSubmit} className="space-y-4" id="addUserForm">
           <Input
             isRequired
-            labelPlacement="outside-top"
             label="Name"
+            labelPlacement="outside-top"
             name="name"
             placeholder="Enter user name"
             variant="bordered"
@@ -112,8 +111,8 @@ export function AddUserForms({ onClose, onUserAdded }: AddUserFormProps) {
 
           <Input
             isRequired
-            labelPlacement="outside-top"
             label="Email"
+            labelPlacement="outside-top"
             name="email"
             placeholder="Enter email address"
             type="email"
@@ -123,8 +122,8 @@ export function AddUserForms({ onClose, onUserAdded }: AddUserFormProps) {
 
           <Input
             isRequired
-            labelPlacement="outside-top"
             label="Password"
+            labelPlacement="outside-top"
             name="password"
             placeholder="Enter password"
             type="password"
@@ -136,8 +135,8 @@ export function AddUserForms({ onClose, onUserAdded }: AddUserFormProps) {
             defaultItems={userRoles}
             defaultSelectedKey="admin_heavy"
             label="User Roles"
-            name="role"
             labelPlacement="outside-top"
+            name="role"
             placeholder="Search user roles"
             style={{ outline: "none" }}
             variant="bordered"
@@ -189,7 +188,6 @@ export function AddUserForms({ onClose, onUserAdded }: AddUserFormProps) {
 
           <input type="hidden" name="role" value={selectedRole || ""} /> */}
 
-
           {/* <Select
             isRequired
             labelPlacement="outside"
@@ -203,8 +201,8 @@ export function AddUserForms({ onClose, onUserAdded }: AddUserFormProps) {
           </Select> */}
 
           <Input
-            labelPlacement="outside-top"
             label="Department"
+            labelPlacement="outside-top"
             name="department"
             placeholder="Enter department (optional)"
             variant="bordered"

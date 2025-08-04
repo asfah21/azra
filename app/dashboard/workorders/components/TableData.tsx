@@ -128,7 +128,6 @@ interface WoStatsCardsProps {
 }
 
 export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
-
   const { isOpen, onOpen, onOpenChange } = useDisclosure();
   const router = useRouter();
   const { data: session } = useSession();
@@ -140,7 +139,12 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
 
   // State untuk role
-  const allowedRolesToUpdateWO = ["super_admin", "admin_heavy", "pengawas", "mekanik"];
+  const allowedRolesToUpdateWO = [
+    "super_admin",
+    "admin_heavy",
+    "pengawas",
+    "mekanik",
+  ];
   const userRole = session?.user?.role;
 
   // State untuk modal RFU
@@ -496,11 +500,11 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
               placeholder="Search work orders..."
               size="sm"
               startContent={<Search className="w-4 h-4 text-default-400" />}
+              style={{ outline: "none" }}
               value={searchQuery}
               variant="flat"
-              onValueChange={handleSearchChange}
-              style={{ outline: "none" }}
               onFocus={(e) => (e.target.style.outline = "none")}
+              onValueChange={handleSearchChange}
             />
             {/* <Button
               className="flex-1 sm:flex-none"
@@ -530,11 +534,11 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
               placeholder="Search work orders..."
               size="sm"
               startContent={<Search className="w-4 h-4 text-default-400" />}
+              style={{ outline: "none" }}
               value={searchQuery}
               variant="flat"
-              onValueChange={handleSearchChange}
-              style={{ outline: "none" }}
               onFocus={(e) => (e.target.style.outline = "none")}
+              onValueChange={handleSearchChange}
             />
           </div>
           <div className="overflow-x-auto">
@@ -701,7 +705,7 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
                               <MoreVertical className="w-4 h-4" />
                             </Button>
                           </DropdownTrigger>
-                          <DropdownMenu>                          
+                          <DropdownMenu>
                             <DropdownItem
                               key="details"
                               startContent={<Eye className="w-4 h-4" />}
@@ -709,11 +713,11 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
                             >
                               View Details
                             </DropdownItem>
-                            
-                            {(session?.user?.role === "super_admin" || 
-                              session?.user?.role === "admin_heavy" || 
-                              session?.user?.role === "pengawas" || 
-                              session?.user?.role === "mekanik") ? (
+
+                            {session?.user?.role === "super_admin" ||
+                            session?.user?.role === "admin_heavy" ||
+                            session?.user?.role === "pengawas" ||
+                            session?.user?.role === "mekanik" ? (
                               <>
                                 {order.status === "in_progress" ? (
                                   <DropdownItem
@@ -734,7 +738,9 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
                                     className="text-warning"
                                     color="warning"
                                     startContent={<Clock className="w-4 h-4" />}
-                                    onPress={() => handleMarkAsInProgress(order)}
+                                    onPress={() =>
+                                      handleMarkAsInProgress(order)
+                                    }
                                   >
                                     Mark as In Progress
                                   </DropdownItem>

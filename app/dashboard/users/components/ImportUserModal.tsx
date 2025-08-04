@@ -113,7 +113,7 @@ export function ImportUserModal({
         "admin_elec",
         "pengawas",
         "mekanik",
-        "guest"
+        "guest",
       ];
 
       if (row.role && !validRoles.includes(row.role.toLowerCase())) {
@@ -123,12 +123,22 @@ export function ImportUserModal({
       }
 
       // Validasi condition
-      const validDepartments = ["HSE", "SCM", "PAM", "IT", "HR", "GA", "OPERATION"];
-      const departmentValue = String(row.department || '').trim().toUpperCase();
+      const validDepartments = [
+        "HSE",
+        "SCM",
+        "PAM",
+        "IT",
+        "HR",
+        "GA",
+        "OPERATION",
+      ];
+      const departmentValue = String(row.department || "")
+        .trim()
+        .toUpperCase();
 
       if (departmentValue && !validDepartments.includes(departmentValue)) {
         errors.push(
-          `Department "${row.department}" tidak valid. Harus salah satu dari: ${validDepartments.join(', ')}`,
+          `Department "${row.department}" tidak valid. Harus salah satu dari: ${validDepartments.join(", ")}`,
         );
       }
 
@@ -142,7 +152,7 @@ export function ImportUserModal({
           );
         }
       }
-      
+
       results.push({
         isValid: errors.length === 0,
         errors,

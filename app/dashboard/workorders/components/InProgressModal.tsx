@@ -11,7 +11,6 @@ import {
   CardBody,
   Autocomplete,
   AutocompleteItem,
-  Textarea,
 } from "@heroui/react";
 import { useState } from "react";
 
@@ -40,6 +39,7 @@ export default function InProgressModal({
   const handleConfirm = async () => {
     if (!unitStatus || !priority) {
       alert("Please complete all required fields.");
+
       return;
     }
 
@@ -96,16 +96,16 @@ export default function InProgressModal({
             <div className="space-y-4">
               <Autocomplete
                 isRequired
-                label="Priority"
-                name="priority"
-                labelPlacement="outside-top"
-                placeholder="Select priority"
-                variant="bordered"
-                selectedKey={priority}
-                onSelectionChange={(key) => setPriority(key as string)}
                 defaultItems={priorityList}
+                label="Priority"
+                labelPlacement="outside-top"
+                name="priority"
+                placeholder="Select priority"
+                selectedKey={priority}
                 style={{ outline: "none" }}
+                variant="bordered"
                 onFocus={(e) => (e.target.style.outline = "none")}
+                onSelectionChange={(key) => setPriority(key as string)}
               >
                 {(item) => (
                   <AutocompleteItem key={item.key}>
@@ -116,16 +116,16 @@ export default function InProgressModal({
 
               <Autocomplete
                 isRequired
-                label="Unit Status"
-                name="unitStatus"
-                labelPlacement="outside-top"
-                placeholder="Select unit status"
-                variant="bordered"
-                selectedKey={unitStatus}
-                onSelectionChange={(key) => setUnitStatus(key as string)}
                 defaultItems={unitStatusList}
+                label="Unit Status"
+                labelPlacement="outside-top"
+                name="unitStatus"
+                placeholder="Select unit status"
+                selectedKey={unitStatus}
                 style={{ outline: "none" }}
+                variant="bordered"
                 onFocus={(e) => (e.target.style.outline = "none")}
+                onSelectionChange={(key) => setUnitStatus(key as string)}
               >
                 {(item) => (
                   <AutocompleteItem key={item.key}>
@@ -133,7 +133,6 @@ export default function InProgressModal({
                   </AutocompleteItem>
                 )}
               </Autocomplete>
-
             </div>
           </div>
         </ModalBody>

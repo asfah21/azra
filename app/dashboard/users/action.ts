@@ -73,22 +73,22 @@ export async function addUsers(
     return { message: "User berhasil ditambahkan!" };
   } catch (error: any) {
     console.error("Error adding user:", error);
-    
+
     // Log detailed error information
     if (error instanceof Error) {
       console.error("Error name:", error.name);
       console.error("Error message:", error.message);
-      if ('code' in error) {
+      if ("code" in error) {
         console.error("Error code:", error.code);
       }
-      if ('meta' in error) {
+      if ("meta" in error) {
         console.error("Error meta:", error.meta);
       }
     }
 
     return {
       errors: {
-        general: `Terjadi kesalahan saat menambahkan user: ${error.message || 'Unknown error'}`,
+        general: `Terjadi kesalahan saat menambahkan user: ${error.message || "Unknown error"}`,
       },
     };
   }
@@ -233,10 +233,7 @@ export async function deleteUser(id: string, currentUserRole?: string) {
   }
 }
 
-export async function importUsersFromExcel(
-  prevState: any,
-  formData: FormData,
-) {
+export async function importUsersFromExcel(prevState: any, formData: FormData) {
   try {
     const excelDataJson = formData.get("excelData") as string;
     const createdById = formData.get("createdById") as string;
@@ -286,7 +283,7 @@ export async function importUsersFromExcel(
             department: row.department,
           },
         });
-      })
+      }),
     );
 
     revalidatePath("/dashboard/users");
@@ -297,6 +294,7 @@ export async function importUsersFromExcel(
     };
   } catch (error) {
     console.error("Error importing users from Excel:", error);
+
     return {
       success: false,
       message: "Terjadi kesalahan saat mengimpor data users dari Excel.",

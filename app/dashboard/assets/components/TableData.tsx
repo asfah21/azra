@@ -512,30 +512,30 @@ export default function TableDatas({
             >
               Export
             </Button>
-            
+
             {session?.user?.role === "super_admin" ? (
-            <Button
-              className="flex-1 sm:flex-none"
-              color="warning"
-              size="sm"
-              startContent={<Download className="w-4 h-4" />}
-              variant="flat"
-              onPress={onImportOpen}
-            >
-              Import
-            </Button>
+              <Button
+                className="flex-1 sm:flex-none"
+                color="warning"
+                size="sm"
+                startContent={<Download className="w-4 h-4" />}
+                variant="flat"
+                onPress={onImportOpen}
+              >
+                Import
+              </Button>
             ) : null}
 
             {session?.user?.role === "super_admin" ? (
-            <Button
-              className="flex-1 sm:flex-none"
-              color="primary"
-              size="sm"
-              startContent={<UserPlus className="w-4 h-4" />}
-              onPress={onOpen}
-            >
-              Add Asset
-            </Button>
+              <Button
+                className="flex-1 sm:flex-none"
+                color="primary"
+                size="sm"
+                startContent={<UserPlus className="w-4 h-4" />}
+                onPress={onOpen}
+              >
+                Add Asset
+              </Button>
             ) : null}
           </div>
         </CardHeader>

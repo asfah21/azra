@@ -8,7 +8,7 @@ import {
   Pagination,
 } from "@heroui/react";
 import { useRouter } from "next/navigation";
-import { useSession, } from "next-auth/react";
+import { useSession } from "next-auth/react";
 import {
   Card,
   CardHeader,
@@ -222,13 +222,13 @@ export default function UserTables({ usersTable }: UserManagementClientProps) {
     const usersMap = new Map(usersTable.map((user) => [user.id, user.name]));
 
     // Siapkan data untuk export
-    const exportData = filteredData.map((user, index) => ({      
-      "No": index + 1, // Menambahkan nomor urut mulai dari 1
+    const exportData = filteredData.map((user, index) => ({
+      No: index + 1, // Menambahkan nomor urut mulai dari 1
       // "User ID": user.id,
-      "Name": user.name,
-      "Email": user.email,
-      "Role": user.role,
-      "Department": user.department,
+      Name: user.name,
+      Email: user.email,
+      Role: user.role,
+      Department: user.department,
       "Last Active": formatLastActive(user.lastActive),
       // "Photo": user.photo,
     }));
@@ -414,11 +414,11 @@ export default function UserTables({ usersTable }: UserManagementClientProps) {
               placeholder="Search users..."
               size="sm"
               startContent={<Search className="w-4 h-4 text-default-400" />}
+              style={{ outline: "none" }}
               value={searchQuery}
               variant="flat"
-              onValueChange={handleSearchChange}
-              style={{ outline: "none" }}
               onFocus={(e) => (e.target.style.outline = "none")}
+              onValueChange={handleSearchChange}
             />
 
             <Button
@@ -431,18 +431,18 @@ export default function UserTables({ usersTable }: UserManagementClientProps) {
             >
               Export
             </Button>
-            
+
             {session?.user?.role === "super_admin" ? (
-            <Button
-              className="flex-1 sm:flex-none"
-              color="warning"
-              size="sm"
-              startContent={<Download className="w-4 h-4" />}
-              variant="flat"
-              onPress={onImportOpen}
-            >
-              Import
-            </Button>
+              <Button
+                className="flex-1 sm:flex-none"
+                color="warning"
+                size="sm"
+                startContent={<Download className="w-4 h-4" />}
+                variant="flat"
+                onPress={onImportOpen}
+              >
+                Import
+              </Button>
             ) : null}
             {/* <Button
               className="flex-1 sm:flex-none"
@@ -483,11 +483,11 @@ export default function UserTables({ usersTable }: UserManagementClientProps) {
               placeholder="Search users..."
               size="sm"
               startContent={<Search className="w-4 h-4 text-default-400" />}
+              style={{ outline: "none" }}
               value={searchQuery}
               variant="flat"
-              onValueChange={handleSearchChange}
-              style={{ outline: "none" }}
               onFocus={(e) => (e.target.style.outline = "none")}
+              onValueChange={handleSearchChange}
             />
           </div>
           <div className="overflow-x-auto">
@@ -744,9 +744,13 @@ export default function UserTables({ usersTable }: UserManagementClientProps) {
           <ModalContent>
             {(onClose) => (
               <ImportUserModal
-                users={selectedUser ? [{ id: selectedUser.id, name: selectedUser.name }] : []}
-                onUsersImported={handleUsersImported}
+                users={
+                  selectedUser
+                    ? [{ id: selectedUser.id, name: selectedUser.name }]
+                    : []
+                }
                 onClose={onClose}
+                onUsersImported={handleUsersImported}
               />
             )}
           </ModalContent>

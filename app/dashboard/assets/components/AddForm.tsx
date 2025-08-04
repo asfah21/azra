@@ -9,10 +9,7 @@ import {
   Button,
   Card,
   CardBody,
-  SelectItem,
-  Select,
   Input,
-  Textarea,
   Autocomplete,
   AutocompleteItem,
 } from "@heroui/react";
@@ -40,6 +37,18 @@ export function AddForms({
       createUnit(prevState, formData, session?.user?.role || "user"),
     null,
   );
+
+  const [selectedAlatBeratName, setSelectedAlatBeratName] =
+    useState("Dump Truck");
+
+  const [selectedUnitStatus, setSelectedUnitStatus] = useState("operational");
+
+  const [selectedUnitCondition, setSelectedUnitCondition] =
+    useState("excellent");
+
+  const [selectedAssignedToId, setSelectedAssignedToId] = useState<
+    string | null
+  >(null);
 
   // Debugging - tampilkan userId di console
   useEffect(() => {
@@ -85,7 +94,6 @@ export function AddForms({
     );
   }
 
-  const [selectedAlatBeratName, setSelectedAlatBeratName] = useState("Dump Truck");
   const alatBeratName = [
     {
       label: "Dump Truck",
@@ -125,23 +133,23 @@ export function AddForms({
   //   {label: "Elektronik", key: "2", description: "Elektronik"},
   // ];
 
-  const [selectedUnitStatus, setSelectedUnitStatus] = useState("operational");
   const unitStatus = [
-    {label: "Operational", key: "operational", description: "Operational"},
-    {label: "Maintenance", key: "maintenance", description: "Maintenance"},
-    {label: "Repair", key: "repair", description: "Repair"},
-    {label: "Decommissioned", key: "decommissioned", description: "Decommissioned"},
+    { label: "Operational", key: "operational", description: "Operational" },
+    { label: "Maintenance", key: "maintenance", description: "Maintenance" },
+    { label: "Repair", key: "repair", description: "Repair" },
+    {
+      label: "Decommissioned",
+      key: "decommissioned",
+      description: "Decommissioned",
+    },
   ];
 
-  const [selectedUnitCondition, setSelectedUnitCondition] = useState("excellent");
   const unitCondition = [
-    {label: "Excellent", key: "excellent", description: "Excellent"},
-    {label: "Good", key: "good", description: "Good"},
-    {label: "Fair", key: "fair", description: "Fair"},
-    {label: "Poor", key: "poor", description: "Poor"},
+    { label: "Excellent", key: "excellent", description: "Excellent" },
+    { label: "Good", key: "good", description: "Good" },
+    { label: "Fair", key: "fair", description: "Fair" },
+    { label: "Poor", key: "poor", description: "Poor" },
   ];
-
-  const [selectedAssignedToId, setSelectedAssignedToId] = useState<string | null>(null);
 
   return (
     <>
@@ -157,12 +165,12 @@ export function AddForms({
           {/* Required Fields */}
           <Input
             isRequired
-            labelPlacement="outside-top"
             label="Asset Tag"
+            labelPlacement="outside-top"
             name="assetTag"
             placeholder="Enter unique asset tag"
-            variant="bordered"
             style={{ outline: "none" }}
+            variant="bordered"
             onFocus={(e) => (e.target.style.outline = "none")}
           />
 
@@ -197,11 +205,11 @@ export function AddForms({
           <Autocomplete
             defaultItems={alatBeratName}
             defaultSelectedKey="Dump Truck"
-            selectedKey={selectedAlatBeratName}
             label="Unit Name"
-            name="name"
             labelPlacement="outside-top"
+            name="name"
             placeholder="Search an unit name"
+            selectedKey={selectedAlatBeratName}
             style={{ outline: "none" }}
             variant="bordered"
             onFocus={(e) => (e.target.style.outline = "none")}
@@ -213,7 +221,7 @@ export function AddForms({
               </AutocompleteItem>
             )}
           </Autocomplete>
-          <input type="hidden" name="name" value={selectedAlatBeratName} />
+          <input name="name" type="hidden" value={selectedAlatBeratName} />
 
           {/* <Select
             isRequired
@@ -247,12 +255,12 @@ export function AddForms({
 
           <Input
             isRequired
-            labelPlacement="outside-top"
             label="Location"
+            labelPlacement="outside-top"
             name="location"
             placeholder="Enter unit location"
-            variant="bordered"
             style={{ outline: "none" }}
+            variant="bordered"
             onFocus={(e) => (e.target.style.outline = "none")}
           />
 
@@ -277,7 +285,7 @@ export function AddForms({
               </AutocompleteItem>
             )}
           </Autocomplete> */}
-          <input type="hidden" name="categoryId" value={"1"} />
+          <input name="categoryId" type="hidden" value={"1"} />
 
           {/* <Select
             isRequired
@@ -311,8 +319,8 @@ export function AddForms({
             labelPlacement="outside-top"
             name="description"
             placeholder="Enter unit description (optional)"
-            variant="bordered"
             style={{ outline: "none" }}
+            variant="bordered"
             onFocus={(e) => (e.target.style.outline = "none")}
           />
 
@@ -320,11 +328,11 @@ export function AddForms({
             <Autocomplete
               defaultItems={unitStatus}
               defaultSelectedKey="operational"
-              selectedKey={selectedUnitStatus}
               label="Status"
-              name="status"
               labelPlacement="outside-top"
+              name="status"
               placeholder="Select status"
+              selectedKey={selectedUnitStatus}
               style={{ outline: "none" }}
               variant="bordered"
               onFocus={(e) => (e.target.style.outline = "none")}
@@ -338,7 +346,7 @@ export function AddForms({
                 </AutocompleteItem>
               )}
             </Autocomplete>
-            <input type="hidden" name="status" value={selectedUnitStatus} />
+            <input name="status" type="hidden" value={selectedUnitStatus} />
 
             {/* <Select
               classNames={{
@@ -370,11 +378,11 @@ export function AddForms({
             <Autocomplete
               defaultItems={unitCondition}
               defaultSelectedKey="excellent"
-              selectedKey={selectedUnitCondition}
               label="Condition"
-              name="condition"
               labelPlacement="outside-top"
+              name="condition"
               placeholder="Select condition"
+              selectedKey={selectedUnitCondition}
               style={{ outline: "none" }}
               variant="bordered"
               onFocus={(e) => (e.target.style.outline = "none")}
@@ -388,7 +396,11 @@ export function AddForms({
                 </AutocompleteItem>
               )}
             </Autocomplete>
-            <input type="hidden" name="condition" value={selectedUnitCondition} />
+            <input
+              name="condition"
+              type="hidden"
+              value={selectedUnitCondition}
+            />
 
             {/* <Select
               classNames={{
@@ -423,8 +435,8 @@ export function AddForms({
               labelPlacement="outside-top"
               name="serialNumber"
               placeholder="Enter serial number"
-              variant="bordered"
               style={{ outline: "none" }}
+              variant="bordered"
               onFocus={(e) => (e.target.style.outline = "none")}
             />
 
@@ -433,8 +445,8 @@ export function AddForms({
               labelPlacement="outside-top"
               name="department"
               placeholder="Enter department"
-              variant="bordered"
               style={{ outline: "none" }}
+              variant="bordered"
               onFocus={(e) => (e.target.style.outline = "none")}
             />
           </div>
@@ -444,24 +456,24 @@ export function AddForms({
             labelPlacement="outside-top"
             name="manufacturer"
             placeholder="Enter manufacturer"
-            variant="bordered"
             style={{ outline: "none" }}
+            variant="bordered"
             onFocus={(e) => (e.target.style.outline = "none")}
           />
 
           <Autocomplete
-            label="Assigned To"
-            name="displayOnly"
-            placeholder="Select user (optional)"
-            style={{ outline: "none" }}
-            onFocus={(e) => (e.target.style.outline = "none")}
-            variant="bordered"
-            labelPlacement="outside-top"
             defaultItems={users.map((user) => ({
               key: user.id,
               label: user.name,
             }))}
+            label="Assigned To"
+            labelPlacement="outside-top"
+            name="displayOnly"
+            placeholder="Select user (optional)"
             selectedKey={selectedAssignedToId}
+            style={{ outline: "none" }}
+            variant="bordered"
+            onFocus={(e) => (e.target.style.outline = "none")}
             onSelectionChange={(key) => {
               console.log("Selected user ID:", key);
               setSelectedAssignedToId(key as string); // simpan ke state
@@ -474,8 +486,11 @@ export function AddForms({
             )}
           </Autocomplete>
 
-          <input type="hidden" name="assignedToId" value={selectedAssignedToId ?? ""} />
-
+          <input
+            name="assignedToId"
+            type="hidden"
+            value={selectedAssignedToId ?? ""}
+          />
 
           {/* <Autocomplete
             label="Assigned To"
@@ -500,7 +515,6 @@ export function AddForms({
               </AutocompleteItem>
             )}
           </Autocomplete> */}
-
 
           {/* <Select
             classNames={{
@@ -530,44 +544,44 @@ export function AddForms({
           {/* Date Fields */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input
-              labelPlacement="outside-top"
               label="Install Date"
+              labelPlacement="outside-top"
               name="installDate"
+              style={{ outline: "none" }}
               type="date"
               variant="bordered"
-              style={{ outline: "none" }}
               onFocus={(e) => (e.target.style.outline = "none")}
             />
 
             <Input
-              labelPlacement="outside-top"
               label="Warranty Expiry"
+              labelPlacement="outside-top"
               name="warrantyExpiry"
+              style={{ outline: "none" }}
               type="date"
               variant="bordered"
-              style={{ outline: "none" }}
               onFocus={(e) => (e.target.style.outline = "none")}
             />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input
-              labelPlacement="outside-top"
               label="Last Maintenance"
+              labelPlacement="outside-top"
               name="lastMaintenance"
+              style={{ outline: "none" }}
               type="date"
               variant="bordered"
-              style={{ outline: "none" }}
               onFocus={(e) => (e.target.style.outline = "none")}
             />
 
             <Input
-              labelPlacement="outside-top"
               label="Next Maintenance"
+              labelPlacement="outside-top"
               name="nextMaintenance"
+              style={{ outline: "none" }}
               type="date"
               variant="bordered"
-              style={{ outline: "none" }}
               onFocus={(e) => (e.target.style.outline = "none")}
             />
           </div>
@@ -575,38 +589,38 @@ export function AddForms({
           {/* Numeric Fields */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input
-              labelPlacement="outside-top"
               label="Asset Value"
+              labelPlacement="outside-top"
               name="assetValue"
               placeholder="Enter asset value"
-              style={{ outline: "none" }}
-              onFocus={(e) => (e.target.style.outline = "none")}
               startContent={
                 <div className="pointer-events-none flex items-center">
                   <span className="text-default-400 text-small">Rp</span>
                 </div>
               }
               step="0.01"
+              style={{ outline: "none" }}
               type="number"
               variant="bordered"
+              onFocus={(e) => (e.target.style.outline = "none")}
             />
 
             <Input
-              labelPlacement="outside-top"
-              style={{ outline: "none" }}
-              onFocus={(e) => (e.target.style.outline = "none")}
               endContent={
                 <div className="pointer-events-none flex items-center">
                   <span className="text-default-400 text-small">%</span>
                 </div>
               }
               label="Utilization Rate"
+              labelPlacement="outside-top"
               max="100"
               min="0"
               name="utilizationRate"
               placeholder="Enter utilization rate"
+              style={{ outline: "none" }}
               type="number"
               variant="bordered"
+              onFocus={(e) => (e.target.style.outline = "none")}
             />
           </div>
 

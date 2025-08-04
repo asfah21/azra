@@ -15,7 +15,6 @@ import {
   TableBody,
   TableRow,
   TableCell,
-  User,
   Avatar,
 } from "@heroui/react";
 import {
@@ -38,7 +37,6 @@ import {
 } from "react";
 
 import { useProfile } from "@/app/context/ProfileContext";
-
 import { TableReportSkeletons } from "@/components/ui/skeleton";
 
 interface ActivityItem {
@@ -317,28 +315,28 @@ export default function TableReport({
                 {(activity: any) => (
                   <TableRow key={activity.id}>
                     <TableCell>
-                    <div className="flex items-center gap-2">
-                      {activity.user === "System" ? (
-                        <div className="p-2 rounded-full bg-secondary-200 flex-shrink-0">
-                          <Activity className="w-5 h-5 text-secondary-600" />
-                        </div>
-                      ) : (
-                        <Avatar
-                          src={activity.avatar || "undefined"}
-                          alt={activity.user}
-                          className="w-8 h-8 rounded-full object-cover flex-shrink-0"
-                        />
-                      )}
+                      <div className="flex items-center gap-2">
+                        {activity.user === "System" ? (
+                          <div className="p-2 rounded-full bg-secondary-200 flex-shrink-0">
+                            <Activity className="w-5 h-5 text-secondary-600" />
+                          </div>
+                        ) : (
+                          <Avatar
+                            alt={activity.user}
+                            className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                            src={activity.avatar || "undefined"}
+                          />
+                        )}
 
-                      <div className="flex flex-col min-w-0">
-                        <span className="text-sm font-medium text-foreground truncate">
-                          {activity.user}
-                        </span>
-                        <span className="text-xs text-foreground-500 truncate">
-                          {activity.user === "System" ? "System" : "User"}
-                        </span>
+                        <div className="flex flex-col min-w-0">
+                          <span className="text-sm font-medium text-foreground truncate">
+                            {activity.user}
+                          </span>
+                          <span className="text-xs text-foreground-500 truncate">
+                            {activity.user === "System" ? "System" : "User"}
+                          </span>
+                        </div>
                       </div>
-                    </div>
 
                       {/* <User
                         avatarProps={{

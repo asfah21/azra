@@ -61,19 +61,23 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
 
   //Date time otomatis (Shift Siang/Malam)
   const [datetime, setDatetime] = useState(() => {
-    const now = new Date(Date.now() + 8 * 60 * 60 * 1000) // WITA
-    return now.toISOString().slice(0, 16)
-  })
-  const [selectedShift, setSelectedShift] = useState<'siang' | 'malam'>('malam')
+    const now = new Date(Date.now() + 8 * 60 * 60 * 1000); // WITA
+
+    return now.toISOString().slice(0, 16);
+  });
+  const [selectedShift, setSelectedShift] = useState<"siang" | "malam">(
+    "malam",
+  );
 
   useEffect(() => {
-    const hour = new Date(datetime).getHours()
+    const hour = new Date(datetime).getHours();
+
     if (hour >= 18 || hour < 7) {
-      setSelectedShift('malam')
+      setSelectedShift("malam");
     } else {
-      setSelectedShift('siang')
+      setSelectedShift("siang");
     }
-  }, [datetime])
+  }, [datetime]);
 
   // Load units data on component mount
   useEffect(() => {
@@ -213,8 +217,8 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
   }
 
   const shifts = [
-    {key: "siang", label: "Siang"},
-    {key: "malam", label: "Malam"},
+    { key: "siang", label: "Siang" },
+    { key: "malam", label: "Malam" },
   ];
 
   return (
@@ -338,16 +342,16 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-4">
               <Input
-                isRequired
                 isReadOnly
-                value={datetime}
-                onChange={(e) => setDatetime(e.target.value)}
+                isRequired
                 label="Time"
                 labelPlacement="outside-left"
                 name="breakdownTime"
                 style={{ outline: "none" }}
                 type="datetime-local"
+                value={datetime}
                 variant="bordered"
+                onChange={(e) => setDatetime(e.target.value)}
                 onFocus={(e) => (e.target.style.outline = "none")}
               />
             </div>
@@ -359,17 +363,18 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
                 labelPlacement="outside-left"
                 name="shift"
                 placeholder="Masukkan shift (siang/malam)"
-                variant="bordered"
+                style={{ outline: "none" }}
                 value={selectedShift}
+                variant="bordered"
                 onChange={(e) => {
-                  const value = e.target.value.toLowerCase()
+                  const value = e.target.value.toLowerCase();
+
                   if (value === "siang" || value === "malam") {
-                    setSelectedShift(value as 'siang' | 'malam')
+                    setSelectedShift(value as "siang" | "malam");
                   } else {
-                    setSelectedShift('siang')
+                    setSelectedShift("siang");
                   }
                 }}
-                style={{ outline: "none" }}
                 onFocus={(e) => (e.target.style.outline = "none")}
               />
               {/* <Select

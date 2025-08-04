@@ -123,11 +123,15 @@ export default function UnitPages() {
                   />
                 </div>
 
-                <Select className="max-w-xs my-5" isClearable={true} label="Favorite Animal">
-        {animals.map((animal) => (
-          <SelectItem key={animal.key}>{animal.label}</SelectItem>
-        ))}
-      </Select>
+                <Select
+                  className="max-w-xs my-5"
+                  isClearable={true}
+                  label="Favorite Animal"
+                >
+                  {animals.map((animal) => (
+                    <SelectItem key={animal.key}>{animal.label}</SelectItem>
+                  ))}
+                </Select>
 
                 <Autocomplete
                   className="max-w-xs border-none"
@@ -251,8 +255,6 @@ export default function UnitPages() {
                 </Autocomplete>
 
                 <Select
-                  className="max-w-xs"
-                  autoFocus={true}
                   items={users}
                   label="Assigned to"
                   labelPlacement="outside-left"
@@ -262,10 +264,17 @@ export default function UnitPages() {
                   {(user) => (
                     <SelectItem key={user.id} textValue={user.name}>
                       <div className="flex gap-2 items-center">
-                        <Avatar alt={user.name} className="shrink-0" size="sm" src={user.avatar} />
+                        <Avatar
+                          alt={user.name}
+                          className="shrink-0"
+                          size="sm"
+                          src={user.avatar}
+                        />
                         <div className="flex flex-col">
                           <span className="text-small">{user.name}</span>
-                          <span className="text-tiny text-default-400">{user.email}</span>
+                          <span className="text-tiny text-default-400">
+                            {user.email}
+                          </span>
                         </div>
                       </div>
                     </SelectItem>

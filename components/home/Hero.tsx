@@ -25,17 +25,20 @@ const staggerContainer = {
 export default function Hero() {
   return (
     <motion.section
-      initial="hidden"
       animate="visible"
-      variants={staggerContainer}
       className="px-6 md:px-20 flex flex-col items-center justify-center"
+      initial="hidden"
+      variants={staggerContainer}
     >
       <section className="flex relative overflow-hidden lg:overflow-visible w-full flex-nowrap justify-between items-center h-[calc(100vh_-_64px)] 2xl:h-[calc(84vh_-_64px)] max-w-screen-2xl mx-auto">
         <motion.div
-          variants={fadeIn}
           className="relative z-20 flex flex-col w-full gap-6 lg:w-1/2 xl:mt-10 max-w-[720px]"
+          variants={fadeIn}
         >
-          <motion.div variants={fadeIn} className="flex justify-center w-full md:hidden">
+          <motion.div
+            className="flex justify-center w-full md:hidden"
+            variants={fadeIn}
+          >
             <a
               className="relative max-w-fit min-w-min inline-flex items-center justify-between box-border whitespace-nowrap px-1 h-7 text-small rounded-full text-primary-600 bg-default-200/50 border-1 hover:bg-default-200/80 border-default-400/50 cursor-pointer"
               href="/blog/v2.7.0"
@@ -50,8 +53,8 @@ export default function Hero() {
           </motion.div>
 
           <motion.h1
-            variants={fadeIn}
             className="tracking-tight inline font-semibold text-[clamp(1.8rem,8vw,3.2rem)] leading-tight text-center md:text-left"
+            variants={fadeIn}
           >
             Discover{" "}
             <span className="tracking-tight inline font-bold from-success to-primary bg-clip-text text-transparent bg-gradient-to-b">
@@ -63,8 +66,8 @@ export default function Hero() {
           </motion.h1>
 
           <motion.p
-            variants={fadeIn}
             className="my-2 text-base md:text-lg font-normal text-default-500 text-center md:text-left"
+            variants={fadeIn}
           >
             Sleek, fast app to manage assets, track statuses (maintenance,
             damaged, etc.) and export A to Z records to Excel. Simple, powerful
@@ -72,8 +75,8 @@ export default function Hero() {
           </motion.p>
 
           <motion.div
-            variants={fadeIn}
             className="flex flex-col items-center gap-4 md:flex-row"
+            variants={fadeIn}
           >
             <a
               className="text-sm bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-full transition"
@@ -96,8 +99,8 @@ export default function Hero() {
         </motion.div>
 
         <motion.div
-          variants={fadeIn}
           className="hidden lg:flex flex-col relative z-20 w-1/2"
+          variants={fadeIn}
         >
           <div className="absolute z-10 -top-[120px] -right-[1px] animate-[levitate_14s_ease_infinite_1s]">
             <Card

@@ -153,8 +153,8 @@ export default function RFUReportActionModal({
                       labelPlacement="outside-top"
                       placeholder="Contoh: Mesin sudah berfungsi normal..."
                       value={solution}
-                      onValueChange={setSolution}
                       onFocus={(e) => (e.target.style.outline = "none")}
+                      onValueChange={setSolution}
                     />
                   </CardBody>
                 </Card>
@@ -163,9 +163,7 @@ export default function RFUReportActionModal({
                 <Card>
                   <CardBody>
                     <div className="flex items-center justify-between mb-4">
-                      <h2 className="text-lg font-semibold">
-                        Actions List
-                      </h2>
+                      <h2 className="text-lg font-semibold">Actions List</h2>
                       <Button
                         color="primary"
                         size="sm"
@@ -206,13 +204,15 @@ export default function RFUReportActionModal({
                               </Button>
                             </div>
                             <div className="space-y-3">
-                              <Input  
+                              <Input
                                 isRequired
                                 // label="Action Name"
                                 placeholder="Contoh: Penggantian bearing, Pembersihan filter..."
                                 value={action.action}
                                 // labelPlacement="outside-top"
-                                onFocus={(e) => (e.target.style.outline = "none")}
+                                onFocus={(e) =>
+                                  (e.target.style.outline = "none")
+                                }
                                 onValueChange={(value: string) =>
                                   updateAction(index, "action", value)
                                 }

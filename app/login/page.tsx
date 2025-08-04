@@ -18,6 +18,7 @@ import {
   EyeIcon,
   EyeSlashIcon,
 } from "@heroicons/react/24/outline";
+
 import { VersiApp } from "@/components/ui/ChipVersion";
 
 export default function LoginPage() {
@@ -102,9 +103,9 @@ export default function LoginPage() {
             </div> */}
           </div>
           <div className="flex flex-col text-center">
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-primary to-success bg-[length:200%_200%] animate-[gradient_4s_ease-in-out_infinite]">
-            AZRA <VersiApp />
-          </h1>
+            <h1 className="text-2xl sm:text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-primary to-success bg-[length:200%_200%] animate-[gradient_4s_ease-in-out_infinite]">
+              AZRA <VersiApp />
+            </h1>
             <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1">
               Please enter your credentials to access your account
             </p>
@@ -150,13 +151,13 @@ export default function LoginPage() {
                 placeholder="you@gmail.com"
                 radius="sm"
                 size="sm"
+                style={{ outline: "none" }}
                 type="email"
                 value={email}
                 variant="bordered"
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   setEmail(e.target.value)
                 }
-                style={{ outline: "none" }}
                 onFocus={(e) => (e.target.style.outline = "none")}
               />
             </div>
@@ -201,13 +202,13 @@ export default function LoginPage() {
                 placeholder="••••••••"
                 radius="sm"
                 size="sm"
+                style={{ outline: "none" }}
                 type={isVisible ? "text" : "password"}
                 value={password}
                 variant="bordered"
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   setPassword(e.target.value)
                 }
-                style={{ outline: "none" }}
                 onFocus={(e) => (e.target.style.outline = "none")}
               />
             </div>

@@ -10,20 +10,21 @@ export default function WithLove() {
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => setIsVisible(entry.isIntersecting),
-      { threshold: 0.3 }
+      { threshold: 0.3 },
     );
 
     if (sectionRef.current) observer.observe(sectionRef.current);
+
     return () => observer.disconnect();
   }, []);
 
   return (
     <motion.section
       ref={sectionRef}
-      initial={{ opacity: 0, y: 50 }}
       animate={isVisible ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
-      transition={{ duration: 0.8, ease: "easeOut" }}
       className="px-6 md:px-20 relative gap-2 w-full flex flex-col items-center z-20 mt-16 lg:mt-44"
+      initial={{ opacity: 0, y: 50 }}
+      transition={{ duration: 0.8, ease: "easeOut" }}
     >
       <div className="max-w-4xl flex flex-col gap-8">
         <div className="flex flex-col gap-2 justify-center w-full text-center items-center">

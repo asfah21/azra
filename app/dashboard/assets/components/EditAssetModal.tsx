@@ -12,7 +12,6 @@ import {
   SelectItem,
   Select,
   Input,
-  Textarea,
   Autocomplete,
   AutocompleteItem,
 } from "@heroui/react";
@@ -59,6 +58,14 @@ export function EditAssetModal({
 }: EditAssetModalProps) {
   const queryClient = useQueryClient();
 
+  const [selectedStatus, setSelectedStatus] = useState("operational");
+
+  const [selectedCondition, setSelectedCondition] = useState("good");
+
+  const [selectedAssignedToId, setSelectedAssignedToId] = useState<
+    string | null
+  >(null);
+
   // React Query mutation untuk update asset
   const mutation = useMutation({
     mutationFn: async (formData: FormData) => {
@@ -97,7 +104,6 @@ export function EditAssetModal({
     { key: "repair", label: "Repair" },
     { key: "decommissioned", label: "Decommissioned" },
   ];
-  const [selectedStatus, setSelectedStatus] = useState(asset.status || "operational");
 
   const unitConditions = [
     { key: "excellent", label: "Excellent" },
@@ -105,9 +111,6 @@ export function EditAssetModal({
     { key: "fair", label: "Fair" },
     { key: "poor", label: "Poor" },
   ];
-  const [selectedCondition, setSelectedCondition] = useState(asset.condition || "good");
-  
-  const [selectedAssignedToId, setSelectedAssignedToId] = useState(asset.assignedToId || "");
 
   return (
     <>
@@ -130,25 +133,25 @@ export function EditAssetModal({
           {/* Required Fields */}
           <Input
             isRequired
-            labelPlacement="outside-top"
             defaultValue={asset.assetTag}
             label="Asset Tag"
+            labelPlacement="outside-top"
             name="assetTag"
             placeholder="Enter unique asset tag"
-            variant="bordered"
             style={{ outline: "none" }}
+            variant="bordered"
             onFocus={(e) => (e.target.style.outline = "none")}
           />
 
           <Input
             isRequired
-            labelPlacement="outside-top"
             defaultValue={asset.name}
             label="Unit Name"
+            labelPlacement="outside-top"
             name="name"
             placeholder="Enter unit name"
-            variant="bordered"
             style={{ outline: "none" }}
+            variant="bordered"
             onFocus={(e) => (e.target.style.outline = "none")}
           />
 
@@ -170,13 +173,13 @@ export function EditAssetModal({
 
           <Input
             isRequired
-            labelPlacement="outside-top"
             defaultValue={asset.location}
             label="Location"
+            labelPlacement="outside-top"
             name="location"
             placeholder="Enter unit location"
-            variant="bordered"
             style={{ outline: "none" }}
+            variant="bordered"
             onFocus={(e) => (e.target.style.outline = "none")}
           />
 
@@ -191,7 +194,11 @@ export function EditAssetModal({
             style={{ outline: "none" }}
             onFocus={(e) => (e.target.style.outline = "none")}
           /> */}
-          <input type="hidden" name="categoryId" value={asset.categoryId.toString()} />
+          <input
+            name="categoryId"
+            type="hidden"
+            value={asset.categoryId.toString()}
+          />
 
           {/* <Select
             isRequired
@@ -212,34 +219,31 @@ export function EditAssetModal({
             labelPlacement="outside-top"
             name="description"
             placeholder="Enter unit description (optional)"
-            variant="bordered"
             style={{ outline: "none" }}
+            variant="bordered"
             onFocus={(e) => (e.target.style.outline = "none")}
           />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Autocomplete
+              defaultInputValue={asset.status || ""}
+              defaultItems={unitStatus}
+              label="Status"
+              labelPlacement="outside-top"
+              name="status"
+              placeholder="Select status"
+              selectedKey={selectedStatus}
+              style={{ outline: "none" }}
+              variant="bordered"
+              onFocus={(e) => (e.target.style.outline = "none")}
+              onSelectionChange={(key) => setSelectedStatus(key as string)}
+            >
+              {(item) => (
+                <AutocompleteItem key={item.key}>{item.label}</AutocompleteItem>
+              )}
+            </Autocomplete>
+            <input name="status" type="hidden" value={selectedStatus} />
 
-          <Autocomplete
-            defaultItems={unitStatus}
-            defaultInputValue={asset.status || ""}
-            selectedKey={selectedStatus}
-            onSelectionChange={(key) => setSelectedStatus(key as string)}
-            label="Status"
-            name="status"
-            labelPlacement="outside-top"
-            placeholder="Select status"
-            variant="bordered"
-            style={{ outline: "none" }}
-            onFocus={(e) => (e.target.style.outline = "none")}
-          >
-            {(item) => (
-              <AutocompleteItem key={item.key}>
-                {item.label}
-              </AutocompleteItem>
-            )}
-          </Autocomplete>
-          <input type="hidden" name="status" value={selectedStatus} />
-          
             {/* <Select
               defaultSelectedKeys={[asset.status]}
               label="Status"
@@ -253,26 +257,24 @@ export function EditAssetModal({
               <SelectItem key="decommissioned">Decommissioned</SelectItem>
             </Select> */}
 
-          <Autocomplete
-            defaultInputValue={asset.condition || ""}
-            defaultItems={unitConditions}
-            selectedKey={selectedCondition}
-            onSelectionChange={(key) => setSelectedCondition(key as string)}
-            label="Condition"
-            name="condition"
-            labelPlacement="outside-top"
-            placeholder="Select condition"
-            variant="bordered"
-            style={{ outline: "none" }}
-            onFocus={(e) => (e.target.style.outline = "none")}
-          >
-            {(item) => (
-              <AutocompleteItem key={item.key}>
-                {item.label}
-              </AutocompleteItem>
-            )}
-          </Autocomplete>
-          <input type="hidden" name="condition" value={selectedCondition} />
+            <Autocomplete
+              defaultInputValue={asset.condition || ""}
+              defaultItems={unitConditions}
+              label="Condition"
+              labelPlacement="outside-top"
+              name="condition"
+              placeholder="Select condition"
+              selectedKey={selectedCondition}
+              style={{ outline: "none" }}
+              variant="bordered"
+              onFocus={(e) => (e.target.style.outline = "none")}
+              onSelectionChange={(key) => setSelectedCondition(key as string)}
+            >
+              {(item) => (
+                <AutocompleteItem key={item.key}>{item.label}</AutocompleteItem>
+              )}
+            </Autocomplete>
+            <input name="condition" type="hidden" value={selectedCondition} />
 
             {/* <Select
               defaultSelectedKeys={asset.condition ? [asset.condition] : []}
@@ -290,36 +292,36 @@ export function EditAssetModal({
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input
-              labelPlacement="outside-top"
               defaultValue={asset.serialNumber || ""}
               label="Serial Number"
+              labelPlacement="outside-top"
               name="serialNumber"
               placeholder="Enter serial number"
-              variant="bordered"
               style={{ outline: "none" }}
+              variant="bordered"
               onFocus={(e) => (e.target.style.outline = "none")}
             />
 
             <Input
-              labelPlacement="outside-top"
               defaultValue={asset.department || ""}
               label="Department"
+              labelPlacement="outside-top"
               name="department"
               placeholder="Enter department"
-              variant="bordered"
               style={{ outline: "none" }}
+              variant="bordered"
               onFocus={(e) => (e.target.style.outline = "none")}
             />
           </div>
 
           <Input
-            labelPlacement="outside-top"
             defaultValue={asset.manufacturer || ""}
             label="Manufacturer"
+            labelPlacement="outside-top"
             name="manufacturer"
             placeholder="Enter manufacturer"
-            variant="bordered"
             style={{ outline: "none" }}
+            variant="bordered"
             onFocus={(e) => (e.target.style.outline = "none")}
           />
 
@@ -351,22 +353,15 @@ export function EditAssetModal({
 
           <Select
             defaultSelectedKeys={asset.assignedToId ? [asset.assignedToId] : []}
+            items={[{ id: "", name: "-- None --" }, ...users]}
             label="Assigned To"
             labelPlacement="outside-left"
             name="assignedToId"
             placeholder="Select user (optional)"
-            variant="bordered"
             style={{ outline: "none" }}
-            items={[
-              { id: "", name: "-- None --" },
-              ...users
-            ]}
+            variant="bordered"
           >
-            {(item) => (
-              <SelectItem key={item.id}>
-                {item.name}
-              </SelectItem>
-            )}
+            {(item) => <SelectItem key={item.id}>{item.name}</SelectItem>}
           </Select>
 
           {/* <Select
@@ -386,48 +381,48 @@ export function EditAssetModal({
           {/* Date Fields */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input
-              labelPlacement="outside-top"
               defaultValue={formatDateForInput(asset.installDate)}
               label="Install Date"
+              labelPlacement="outside-top"
               name="installDate"
+              style={{ outline: "none" }}
               type="date"
               variant="bordered"
-              style={{ outline: "none" }}
               onFocus={(e) => (e.target.style.outline = "none")}
             />
 
             <Input
-              labelPlacement="outside-top"
               defaultValue={formatDateForInput(asset.warrantyExpiry)}
               label="Warranty Expiry"
+              labelPlacement="outside-top"
               name="warrantyExpiry"
+              style={{ outline: "none" }}
               type="date"
               variant="bordered"
-              style={{ outline: "none" }}
               onFocus={(e) => (e.target.style.outline = "none")}
             />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input
-              labelPlacement="outside-top"
               defaultValue={formatDateForInput(asset.lastMaintenance)}
               label="Last Maintenance"
+              labelPlacement="outside-top"
               name="lastMaintenance"
+              style={{ outline: "none" }}
               type="date"
               variant="bordered"
-              style={{ outline: "none" }}
               onFocus={(e) => (e.target.style.outline = "none")}
             />
 
             <Input
-              labelPlacement="outside-top"
               defaultValue={formatDateForInput(asset.nextMaintenance)}
               label="Next Maintenance"
+              labelPlacement="outside-top"
               name="nextMaintenance"
+              style={{ outline: "none" }}
               type="date"
               variant="bordered"
-              style={{ outline: "none" }}
               onFocus={(e) => (e.target.style.outline = "none")}
             />
           </div>
@@ -435,9 +430,9 @@ export function EditAssetModal({
           {/* Numeric Fields */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input
-              labelPlacement="outside-top"
               defaultValue={asset.assetValue?.toString() || ""}
               label="Asset Value"
+              labelPlacement="outside-top"
               name="assetValue"
               placeholder="Enter asset value"
               startContent={
@@ -446,14 +441,13 @@ export function EditAssetModal({
                 </div>
               }
               step="0.01"
+              style={{ outline: "none" }}
               type="number"
               variant="bordered"
-              style={{ outline: "none" }}
               onFocus={(e) => (e.target.style.outline = "none")}
             />
 
             <Input
-              labelPlacement="outside-top"
               defaultValue={asset.utilizationRate?.toString() || ""}
               endContent={
                 <div className="pointer-events-none flex items-center">
@@ -461,13 +455,14 @@ export function EditAssetModal({
                 </div>
               }
               label="Utilization Rate"
+              labelPlacement="outside-top"
               max="100"
               min="0"
               name="utilizationRate"
               placeholder="Enter utilization rate"
+              style={{ outline: "none" }}
               type="number"
               variant="bordered"
-              style={{ outline: "none" }}
               onFocus={(e) => (e.target.style.outline = "none")}
             />
           </div>

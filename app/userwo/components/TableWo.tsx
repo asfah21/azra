@@ -369,11 +369,11 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
               placeholder="Search work orders..."
               size="sm"
               startContent={<Search className="w-4 h-4 text-default-400" />}
+              style={{ outline: "none" }}
               value={searchQuery}
               variant="flat"
-              onValueChange={handleSearchChange}
-              style={{ outline: "none" }}
               onFocus={(e) => (e.target.style.outline = "none")}
+              onValueChange={handleSearchChange}
             />
             <Button
               className="flex-1 sm:flex-none"

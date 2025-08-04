@@ -44,10 +44,10 @@ export default function HeroAlpha() {
   return (
     <motion.section
       className="px-6 md:px-20 relative flex flex-col gap-10 w-full z-20 mt-16 lg:mt-32"
-      variants={staggerContainer}
       initial="hidden"
-      whileInView="visible"
+      variants={staggerContainer}
       viewport={{ once: true, amount: 0.3 }}
+      whileInView="visible"
     >
       <motion.div className="flex flex-col gap-6" variants={fadeIn}>
         <div className="flex flex-col gap-2 items-start justify-center">
@@ -81,14 +81,17 @@ export default function HeroAlpha() {
         ))}
       </motion.div>
 
-      <motion.div className="flex flex-col items-start mt-4 gap-4" variants={fadeIn}>
+      <motion.div
+        className="flex flex-col items-start mt-4 gap-4"
+        variants={fadeIn}
+      >
         <a
-          href="/dashboard"
           className="inline-flex items-center px-4 py-2 rounded-full text-sm font-medium bg-success/20 text-success-700 dark:text-success hover:opacity-80 transition"
+          href="/dashboard"
         >
           Learn more
         </a>
-        <p className="text-xs text-default-400">Made with ❤️ by Alpha</p>
+        {/* <p className="text-xs text-default-400">Made with ❤️ by Alpha</p> */}
       </motion.div>
     </motion.section>
   );

@@ -6,6 +6,7 @@ import {
 import { Button, Link, Card, CardHeader, CardBody } from "@heroui/react";
 import { SiSmart, SiViaplay } from "react-icons/si";
 import { motion } from "framer-motion";
+
 import { HeroBgDelta } from "./HeroBg";
 
 // Motion variants
@@ -54,10 +55,10 @@ export default function HeroDelta() {
   return (
     <motion.section
       className="px-6 md:px-20 relative z-10 flex-col gap-2 bg-transparent dark:bg-transparent before:bg-background/10 before:content-[''] before:block before:z-[-1] before:absolute before:inset-0 before:backdrop-blur-md before:backdrop-saturate-200 border-t border-b border-divider w-full flex justify-center items-center mt-16 lg:mt-44"
-      variants={staggerContainer}
       initial="hidden"
-      whileInView="visible"
+      variants={staggerContainer}
       viewport={{ once: true, amount: 0.3 }}
+      whileInView="visible"
     >
       <div className=" w-full max-w-7xl py-10 grid grid-cols-12 gap-6 md:gap-0 z-20">
         <motion.div
@@ -99,7 +100,11 @@ export default function HeroDelta() {
         >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:grid-cols-2">
             {features.map((feature, index) => (
-              <motion.div key={index} className="flex gap-x-4 items-center" variants={fadeIn}>
+              <motion.div
+                key={index}
+                className="flex gap-x-4 items-center"
+                variants={fadeIn}
+              >
                 <Card
                   isPressable
                   as={Link}

@@ -39,9 +39,9 @@ export default function CardBawah() {
           <motion.div
             key={index}
             initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, amount: 0.3 }}
             variants={fadeInUp}
+            viewport={{ once: true, amount: 0.3 }}
+            whileInView="visible"
           >
             <Card
               as={Link}

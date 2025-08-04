@@ -54,10 +54,10 @@ export default function FooterBefore() {
   return (
     <motion.section
       className="px-6 relative z-10 gap-2 w-full flex flex-col items-center mt-16 lg:mt-44 pb-16 lg:pb-28"
-      variants={staggerContainer}
       initial="hidden"
-      whileInView="visible"
+      variants={staggerContainer}
       viewport={{ once: true, amount: 0.3 }}
+      whileInView="visible"
     >
       <div className="max-w-4xl flex flex-col gap-8">
         <motion.div
@@ -73,8 +73,7 @@ export default function FooterBefore() {
           className="w-full my-2 text-medium lg:text-large font-normal text-default-500 max-w-full md:w-full text-center flex justify-center items-center"
           variants={fadeIn}
         >
-          We’re committed to helping you manage assets efficiently and
-          securely.
+          We’re committed to helping you manage assets efficiently and securely.
         </motion.p>
 
         <div className="mb-12" />

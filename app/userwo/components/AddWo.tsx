@@ -63,20 +63,24 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
   const firstInputRef = useRef<HTMLInputElement>(null);
 
   //Date time otomatis (Shift Siang/Malam)
-    const [datetime, setDatetime] = useState(() => {
-      const now = new Date(Date.now() + 8 * 60 * 60 * 1000) // WITA
-      return now.toISOString().slice(0, 16)
-    })
-    const [selectedShift, setSelectedShift] = useState<'siang' | 'malam'>('malam')
-  
-    useEffect(() => {
-      const hour = new Date(datetime).getHours()
-      if (hour >= 18 || hour < 7) {
-        setSelectedShift('malam')
-      } else {
-        setSelectedShift('siang')
-      }
-    }, [datetime])
+  const [datetime, setDatetime] = useState(() => {
+    const now = new Date(Date.now() + 8 * 60 * 60 * 1000); // WITA
+
+    return now.toISOString().slice(0, 16);
+  });
+  const [selectedShift, setSelectedShift] = useState<"siang" | "malam">(
+    "malam",
+  );
+
+  useEffect(() => {
+    const hour = new Date(datetime).getHours();
+
+    if (hour >= 18 || hour < 7) {
+      setSelectedShift("malam");
+    } else {
+      setSelectedShift("siang");
+    }
+  }, [datetime]);
 
   // Handle photo selection
   const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -228,8 +232,8 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
   };
 
   const shifts = [
-    {key: "siang", label: "Siang"},
-    {key: "malam", label: "Malam"},
+    { key: "siang", label: "Siang" },
+    { key: "malam", label: "Malam" },
   ];
 
   return (
@@ -289,10 +293,7 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
               }
             >
               {(item) => (
-                <AutocompleteItem
-                  key={item.id}
-                  textValue={`${item.name}`}
-                >
+                <AutocompleteItem key={item.id} textValue={`${item.name}`}>
                   <div className="flex flex-col">
                     <span>{item.name}</span>
                     {/* <span className="text-xs text-gray-500">{item.email}</span> */}
@@ -369,8 +370,8 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input
-              isRequired
               isReadOnly
+              isRequired
               defaultValue={new Date(Date.now() + 8 * 60 * 60 * 1000)
                 .toISOString()
                 .slice(0, 16)}
@@ -389,17 +390,18 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
               labelPlacement="outside-left"
               name="shift"
               placeholder="Masukkan shift (siang/malam)"
-              variant="bordered"
+              style={{ outline: "none" }}
               value={selectedShift}
+              variant="bordered"
               onChange={(e) => {
-                const value = e.target.value.toLowerCase()
+                const value = e.target.value.toLowerCase();
+
                 if (value === "siang" || value === "malam") {
-                  setSelectedShift(value as 'siang' | 'malam')
+                  setSelectedShift(value as "siang" | "malam");
                 } else {
-                  setSelectedShift('siang')
+                  setSelectedShift("siang");
                 }
               }}
-              style={{ outline: "none" }}
               onFocus={(e) => (e.target.style.outline = "none")}
             />
 

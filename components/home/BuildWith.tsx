@@ -29,14 +29,11 @@ export default function BuildWith() {
     <motion.section
       className="relative z-10 flex flex-col gap-2 w-full text-center mt-24 lg:mt-32"
       initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, amount: 0.3 }}
       variants={fadeIn}
+      viewport={{ once: true, amount: 0.3 }}
+      whileInView="visible"
     >
-      <motion.h3
-        className="mb-8 text-large text-default-500"
-        variants={fadeIn}
-      >
+      <motion.h3 className="mb-8 text-large text-default-500" variants={fadeIn}>
         A full-stack application built with
       </motion.h3>
 
@@ -115,10 +112,10 @@ export default function BuildWith() {
           ].map((tech, i) => (
             <motion.a
               key={i}
-              href={tech.href}
-              target="_blank"
-              rel="noopener noreferrer"
               className="relative tap-highlight-transparent outline-none data-[focus-visible=true]:z-10 data-[focus-visible=true]:outline-2 data-[focus-visible=true]:outline-focus data-[focus-visible=true]:outline-offset-2 no-underline transition-all duration-300 flex flex-col items-center justify-center p-4 rounded-xl hover:shadow-lg hover:scale-105 group"
+              href={tech.href}
+              rel="noopener noreferrer"
+              target="_blank"
               variants={fadeIn}
             >
               {tech.icon}

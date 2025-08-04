@@ -58,15 +58,15 @@ const cards = [
 export default function Cards() {
   return (
     <motion.div
+      animate="visible"
       className="px-6 md:px-20 flex justify-center"
       initial="hidden"
-      animate="visible"
       variants={fadeIn} // animasi untuk lapisan utama
     >
       <motion.div
+        animate="visible"
         className="backdrop-blur-md bg-white/5 dark:bg-default-400/10 rounded-xl p-6 w-full"
         initial="hidden"
-        animate="visible"
         variants={staggerContainer} // animasi isi grid
       >
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

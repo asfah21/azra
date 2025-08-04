@@ -209,8 +209,8 @@ export default function ProfileSetting({ profile }: { profile: any }) {
                 <Input
                   disabled
                   label="Email"
-                  placeholder="your@email.com"
                   labelPlacement="outside-top"
+                  placeholder="your@email.com"
                   size="sm"
                   startContent={<Mail className="w-4 h-4 text-default-400" />}
                   value={email}
@@ -227,10 +227,9 @@ export default function ProfileSetting({ profile }: { profile: any }) {
                   placeholder="+62 xxx xxxx xxxx"
                   size="sm"
                   startContent={<Phone className="w-4 h-4 text-default-400" />}
+                  style={{ outline: "none" }}
                   type="tel"
                   value={phone}
-                  style={{ outline: "none" }}
-                  onFocus={(e) => (e.target.style.outline = "none")}
                   onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                     let value = e.target.value;
 
@@ -242,6 +241,7 @@ export default function ProfileSetting({ profile }: { profile: any }) {
                     }
                     setPhone(value);
                   }}
+                  onFocus={(e) => (e.target.style.outline = "none")}
                 />
               </div>
             </div>

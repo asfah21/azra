@@ -9,8 +9,6 @@ import {
   Button,
   Card,
   CardBody,
-  SelectItem,
-  Select,
   Input,
   Autocomplete,
   AutocompleteItem,
@@ -93,39 +91,39 @@ export function EditUserModal({
             isRequired
             defaultValue={user.name}
             label="Name"
+            labelPlacement="outside-top"
             name="name"
             placeholder="Enter user name"
             variant="bordered"
             onFocus={(e) => (e.target.style.outline = "none")}
-            labelPlacement="outside-top"
           />
           <Input
             isRequired
             defaultValue={user.email}
             label="Email"
+            labelPlacement="outside-top"
             name="email"
             placeholder="Enter email address"
             type="email"
             variant="bordered"
             onFocus={(e) => (e.target.style.outline = "none")}
-            labelPlacement="outside-top"
           />
           <Input
             label="New Password (empty to keep current)"
+            labelPlacement="outside-top"
             name="password"
             placeholder="Enter new password (optional)"
             type="password"
             variant="bordered"
             onFocus={(e) => (e.target.style.outline = "none")}
-            labelPlacement="outside-top"
           />
 
           <Autocomplete
             defaultItems={userRoles}
             defaultSelectedKey={user.role || ""}
             label="User Roles"
-            name="role"
             labelPlacement="outside-top"
+            name="role"
             placeholder="Search user roles"
             style={{ outline: "none" }}
             variant="bordered"
@@ -157,11 +155,11 @@ export function EditUserModal({
           <Input
             defaultValue={user.department || ""}
             label="Department"
+            labelPlacement="outside-top"
             name="department"
             placeholder="Enter department (optional)"
             variant="bordered"
             onFocus={(e) => (e.target.style.outline = "none")}
-            labelPlacement="outside-top"
           />
 
           {/* Success Message */}

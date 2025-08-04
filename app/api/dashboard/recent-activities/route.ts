@@ -168,7 +168,10 @@ export async function GET(req: NextRequest) {
     });
 
     // Log data yang akan dikembalikan untuk debugging
-    console.log('Formatted activities with avatars:', JSON.stringify(formattedActivities, null, 2));
+    console.log(
+      "Formatted activities with avatars:",
+      JSON.stringify(formattedActivities, null, 2),
+    );
 
     return NextResponse.json({
       success: true,
