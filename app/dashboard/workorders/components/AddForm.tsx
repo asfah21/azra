@@ -15,6 +15,7 @@ import {
   Chip,
   Autocomplete,
   AutocompleteItem,
+  Image,
 } from "@heroui/react";
 import axios from "axios";
 import { useQueryClient } from "@tanstack/react-query";
@@ -360,7 +361,9 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
                 type="datetime-local"
                 value={datetime}
                 variant="bordered"
-                onChange={(e) => setDatetime(e.target.value)}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                  setDatetime(e.target.value)
+                }
                 onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
                   e.target.style.outline = "none";
                 }}
@@ -377,7 +380,7 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
                 style={{ outline: "none" }}
                 value={selectedShift}
                 variant="bordered"
-                onChange={(e) => {
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                   const value = e.target.value.toLowerCase();
 
                   if (value === "siang" || value === "malam") {

@@ -402,7 +402,7 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
               style={{ outline: "none" }}
               value={selectedShift}
               variant="bordered"
-              onChange={(e) => {
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                 const value = e.target.value.toLowerCase();
 
                 if (value === "siang" || value === "malam") {
