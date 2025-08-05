@@ -119,7 +119,9 @@ export default function UnitPages() {
                     label="Email"
                     style={{ outline: "none" }}
                     type="email"
-                    onFocus={(e) => (e.target.style.outline = "none")}
+                    onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+                      e.target.style.outline = "none";
+                    }}
                   />
                 </div>
 
@@ -166,7 +168,9 @@ export default function UnitPages() {
                   }}
                   style={{ outline: "none" }}
                   variant="bordered"
-                  onFocus={(e) => (e.target.style.outline = "none")}
+                  onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+                    e.target.style.outline = "none";
+                  }}
                 >
                   {(item) => (
                     <AutocompleteItem key={item.key} variant="flat">

@@ -108,7 +108,9 @@ export function AddUserForms({ onClose, onUserAdded }: AddUserFormProps) {
             name="name"
             placeholder="Enter user name"
             variant="bordered"
-            onFocus={(e) => (e.target.style.outline = "none")}
+            onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+              e.target.style.outline = "none";
+            }}
           />
 
           <Input
@@ -119,7 +121,9 @@ export function AddUserForms({ onClose, onUserAdded }: AddUserFormProps) {
             placeholder="Enter email address"
             type="email"
             variant="bordered"
-            onFocus={(e) => (e.target.style.outline = "none")}
+            onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+              e.target.style.outline = "none";
+            }}
           />
 
           <Input
@@ -130,7 +134,9 @@ export function AddUserForms({ onClose, onUserAdded }: AddUserFormProps) {
             placeholder="Enter password"
             type="password"
             variant="bordered"
-            onFocus={(e) => (e.target.style.outline = "none")}
+            onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+              e.target.style.outline = "none";
+            }}
           />
 
           <Autocomplete
@@ -142,7 +148,9 @@ export function AddUserForms({ onClose, onUserAdded }: AddUserFormProps) {
             placeholder="Search user roles"
             style={{ outline: "none" }}
             variant="bordered"
-            onFocus={(e) => (e.target.style.outline = "none")}
+            onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+              e.target.style.outline = "none";
+            }}
           >
             {(item) => (
               <AutocompleteItem key={item.label} variant="flat">
@@ -160,7 +168,9 @@ export function AddUserForms({ onClose, onUserAdded }: AddUserFormProps) {
             placeholder="Search role"
             style={{ outline: "none" }}
             variant="bordered"
-            onFocus={(e) => (e.target.style.outline = "none")}
+            onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+  e.target.style.outline = "none";
+}}
           >
             {(item) => (
               <AutocompleteItem key={item.label} variant="flat">
@@ -179,7 +189,9 @@ export function AddUserForms({ onClose, onUserAdded }: AddUserFormProps) {
             placeholder="Search role"
             style={{ outline: "none" }}
             variant="bordered"
-            onFocus={(e) => (e.target.style.outline = "none")}
+            onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+  e.target.style.outline = "none";
+}}
           >
             {(item) => (
               <AutocompleteItem key={item.show} variant="flat">
@@ -208,7 +220,9 @@ export function AddUserForms({ onClose, onUserAdded }: AddUserFormProps) {
             name="department"
             placeholder="Enter department (optional)"
             variant="bordered"
-            onFocus={(e) => (e.target.style.outline = "none")}
+            onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+              e.target.style.outline = "none";
+            }}
           />
 
           {/* Success Message */}

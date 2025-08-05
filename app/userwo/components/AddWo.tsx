@@ -292,7 +292,9 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
               selectedKey={selectedUserId}
               style={{ outline: "none" }}
               variant="bordered"
-              onFocus={(e) => (e.target.style.outline = "none")}
+              onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+                e.target.style.outline = "none";
+              }}
               onSelectionChange={(key: any) =>
                 setSelectedUserId(key?.toString() || "")
               }
@@ -320,7 +322,9 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
             selectedKey={selectedUnitId}
             style={{ outline: "none" }}
             variant="bordered"
-            onFocus={(e) => (e.target.style.outline = "none")}
+            onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+              e.target.style.outline = "none";
+            }}
             onSelectionChange={(key: any) =>
               setSelectedUnitId(key?.toString() || "")
             }
@@ -353,7 +357,9 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
             style={{ outline: "none" }}
             type="number"
             variant="bordered"
-            onFocus={(e) => (e.target.style.outline = "none")}
+            onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+              e.target.style.outline = "none";
+            }}
           />
 
           <Input
@@ -364,7 +370,9 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
             placeholder="Describe your current position in detail"
             style={{ outline: "none" }}
             variant="bordered"
-            onFocus={(e) => (e.target.style.outline = "none")}
+            onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+              e.target.style.outline = "none";
+            }}
           />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -380,7 +388,9 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
               style={{ outline: "none" }}
               type="datetime-local"
               variant="bordered"
-              onFocus={(e) => (e.target.style.outline = "none")}
+              onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+                e.target.style.outline = "none";
+              }}
             />
 
             <Input
@@ -401,7 +411,9 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
                   setSelectedShift("siang");
                 }
               }}
-              onFocus={(e) => (e.target.style.outline = "none")}
+              onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+                e.target.style.outline = "none";
+              }}
             />
 
             <div className="space-y-4 hidden">
@@ -502,7 +514,9 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
               onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                 setSubcomponentInput(e.target.value)
               }
-              onFocus={(e) => (e.target.style.outline = "none")}
+              onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+                e.target.style.outline = "none";
+              }}
             />
             <Button
               color="primary"

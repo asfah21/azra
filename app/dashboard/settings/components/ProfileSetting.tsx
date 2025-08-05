@@ -241,7 +241,9 @@ export default function ProfileSetting({ profile }: { profile: any }) {
                     }
                     setPhone(value);
                   }}
-                  onFocus={(e) => (e.target.style.outline = "none")}
+                  onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+                    e.target.style.outline = "none";
+                  }}
                 />
               </div>
             </div>

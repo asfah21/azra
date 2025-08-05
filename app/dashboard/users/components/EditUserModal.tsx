@@ -95,7 +95,9 @@ export function EditUserModal({
             name="name"
             placeholder="Enter user name"
             variant="bordered"
-            onFocus={(e) => (e.target.style.outline = "none")}
+            onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+              e.target.style.outline = "none";
+            }}
           />
           <Input
             isRequired
@@ -106,7 +108,9 @@ export function EditUserModal({
             placeholder="Enter email address"
             type="email"
             variant="bordered"
-            onFocus={(e) => (e.target.style.outline = "none")}
+            onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+              e.target.style.outline = "none";
+            }}
           />
           <Input
             label="New Password (empty to keep current)"
@@ -115,7 +119,9 @@ export function EditUserModal({
             placeholder="Enter new password (optional)"
             type="password"
             variant="bordered"
-            onFocus={(e) => (e.target.style.outline = "none")}
+            onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+              e.target.style.outline = "none";
+            }}
           />
 
           <Autocomplete
@@ -127,7 +133,9 @@ export function EditUserModal({
             placeholder="Search user roles"
             style={{ outline: "none" }}
             variant="bordered"
-            onFocus={(e) => (e.target.style.outline = "none")}
+            onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+              e.target.style.outline = "none";
+            }}
           >
             {(item) => (
               <AutocompleteItem key={item.label} variant="flat">
@@ -159,7 +167,9 @@ export function EditUserModal({
             name="department"
             placeholder="Enter department (optional)"
             variant="bordered"
-            onFocus={(e) => (e.target.style.outline = "none")}
+            onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+              e.target.style.outline = "none";
+            }}
           />
 
           {/* Success Message */}

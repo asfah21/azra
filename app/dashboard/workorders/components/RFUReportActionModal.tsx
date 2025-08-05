@@ -155,7 +155,9 @@ export default function RFUReportActionModal({
                       labelPlacement="outside-top"
                       placeholder="Contoh: Mesin sudah berfungsi normal..."
                       value={solution}
-                      onFocus={(e) => (e.target.style.outline = "none")}
+                      onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+                        e.target.style.outline = "none";
+                      }}
                       onValueChange={setSolution}
                     />
                   </CardBody>

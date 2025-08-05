@@ -173,7 +173,9 @@ export function AddForms({
             placeholder="Enter unique asset tag"
             style={{ outline: "none" }}
             variant="bordered"
-            onFocus={(e) => (e.target.style.outline = "none")}
+            onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+              e.target.style.outline = "none";
+            }}
           />
 
           {/* <Input
@@ -214,7 +216,9 @@ export function AddForms({
             selectedKey={selectedAlatBeratName}
             style={{ outline: "none" }}
             variant="bordered"
-            onFocus={(e) => (e.target.style.outline = "none")}
+            onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+              e.target.style.outline = "none";
+            }}
             onSelectionChange={(key) => setSelectedAlatBeratName(key as string)}
           >
             {(item) => (
@@ -263,7 +267,9 @@ export function AddForms({
             placeholder="Enter unit location"
             style={{ outline: "none" }}
             variant="bordered"
-            onFocus={(e) => (e.target.style.outline = "none")}
+            onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+              e.target.style.outline = "none";
+            }}
           />
 
           {/* <Autocomplete
@@ -276,7 +282,9 @@ export function AddForms({
             placeholder="Search an unit name"
             style={{ outline: "none" }}
             variant="bordered"
-            onFocus={(e) => (e.target.style.outline = "none")}
+            onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+  e.target.style.outline = "none";
+}}
             onSelectionChange={(key) => {
               setSelectedCategoryUnitId(key as string);
             }}
@@ -323,7 +331,9 @@ export function AddForms({
             placeholder="Enter unit description (optional)"
             style={{ outline: "none" }}
             variant="bordered"
-            onFocus={(e) => (e.target.style.outline = "none")}
+            onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+              e.target.style.outline = "none";
+            }}
           />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -337,7 +347,9 @@ export function AddForms({
               selectedKey={selectedUnitStatus}
               style={{ outline: "none" }}
               variant="bordered"
-              onFocus={(e) => (e.target.style.outline = "none")}
+              onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+                e.target.style.outline = "none";
+              }}
               onSelectionChange={(key) => {
                 setSelectedUnitStatus(key as string);
               }}
@@ -387,7 +399,9 @@ export function AddForms({
               selectedKey={selectedUnitCondition}
               style={{ outline: "none" }}
               variant="bordered"
-              onFocus={(e) => (e.target.style.outline = "none")}
+              onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+                e.target.style.outline = "none";
+              }}
               onSelectionChange={(key) => {
                 setSelectedUnitCondition(key as string);
               }}
@@ -439,7 +453,9 @@ export function AddForms({
               placeholder="Enter serial number"
               style={{ outline: "none" }}
               variant="bordered"
-              onFocus={(e) => (e.target.style.outline = "none")}
+              onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+                e.target.style.outline = "none";
+              }}
             />
 
             <Input
@@ -449,7 +465,9 @@ export function AddForms({
               placeholder="Enter department"
               style={{ outline: "none" }}
               variant="bordered"
-              onFocus={(e) => (e.target.style.outline = "none")}
+              onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+                e.target.style.outline = "none";
+              }}
             />
           </div>
 
@@ -460,7 +478,9 @@ export function AddForms({
             placeholder="Enter manufacturer"
             style={{ outline: "none" }}
             variant="bordered"
-            onFocus={(e) => (e.target.style.outline = "none")}
+            onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+              e.target.style.outline = "none";
+            }}
           />
 
           <Autocomplete
@@ -475,7 +495,9 @@ export function AddForms({
             selectedKey={selectedAssignedToId}
             style={{ outline: "none" }}
             variant="bordered"
-            onFocus={(e) => (e.target.style.outline = "none")}
+            onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+              e.target.style.outline = "none";
+            }}
             onSelectionChange={(key) => {
               consolePino.info("Selected user ID:", key);
               setSelectedAssignedToId(key as string); // simpan ke state
@@ -499,7 +521,9 @@ export function AddForms({
             name="assignedToId"
             placeholder="Select user (optional)"
             style={{ outline: "none" }}
-            onFocus={(e) => (e.target.style.outline = "none")}
+            onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+  e.target.style.outline = "none";
+}}
             variant="bordered"
             labelPlacement="outside-top"
             defaultItems={users.map((user) => ({
@@ -552,7 +576,9 @@ export function AddForms({
               style={{ outline: "none" }}
               type="date"
               variant="bordered"
-              onFocus={(e) => (e.target.style.outline = "none")}
+              onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+                e.target.style.outline = "none";
+              }}
             />
 
             <Input
@@ -562,7 +588,9 @@ export function AddForms({
               style={{ outline: "none" }}
               type="date"
               variant="bordered"
-              onFocus={(e) => (e.target.style.outline = "none")}
+              onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+                e.target.style.outline = "none";
+              }}
             />
           </div>
 
@@ -574,7 +602,9 @@ export function AddForms({
               style={{ outline: "none" }}
               type="date"
               variant="bordered"
-              onFocus={(e) => (e.target.style.outline = "none")}
+              onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+                e.target.style.outline = "none";
+              }}
             />
 
             <Input
@@ -584,7 +614,9 @@ export function AddForms({
               style={{ outline: "none" }}
               type="date"
               variant="bordered"
-              onFocus={(e) => (e.target.style.outline = "none")}
+              onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+                e.target.style.outline = "none";
+              }}
             />
           </div>
 
@@ -604,7 +636,9 @@ export function AddForms({
               style={{ outline: "none" }}
               type="number"
               variant="bordered"
-              onFocus={(e) => (e.target.style.outline = "none")}
+              onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+                e.target.style.outline = "none";
+              }}
             />
 
             <Input
@@ -622,7 +656,9 @@ export function AddForms({
               style={{ outline: "none" }}
               type="number"
               variant="bordered"
-              onFocus={(e) => (e.target.style.outline = "none")}
+              onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+                e.target.style.outline = "none";
+              }}
             />
           </div>
 

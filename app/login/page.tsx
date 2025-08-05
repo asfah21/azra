@@ -173,7 +173,9 @@ export default function LoginPage() {
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   setEmail(e.target.value)
                 }
-                onFocus={(e) => (e.target.style.outline = "none")}
+                onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+                  e.target.style.outline = "none";
+                }}
               />
             </div>
 
@@ -224,7 +226,9 @@ export default function LoginPage() {
                 onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
                   setPassword(e.target.value)
                 }
-                onFocus={(e) => (e.target.style.outline = "none")}
+                onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+                  e.target.style.outline = "none";
+                }}
               />
             </div>
 

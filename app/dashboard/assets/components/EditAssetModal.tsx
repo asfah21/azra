@@ -140,7 +140,9 @@ export function EditAssetModal({
             placeholder="Enter unique asset tag"
             style={{ outline: "none" }}
             variant="bordered"
-            onFocus={(e) => (e.target.style.outline = "none")}
+            onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+              e.target.style.outline = "none";
+            }}
           />
 
           <Input
@@ -152,7 +154,9 @@ export function EditAssetModal({
             placeholder="Enter unit name"
             style={{ outline: "none" }}
             variant="bordered"
-            onFocus={(e) => (e.target.style.outline = "none")}
+            onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+              e.target.style.outline = "none";
+            }}
           />
 
           {/* <Select
@@ -180,7 +184,9 @@ export function EditAssetModal({
             placeholder="Enter unit location"
             style={{ outline: "none" }}
             variant="bordered"
-            onFocus={(e) => (e.target.style.outline = "none")}
+            onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+              e.target.style.outline = "none";
+            }}
           />
 
           {/* <Input
@@ -192,7 +198,9 @@ export function EditAssetModal({
             placeholder="Enter category"
             variant="bordered"
             style={{ outline: "none" }}
-            onFocus={(e) => (e.target.style.outline = "none")}
+            onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+  e.target.style.outline = "none";
+}}
           /> */}
           <input
             name="categoryId"
@@ -221,7 +229,9 @@ export function EditAssetModal({
             placeholder="Enter unit description (optional)"
             style={{ outline: "none" }}
             variant="bordered"
-            onFocus={(e) => (e.target.style.outline = "none")}
+            onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+              e.target.style.outline = "none";
+            }}
           />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -235,7 +245,9 @@ export function EditAssetModal({
               selectedKey={selectedStatus}
               style={{ outline: "none" }}
               variant="bordered"
-              onFocus={(e) => (e.target.style.outline = "none")}
+              onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+                e.target.style.outline = "none";
+              }}
               onSelectionChange={(key) => setSelectedStatus(key as string)}
             >
               {(item) => (
@@ -267,7 +279,9 @@ export function EditAssetModal({
               selectedKey={selectedCondition}
               style={{ outline: "none" }}
               variant="bordered"
-              onFocus={(e) => (e.target.style.outline = "none")}
+              onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+                e.target.style.outline = "none";
+              }}
               onSelectionChange={(key) => setSelectedCondition(key as string)}
             >
               {(item) => (
@@ -299,7 +313,9 @@ export function EditAssetModal({
               placeholder="Enter serial number"
               style={{ outline: "none" }}
               variant="bordered"
-              onFocus={(e) => (e.target.style.outline = "none")}
+              onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+                e.target.style.outline = "none";
+              }}
             />
 
             <Input
@@ -310,7 +326,9 @@ export function EditAssetModal({
               placeholder="Enter department"
               style={{ outline: "none" }}
               variant="bordered"
-              onFocus={(e) => (e.target.style.outline = "none")}
+              onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+                e.target.style.outline = "none";
+              }}
             />
           </div>
 
@@ -322,7 +340,9 @@ export function EditAssetModal({
             placeholder="Enter manufacturer"
             style={{ outline: "none" }}
             variant="bordered"
-            onFocus={(e) => (e.target.style.outline = "none")}
+            onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+              e.target.style.outline = "none";
+            }}
           />
 
           {/* <Autocomplete
@@ -341,7 +361,9 @@ export function EditAssetModal({
             allowsEmptyCollection
             allowsCustomValue={false}
             style={{ outline: "none" }}
-            onFocus={(e) => (e.target.style.outline = "none")}
+            onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+  e.target.style.outline = "none";
+}}
           >
             {(item) => (
               <AutocompleteItem key={item.key}>
@@ -388,7 +410,9 @@ export function EditAssetModal({
               style={{ outline: "none" }}
               type="date"
               variant="bordered"
-              onFocus={(e) => (e.target.style.outline = "none")}
+              onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+                e.target.style.outline = "none";
+              }}
             />
 
             <Input
@@ -399,7 +423,9 @@ export function EditAssetModal({
               style={{ outline: "none" }}
               type="date"
               variant="bordered"
-              onFocus={(e) => (e.target.style.outline = "none")}
+              onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+                e.target.style.outline = "none";
+              }}
             />
           </div>
 
@@ -412,7 +438,9 @@ export function EditAssetModal({
               style={{ outline: "none" }}
               type="date"
               variant="bordered"
-              onFocus={(e) => (e.target.style.outline = "none")}
+              onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+                e.target.style.outline = "none";
+              }}
             />
 
             <Input
@@ -423,7 +451,9 @@ export function EditAssetModal({
               style={{ outline: "none" }}
               type="date"
               variant="bordered"
-              onFocus={(e) => (e.target.style.outline = "none")}
+              onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+                e.target.style.outline = "none";
+              }}
             />
           </div>
 
@@ -444,7 +474,9 @@ export function EditAssetModal({
               style={{ outline: "none" }}
               type="number"
               variant="bordered"
-              onFocus={(e) => (e.target.style.outline = "none")}
+              onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+                e.target.style.outline = "none";
+              }}
             />
 
             <Input
@@ -463,7 +495,9 @@ export function EditAssetModal({
               style={{ outline: "none" }}
               type="number"
               variant="bordered"
-              onFocus={(e) => (e.target.style.outline = "none")}
+              onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+                e.target.style.outline = "none";
+              }}
             />
           </div>
 

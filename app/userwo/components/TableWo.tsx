@@ -380,7 +380,9 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
               style={{ outline: "none" }}
               value={searchQuery}
               variant="flat"
-              onFocus={(e) => (e.target.style.outline = "none")}
+              onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+                e.target.style.outline = "none";
+              }}
               onValueChange={handleSearchChange}
             />
             <Button

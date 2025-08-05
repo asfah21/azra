@@ -104,7 +104,9 @@ export default function InProgressModal({
                 selectedKey={priority}
                 style={{ outline: "none" }}
                 variant="bordered"
-                onFocus={(e) => (e.target.style.outline = "none")}
+                onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+                  e.target.style.outline = "none";
+                }}
                 onSelectionChange={(key) => setPriority(key as string)}
               >
                 {(item) => (
@@ -124,7 +126,9 @@ export default function InProgressModal({
                 selectedKey={unitStatus}
                 style={{ outline: "none" }}
                 variant="bordered"
-                onFocus={(e) => (e.target.style.outline = "none")}
+                onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+                  e.target.style.outline = "none";
+                }}
                 onSelectionChange={(key) => setUnitStatus(key as string)}
               >
                 {(item) => (
