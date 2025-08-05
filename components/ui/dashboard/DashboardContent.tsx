@@ -72,19 +72,14 @@ export default function DashboardContent({
   error = null,
   onRetry,
 }: DashboardContentProps) {
-  // PERBAIKAN: Handle loading state dengan overlay
+  // Debug log to check loading state
+  console.log('DashboardContent - loading state:', loading);
+  
+  // Handle loading state with skeleton
   if (loading) {
+    console.log('Rendering DashboardSkeleton');
     return (
-      <div>
-        {/* Loading overlay */}
-        {/* <div className="absolute inset-0 bg-background/50 backdrop-blur-sm z-50 flex items-center justify-center">
-          <div className="flex flex-col items-center gap-4">
-            <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-            <p className="text-small text-default-500">Loading dashboard data...</p>
-          </div>
-        </div> */}
-
-        {/* Render skeleton content */}
+      <div className="w-full" data-testid="dashboard-skeleton">
         <DashboardSkeleton />
       </div>
     );

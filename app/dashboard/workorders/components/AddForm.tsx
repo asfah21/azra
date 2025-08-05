@@ -15,7 +15,6 @@ import {
   Chip,
   Autocomplete,
   AutocompleteItem,
-  Image,
 } from "@heroui/react";
 import axios from "axios";
 import { useQueryClient } from "@tanstack/react-query";

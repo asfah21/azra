@@ -273,7 +273,7 @@ export function Topbar({
               role="button"
               tabIndex={0}
               onClick={() => handleTabClick(tab)}
-              onKeyDown={(e) => {
+              onKeyDown={(e: React.KeyboardEvent) => {
                 if (e.key === "Enter" || e.key === " ") {
                   handleTabClick(tab);
                 }
@@ -296,7 +296,7 @@ export function Topbar({
                     className="min-w-5 w-5 h-5 ml-2 text-default-400 hover:text-danger"
                     size="sm"
                     variant="light"
-                    onClick={(e) => {
+                    onClick={(e: React.MouseEvent) => {
                       e.stopPropagation();
                       closeTab(tab.id, e);
                     }}

@@ -214,9 +214,9 @@ export default function RFUReportActionModal({
                                 placeholder="Contoh: Penggantian bearing, Pembersihan filter..."
                                 value={action.action}
                                 // labelPlacement="outside-top"
-                                onFocus={(e) =>
-                                  (e.target.style.outline = "none")
-                                }
+                                onFocus={(
+                                  e: React.FocusEvent<HTMLInputElement>,
+                                ) => (e.target.style.outline = "none")}
                                 onValueChange={(value: string) =>
                                   updateAction(index, "action", value)
                                 }

@@ -123,7 +123,7 @@ export function EditAssetModal({
         <form
           className="space-y-4"
           id="editAssetForm"
-          onSubmit={(e) => {
+          onSubmit={(e: React.FormEvent<HTMLFormElement>) => {
             e.preventDefault();
             const formData = new FormData(e.currentTarget);
 
