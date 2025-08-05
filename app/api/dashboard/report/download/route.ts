@@ -5,6 +5,7 @@ import * as XLSX from "xlsx";
 
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { consolePino } from "@/lib/logger";
 
 export async function GET(request: NextRequest) {
   try {
@@ -62,7 +63,8 @@ export async function GET(request: NextRequest) {
         });
 
         // Transform data for Excel
-        data = data.map((unit) => ({
+        data = data.map((unit, index) => ({
+          No: index + 1,
           "Asset Tag": unit.assetTag,
           Nama: unit.name,
           Deskripsi: unit.description || "",
@@ -110,8 +112,9 @@ export async function GET(request: NextRequest) {
           orderBy: { createdAt: "desc" },
         });
 
-        data = data.map((user) => ({
-          ID: user.id,
+        data = data.map((user, index) => ({
+          No: index + 1,
+          // ID: user.id,
           Nama: user.name || "",
           Email: user.email || "",
           Departemen: user.department || "",
@@ -191,8 +194,9 @@ export async function GET(request: NextRequest) {
           orderBy: { resolvedAt: "desc" },
         });
 
-        data = data.map((report) => ({
-          ID: report.id,
+        data = data.map((report, index) => ({
+          No: index + 1,
+          // ID: report.id,
           Unit: report.breakdown?.unit?.name || "",
           "Asset Tag": report.breakdown?.unit?.assetTag || "",
           Solution: report.solution || "",
@@ -225,7 +229,8 @@ export async function GET(request: NextRequest) {
           orderBy: { createdAt: "desc" },
         });
 
-        data = data.map((breakdown) => ({
+        data = data.map((breakdown, index) => ({
+          No: index + 1,
           "Breakdown Number": breakdown.breakdownNumber || "",
           Unit: breakdown.unit?.name || "",
           "Asset Tag": breakdown.unit?.assetTag || "",
@@ -266,7 +271,8 @@ export async function GET(request: NextRequest) {
           orderBy: [{ location: "asc" }, { department: "asc" }],
         });
 
-        data = data.map((unit) => ({
+        data = data.map((unit, index) => ({
+          No: index + 1,
           "Asset Tag": unit.assetTag,
           Nama: unit.name,
           Lokasi: unit.location || "",
@@ -324,7 +330,7 @@ export async function GET(request: NextRequest) {
       headers,
     });
   } catch (error) {
-    console.error("Download error:", error);
+    consolePino.error("Download error:", error);
 
     return NextResponse.json(
       { error: "Internal server error" },

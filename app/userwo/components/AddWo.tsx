@@ -1,3 +1,5 @@
+// Di AddWoForm.tsx, tambahkan useEffect untuk reset ReCAPTCHA ketika modal dibuka
+
 "use client";
 
 import { useActionState, useEffect, useRef, useState } from "react";
@@ -14,11 +16,14 @@ import {
   Chip,
   Autocomplete,
   AutocompleteItem,
+  Image,
 } from "@heroui/react";
 import axios from "axios";
 import { useQueryClient } from "@tanstack/react-query";
+import { useTheme } from "next-themes";
 
 import { createBreakdown, getUsers } from "@/app/userwo/action";
+import { consolePino } from "@/lib/logger";
 
 interface AddWoFormProps {
   onClose: () => void;
@@ -55,6 +60,8 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
   const [photo, setPhoto] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [photoError, setPhotoError] = useState<string | null>(null);
+
+  const { resolvedTheme } = useTheme();
 
   const [state, formAction, isPending] = useActionState(createBreakdown, null);
 
@@ -152,7 +159,7 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
         setUsers(usersRes);
         setLoadingUsers(false);
       } catch (error) {
-        console.error("Failed to load data:", error);
+        consolePino.error("Failed to load data:", error);
         setLoadingUnits(false);
         setLoadingUsers(false);
       }
@@ -218,16 +225,14 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
       }
 
       // Debug: Log form data
-      console.log("Form Data being submitted:");
+      consolePino.info("Form Data being submitted:");
       Array.from(newFormData.entries()).forEach(([key, value]) => {
-        console.log(key, value);
+        consolePino.info(key, value);
       });
 
       await formAction(newFormData);
     } catch (error) {
-      console.error("Error submitting form:", error);
-      // Set error state to display to user
-      // You might want to add an error state to display this to the user
+      consolePino.error("Error submitting form:", error);
     }
   };
 
@@ -296,7 +301,6 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
                 <AutocompleteItem key={item.id} textValue={`${item.name}`}>
                   <div className="flex flex-col">
                     <span>{item.name}</span>
-                    {/* <span className="text-xs text-gray-500">{item.email}</span> */}
                   </div>
                 </AutocompleteItem>
               )}
@@ -331,11 +335,6 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
             )}
           </Autocomplete>
           <input name="unitId" type="hidden" value={selectedUnitId} />
-          {/* Debug: Display selected values */}
-          {/* <div className="text-xs text-gray-500">
-            Selected Unit ID: {selectedUnitId || "None"}
-            Selected User ID: {selectedUserId || "None"}
-          </div> */}
 
           <Input
             ref={firstInputRef}
@@ -405,39 +404,6 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
               onFocus={(e) => (e.target.style.outline = "none")}
             />
 
-            {/* <Select
-              isRequired
-              label="Shift"
-              labelPlacement="outside-left"
-              selectedKeys={[selectedShift]}
-              name="shift"
-              placeholder="Select shift"
-              variant="bordered"
-              onSelectionChange={(keys) => {
-                const shift = Array.from(keys)[0] as 'siang' | 'malam'
-                setSelectedShift(shift)
-              }}
-            >
-              {shifts.map((shift) => (
-                <SelectItem key={shift.key}>{shift.label}</SelectItem>
-              ))}
-            </Select> */}
-
-            {/* <Select
-              isRequired
-              name="shift"
-              labelPlacement="outside-left"
-              className="max-w-xs"
-              defaultSelectedKeys={["siang"]}
-              label="Shift"
-              variant="bordered"
-              placeholder="Select shift"
-            >
-              {shifts.map((shift) => (
-                <SelectItem key={shift.key}>{shift.label}</SelectItem>
-              ))}
-            </Select> */}
-
             <div className="space-y-4 hidden">
               <Select
                 isRequired
@@ -466,7 +432,7 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
               <label className="flex flex-col items-center justify-center border-2 border-dashed rounded-lg cursor-pointer bg-default-100 hover:bg-default-200 transition-colors p-4">
                 {photoPreview ? (
                   <div className="relative w-full h-32">
-                    <img
+                    <Image
                       alt="Preview"
                       className="w-full h-full object-contain rounded-md"
                       src={photoPreview}

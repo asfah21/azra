@@ -92,7 +92,7 @@ export const Sidebar = memo(function Sidebar({
         } px-4 py-5 flex-shrink-0`}
       >
         <div className="flex items-center gap-2 min-w-0">
-          <div className="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center flex-shrink-0">
+          <div className="w-8 h-8 bg-gradient-to-br from-primary to-success-300 rounded-lg flex items-center justify-center flex-shrink-0">
             <span className="text-white font-bold text-sm">
               <Logo />
             </span>

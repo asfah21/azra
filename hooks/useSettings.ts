@@ -1,6 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 
+import { consolePino } from "@/lib/logger";
+
 interface Profile {
   id: string;
   name: string;
@@ -58,7 +60,7 @@ export const useUpdateProfile = () => {
       queryClient.setQueryData(["settings"], data);
     },
     onError: (error) => {
-      console.error("Error updating profile:", error);
+      consolePino.error({ err: error }, "Error updating profile");
     },
   });
 };
@@ -86,7 +88,7 @@ export const useUpdatePhoto = () => {
       queryClient.setQueryData(["settings"], data);
     },
     onError: (error) => {
-      console.error("Error updating photo:", error);
+      consolePino.error({ err: error }, "Error updating photo");
     },
   });
 };

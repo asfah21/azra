@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { consolePino } from "@/lib/logger";
 
 export async function POST(req: NextRequest) {
   try {
@@ -88,7 +89,7 @@ export async function POST(req: NextRequest) {
       profile: updatedUser,
     });
   } catch (error) {
-    console.error("Error updating photo:", error);
+    consolePino.error("Error updating photo:", error);
 
     return NextResponse.json(
       { success: false, message: "Failed to update photo" },

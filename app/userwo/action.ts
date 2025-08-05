@@ -4,35 +4,41 @@ import { writeFile, mkdir } from "fs/promises";
 import { join } from "path";
 import { randomUUID } from "crypto";
 
+import { headers as nextHeaders } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { BreakdownStatus } from "@prisma/client";
 import sharp from "sharp";
 
 import { prisma } from "@/lib/prisma";
+import { breakdownSchema, ratelimit } from "@/lib/validation";
+import { consolePino } from "@/lib/logger";
 
 export async function createBreakdown(prevState: any, formData: FormData) {
   try {
-    // Debug: Log all form data
-    console.log("=== Form Data Received ===");
+    // Rate limiting
+    const headersList = await nextHeaders();
+    const ip = headersList.get("x-forwarded-for") || "127.0.0.1";
+
+    // Only apply rate limiting in production
+    if (process.env.NODE_ENV === "production") {
+      const { success: limitReached } = await ratelimit.limit(ip);
+
+      if (!limitReached) {
+        return {
+          success: false,
+          message: "Too many requests. Please try again later.",
+        };
+      }
+    }
+
+    // Convert form data to object
     const formDataObj: Record<string, any> = {};
 
     formData.forEach((value, key) => {
       formDataObj[key] = value;
     });
-    console.log(formDataObj);
-    console.log("========================");
 
-    // Required fields
-    const breakdownNumber = formData.get("breakdownNumber") as string;
-    const description = formData.get("description") as string;
-    const breakdownTime = formData.get("breakdownTime") as string;
-    const workingHours = parseFloat(formData.get("workingHours") as string);
-    const unitId = formData.get("unitId") as string;
-    const reportedById = formData.get("reportedById") as string;
-    const priority = formData.get("priority") as string;
-    const shift = formData.get("shift") as string;
-
-    // Get components from form data
+    // Parse components array
     const components: Array<{ component: string; subcomponent: string }> = [];
     let index = 0;
 
@@ -46,54 +52,54 @@ export async function createBreakdown(prevState: any, formData: FormData) {
       index++;
     }
 
-    // Validation
-    if (
-      !description ||
-      !breakdownTime ||
-      isNaN(workingHours) ||
-      !unitId ||
-      !reportedById ||
-      !priority ||
-      !shift
-    ) {
-      return { success: false, message: "All required fields must be filled!" };
-    }
+    // Prepare data for validation
+    const data = {
+      ...formDataObj,
+      workingHours: parseFloat(formDataObj.workingHours || "0"),
+      components,
+    };
 
-    if (components.length === 0) {
+    // Validate with Zod
+    const validationResult = await breakdownSchema.safeParseAsync(data);
+
+    if (!validationResult.success) {
+      const errorMessages = validationResult.error.issues.map(
+        (issue) => `${issue.path.join(".")}: ${issue.message}`,
+      );
+
       return {
         success: false,
-        message: "At least one component must be added!",
+        message: `Validation failed: ${errorMessages.join("; ")}`,
       };
     }
 
-    const validPriorities = ["low", "medium", "high"];
-
-    if (!validPriorities.includes(priority)) {
-      return { success: false, message: "Invalid priority value!" };
-    }
-
-    const validShifts = ["siang", "malam"];
-
-    if (!validShifts.includes(shift)) {
-      return { success: false, message: "Invalid shift value!" };
-    }
+    // Extract validated data
+    const {
+      description,
+      breakdownTime,
+      workingHours,
+      unitId,
+      reportedById,
+      priority,
+      shift,
+    } = validationResult.data;
 
     // Handle photo upload if present
     let photoPath: string | null = null;
     const photo = formData.get("photo") as File | null;
 
-    console.log("Photo received:", photo);
+    consolePino.info("Photo received:", photo);
     if (photo) {
-      console.log("Photo size:", photo.size);
-      console.log("Photo type:", photo.type);
+      consolePino.info("Photo size:", photo.size);
+      consolePino.info("Photo type:", photo.type);
     }
 
     if (photo && photo.size > 0) {
       try {
-        console.log("Processing photo upload...");
+        consolePino.info("Processing photo upload...");
         // Validate file type
         if (!photo.type.startsWith("image/")) {
-          console.log("Invalid file type detected:", photo.type);
+          consolePino.info("Invalid file type detected:", photo.type);
 
           return {
             success: false,
@@ -103,27 +109,27 @@ export async function createBreakdown(prevState: any, formData: FormData) {
 
         // Validate file size (3MB limit)
         if (photo.size > 3 * 1024 * 1024) {
-          console.log("File size exceeds limit:", photo.size);
+          consolePino.info("File size exceeds limit:", photo.size);
 
           return { success: false, message: "File size exceeds 3MB limit." };
         }
 
         // Convert file to buffer for sharp processing
-        console.log("Converting file to buffer...");
+        consolePino.info("Converting file to buffer...");
         const bytes = await photo.arrayBuffer();
         const buffer = Buffer.from(bytes);
 
-        console.log("Buffer size:", buffer.length);
+        consolePino.info("Buffer size:", buffer.length);
 
         // Generate unique filename
         const fileId = randomUUID();
         const fileExtension = photo.type.split("/")[1] || "jpg";
         const filename = `breakdown-${fileId}.${fileExtension}`;
 
-        console.log("Generated filename:", filename);
+        consolePino.info("Generated filename:", filename);
 
         // Compress image using Sharp to target 0.5-1MB
-        console.log("Compressing image...");
+        consolePino.info("Compressing image...");
         const compressedBuffer = await sharp(buffer)
           .resize({
             width: 1024,
@@ -134,45 +140,45 @@ export async function createBreakdown(prevState: any, formData: FormData) {
           .jpeg({ quality: 80 })
           .toBuffer();
 
-        console.log("Compressed buffer size:", compressedBuffer.length);
+        consolePino.info("Compressed buffer size:", compressedBuffer.length);
 
         // Ensure upload directory exists
         const uploadDir = join(process.cwd(), "public", "uploads", "userwo");
         const fullPath = join(uploadDir, filename);
 
-        console.log("Upload directory:", uploadDir);
-        console.log("Full path:", fullPath);
+        consolePino.info("Upload directory:", uploadDir);
+        consolePino.info("Full path:", fullPath);
 
         // Create directory if it doesn't exist
         try {
           await mkdir(uploadDir, { recursive: true });
-          console.log("Upload directory created or already exists");
+          consolePino.info("Upload directory created or already exists");
         } catch (error) {
-          console.error("Error creating upload directory:", error);
+          consolePino.error("Error creating upload directory:", error);
           // Continue anyway as writeFile might still work
         }
 
         // Save compressed image
-        console.log("Saving compressed image...");
+        consolePino.info("Saving compressed image...");
         await writeFile(fullPath, compressedBuffer);
-        console.log("Image saved successfully");
+        consolePino.info("Image saved successfully");
 
         // Store relative path for database storage
         photoPath = `/uploads/userwo/${filename}`;
-        console.log("Photo path set to:", photoPath);
+        consolePino.info("Photo path set to:", photoPath);
       } catch (error) {
-        console.error("Error processing photo:", error);
+        consolePino.error("Error processing photo:", error);
 
         return { success: false, message: "Failed to process photo upload." };
       }
     } else {
-      console.log("No photo to process");
+      consolePino.info("No photo to process");
     }
 
     const unitExists = await prisma.unit.findUnique({ where: { id: unitId } });
 
-    console.log("Unit ID from form:", unitId);
-    console.log("Unit exists in DB:", unitExists);
+    consolePino.info("Unit ID from form:", unitId);
+    consolePino.info("Unit exists in DB:", unitExists);
     if (!unitExists) {
       return { success: false, message: "Unit not found!" };
     }
@@ -181,8 +187,8 @@ export async function createBreakdown(prevState: any, formData: FormData) {
       where: { id: reportedById },
     });
 
-    console.log("Reporter ID from form:", reportedById);
-    console.log("Reporter exists in DB:", reporterExists);
+    consolePino.info("Reporter ID from form:", reportedById);
+    consolePino.info("Reporter exists in DB:", reporterExists);
     if (!reporterExists) {
       return { success: false, message: "Reporter user not found!" };
     }
@@ -247,7 +253,7 @@ export async function createBreakdown(prevState: any, formData: FormData) {
       message: `Breakdown for ${newBreakdown.unit.name} (${newBreakdown.unit.assetTag}) reported successfully!`,
     };
   } catch (error: unknown) {
-    console.error("Error creating breakdown:", error);
+    consolePino.error("Error creating breakdown:", error);
 
     if (
       error instanceof Error &&
@@ -282,7 +288,7 @@ export async function getUsers() {
 
     return users;
   } catch (error) {
-    console.error("Error fetching users:", error);
+    consolePino.error("Error fetching users:", error);
 
     return [];
   }

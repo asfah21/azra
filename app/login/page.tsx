@@ -20,6 +20,7 @@ import {
 } from "@heroicons/react/24/outline";
 
 import { VersiApp } from "@/components/ui/ChipVersion";
+import { Logo } from "@/components/icons";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -83,7 +84,7 @@ export default function LoginPage() {
   return (
     <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-white to-gray-50 dark:from-black dark:to-gray-950 p-4 sm:p-6">
       <Card className="w-full max-w-md shadow-2xl rounded-xl sm:rounded-2xl overflow-hidden border border-opacity-10 border-white dark:border-gray-700 backdrop-blur-sm bg-white/90 dark:bg-gray-900/30">
-        <CardHeader className="flex flex-col gap-3 p-6 sm:p-8 pb-0">
+        <CardHeader className="flex flex-col gap-3 p-3 sm:p-5 pb-2">
           <div className="flex justify-center mb-2">
             {/* <div className="p-3 bg-blue-100 dark:bg-blue-900/50 rounded-full">
               <svg
@@ -102,14 +103,28 @@ export default function LoginPage() {
               </svg>
             </div> */}
           </div>
-          <div className="flex flex-col text-center">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-gradient-to-br from-primary to-success-300 rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-sm">
+                <Logo />
+              </span>
+            </div>
+            <h1 className="text-xl font-bold text-foreground">
+              AZRA <VersiApp />
+            </h1>
+          </div>
+          <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
+            Please enter your credentials to access your account
+          </p>
+
+          {/* <div className="flex flex-col text-center">
             <h1 className="text-2xl sm:text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-primary to-success bg-[length:200%_200%] animate-[gradient_4s_ease-in-out_infinite]">
               AZRA <VersiApp />
             </h1>
             <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1">
               Please enter your credentials to access your account
             </p>
-          </div>
+          </div> */}
         </CardHeader>
 
         <Divider className="my-2 sm:my-3 opacity-40" />

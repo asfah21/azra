@@ -19,6 +19,8 @@ import { LoadingSpinner } from "../skeleton";
 import { Sidebar } from "./Sidebar";
 import { Topbar } from "./Topbar";
 
+import { consolePino } from "@/lib/logger";
+
 // Key untuk localStorage
 export const ACTIVE_TABS_KEY = "dashboard-active-tabs";
 export const ACTIVE_TAB_KEY = "dashboard-active-tab";
@@ -29,7 +31,7 @@ export const clearTabState = () => {
     localStorage.removeItem(ACTIVE_TABS_KEY);
     localStorage.removeItem(ACTIVE_TAB_KEY);
   } catch (error) {
-    console.error("Error clearing tab state:", error);
+    consolePino.error({ err: error }, "Error clearing tab state");
   }
 };
 
@@ -129,7 +131,7 @@ export default function UIDashboardLayout({
           localStorage.setItem(ACTIVE_TABS_KEY, JSON.stringify(tabsForStorage));
           localStorage.setItem(ACTIVE_TAB_KEY, currentActiveTab);
         } catch (error) {
-          console.error("Error saving tabs to storage:", error);
+          consolePino.error({ err: error }, "Error saving tabs to storage");
         }
       });
     },
@@ -163,7 +165,7 @@ export default function UIDashboardLayout({
         }
       }
     } catch (error) {
-      console.error("Error loading tabs from storage:", error);
+      consolePino.error({ err: error }, "Error loading tabs from storage");
     }
 
     return null;

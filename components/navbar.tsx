@@ -17,6 +17,8 @@ import NextLink from "next/link";
 import clsx from "clsx";
 import { BsFillLayersFill } from "react-icons/bs";
 
+import { VersiApp } from "./ui/ChipVersion";
+
 import { siteConfig } from "@/config/site";
 import { ThemeSwitch } from "@/components/theme-switch";
 import { SearchIcon, Logo } from "@/components/icons";
@@ -48,8 +50,18 @@ export const Navbar = () => {
       <NavbarContent className="basis-1/5 sm:basis-full" justify="start">
         <NavbarBrand as="li" className="gap-3 max-w-fit">
           <NextLink className="flex justify-start items-center gap-1" href="/">
-            <Logo />
-            <p className="font-bold text-inherit">AZRA</p>
+            <div className="flex items-center gap-2 ml-1">
+              <div className="w-8 h-8 bg-gradient-to-br from-primary to-success-300 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-sm">
+                  <Logo />
+                </span>
+              </div>
+              <h1 className="text-xl font-bold text-foreground">
+                AZRA <VersiApp />
+              </h1>
+            </div>
+            {/* <Logo />
+            <p className="font-bold text-inherit">AZRA</p> */}
           </NextLink>
         </NavbarBrand>
       </NavbarContent>

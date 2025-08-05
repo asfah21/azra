@@ -11,6 +11,7 @@ import { getServerSession } from "next-auth";
 
 import { authOptions } from "@/lib/auth"; // sesuaikan path kamu
 import { prisma } from "@/lib/prisma";
+import { consolePino } from "@/lib/logger";
 
 export async function createBreakdown(prevState: any, formData: FormData) {
   try {
@@ -95,7 +96,7 @@ export async function createBreakdown(prevState: any, formData: FormData) {
         // Store relative path for database storage
         photoPath = `/uploads/workorders/${filename}`;
       } catch (error) {
-        console.error("Error processing photo:", error);
+        consolePino.error("Error processing photo:", error);
 
         return { success: false, message: "Failed to process photo upload." };
       }
@@ -236,7 +237,7 @@ export async function createBreakdown(prevState: any, formData: FormData) {
       message: `Breakdown for ${newBreakdown.unit.name} (${newBreakdown.unit.assetTag}) reported successfully!`,
     };
   } catch (error: unknown) {
-    console.error("Error creating breakdown:", error);
+    consolePino.error("Error creating breakdown:", error);
 
     if (error instanceof Error) {
       if ("code" in error && error.code === "P2003") {
@@ -307,7 +308,7 @@ export async function updateBreakdownStatus(
 
     return { success: true, message: "Breakdown status updated." };
   } catch (error) {
-    console.error("Error updating breakdown status:", error);
+    consolePino.error("Error updating breakdown status:", error);
 
     return { success: false, message: "Failed to update status." };
   }
@@ -371,7 +372,7 @@ export async function updateBreakdownStatusWithActions(
 
     return { success: true, message: "Breakdown status updated with actions." };
   } catch (error) {
-    console.error("Error updating breakdown status with actions:", error);
+    consolePino.error("Error updating breakdown status with actions:", error);
 
     return { success: false, message: "Failed to update status with actions." };
   }
@@ -457,7 +458,10 @@ export async function updateBreakdownStatusWithUnitStatus(
       message: `Breakdown marked as in progress and unit status updated to ${unitStatus}.`,
     };
   } catch (error) {
-    console.error("Error updating breakdown status with unit status:", error);
+    consolePino.error(
+      "Error updating breakdown status with unit status:",
+      error,
+    );
 
     return { success: false, message: "Failed to update status." };
   }
@@ -523,7 +527,7 @@ export async function deleteBreakdown(id: string) {
 
     return { success: true, message: "Breakdown deleted successfully!" };
   } catch (error) {
-    console.error("Error deleting breakdown:", error);
+    consolePino.error("Error deleting breakdown:", error);
 
     return { success: false, message: "Failed to delete breakdown." };
   }

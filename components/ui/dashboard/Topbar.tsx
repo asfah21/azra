@@ -19,6 +19,7 @@ import { useRouter } from "next/navigation";
 import { ThemeSwitch } from "@/components/theme-switch";
 import { Logo, SearchIcon } from "@/components/icons";
 import { useProfile } from "@/app/context/ProfileContext";
+import { consolePino } from "@/lib/logger";
 
 interface TopbarProps {
   menuOpen: boolean;
@@ -85,7 +86,7 @@ export function Topbar({
 
   // Hanya log di development, tidak di production
   if (process.env.NODE_ENV !== "production") {
-    console.log("SESSION DI TOPBAR:", session);
+    consolePino.debug({ session }, "SESSION DI TOPBAR");
   }
 
   return (
@@ -101,7 +102,7 @@ export function Topbar({
           {menuOpen ? <FiX size={20} /> : <FiMenu size={20} />}
         </Button>
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-gradient-to-br from-primary to-secondary rounded-lg flex items-center justify-center">
+          <div className="w-8 h-8 bg-gradient-to-br from-primary to-success-300 rounded-lg flex items-center justify-center">
             <span className="text-white font-bold text-sm">
               <Logo />
             </span>
@@ -118,7 +119,7 @@ export function Topbar({
                 // name={getFirstName(session?.user?.name || "User")}
                 size="sm"
                 // src={session?.user?.photo || "https://i.pravatar.cc/150?img=12"}
-                src={profile?.photo || "https://i.pravatar.cc/150?img=12"}
+                src={profile?.photo || ""}
               />
             </DropdownTrigger>
             <DropdownMenu aria-label="User actions">

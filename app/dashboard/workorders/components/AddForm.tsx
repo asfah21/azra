@@ -21,6 +21,8 @@ import { useQueryClient } from "@tanstack/react-query";
 
 import { createBreakdown } from "../action";
 
+import { consolePino } from "@/lib/logger";
+
 interface AddWoFormProps {
   onClose: () => void;
   onBreakdownAdded?: () => void;
@@ -88,7 +90,7 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
         setUnits(res.data);
         setLoadingUnits(false);
       } catch (error) {
-        console.error("Failed to load units:", error);
+        consolePino.error("Failed to load units:", error);
         setLoadingUnits(false);
       }
     };
@@ -106,6 +108,7 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
 
         setBreakdownNumber(res.data.nextBreakdownNumber || "");
       } catch (error) {
+        consolePino.error("Failed to load breakdown number:", error);
         setBreakdownNumber("");
       }
     }

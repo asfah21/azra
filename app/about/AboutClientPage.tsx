@@ -21,7 +21,7 @@ export default function AboutPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-default-100 py-12 px-4 sm:px-6">
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-7xl mx-auto px-4 md:px-0">
         <HeroSection fadeIn={fadeIn} staggerContainer={staggerContainer} />
         <MissionSection fadeIn={fadeIn} staggerContainer={staggerContainer} />
         <ValuesSection fadeIn={fadeIn} staggerContainer={staggerContainer} />

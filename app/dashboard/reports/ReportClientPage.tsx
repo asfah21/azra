@@ -108,8 +108,10 @@ export default function ReportClientPage() {
           placeholder="Search reports..."
           size="sm"
           startContent={<Search className="w-4 h-4 text-default-400" />}
+          style={{ outline: "none" }}
           value={searchQuery}
           variant="flat"
+          onFocus={(e) => (e.target.style.outline = "none")}
           onValueChange={handleSearchChange}
         />
       </div>
@@ -120,8 +122,10 @@ export default function ReportClientPage() {
           placeholder="Search reports..."
           size="sm"
           startContent={<Search className="w-4 h-4 text-default-400" />}
+          style={{ outline: "none" }}
           value={searchQuery}
           variant="flat"
+          onFocus={(e) => (e.target.style.outline = "none")}
           onValueChange={handleSearchChange}
         />
       </div>

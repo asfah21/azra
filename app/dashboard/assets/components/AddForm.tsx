@@ -16,6 +16,8 @@ import {
 
 import { createUnit } from "../action";
 
+import { consolePino } from "@/lib/logger";
+
 interface AddFormProps {
   onClose: () => void;
   onUnitAdded?: () => void;
@@ -52,7 +54,7 @@ export function AddForms({
 
   // Debugging - tampilkan userId di console
   useEffect(() => {
-    console.log("Current User ID from session:", currentUserId);
+    consolePino.info("Current User ID from session:", currentUserId);
   }, [currentUserId]);
 
   // Auto close modal jika berhasil add unit
@@ -475,7 +477,7 @@ export function AddForms({
             variant="bordered"
             onFocus={(e) => (e.target.style.outline = "none")}
             onSelectionChange={(key) => {
-              console.log("Selected user ID:", key);
+              consolePino.info("Selected user ID:", key);
               setSelectedAssignedToId(key as string); // simpan ke state
             }}
           >

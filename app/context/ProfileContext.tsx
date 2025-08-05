@@ -10,6 +10,8 @@ import {
 } from "react";
 import axios from "axios";
 
+import { consolePino } from "@/lib/logger";
+
 type Profile = {
   id: string;
   name: string;
@@ -46,10 +48,10 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
       if (res.data?.success && res.data?.profile) {
         setProfile(res.data.profile);
       } else {
-        console.warn("No profile found in response");
+        consolePino.warn("No profile found in response");
       }
     } catch (err) {
-      console.error("Error fetching profile:", err);
+      consolePino.error("Error fetching profile:", err);
     } finally {
       setIsLoading(false);
     }

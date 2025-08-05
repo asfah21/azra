@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 
 import { prisma } from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
+import { consolePino } from "@/lib/logger";
 
 export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions); //Proteksi API
@@ -168,7 +169,7 @@ export async function GET(req: NextRequest) {
     });
 
     // Log data yang akan dikembalikan untuk debugging
-    console.log(
+    consolePino.info(
       "Formatted activities with avatars:",
       JSON.stringify(formattedActivities, null, 2),
     );
@@ -191,7 +192,7 @@ export async function GET(req: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("Error in recent activities API:", error);
+    consolePino.error("Error in recent activities API:", error);
 
     return NextResponse.json(
       {

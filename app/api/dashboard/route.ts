@@ -4,6 +4,7 @@ import { startOfMonth, endOfMonth, subMonths } from "date-fns";
 
 import { prisma } from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
+import { consolePino } from "@/lib/logger";
 
 // GET /api/dashboard
 export async function GET(req: NextRequest) {
@@ -307,7 +308,7 @@ export async function GET(req: NextRequest) {
       message: "Dashboard data retrieved successfully",
     });
   } catch (error) {
-    console.error("Error in dashboard API:", error);
+    consolePino.error("Error in dashboard API:", error);
 
     // ✅ Better error handling
     const errorMessage =

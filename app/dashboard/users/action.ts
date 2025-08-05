@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { Role } from "@prisma/client";
 
 import prisma from "@/lib/prisma";
+import { consolePino } from "@/lib/logger";
 
 // Tambahkan tipe return yang sesuai
 export type FormState = {
@@ -72,17 +73,17 @@ export async function addUsers(
 
     return { message: "User berhasil ditambahkan!" };
   } catch (error: any) {
-    console.error("Error adding user:", error);
+    consolePino.error("Error adding user:", error);
 
     // Log detailed error information
     if (error instanceof Error) {
-      console.error("Error name:", error.name);
-      console.error("Error message:", error.message);
+      consolePino.error("Error name:", error.name);
+      consolePino.error("Error message:", error.message);
       if ("code" in error) {
-        console.error("Error code:", error.code);
+        consolePino.error("Error code:", error.code);
       }
       if ("meta" in error) {
-        console.error("Error meta:", error.meta);
+        consolePino.error("Error meta:", error.meta);
       }
     }
 
@@ -172,7 +173,7 @@ export async function updateUser(
 
     return { message: "User berhasil diupdate!" };
   } catch (error) {
-    console.error("Error updating user:", error);
+    consolePino.error("Error updating user:", error);
 
     return {
       errors: {
@@ -224,7 +225,7 @@ export async function deleteUser(id: string, currentUserRole?: string) {
       message: `User ${existingUser.name} berhasil dihapus!`,
     };
   } catch (error) {
-    console.error("Error deleting user:", error);
+    consolePino.error("Error deleting user:", error);
 
     return {
       success: false,
@@ -293,7 +294,7 @@ export async function importUsersFromExcel(prevState: any, formData: FormData) {
       message: "Data users berhasil diimpor!",
     };
   } catch (error) {
-    console.error("Error importing users from Excel:", error);
+    consolePino.error("Error importing users from Excel:", error);
 
     return {
       success: false,

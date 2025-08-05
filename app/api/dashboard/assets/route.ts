@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 
 import { prisma } from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
+import { consolePino } from "@/lib/logger";
 
 // GET /api/dashboard/assets
 export async function GET(req: NextRequest) {
@@ -108,7 +109,7 @@ export async function GET(req: NextRequest) {
       users,
     });
   } catch (error) {
-    console.error("Error fetching assets data:", error);
+    consolePino.error("Error fetching assets data:", error);
 
     return NextResponse.json(
       { allAssets: [], assetStats: {}, users: [] },

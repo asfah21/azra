@@ -498,8 +498,10 @@ export default function TableDatas({
               placeholder="Search assets..."
               size="sm"
               startContent={<Search className="w-4 h-4 text-default-400" />}
+              style={{ outline: "none" }}
               value={searchQuery}
               variant="flat"
+              onFocus={(e) => (e.target.style.outline = "none")}
               onValueChange={handleSearchChange}
             />
             <Button
@@ -534,7 +536,7 @@ export default function TableDatas({
                 startContent={<UserPlus className="w-4 h-4" />}
                 onPress={onOpen}
               >
-                Add Asset
+                Add New
               </Button>
             ) : null}
           </div>
@@ -548,8 +550,10 @@ export default function TableDatas({
               placeholder="Search assets..."
               size="sm"
               startContent={<Search className="w-4 h-4 text-default-400" />}
+              style={{ outline: "none" }}
               value={searchQuery}
               variant="flat"
+              onFocus={(e) => (e.target.style.outline = "none")}
               onValueChange={handleSearchChange}
             />
           </div>

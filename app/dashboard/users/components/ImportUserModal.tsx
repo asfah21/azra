@@ -29,6 +29,8 @@ import * as XLSX from "xlsx";
 
 import { importUsersFromExcel } from "../action";
 
+import { consolePino } from "@/lib/logger";
+
 interface ImportUserModalProps {
   onClose: () => void;
   onUsersImported?: () => void;
@@ -186,7 +188,7 @@ export function ImportUserModal({
 
         setValidationResults(validationResults);
       } catch (error) {
-        console.error("Error reading Excel file:", error);
+        consolePino.error("Error reading Excel file:", error);
         setExcelData([]);
         setValidationResults([]);
       } finally {

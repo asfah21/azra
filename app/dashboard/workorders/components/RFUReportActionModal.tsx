@@ -16,6 +16,8 @@ import {
 } from "@heroui/react";
 import { Plus, Trash2, Clock } from "lucide-react";
 
+import { consolePino } from "@/lib/logger";
+
 interface RFUAction {
   id: string;
   action: string;
@@ -105,7 +107,7 @@ export default function RFUReportActionModal({
       setActions([]);
       onClose();
     } catch (error) {
-      console.error("Error completing RFU:", error);
+      consolePino.error("Error completing RFU:", error);
     } finally {
       setIsSubmitting(false);
     }

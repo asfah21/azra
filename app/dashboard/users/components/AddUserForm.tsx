@@ -18,6 +18,8 @@ import { useSession } from "next-auth/react";
 
 import { addUsers } from "../action";
 
+import { consolePino } from "@/lib/logger";
+
 interface AddUserFormProps {
   onClose: () => void;
   onUserAdded?: () => void;
@@ -72,12 +74,12 @@ export function AddUserForms({ onClose, onUserAdded }: AddUserFormProps) {
     formData.forEach((value, key) => {
       formDataObj[key] = value;
     });
-    console.log("Form data being submitted:", formDataObj);
+    consolePino.info("Form data being submitted:", formDataObj);
 
     try {
       await formAction(formData);
     } catch (error) {
-      console.error("Error in form submission:", error);
+      consolePino.error("Error in form submission:", error);
       throw error; // Re-throw to let the form handle the error
     }
   };

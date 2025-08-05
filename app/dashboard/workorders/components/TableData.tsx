@@ -61,6 +61,8 @@ import BreakdownDetailModal from "./BreakdownDetailModal";
 import RFUReportActionModal from "./RFUReportActionModal";
 import InProgressModal from "./InProgressModal";
 
+import { consolePino } from "@/lib/logger";
+
 // Tambahkan import untuk mendapatkan current user
 
 interface BreakdownPayload {
@@ -216,13 +218,13 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
         // Tambahkan invalidateQueries di sini
         queryClient.invalidateQueries({ queryKey: ["breakdowns"] });
         // Mungkin bisa ditambahkan notifikasi sukses di sini
-        console.log(result.message);
+        consolePino.info(result.message);
       } else {
         // Mungkin bisa ditambahkan notifikasi error di sini
-        console.error(result.message);
+        consolePino.error(result.message);
       }
     } catch (error) {
-      console.error("An unexpected error occurred:", error);
+      consolePino.error("An unexpected error occurred:", error);
     }
   };
 
@@ -240,7 +242,7 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
     const currentUserId = session?.user?.id;
 
     if (!currentUserId) {
-      console.error("User ID not found");
+      consolePino.error("User ID not found");
 
       return;
     }
@@ -255,13 +257,13 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
       );
 
       if (result.success) {
-        console.log(result.message);
+        consolePino.info(result.message);
         await queryClient.invalidateQueries({ queryKey: ["breakdowns"] }); //Invalidate query to update data
       } else {
-        console.error(result.message);
+        consolePino.error(result.message);
       }
     } catch (error) {
-      console.error("An unexpected error occurred:", error);
+      consolePino.error("An unexpected error occurred:", error);
     }
   };
 
@@ -311,7 +313,9 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
   const handleDelete = (breakdown: BreakdownPayload) => {
     // Validasi role user sebelum membuka modal
     if (session?.user?.role !== "super_admin") {
-      console.error("Unauthorized: Only super_admin can delete work orders");
+      consolePino.error(
+        "Unauthorized: Only super_admin can delete work orders",
+      );
 
       return;
     }
@@ -325,7 +329,9 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
 
     // Validasi role user sebelum melakukan delete
     if (session?.user?.role !== "super_admin") {
-      console.error("Unauthorized: Only super_admin can delete work orders");
+      consolePino.error(
+        "Unauthorized: Only super_admin can delete work orders",
+      );
       setIsDeleteModalOpen(false);
       setSelectedBreakdownForDelete(null);
 
@@ -338,7 +344,7 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
       setIsDeleteModalOpen(false);
       setSelectedBreakdownForDelete(null);
     } catch (error) {
-      console.error("Error deleting breakdown:", error);
+      consolePino.error("Error deleting breakdown:", error);
     } finally {
       setIsDeleting(false);
     }

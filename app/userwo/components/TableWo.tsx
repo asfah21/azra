@@ -48,6 +48,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { AddWoForm } from "./AddWo";
 import DetailWo from "./DetailWo";
 
+import { consolePino } from "@/lib/logger";
+
 interface BreakdownPayload {
   id: string;
   breakdownNumber: string | null;
@@ -208,13 +210,19 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
         // Tambahkan invalidateQueries di sini
         queryClient.invalidateQueries({ queryKey: ["breakdowns"] });
         // Mungkin bisa ditambahkan notifikasi sukses di sini
-        console.log(result.message);
+        consolePino.info(
+          { message: result.message },
+          "Breakdown added successfully",
+        );
       } else {
         // Mungkin bisa ditambahkan notifikasi error di sini
-        console.error(result.message);
+        consolePino.error(
+          { message: result.message },
+          "Breakdown added failed",
+        );
       }
     } catch (error) {
-      console.error("An unexpected error occurred:", error);
+      consolePino.error({ err: error }, "An unexpected error occurred");
     }
   };
 

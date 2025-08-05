@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
+import { consolePino } from "@/lib/logger";
 
 export async function GET(request: NextRequest) {
   try {
@@ -57,7 +58,7 @@ export async function GET(request: NextRequest) {
       data: maintenanceLogs,
     });
   } catch (error) {
-    console.error("Error fetching maintenance history:", error);
+    consolePino.error("Error fetching maintenance history:", error);
 
     return NextResponse.json(
       { message: "Terjadi kesalahan saat mengambil riwayat maintenance" },

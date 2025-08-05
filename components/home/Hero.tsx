@@ -30,26 +30,26 @@ export default function Hero() {
       initial="hidden"
       variants={staggerContainer}
     >
-      <section className="flex relative overflow-hidden lg:overflow-visible w-full flex-nowrap justify-between items-center h-[calc(100vh_-_64px)] 2xl:h-[calc(84vh_-_64px)] max-w-screen-2xl mx-auto">
+      <section className="pb-4 flex relative overflow-hidden lg:overflow-visible w-full flex-nowrap justify-between items-center h-[calc(100vh_-_64px)] 2xl:h-[calc(84vh_-_64px)] max-w-screen-2xl mx-auto">
         <motion.div
           className="relative z-20 flex flex-col w-full gap-6 lg:w-1/2 xl:mt-10 max-w-[720px]"
           variants={fadeIn}
         >
           <motion.div
-            className="flex justify-center w-full md:hidden"
+            className="flex justify-center w-full pb-[-4px] md:hidden"
             variants={fadeIn}
           >
-            <a
+            {/* <a
               className="relative max-w-fit min-w-min inline-flex items-center justify-between box-border whitespace-nowrap px-1 h-7 text-small rounded-full text-primary-600 bg-default-200/50 border-1 hover:bg-default-200/80 border-default-400/50 cursor-pointer"
               href="/blog/v2.7.0"
             >
               <span className="flex-1 px-2 font-semibold text-foreground text-xs">
-                Azra v0.3.1 (beta)&nbsp;
+                AZRA <VersiApp/>
                 <span aria-label="emoji" role="img">
                   🔥
                 </span>
               </span>
-            </a>
+            </a> */}
           </motion.div>
 
           <motion.h1
