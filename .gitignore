@@ -5,9 +5,6 @@
 /.pnp
 .pnp.js
 
-# Ignore Prisma folder and files
-prisma/
-
 # testing
 /coverage
 
