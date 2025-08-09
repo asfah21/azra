@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import {
   Modal,
@@ -54,6 +54,14 @@ export function DeleteAssetModal({
 }: DeleteAssetModalProps) {
   const { data: session } = useSession();
   const queryClient = useQueryClient();
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  // Reset state when modal opens/closes or asset changes
+  useEffect(() => {
+    if (isOpen) {
+      setIsDeleting(false);
+    }
+  }, [isOpen, asset]);
 
   // React Query mutation untuk delete asset
   const mutation = useMutation({
@@ -65,6 +73,7 @@ export function DeleteAssetModal({
           message: "Unauthorized: Only Super Admin can delete assets.",
         };
       }
+      setIsDeleting(true);
 
       return await deleteAsset(asset.id, session.user.role);
     },
@@ -72,24 +81,28 @@ export function DeleteAssetModal({
       // Invalidate cache assets agar data ter-refresh
       if (data.success) {
         queryClient.invalidateQueries({ queryKey: ["assets"] });
-        setTimeout(() => {
-          onClose();
-          if (onAssetDeleted) onAssetDeleted();
-        }, 1500);
+        // Don't close immediately, let the success message show
+      } else {
+        setIsDeleting(false);
       }
+    },
+    onError: () => {
+      setIsDeleting(false);
     },
   });
 
-  useEffect(() => {
-    if (isOpen) {
-      // setResult(null); // Removed as per new_code
-      // setIsDeleting(false); // Removed as per new_code
-    }
-  }, [isOpen]);
-
   // Ganti handleDelete jadi trigger mutation
   const handleDelete = () => {
-    mutation.mutate();
+    if (!isDeleting) {
+      mutation.mutate();
+    }
+  };
+
+  // Handle modal close
+  const handleClose = () => {
+    if (onClose) onClose();
+    // Reset the mutation state when modal is closed
+    mutation.reset();
   };
 
   const getCategoryName = (category: number): string => {
@@ -120,7 +133,7 @@ export function DeleteAssetModal({
   if (!asset) return null;
 
   return (
-    <Modal isOpen={isOpen} placement="top-center" onOpenChange={onClose}>
+    <Modal isOpen={isOpen} onOpenChange={handleClose}>
       <ModalContent>
         {(onClose) => (
           <>
@@ -292,16 +305,11 @@ export function DeleteAssetModal({
                   </Button>
                   <Button
                     color="danger"
-                    isDisabled={session?.user?.role !== "super_admin"}
-                    isLoading={mutation.isPending}
-                    startContent={
-                      !mutation.isPending ? (
-                        <Trash2 className="w-4 h-4" />
-                      ) : undefined
-                    }
+                    isDisabled={isDeleting}
+                    isLoading={isDeleting}
                     onPress={handleDelete}
                   >
-                    {mutation.isPending ? "Deleting..." : "Delete Asset"}
+                    {isDeleting ? "Deleting..." : "Delete"}
                   </Button>
                 </>
               )}

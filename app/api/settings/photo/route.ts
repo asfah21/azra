@@ -1,13 +1,57 @@
-import { writeFile } from "fs/promises";
+// app/api/settings/photo/route.ts
 import path from "path";
 import fs from "fs";
 
+import {
+  S3Client,
+  PutObjectCommand,
+  DeleteObjectCommand,
+} from "@aws-sdk/client-s3";
+import mime from "mime";
 import { getServerSession } from "next-auth";
 import { NextRequest, NextResponse } from "next/server";
 
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { consolePino } from "@/lib/logger";
+
+export const runtime = "nodejs"; // pastikan route ini berjalan di Node runtime (bukan Edge)
+
+const s3 = new S3Client({
+  region: "us-east-1",
+  endpoint: `${process.env.MINIO_USE_SSL === "true" ? "https" : "http"}://${process.env.MINIO_ENDPOINT}:${process.env.MINIO_PORT}`,
+  credentials: {
+    accessKeyId: process.env.MINIO_ACCESS_KEY || "",
+    secretAccessKey: process.env.MINIO_SECRET_KEY || "",
+  },
+  forcePathStyle: true, // wajib untuk MinIO
+});
+
+function getExtFrom(file: File) {
+  // 1) coba dari file.name, 2) fallback dari mime type, 3) default .bin
+  const fromName = (file.name || "").split(".").pop();
+
+  if (fromName && fromName.length <= 5) return "." + fromName.toLowerCase();
+  const byMime = mime.getExtension(file.type || "");
+
+  return byMime ? "." + byMime : ".bin";
+}
+
+function parseMinioKeyFromUrl(url: string) {
+  // dukung dua pola umum:
+  // http://host:9000/<bucket>/<key>
+  // atau kalau suatu saat pakai subdomain-style, sesuaikan di sini.
+  try {
+    const u = new URL(url);
+    const parts = u.pathname.replace(/^\/+/, "").split("/");
+    const bucket = parts.shift() || "";
+    const key = parts.join("/");
+
+    return { bucket, key };
+  } catch {
+    return { bucket: "", key: "" };
+  }
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -38,7 +82,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Get user to check existing photo
+    // cek user
     const user = await prisma.user.findUnique({ where: { id: userId } });
 
     if (!user) {
@@ -48,24 +92,61 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Delete old photo if exists
-    if (user.photo && user.photo.startsWith("/uploads/")) {
-      const oldPhotoPath = path.join(process.cwd(), "public", user.photo);
+    // Hapus foto lama (mendukung dua kasus: local /uploads dan URL MinIO)
+    if (user.photo) {
+      if (user.photo.startsWith("/uploads/")) {
+        const oldPhotoPath = path.join(process.cwd(), "public", user.photo);
 
-      if (fs.existsSync(oldPhotoPath)) {
-        fs.unlinkSync(oldPhotoPath);
+        if (fs.existsSync(oldPhotoPath)) {
+          try {
+            fs.unlinkSync(oldPhotoPath);
+          } catch (e) {
+            consolePino.warn("Failed to delete local file:", e);
+          }
+        }
+      } else if (user.photo.startsWith("http")) {
+        const { bucket, key } = parseMinioKeyFromUrl(user.photo);
+        const bucketFromEnv = process.env.MINIO_BUCKET || "";
+
+        if (bucket && key && bucket === bucketFromEnv) {
+          try {
+            await s3.send(
+              new DeleteObjectCommand({ Bucket: bucket, Key: key }),
+            );
+          } catch (e) {
+            consolePino.warn("Failed to delete MinIO object:", e);
+          }
+        }
       }
     }
 
-    // Save new photo
+    // Siapkan object key + content-type
+    const ext = getExtFrom(file);
+    const objectKey = `users/${userId}/user-${userId}-${Date.now()}${ext}`;
+    const contentType =
+      file.type || mime.getType(ext) || "application/octet-stream";
+
+    // Upload ke MinIO
     const buffer = Buffer.from(await file.arrayBuffer());
-    const fileName = `user-${userId}-${Date.now()}.jpg`;
-    const filePath = path.join(process.cwd(), "public", "uploads", fileName);
 
-    await writeFile(filePath, buffer);
-    const photoUrl = `/uploads/${fileName}`;
+    await s3.send(
+      new PutObjectCommand({
+        Bucket: process.env.MINIO_BUCKET!,
+        Key: objectKey,
+        Body: buffer,
+        ContentType: contentType,
+        ACL: "public-read" as any, // MinIO mengabaikan ACL jika bucket policy sudah anonymous read; tidak masalah
+        CacheControl: "public, max-age=31536000, immutable",
+      }),
+    );
 
-    // Update user photo
+    // Bentuk URL publik
+    const base =
+      process.env.MINIO_PUBLIC_BASEURL ||
+      `${process.env.MINIO_USE_SSL === "true" ? "https" : "http"}://${process.env.MINIO_ENDPOINT}:${process.env.MINIO_PORT}`;
+    const photoUrl = `${base.replace(/\/+$/, "")}/${process.env.MINIO_BUCKET}/${encodeURI(objectKey)}`;
+
+    // Update user
     const updatedUser = await prisma.user.update({
       where: { id: userId },
       data: { photo: photoUrl },

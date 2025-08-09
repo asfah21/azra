@@ -4,6 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { Users } from "lucide-react";
 
+import DashboardFooter from "../components/DashboardFooter";
+
 import UserCardGrids from "./components/CardGrid";
 import UserTables from "./components/UserTable";
 
@@ -70,6 +72,7 @@ export default function UsersClientPage() {
       ) : (
         <UserTables usersTable={usersTable} />
       )}
+      <DashboardFooter className="mt-10 mb-[-10px] md:mb-[-30px]" />
     </div>
   );
 }

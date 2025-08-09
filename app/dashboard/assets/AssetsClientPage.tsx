@@ -4,6 +4,8 @@ import { Package } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 
+import DashboardFooter from "../components/DashboardFooter";
+
 import AssetCardGrids from "./components/CardGrid";
 import TableDatas from "./components/TableData";
 
@@ -58,6 +60,7 @@ export default function AssetsClientPage() {
           <TableDatas dataTable={allAssets} users={users} />
         </>
       )}
+      <DashboardFooter className="mt-10 mb-[-10px] md:mb-[-30px]" />
     </div>
   );
 }

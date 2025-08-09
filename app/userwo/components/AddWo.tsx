@@ -443,11 +443,13 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
             <div className="flex flex-col gap-2">
               <label className="flex flex-col items-center justify-center border-2 border-dashed rounded-lg cursor-pointer bg-default-100 hover:bg-default-200 transition-colors p-4">
                 {photoPreview ? (
-                  <div className="relative w-full h-32">
+                  <div className="relative w-full h-32 flex items-center justify-center rounded-md">
                     <Image
                       alt="Preview"
-                      className="w-full h-full object-contain rounded-md"
+                      className="max-h-full max-w-full rounded-md object-contain"
+                      height={125}
                       src={photoPreview}
+                      width={125}
                     />
                   </div>
                 ) : (

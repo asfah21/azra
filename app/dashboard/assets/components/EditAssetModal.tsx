@@ -251,7 +251,7 @@ export function EditAssetModal({
               onSelectionChange={(key) => setSelectedStatus(key as string)}
             >
               {(item) => (
-                <AutocompleteItem key={item.key}>{item.label}</AutocompleteItem>
+                <AutocompleteItem key={item.label}>{item.key}</AutocompleteItem>
               )}
             </Autocomplete>
             <input name="status" type="hidden" value={selectedStatus} />

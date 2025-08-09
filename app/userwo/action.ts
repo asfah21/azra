@@ -1,25 +1,43 @@
 "use server";
 
-import { writeFile, mkdir } from "fs/promises";
-import { join } from "path";
 import { randomUUID } from "crypto";
 
 import { headers as nextHeaders } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { BreakdownStatus } from "@prisma/client";
 import sharp from "sharp";
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 
 import { prisma } from "@/lib/prisma";
 import { breakdownSchema, ratelimit } from "@/lib/validation";
 import { consolePino } from "@/lib/logger";
 
+/** ==== MinIO (S3) client ==== */
+const s3 = new S3Client({
+  region: "us-east-1",
+  endpoint: `${process.env.MINIO_USE_SSL === "true" ? "https" : "http"}://${process.env.MINIO_ENDPOINT}:${process.env.MINIO_PORT}`,
+  credentials: {
+    accessKeyId: process.env.MINIO_ACCESS_KEY || "",
+    secretAccessKey: process.env.MINIO_SECRET_KEY || "",
+  },
+  forcePathStyle: true, // wajib untuk MinIO
+});
+
+function publicUrlFor(key: string) {
+  const base =
+    process.env.MINIO_PUBLIC_BASEURL ||
+    `${process.env.MINIO_USE_SSL === "true" ? "https" : "http"}://${process.env.MINIO_ENDPOINT}:${process.env.MINIO_PORT}`;
+
+  return `${base.replace(/\/+$/, "")}/${process.env.MINIO_BUCKET}/${encodeURI(key)}`;
+}
+
+/** ==== Server Action ==== */
 export async function createBreakdown(prevState: any, formData: FormData) {
   try {
     // Rate limiting
     const headersList = await nextHeaders();
     const ip = headersList.get("x-forwarded-for") || "127.0.0.1";
 
-    // Only apply rate limiting in production
     if (process.env.NODE_ENV === "production") {
       const { success: limitReached } = await ratelimit.limit(ip);
 
@@ -84,22 +102,22 @@ export async function createBreakdown(prevState: any, formData: FormData) {
       shift,
     } = validationResult.data;
 
-    // Handle photo upload if present
+    // Handle photo upload if present → MINIO
     let photoPath: string | null = null;
     const photo = formData.get("photo") as File | null;
 
-    consolePino.info("Photo received:", photo);
-    if (photo) {
-      consolePino.info("Photo size:", photo.size);
-      consolePino.info("Photo type:", photo.type);
-    }
+    consolePino.info(
+      "Photo received:",
+      photo
+        ? { size: photo.size, type: photo.type, name: (photo as any).name }
+        : null,
+    );
 
     if (photo && photo.size > 0) {
       try {
-        consolePino.info("Processing photo upload...");
         // Validate file type
         if (!photo.type.startsWith("image/")) {
-          consolePino.info("Invalid file type detected:", photo.type);
+          consolePino.info("Invalid file type:", photo.type);
 
           return {
             success: false,
@@ -109,27 +127,22 @@ export async function createBreakdown(prevState: any, formData: FormData) {
 
         // Validate file size (3MB limit)
         if (photo.size > 3 * 1024 * 1024) {
-          consolePino.info("File size exceeds limit:", photo.size);
+          consolePino.info("File too large:", photo.size);
 
           return { success: false, message: "File size exceeds 3MB limit." };
         }
 
-        // Convert file to buffer for sharp processing
-        consolePino.info("Converting file to buffer...");
+        // Convert file to buffer
         const bytes = await photo.arrayBuffer();
         const buffer = Buffer.from(bytes);
 
-        consolePino.info("Buffer size:", buffer.length);
+        consolePino.info("Original buffer size:", buffer.length);
 
-        // Generate unique filename
+        // Generate filename (kita re-encode ke JPEG terkompres)
         const fileId = randomUUID();
-        const fileExtension = photo.type.split("/")[1] || "jpg";
-        const filename = `breakdown-${fileId}.${fileExtension}`;
+        const filename = `breakdown-${fileId}.jpg`;
 
-        consolePino.info("Generated filename:", filename);
-
-        // Compress image using Sharp to target 0.5-1MB
-        consolePino.info("Compressing image...");
+        // Compress to ~0.5–1MB tergantung sumber
         const compressedBuffer = await sharp(buffer)
           .resize({
             width: 1024,
@@ -142,30 +155,24 @@ export async function createBreakdown(prevState: any, formData: FormData) {
 
         consolePino.info("Compressed buffer size:", compressedBuffer.length);
 
-        // Ensure upload directory exists
-        const uploadDir = join(process.cwd(), "public", "uploads", "userwo");
-        const fullPath = join(uploadDir, filename);
+        // Object key di MinIO (rapi per folder use-case)
+        const objectKey = `userwo/${filename}`;
+        const contentType = "image/jpeg";
 
-        consolePino.info("Upload directory:", uploadDir);
-        consolePino.info("Full path:", fullPath);
+        // Upload ke MinIO
+        await s3.send(
+          new PutObjectCommand({
+            Bucket: process.env.MINIO_BUCKET!,
+            Key: objectKey,
+            Body: compressedBuffer,
+            ContentType: contentType,
+            CacheControl: "public, max-age=31536000, immutable",
+          }),
+        );
 
-        // Create directory if it doesn't exist
-        try {
-          await mkdir(uploadDir, { recursive: true });
-          consolePino.info("Upload directory created or already exists");
-        } catch (error) {
-          consolePino.error("Error creating upload directory:", error);
-          // Continue anyway as writeFile might still work
-        }
-
-        // Save compressed image
-        consolePino.info("Saving compressed image...");
-        await writeFile(fullPath, compressedBuffer);
-        consolePino.info("Image saved successfully");
-
-        // Store relative path for database storage
-        photoPath = `/uploads/userwo/${filename}`;
-        consolePino.info("Photo path set to:", photoPath);
+        // URL publik untuk disimpan di DB
+        photoPath = publicUrlFor(objectKey);
+        consolePino.info("Photo uploaded to MinIO:", photoPath);
       } catch (error) {
         consolePino.error("Error processing photo:", error);
 
@@ -175,10 +182,9 @@ export async function createBreakdown(prevState: any, formData: FormData) {
       consolePino.info("No photo to process");
     }
 
+    // Validasi referensi unit & user
     const unitExists = await prisma.unit.findUnique({ where: { id: unitId } });
 
-    consolePino.info("Unit ID from form:", unitId);
-    consolePino.info("Unit exists in DB:", unitExists);
     if (!unitExists) {
       return { success: false, message: "Unit not found!" };
     }
@@ -187,12 +193,11 @@ export async function createBreakdown(prevState: any, formData: FormData) {
       where: { id: reportedById },
     });
 
-    consolePino.info("Reporter ID from form:", reportedById);
-    consolePino.info("Reporter exists in DB:", reporterExists);
     if (!reporterExists) {
       return { success: false, message: "Reporter user not found!" };
     }
 
+    // Generate nomor breakdown berurutan
     const newBreakdownNumber = await prisma.$transaction(async (tx) => {
       const last = await tx.breakdown.findFirst({
         orderBy: { breakdownNumber: "desc" },
@@ -203,14 +208,13 @@ export async function createBreakdown(prevState: any, formData: FormData) {
       if (last?.breakdownNumber) {
         const match = last.breakdownNumber.match(/\d+$/);
 
-        if (match) {
-          nextNumber = parseInt(match[0], 10) + 1;
-        }
+        if (match) nextNumber = parseInt(match[0], 10) + 1;
       }
 
       return `WO-${nextNumber.toString().padStart(4, "0")}`;
     });
 
+    // Create breakdown
     const newBreakdown = await prisma.breakdown.create({
       data: {
         breakdownNumber: newBreakdownNumber,
@@ -222,7 +226,7 @@ export async function createBreakdown(prevState: any, formData: FormData) {
         status: BreakdownStatus.pending,
         unitId,
         reportedById,
-        photo: photoPath,
+        photo: photoPath, // <- URL publik MinIO (atau null)
         components: {
           create: components.map((comp) => ({
             component: comp.component,
@@ -237,6 +241,7 @@ export async function createBreakdown(prevState: any, formData: FormData) {
       },
     });
 
+    // Log unit history
     await prisma.unitHistory.create({
       data: {
         logType: "breakdown",
@@ -246,6 +251,7 @@ export async function createBreakdown(prevState: any, formData: FormData) {
       },
     });
 
+    // Revalidate halaman terkait
     revalidatePath("/userwo");
 
     return {

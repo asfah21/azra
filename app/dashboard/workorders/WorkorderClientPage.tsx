@@ -4,6 +4,8 @@ import { PaperClipIcon } from "@heroicons/react/24/outline";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 
+import DashboardFooter from "../components/DashboardFooter";
+
 import GammaCardGrid from "./components/CardGrid";
 import GammaTableData from "./components/TableData";
 
@@ -80,6 +82,7 @@ export default function WorkorderClientPage({
       ) : (
         <GammaTableData dataTable={allBreakdowns} />
       )}
+      <DashboardFooter className="mt-10 mb-[-10px] md:mb-[-30px]" />
     </div>
   );
 }

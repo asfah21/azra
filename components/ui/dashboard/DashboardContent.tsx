@@ -18,6 +18,7 @@ import {
 
 import DashboardCharts from "@/components/ui/dashboard/DashboardCharts";
 import { DashboardSkeleton } from "@/components/ui/skeleton";
+import { consolePino } from "@/lib/logger";
 
 interface DashboardContentProps {
   user: any;
@@ -37,7 +38,7 @@ interface DashboardContentProps {
       overdue: number;
     };
     monthlyBreakdowns: Array<{ month: string; count: number }>;
-    categoryDistribution: Array<{ category: string; count: number }>;
+    categoryDistribution: Array<{ unit: string; count: number }>;
     maintenancePerformance: Array<{
       department: string;
       completionRate: number;
@@ -73,11 +74,12 @@ export default function DashboardContent({
   onRetry,
 }: DashboardContentProps) {
   // Debug log to check loading state
-  console.log('DashboardContent - loading state:', loading);
-  
+  consolePino.info("DashboardContent - loading state:", loading);
+
   // Handle loading state with skeleton
   if (loading) {
-    console.log('Rendering DashboardSkeleton');
+    consolePino.info("Rendering DashboardSkeleton");
+
     return (
       <div className="w-full" data-testid="dashboard-skeleton">
         <DashboardSkeleton />

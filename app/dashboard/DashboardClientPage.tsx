@@ -4,6 +4,8 @@ import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { LayoutDashboardIcon } from "lucide-react";
 
+import DashboardFooter from "./components/DashboardFooter";
+
 import DashboardContent from "@/components/ui/dashboard/DashboardContent";
 
 // Simple fetch function
@@ -50,6 +52,8 @@ export default function DashboardClientPage({ user }: { user: any }) {
         user={user}
         onRetry={refetch}
       />
+
+      <DashboardFooter className="mt-10 mb-[-10px] md:mb-[-30px]" />
     </div>
   );
 }

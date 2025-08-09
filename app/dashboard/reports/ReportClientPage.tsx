@@ -6,8 +6,12 @@ import { useState, useCallback } from "react";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 
+import DashboardFooter from "../components/DashboardFooter";
+
 import ListReportButton from "./components/ListReportButton";
 import TableReport from "./components/TableReport";
+
+import { consolePino } from "@/lib/logger";
 
 interface Activity {
   id: string;
@@ -47,7 +51,7 @@ const fetchRecentActivities = async ({
   );
 
   // Log data yang diterima dari API
-  console.log("API Response:", response.data);
+  consolePino.info("API Response:", response.data);
 
   return response.data;
 };
@@ -146,6 +150,7 @@ export default function ReportClientPage() {
         onPageChange={handlePageChange}
         onRetry={handleRetry}
       />
+      <DashboardFooter className="mt-10 mb-[-10px] md:mb-[-30px]" />
     </div>
   );
 }

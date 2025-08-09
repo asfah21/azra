@@ -496,7 +496,7 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
                 All Work Orders
               </p>
               <p className="text-xs sm:text-small text-default-600">
-                Complete work order management
+                List All Work Orders
               </p>
             </div>
           </div>

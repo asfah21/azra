@@ -14,6 +14,7 @@ import { Card, Skeleton } from "@heroui/react";
 import { useMemo, useState } from "react";
 
 import { VersiApp } from "@/components/ui/ChipVersion";
+import { consolePino } from "@/lib/logger";
 
 interface Props {
   searchQuery: string;
@@ -72,7 +73,7 @@ export default function ListReportButton({
       document.body.removeChild(link);
       window.URL.revokeObjectURL(url);
     } catch (error) {
-      console.error("Download error:", error);
+      consolePino.error("Download error:", error);
       // You could add a toast notification here
       alert("Download failed. Please try again.");
     } finally {

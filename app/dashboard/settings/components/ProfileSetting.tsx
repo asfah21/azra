@@ -16,6 +16,7 @@ import { useState, useEffect } from "react";
 import ChangePhotoModal from "./ChangePhotoModal";
 
 import { useUpdateProfile, useUpdatePhoto } from "@/hooks/useSettings";
+import { consolePino } from "@/lib/logger";
 
 export default function ProfileSetting({ profile }: { profile: any }) {
   const [darkMode, setDarkMode] = useState(false);
@@ -80,7 +81,7 @@ export default function ProfileSetting({ profile }: { profile: any }) {
         });
       }
     } catch (error) {
-      console.error("Error updating profile:", error);
+      consolePino.error("Error updating profile:", error);
       addToast({
         title: "Error",
         description: "Terjadi kesalahan saat menyimpan data.",
@@ -125,7 +126,7 @@ export default function ProfileSetting({ profile }: { profile: any }) {
         });
       }
     } catch (error) {
-      console.error("Error updating photo:", error);
+      consolePino.error("Error updating photo:", error);
       addToast({
         title: "Error",
         description: "Terjadi kesalahan saat mengupdate foto.",

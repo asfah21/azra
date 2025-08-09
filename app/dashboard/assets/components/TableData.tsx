@@ -475,7 +475,7 @@ export default function TableDatas({
             <div className="flex flex-col flex-1 text-left">
               <div className="flex items-center gap-2">
                 <p className="text-xl font-semibold text-default-800 text-left">
-                  Asset Inventory
+                  Asset
                 </p>
                 <Chip
                   className="text-sm font-bold"
@@ -487,9 +487,7 @@ export default function TableDatas({
                   {filteredData.length}
                 </Chip>
               </div>
-              <p className="text-small text-default-600">
-                Asset management system
-              </p>
+              <p className="text-small text-default-600">List All Assets</p>
             </div>
           </div>
           <div className="flex gap-2 w-full sm:w-auto">

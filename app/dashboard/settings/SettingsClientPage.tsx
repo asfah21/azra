@@ -8,6 +8,8 @@ import {
 } from "@tanstack/react-query";
 import axios from "axios";
 
+import DashboardFooter from "../components/DashboardFooter";
+
 import ProfileSetting from "./components/ProfileSetting";
 import SystemSetting from "./components/SystemSetting";
 
@@ -86,6 +88,7 @@ function SettingsClientPageContent({ initialData }: SettingsClientPageProps) {
           <SystemSetting />
         </div>
       )}
+      <DashboardFooter className="mt-10 mb-[-10px] md:mb-[-30px]" />
     </div>
   );
 }

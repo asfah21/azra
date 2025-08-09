@@ -15,7 +15,7 @@ import {
 } from "chart.js";
 import { Doughnut, Bar, Line, Pie } from "react-chartjs-2";
 import { Card, CardHeader, CardBody, Divider } from "@heroui/react";
-import { BarChart3, TrendingUp, Activity, AlertTriangle } from "lucide-react";
+import { BarChart3, TrendingUp, Activity, BusFront } from "lucide-react";
 
 // Register Chart.js components
 ChartJS.register(
@@ -50,7 +50,7 @@ interface DashboardChartsProps {
     count: number;
   }>;
   categoryDistribution: Array<{
-    category: string;
+    unit: string;
     count: number;
   }>;
   maintenancePerformance: Array<{
@@ -68,7 +68,7 @@ export default function DashboardCharts({
 }: DashboardChartsProps) {
   // Asset Utilization Chart (Doughnut)
   const assetUtilizationData = {
-    labels: ["Operational", "Maintenance", "Critical", "Offline"],
+    labels: ["Operational", "Maintenance", "Critical", "Others"],
     datasets: [
       {
         data: [
@@ -143,7 +143,7 @@ export default function DashboardCharts({
 
   // Asset Category Distribution (Pie)
   const categoryDistributionData = {
-    labels: categoryDistribution.map((item) => item.category),
+    labels: categoryDistribution.map((item) => item.unit),
     datasets: [
       {
         data: categoryDistribution.map((item) => item.count),
@@ -266,7 +266,7 @@ export default function DashboardCharts({
           </div>
           <div className="flex flex-col">
             <p className="text-lg font-semibold text-warning-800">
-              Monthly Breakdown Trend
+              Monthly Work Order Trend
             </p>
             <p className="text-small text-warning-600">Last 6 months</p>
           </div>
@@ -283,11 +283,11 @@ export default function DashboardCharts({
       <Card className="bg-gradient-to-br from-secondary-50 to-secondary-100">
         <CardHeader className="flex gap-3">
           <div className="p-2 bg-secondary-500 rounded-lg">
-            <AlertTriangle className="w-6 h-6 text-white" />
+            <BusFront className="w-6 h-6 text-white" />
           </div>
           <div className="flex flex-col">
             <p className="text-lg font-semibold text-secondary-800">
-              Asset Categories
+              Type of Assets
             </p>
             <p className="text-small text-secondary-600">
               Distribution by type
@@ -303,7 +303,7 @@ export default function DashboardCharts({
       </Card>
 
       {/* Maintenance Performance */}
-      <Card className="bg-gradient-to-br from-danger-50 to-danger-100 lg:col-span-2">
+      {/* <Card className="bg-gradient-to-br from-danger-50 to-danger-100 lg:col-span-2">
         <CardHeader className="flex gap-3">
           <div className="p-2 bg-danger-500 rounded-lg">
             <BarChart3 className="w-6 h-6 text-white" />
@@ -326,7 +326,7 @@ export default function DashboardCharts({
             />
           </div>
         </CardBody>
-      </Card>
+      </Card> */}
     </div>
   );
 }

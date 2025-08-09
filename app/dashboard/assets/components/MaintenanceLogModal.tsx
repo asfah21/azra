@@ -26,6 +26,8 @@ import {
   ClipboardList,
 } from "lucide-react";
 
+import { consolePino } from "@/lib/logger";
+
 interface Unit {
   id: string;
   assetTag: string;
@@ -120,7 +122,7 @@ export default function MaintenanceLogModal({
         setMaintenanceLogs(data.data || []);
       }
     } catch (error) {
-      console.error("Error fetching maintenance logs:", error);
+      consolePino.error("Error fetching maintenance logs:", error);
     } finally {
       setLoadingLogs(false);
     }

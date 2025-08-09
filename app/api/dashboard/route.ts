@@ -90,6 +90,7 @@ export async function GET(req: NextRequest) {
         status: true,
         condition: true,
         categoryId: true,
+        name: true,
         category: {
           select: {
             name: true,
@@ -235,7 +236,7 @@ export async function GET(req: NextRequest) {
     // ✅ Calculate category distribution
     const categoryCounts = assets.reduce(
       (acc, asset) => {
-        const categoryName = asset.category?.name || "Unknown";
+        const categoryName = asset.name || "Unknown";
 
         acc[categoryName] = (acc[categoryName] || 0) + 1;
 
@@ -245,8 +246,8 @@ export async function GET(req: NextRequest) {
     );
 
     const categoryDistribution = Object.entries(categoryCounts).map(
-      ([category, count]) => ({
-        category,
+      ([unit, count]) => ({
+        unit,
         count,
         percentage:
           assets.length > 0 ? Math.round((count / assets.length) * 100) : 0,

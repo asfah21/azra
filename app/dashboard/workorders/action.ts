@@ -1,17 +1,35 @@
 "use server";
 
-import { writeFile, mkdir } from "fs/promises";
-import { join } from "path";
 import { randomUUID } from "crypto";
 
 import { revalidatePath } from "next/cache";
 import { BreakdownStatus } from "@prisma/client";
 import sharp from "sharp";
 import { getServerSession } from "next-auth";
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 
 import { authOptions } from "@/lib/auth"; // sesuaikan path kamu
 import { prisma } from "@/lib/prisma";
 import { consolePino } from "@/lib/logger";
+
+/** ==== MinIO (S3) client ==== */
+const s3 = new S3Client({
+  region: "us-east-1",
+  endpoint: `${process.env.MINIO_USE_SSL === "true" ? "https" : "http"}://${process.env.MINIO_ENDPOINT}:${process.env.MINIO_PORT}`,
+  credentials: {
+    accessKeyId: process.env.MINIO_ACCESS_KEY || "",
+    secretAccessKey: process.env.MINIO_SECRET_KEY || "",
+  },
+  forcePathStyle: true, // wajib untuk MinIO
+});
+
+function publicUrlFor(key: string) {
+  const base =
+    process.env.MINIO_PUBLIC_BASEURL ||
+    `${process.env.MINIO_USE_SSL === "true" ? "https" : "http"}://${process.env.MINIO_ENDPOINT}:${process.env.MINIO_PORT}`;
+
+  return `${base.replace(/\/+$/, "")}/${process.env.MINIO_BUCKET}/${encodeURI(key)}`;
+}
 
 export async function createBreakdown(prevState: any, formData: FormData) {
   try {
@@ -39,7 +57,7 @@ export async function createBreakdown(prevState: any, formData: FormData) {
       index++;
     }
 
-    // Handle photo upload if present
+    // Handle photo upload if present → MINIO
     let photoPath: string | null = null;
     const photo = formData.get("photo") as File | null;
 
@@ -62,12 +80,11 @@ export async function createBreakdown(prevState: any, formData: FormData) {
         const bytes = await photo.arrayBuffer();
         const buffer = Buffer.from(bytes);
 
-        // Generate unique filename
+        // Generate unique filename (re-encode ke JPEG)
         const fileId = randomUUID();
-        const fileExtension = photo.type.split("/")[1] || "jpg";
-        const filename = `breakdown-${fileId}.${fileExtension}`;
+        const filename = `breakdown-${fileId}.jpg`;
 
-        // Compress image using Sharp to target 0.5-1MB
+        // Compress image to ~0.5–1MB (tergantung sumber)
         const compressedBuffer = await sharp(buffer)
           .resize({
             width: 1024,
@@ -78,23 +95,22 @@ export async function createBreakdown(prevState: any, formData: FormData) {
           .jpeg({ quality: 80 })
           .toBuffer();
 
-        // Ensure upload directory exists
-        const uploadDir = join(
-          process.cwd(),
-          "public",
-          "uploads",
-          "workorders",
+        // Tentukan key di bucket (rapi per fitur workorders)
+        const objectKey = `workorders/${filename}`;
+
+        // Upload ke MinIO
+        await s3.send(
+          new PutObjectCommand({
+            Bucket: process.env.MINIO_BUCKET!,
+            Key: objectKey,
+            Body: compressedBuffer,
+            ContentType: "image/jpeg",
+            CacheControl: "public, max-age=31536000, immutable",
+          }),
         );
-        const fullPath = join(uploadDir, filename);
 
-        // Create directory if it doesn't exist
-        await mkdir(uploadDir, { recursive: true });
-
-        // Save compressed image
-        await writeFile(fullPath, compressedBuffer);
-
-        // Store relative path for database storage
-        photoPath = `/uploads/workorders/${filename}`;
+        // URL publik untuk disimpan di DB
+        photoPath = publicUrlFor(objectKey);
       } catch (error) {
         consolePino.error("Error processing photo:", error);
 
@@ -164,34 +180,23 @@ export async function createBreakdown(prevState: any, formData: FormData) {
       user?.role === "super_admin" || user?.role === "admin_elec"
         ? "WOIT-"
         : "WO-";
+
     const newBreakdownNumber = await prisma.$transaction(async (tx) => {
-      // Lock dan cari nomor terakhir dengan prefix yang sesuai
+      // cari nomor terakhir dengan prefix yang sesuai
       const last = await tx.breakdown.findFirst({
-        where: {
-          breakdownNumber: {
-            startsWith: prefix,
-          },
-        },
-        orderBy: {
-          breakdownNumber: "desc",
-        },
+        where: { breakdownNumber: { startsWith: prefix } },
+        orderBy: { breakdownNumber: "desc" },
       });
 
       let nextNumber = 1;
 
-      if (last && last.breakdownNumber) {
-        // Ambil angka di belakang prefix, misal dari WOIT0005 ambil 5
+      if (last?.breakdownNumber) {
         const match = last.breakdownNumber.match(/\d+$/);
 
-        if (match) {
-          nextNumber = parseInt(match[0], 10) + 1;
-        }
+        if (match) nextNumber = parseInt(match[0], 10) + 1;
       }
 
-      // Format dengan leading zero, misal 6 jadi 0006
-      const nextBreakdownNumber = `${prefix}${nextNumber.toString().padStart(4, "0")}`;
-
-      return nextBreakdownNumber;
+      return `${prefix}${nextNumber.toString().padStart(4, "0")}`;
     });
 
     // Create the breakdown
@@ -206,7 +211,7 @@ export async function createBreakdown(prevState: any, formData: FormData) {
         status: BreakdownStatus.pending,
         unitId,
         reportedById,
-        photo: photoPath,
+        photo: photoPath, // <- URL publik MinIO (atau null)
         components: {
           create: components.map((comp) => ({
             component: comp.component,
@@ -239,13 +244,15 @@ export async function createBreakdown(prevState: any, formData: FormData) {
   } catch (error: unknown) {
     consolePino.error("Error creating breakdown:", error);
 
-    if (error instanceof Error) {
-      if ("code" in error && error.code === "P2003") {
-        return {
-          success: false,
-          message: "Invalid unit or user reference!",
-        };
-      }
+    if (
+      error instanceof Error &&
+      "code" in error &&
+      (error as any).code === "P2003"
+    ) {
+      return {
+        success: false,
+        message: "Invalid unit or user reference!",
+      };
     }
 
     return {
