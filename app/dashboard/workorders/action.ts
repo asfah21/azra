@@ -31,6 +31,68 @@ function publicUrlFor(key: string) {
   return `${base.replace(/\/+$/, "")}/${process.env.MINIO_BUCKET}/${encodeURI(key)}`;
 }
 
+/* =========================================================================
+   Util kompresi: target <= 300 KB (adaptif)
+   - Rotate sesuai EXIF
+   - WebP jika ada alpha, selain itu JPEG (mozjpeg + 4:2:0, progressive)
+   - Turunkan quality; jika masih besar, turunkan width
+   - Batas bawah: quality 40, width 640
+   ========================================================================= */
+type Encoded = { buffer: Buffer; contentType: "image/jpeg" | "image/webp" };
+
+async function compressImageToUnder(
+  input: Buffer,
+  targetBytes = 300 * 1024
+): Promise<Encoded> {
+  const meta = await sharp(input).metadata();
+  const hasAlpha = Boolean(meta.hasAlpha);
+
+  let width = Math.min(1280, meta.width ?? 1280);
+  const minWidth = 640;
+
+  let best: Encoded | null = null;
+
+  const encodeOnce = async (w: number, q: number): Promise<Encoded> => {
+    if (hasAlpha) {
+      const buf = await sharp(input)
+        .rotate()
+        .resize({ width: w, height: w, fit: "inside", withoutEnlargement: true })
+        .webp({
+          quality: q,
+          alphaQuality: 80,
+          effort: 4,
+        })
+        .toBuffer();
+      return { buffer: buf, contentType: "image/webp" };
+    } else {
+      const buf = await sharp(input)
+        .rotate()
+        .resize({ width: w, height: w, fit: "inside", withoutEnlargement: true })
+        .jpeg({
+          quality: q,
+          mozjpeg: true,
+          chromaSubsampling: "4:2:0",
+          progressive: true,
+        })
+        .toBuffer();
+      return { buffer: buf, contentType: "image/jpeg" };
+    }
+  };
+
+  while (true) {
+    for (let q = 82; q >= 40; q -= 8) {
+      const out = await encodeOnce(width, q);
+      if (!best || out.buffer.length < best.buffer.length) best = out;
+      if (out.buffer.length <= targetBytes) return out;
+    }
+    if (width <= minWidth) break;
+    width = Math.max(minWidth, Math.floor(width * 0.85));
+  }
+
+  return best!;
+}
+
+/** ======================== CREATE ======================== */
 export async function createBreakdown(prevState: any, formData: FormData) {
   try {
     // Required fields
@@ -46,74 +108,56 @@ export async function createBreakdown(prevState: any, formData: FormData) {
     // Get components from form data
     const components: Array<{ component: string; subcomponent: string }> = [];
     let index = 0;
-
     while (formData.get(`components[${index}][component]`)) {
       components.push({
         component: formData.get(`components[${index}][component]`) as string,
-        subcomponent: formData.get(
-          `components[${index}][subcomponent]`,
-        ) as string,
+        subcomponent: formData.get(`components[${index}][subcomponent]`) as string,
       });
       index++;
     }
 
-    // Handle photo upload if present → MINIO
+    // Handle photo upload (≤ 3MB raw) → kompres ≤ 300 KB → MinIO
     let photoPath: string | null = null;
     const photo = formData.get("photo") as File | null;
 
     if (photo && photo.size > 0) {
       try {
-        // Validate file type
         if (!photo.type.startsWith("image/")) {
-          return {
-            success: false,
-            message: "Invalid file type. Please upload an image.",
-          };
+          return { success: false, message: "Invalid file type. Please upload an image." };
         }
-
-        // Validate file size (3MB limit)
         if (photo.size > 3 * 1024 * 1024) {
           return { success: false, message: "File size exceeds 3MB limit." };
         }
 
-        // Convert file to buffer for sharp processing
         const bytes = await photo.arrayBuffer();
         const buffer = Buffer.from(bytes);
 
-        // Generate unique filename (re-encode ke JPEG)
+        const { buffer: compressedBuffer, contentType } = await compressImageToUnder(
+          buffer,
+          300 * 1024
+        );
+
+        // Generate unique filename + ext sesuai encoding
         const fileId = randomUUID();
-        const filename = `breakdown-${fileId}.jpg`;
+        const ext = contentType === "image/webp" ? "webp" : "jpg";
+        const filename = `breakdown-${fileId}.${ext}`;
 
-        // Compress image to ~0.5–1MB (tergantung sumber)
-        const compressedBuffer = await sharp(buffer)
-          .resize({
-            width: 1024,
-            height: 1024,
-            fit: "inside",
-            withoutEnlargement: true,
-          })
-          .jpeg({ quality: 80 })
-          .toBuffer();
-
-        // Tentukan key di bucket (rapi per fitur workorders)
+        // Key rapi per fitur workorders
         const objectKey = `workorders/${filename}`;
 
-        // Upload ke MinIO
         await s3.send(
           new PutObjectCommand({
             Bucket: process.env.MINIO_BUCKET!,
             Key: objectKey,
             Body: compressedBuffer,
-            ContentType: "image/jpeg",
+            ContentType: contentType,
             CacheControl: "public, max-age=31536000, immutable",
-          }),
+          })
         );
 
-        // URL publik untuk disimpan di DB
         photoPath = publicUrlFor(objectKey);
       } catch (error) {
         consolePino.error("Error processing photo:", error);
-
         return { success: false, message: "Failed to process photo upload." };
       }
     }
@@ -132,40 +176,27 @@ export async function createBreakdown(prevState: any, formData: FormData) {
     }
 
     if (components.length === 0) {
-      return {
-        success: false,
-        message: "At least one component must be added!",
-      };
+      return { success: false, message: "At least one component must be added!" };
     }
 
-    // Validate priority value
     const validPriorities = ["low", "medium", "high"];
-
     if (!validPriorities.includes(priority)) {
       return { success: false, message: "Invalid priority value!" };
     }
 
-    // Validate shift value
     const validShifts = ["siang", "malam"];
-
     if (!validShifts.includes(shift)) {
       return { success: false, message: "Invalid shift value!" };
     }
 
     // Check if unit exists
-    const unitExists = await prisma.unit.findUnique({
-      where: { id: unitId },
-    });
-
+    const unitExists = await prisma.unit.findUnique({ where: { id: unitId } });
     if (!unitExists) {
       return { success: false, message: "Unit not found!" };
     }
 
     // Check if reporter exists
-    const reporterExists = await prisma.user.findUnique({
-      where: { id: reportedById },
-    });
-
+    const reporterExists = await prisma.user.findUnique({ where: { id: reportedById } });
     if (!reporterExists) {
       return { success: false, message: "Reporter user not found!" };
     }
@@ -189,10 +220,8 @@ export async function createBreakdown(prevState: any, formData: FormData) {
       });
 
       let nextNumber = 1;
-
       if (last?.breakdownNumber) {
         const match = last.breakdownNumber.match(/\d+$/);
-
         if (match) nextNumber = parseInt(match[0], 10) + 1;
       }
 
@@ -211,7 +240,7 @@ export async function createBreakdown(prevState: any, formData: FormData) {
         status: BreakdownStatus.pending,
         unitId,
         reportedById,
-        photo: photoPath, // <- URL publik MinIO (atau null)
+        photo: photoPath, // URL publik MinIO (atau null)
         components: {
           create: components.map((comp) => ({
             component: comp.component,
@@ -244,21 +273,11 @@ export async function createBreakdown(prevState: any, formData: FormData) {
   } catch (error: unknown) {
     consolePino.error("Error creating breakdown:", error);
 
-    if (
-      error instanceof Error &&
-      "code" in error &&
-      (error as any).code === "P2003"
-    ) {
-      return {
-        success: false,
-        message: "Invalid unit or user reference!",
-      };
+    if (error instanceof Error && "code" in error && (error as any).code === "P2003") {
+      return { success: false, message: "Invalid unit or user reference!" };
     }
 
-    return {
-      success: false,
-      message: "Failed to report breakdown. Please try again.",
-    };
+    return { success: false, message: "Failed to report breakdown. Please try again." };
   }
 }
 
