@@ -6,6 +6,7 @@ import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 
 import prisma from "@/lib/prisma"; // <--- IMPORT THE GLOBAL PRISMA CLIENT HERE
+import { consolePino } from "./logger";
 
 declare module "next-auth" {
   interface User {
@@ -68,8 +69,7 @@ export const authOptions: NextAuthOptions = {
             role: user.role,
           };
         } catch (error) {
-          // eslint-disable-next-line no-console
-          console.error("Auth error:", error);
+          consolePino.error("Auth error:", error);
           throw new Error("Database connection error. Please try again.");
         }
       },

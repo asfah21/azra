@@ -1,5 +1,6 @@
 "use client";
 
+import { consolePino } from "@/lib/logger";
 import { Users } from "lucide-react";
 import { useEffect } from "react";
 
@@ -12,8 +13,7 @@ export default function Error({
 }) {
   useEffect(() => {
     // Log the error to an error reporting service
-    // eslint-disable-next-line no-console
-    console.error(error);
+    consolePino.error(error);
   }, [error]);
 
   return (

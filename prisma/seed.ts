@@ -1,4 +1,5 @@
 // prisma/seed.ts
+import { consolePino } from "@/lib/logger";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
 
@@ -12,17 +13,17 @@ async function main() {
   });
 
   // Seeding User
-  const hashedPassword = await bcrypt.hash("9510Asfah210@", 12);
+  const hashedPassword = await bcrypt.hash("user1234", 12);
 
   await prisma.user.upsert({
-    where: { email: "asfah21@gmail.com" },
+    where: { email: "user1234@gmail.com" },
     update: { password: hashedPassword },
     create: {
-      name: "Muh. Al-Asfahani",
-      email: "asfah21@gmail.com",
+      name: "User",
+      email: "user1234@gmail.com",
       password: hashedPassword,
       role: "super_admin",
-      department: "IT Operations",
+      department: "IT",
       avatar: "https://i.pravatar.cc/150?u=1",
       photo: "https://i.pravatar.cc/150?u=1",
       status: "online",
@@ -35,8 +36,7 @@ async function main() {
 
 main()
   .catch((e) => {
-    // eslint-disable-next-line no-console
-    console.error("Seed error:", e);
+    consolePino.error("Seed error:", e);
     process.exit(1);
   })
   .finally(() => prisma.$disconnect());

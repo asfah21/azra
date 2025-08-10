@@ -1,5 +1,6 @@
 // lib/prisma.ts
 import { PrismaClient } from "@prisma/client";
+import { consolePino } from "./logger";
 
 const globalForPrisma = global as unknown as { prisma: PrismaClient };
 
@@ -21,8 +22,7 @@ if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
 
 // Handle connection issues
 prisma.$connect().catch((error) => {
-  // eslint-disable-next-line no-console
-  console.error("Failed to connect to database:", error);
+  consolePino.error("Failed to connect to database:", error);
 });
 
 // Graceful shutdown
