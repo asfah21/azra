@@ -381,7 +381,8 @@ export default function UIDashboardLayout({
   // Handle sign out with tab state cleanup
   const handleSignOut = useCallback(() => {
     clearTabState();
-    signOut({ callbackUrl: "/login" });
+    // signOut({ callbackUrl: "/" });
+    signOut();
   }, []);
 
   // Show loading hanya saat benar-benar loading
