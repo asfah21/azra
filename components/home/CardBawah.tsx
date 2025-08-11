@@ -1,0 +1,68 @@
+"use client";
+
+import { Card, CardHeader, CardBody, Link } from "@heroui/react";
+import { FaMountainCity, FaWandMagicSparkles } from "react-icons/fa6";
+import { motion } from "framer-motion";
+
+const fadeInUp = {
+  hidden: { opacity: 0, y: 30 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.6,
+      ease: "easeOut",
+    },
+  },
+};
+
+export default function CardBawah() {
+  const features = [
+    {
+      title: "Built for Efficiency",
+      description:
+        "An internal tool developed with focus and functionality to manage assets reliably and effectively.",
+      icon: <FaWandMagicSparkles size={24} />,
+    },
+    {
+      title: "Optimized for the Field",
+      description:
+        "Engineered by IT Site to simplify asset tracking, maintenance, and decision-making on the ground.",
+      icon: <FaMountainCity size={24} />,
+    },
+  ];
+
+  return (
+    <section className="px-6 md:px-20 relative gap-2 w-full flex flex-col items-center z-20">
+      <div className="justify-center mt-8 md:mx-16 px-4 mt-14 grid grid-cols-1 md:grid-cols-2 gap-4 lg:grid-cols-2">
+        {features.map((feature, index) => (
+          <motion.div
+            key={index}
+            initial="hidden"
+            variants={fadeInUp}
+            viewport={{ once: true, amount: 0.3 }}
+            whileInView="visible"
+          >
+            <Card
+              as={Link}
+              className="flex flex-col relative overflow-hidden h-auto text-foreground box-border outline-none data-[focus-visible=true]:z-10 data-[focus-visible=true]:outline-2 data-[focus-visible=true]:outline-focus data-[focus-visible=true]:outline-offset-2 shadow-medium rounded-large transition-transform-background motion-reduce:transition-none border-transparent bg-white/5 dark:bg-default-400/10 backdrop-blur-lg backdrop-saturate-[1.8]"
+              href="#"
+            >
+              <CardHeader className="flex gap-3 pb-0">
+                <div className="flex justify-center p-2 rounded-full items-center bg-primary-100/40 text-success-500">
+                  {feature.icon}
+                </div>
+                <div className="flex flex-col">
+                  <p className="text-base font-bold">{feature.title}</p>
+                </div>
+              </CardHeader>
+              <CardBody>
+                <p className="text-base">{feature.description}</p>
+              </CardBody>
+            </Card>
+          </motion.div>
+        ))}
+      </div>
+    </section>
+  );
+}
