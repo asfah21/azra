@@ -106,7 +106,12 @@ export default function UnitPages() {
   return (
     <>
       <Button onPress={onOpen}>Open Modal</Button>
-      <Modal isDismissable={false} isOpen={isOpen} onOpenChange={onOpenChange} placement="top-center">
+      <Modal
+        isDismissable={false}
+        isOpen={isOpen}
+        placement="top-center"
+        onOpenChange={onOpenChange}
+      >
         <ModalContent>
           {(onClose) => (
             <>

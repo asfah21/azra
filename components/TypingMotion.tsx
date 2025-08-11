@@ -4,8 +4,8 @@ import { AnimatePresence, motion } from "framer-motion";
 
 type Props = {
   words: string[];
-  typingSpeed?: number;    // ms per karakter
-  pauseTime?: number;      // jeda setelah kata selesai diketik
+  typingSpeed?: number; // ms per karakter
+  pauseTime?: number; // jeda setelah kata selesai diketik
   className?: string;
   cursorClassName?: string;
   loop?: boolean;
@@ -19,9 +19,9 @@ export default function TypingMotion({
   cursorClassName = "",
   loop = true,
 }: Props) {
-  const [index, setIndex] = useState(0);     // index kata
-  const [text, setText] = useState("");      // substring yang sedang diketik
-  const [show, setShow] = useState(true);    // untuk trigger fade-out
+  const [index, setIndex] = useState(0); // index kata
+  const [text, setText] = useState(""); // substring yang sedang diketik
+  const [show, setShow] = useState(true); // untuk trigger fade-out
 
   const current = words[index] ?? "";
 
@@ -32,10 +32,12 @@ export default function TypingMotion({
       const t = setTimeout(() => {
         setText(current.slice(0, text.length + 1));
       }, typingSpeed);
+
       return () => clearTimeout(t);
     } else {
       // selesai ngetik -> tunggu sebentar -> fade-out
       const t = setTimeout(() => setShow(false), pauseTime);
+
       return () => clearTimeout(t);
     }
   }, [text, show, current, typingSpeed, pauseTime]);
@@ -43,6 +45,7 @@ export default function TypingMotion({
   // ketika elemen keluar (exit) selesai, pindah ke kata berikutnya & mulai lagi
   const handleExitComplete = () => {
     let next = index + 1;
+
     if (next >= words.length) next = loop ? 0 : index;
     setIndex(next);
     setText("");
@@ -56,11 +59,11 @@ export default function TypingMotion({
         {show && (
           <motion.span
             key={`word-${index}`}
-            initial={{ opacity: 0, y: 6, filter: "blur(2px)" }}
             animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-            exit={{ opacity: 0, y: -6, filter: "blur(2px)" }}
-            transition={{ type: "tween", duration: 0.28 }}
             className="whitespace-pre"
+            exit={{ opacity: 0, y: -6, filter: "blur(2px)" }}
+            initial={{ opacity: 0, y: 6, filter: "blur(2px)" }}
+            transition={{ type: "tween", duration: 0.28 }}
           >
             {text}
           </motion.span>
@@ -68,15 +71,11 @@ export default function TypingMotion({
       </AnimatePresence>
 
       {/* kursor */}
-      <span className={`inline-block w-[1ch] -translate-y-[1px] animate-caret ${cursorClassName || ""}`}>|</span>
-
-      <style jsx>{`
-        @keyframes caret {
-          0%, 49% { opacity: 1; }
-          50%, 100% { opacity: 0; }
-        }
-        .animate-caret { animation: caret 1s steps(1, end) infinite; }
-      `}</style>
+      <span
+        className={`inline-block w-[1ch] -translate-y-[1px] animate-caret ${cursorClassName || ""}`}
+      >
+        |
+      </span>
     </span>
   );
 }

@@ -2,6 +2,7 @@
 
 import { Card, CardFooter, Image, Button } from "@heroui/react";
 import { motion } from "framer-motion";
+
 import TypingMotion from "../TypingMotion";
 
 // Animasi
@@ -39,8 +40,7 @@ export default function Hero() {
           <motion.div
             className="flex justify-center w-full pb-[-4px] md:hidden"
             variants={fadeIn}
-          >
-          </motion.div>
+          />
 
           <motion.h1
             className="tracking-tight inline font-semibold text-[clamp(1.8rem,8vw,3.2rem)] leading-tight text-center md:text-left"
@@ -49,19 +49,19 @@ export default function Hero() {
             Discover{" "}
             <span className="tracking-tight inline font-bold from-success to-primary bg-clip-text text-transparent bg-gradient-to-b">
               AZRA
-            </span>{" "}            
+            </span>{" "}
             &nbsp;
             <br className="inline" />
             <TypingMotion
+              className="text-foreground"
+              pauseTime={1100}
+              typingSpeed={85}
               words={[
                 "A stunning application",
                 "Crafted for simplicity",
                 "Better asset control",
                 "Seamless Management",
               ]}
-              typingSpeed={85}
-              pauseTime={1100}
-              className="text-foreground"
             />
             {/* a stunning
             asset management apps designed for simplicity. */}

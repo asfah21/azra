@@ -184,9 +184,16 @@ export default function TableReport({
       setIsExporting(true);
       // If current list is paginated (e.g. 10 items), fetch all before exporting
       let allActivities = recentActivities;
+
       if (totalActivities && totalActivities > recentActivities.length) {
-        const params = new URLSearchParams({ page: "0", limit: String(totalActivities) });
-        const resp = await axios.get(`/api/dashboard/recent-activities?${params.toString()}`);
+        const params = new URLSearchParams({
+          page: "0",
+          limit: String(totalActivities),
+        });
+        const resp = await axios.get(
+          `/api/dashboard/recent-activities?${params.toString()}`,
+        );
+
         allActivities = resp?.data?.data || recentActivities;
       }
 

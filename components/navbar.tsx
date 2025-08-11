@@ -136,7 +136,7 @@ export const Navbar = () => {
                 size="md"
               >
                 {item.label}
-              </Link>              
+              </Link>
             </NavbarMenuItem>
           ))}
         </div>
@@ -149,8 +149,8 @@ export const Navbar = () => {
             // color="secondary"
             // radius="full"
             href={siteConfig.links.login}
-            variant="solid" 
-            >
+            variant="solid"
+          >
             Login
           </Button>
         </div>
