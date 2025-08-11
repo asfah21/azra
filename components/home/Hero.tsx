@@ -2,6 +2,7 @@
 
 import { Card, CardFooter, Image, Button } from "@heroui/react";
 import { motion } from "framer-motion";
+import TypingMotion from "../TypingMotion";
 
 // Animasi
 const fadeIn = {
@@ -39,17 +40,6 @@ export default function Hero() {
             className="flex justify-center w-full pb-[-4px] md:hidden"
             variants={fadeIn}
           >
-            {/* <a
-              className="relative max-w-fit min-w-min inline-flex items-center justify-between box-border whitespace-nowrap px-1 h-7 text-small rounded-full text-primary-600 bg-default-200/50 border-1 hover:bg-default-200/80 border-default-400/50 cursor-pointer"
-              href="/blog/v2.7.0"
-            >
-              <span className="flex-1 px-2 font-semibold text-foreground text-xs">
-                AZRA <VersiApp/>
-                <span aria-label="emoji" role="img">
-                  🔥
-                </span>
-              </span>
-            </a> */}
           </motion.div>
 
           <motion.h1
@@ -59,10 +49,22 @@ export default function Hero() {
             Discover{" "}
             <span className="tracking-tight inline font-bold from-success to-primary bg-clip-text text-transparent bg-gradient-to-b">
               AZRA
-            </span>{" "}
-            a stunning&nbsp;
-            <br className="hidden md:inline" />
-            asset management apps designed for simplicity.
+            </span>{" "}            
+            &nbsp;
+            <br className="inline" />
+            <TypingMotion
+              words={[
+                "A stunning application",
+                "Crafted for simplicity",
+                "Better asset control",
+                "Seamless Management",
+              ]}
+              typingSpeed={85}
+              pauseTime={1100}
+              className="text-foreground"
+            />
+            {/* a stunning
+            asset management apps designed for simplicity. */}
           </motion.h1>
 
           <motion.p

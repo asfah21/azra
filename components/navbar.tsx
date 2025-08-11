@@ -124,20 +124,35 @@ export const Navbar = () => {
           {siteConfig.navMenuItems.map((item, index) => (
             <NavbarMenuItem key={`${item}-${index}`}>
               <Link
-                color={
-                  index === 2
-                    ? "primary"
-                    : index === siteConfig.navMenuItems.length - 1
-                      ? "danger"
-                      : "foreground"
-                }
+                color="foreground"
+                // color={
+                //   index === 2
+                //     ? "primary"
+                //     : index === siteConfig.navMenuItems.length - 1
+                //       ? "danger"
+                //       : "foreground"
+                // }
                 href={item.href}
-                size="lg"
+                size="md"
               >
                 {item.label}
-              </Link>
+              </Link>              
             </NavbarMenuItem>
           ))}
+        </div>
+        <div className="mt-2">
+          <Button
+            isExternal
+            as={Link}
+            className="bg-gradient-to-tr from-success to-primary text-white shadow-lg"
+            // className="text-sm font-normal text-default-600 bg-default-100"
+            // color="secondary"
+            // radius="full"
+            href={siteConfig.links.login}
+            variant="solid" 
+            >
+            Login
+          </Button>
         </div>
       </NavbarMenu>
     </HeroUINavbar>

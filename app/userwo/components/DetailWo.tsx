@@ -191,12 +191,12 @@ export default function DetailWo({
                 {breakdown.photo && (
                   <Card>
                     <Image
+                      unoptimized
                       alt="WO evidence"
                       className="w-full h-auto object-contain max-h-64"
                       height={400}
                       src={breakdown.photo}
                       width={500}
-                      unoptimized
                     />
                   </Card>
                 )}

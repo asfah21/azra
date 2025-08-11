@@ -1,8 +1,9 @@
 "use client";
 
-import { consolePino } from "@/lib/logger";
 import { Users } from "lucide-react";
 import { useEffect } from "react";
+
+import { consolePino } from "@/lib/logger";
 
 export default function Error({
   error,

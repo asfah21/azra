@@ -1,7 +1,8 @@
 // prisma/seed.ts
-import { consolePino } from "@/lib/logger";
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
+
+import { consolePino } from "@/lib/logger";
 
 const prisma = new PrismaClient();
 

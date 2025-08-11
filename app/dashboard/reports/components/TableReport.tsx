@@ -23,11 +23,13 @@ import {
   CheckCircle2,
   Clock,
   Download,
+  Loader2,
   Package,
   Search,
   Wrench,
 } from "lucide-react";
 import * as XLSX from "xlsx";
+import axios from "axios";
 import {
   useState,
   useMemo,
@@ -38,6 +40,7 @@ import {
 
 import { useProfile } from "@/app/context/ProfileContext";
 import { TableReportSkeletons } from "@/components/ui/skeleton";
+import { consolePino } from "@/lib/logger";
 
 interface ActivityItem {
   id: string;
@@ -74,6 +77,7 @@ export default function TableReport({
 }: TableReportProps) {
   // State management for search
   const [searchQuery, setSearchQuery] = useState("");
+  const [isExporting, setIsExporting] = useState(false);
 
   // Use deferred value untuk mengurangi re-render saat typing
   const deferredSearchQuery = useDeferredValue(searchQuery);
@@ -175,29 +179,44 @@ export default function TableReport({
     </div>
   );
 
-  const handleDownloadXLS = () => {
-    // Prepare data for export
-    const data = recentActivities.map((activity, index) => ({
-      No: index + 1,
-      User: activity.user,
-      Action: activity.action,
-      Type: getActivityLabel(activity.type),
-      Time: activity.time,
-      Date: new Date(activity.createdAt).toLocaleDateString(),
-    }));
+  const handleDownloadXLS = async () => {
+    try {
+      setIsExporting(true);
+      // If current list is paginated (e.g. 10 items), fetch all before exporting
+      let allActivities = recentActivities;
+      if (totalActivities && totalActivities > recentActivities.length) {
+        const params = new URLSearchParams({ page: "0", limit: String(totalActivities) });
+        const resp = await axios.get(`/api/dashboard/recent-activities?${params.toString()}`);
+        allActivities = resp?.data?.data || recentActivities;
+      }
 
-    // Create a new workbook
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.json_to_sheet(data);
+      // Prepare data for export
+      const data = allActivities.map((activity, index) => ({
+        No: index + 1,
+        User: activity.user,
+        Action: activity.action,
+        Type: getActivityLabel(activity.type),
+        Time: activity.time,
+        Date: new Date(activity.createdAt).toLocaleDateString(),
+      }));
 
-    // Add the worksheet to the workbook
-    XLSX.utils.book_append_sheet(wb, ws, "Log Activity");
+      // Create a new workbook
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.json_to_sheet(data);
 
-    // Generate the XLS file
-    XLSX.writeFile(
-      wb,
-      `activity_log_${new Date().toISOString().split("T")[0]}.xlsx`,
-    );
+      // Add the worksheet to the workbook
+      XLSX.utils.book_append_sheet(wb, ws, "Log Activity");
+
+      // Generate the XLS file
+      XLSX.writeFile(
+        wb,
+        `activity_log_${new Date().toISOString().split("T")[0]}.xlsx`,
+      );
+    } catch (err) {
+      consolePino.error("Failed to export activities:", err);
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   // Tampilkan skeleton loading terlebih dahulu
@@ -229,7 +248,7 @@ export default function TableReport({
                 size="sm"
                 variant="flat"
               >
-                {filteredData.length}
+                {totalActivities || recentActivities.length}
               </Chip>
             </div>
             <p className="text-xs sm:block text-foreground-500">
@@ -253,9 +272,15 @@ export default function TableReport({
           />
           <Button
             color="success"
-            isDisabled={recentActivities.length === 0}
+            isDisabled={recentActivities.length === 0 || isExporting}
             size="sm"
-            startContent={<Download className="w-4 h-4" />}
+            startContent={
+              isExporting ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Download className="w-4 h-4" />
+              )
+            }
             variant="flat"
             onPress={handleDownloadXLS}
           >

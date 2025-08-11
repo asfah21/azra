@@ -5,7 +5,7 @@ type Encoded = { buffer: Buffer; contentType: "image/jpeg" | "image/webp" };
 
 export async function compressImageToUnder(
   input: Buffer,
-  targetBytes = 300 * 1024
+  targetBytes = 300 * 1024,
 ): Promise<Encoded> {
   const meta = await sharp(input).metadata();
   const hasAlpha = Boolean(meta.hasAlpha);
@@ -23,17 +23,28 @@ export async function compressImageToUnder(
   const encodeOnce = async (w: number, q: number): Promise<Encoded> => {
     if (hasAlpha) {
       const buf = await sharp(input)
-        .resize({ width: w, height: w, fit: "inside", withoutEnlargement: true })
+        .resize({
+          width: w,
+          height: w,
+          fit: "inside",
+          withoutEnlargement: true,
+        })
         .webp({
           quality: q,
           alphaQuality: 80, // transparansi tetap halus
           effort: 4,
         })
         .toBuffer();
+
       return { buffer: buf, contentType: "image/webp" };
     } else {
       const buf = await sharp(input)
-        .resize({ width: w, height: w, fit: "inside", withoutEnlargement: true })
+        .resize({
+          width: w,
+          height: w,
+          fit: "inside",
+          withoutEnlargement: true,
+        })
         .jpeg({
           quality: q,
           mozjpeg: true,
@@ -42,6 +53,7 @@ export async function compressImageToUnder(
           force: true,
         })
         .toBuffer();
+
       return { buffer: buf, contentType: "image/jpeg" };
     }
   };
@@ -50,8 +62,10 @@ export async function compressImageToUnder(
   while (true) {
     // Coba beberapa quality step untuk lebar saat ini
     let q = quality;
+
     while (q >= minQuality) {
       const out = await encodeOnce(width, q);
+
       // simpan best attempt untuk jaga-jaga
       if (!best || out.buffer.length < best.buffer.length) best = out;
 

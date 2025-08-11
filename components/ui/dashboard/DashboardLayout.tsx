@@ -326,7 +326,7 @@ export default function UIDashboardLayout({
 
       setActiveTabs((prevTabs) => {
         const existingTab = prevTabs.find((t) => t.id === tab.id);
-        const newTabs = existingTab ? prevTabs : [...prevTabs, tab];
+        const newTabs = existingTab ? prevTabs : [tab, ...prevTabs];
 
         return newTabs;
       });

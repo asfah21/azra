@@ -589,7 +589,7 @@ export default function GammaTableData({ dataTable }: WoStatsCardsProps) {
           backdrop="opaque"
           isDismissable={false}
           isOpen={isOpen}
-          placement="top-center"
+          placement="top"
           scrollBehavior="outside"
           size="2xl"
           onOpenChange={onOpenChange}

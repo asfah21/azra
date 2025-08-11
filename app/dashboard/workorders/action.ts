@@ -42,7 +42,7 @@ type Encoded = { buffer: Buffer; contentType: "image/jpeg" | "image/webp" };
 
 async function compressImageToUnder(
   input: Buffer,
-  targetBytes = 300 * 1024
+  targetBytes = 300 * 1024,
 ): Promise<Encoded> {
   const meta = await sharp(input).metadata();
   const hasAlpha = Boolean(meta.hasAlpha);
@@ -56,18 +56,29 @@ async function compressImageToUnder(
     if (hasAlpha) {
       const buf = await sharp(input)
         .rotate()
-        .resize({ width: w, height: w, fit: "inside", withoutEnlargement: true })
+        .resize({
+          width: w,
+          height: w,
+          fit: "inside",
+          withoutEnlargement: true,
+        })
         .webp({
           quality: q,
           alphaQuality: 80,
           effort: 4,
         })
         .toBuffer();
+
       return { buffer: buf, contentType: "image/webp" };
     } else {
       const buf = await sharp(input)
         .rotate()
-        .resize({ width: w, height: w, fit: "inside", withoutEnlargement: true })
+        .resize({
+          width: w,
+          height: w,
+          fit: "inside",
+          withoutEnlargement: true,
+        })
         .jpeg({
           quality: q,
           mozjpeg: true,
@@ -75,6 +86,7 @@ async function compressImageToUnder(
           progressive: true,
         })
         .toBuffer();
+
       return { buffer: buf, contentType: "image/jpeg" };
     }
   };
@@ -82,6 +94,7 @@ async function compressImageToUnder(
   while (true) {
     for (let q = 82; q >= 40; q -= 8) {
       const out = await encodeOnce(width, q);
+
       if (!best || out.buffer.length < best.buffer.length) best = out;
       if (out.buffer.length <= targetBytes) return out;
     }
@@ -108,10 +121,13 @@ export async function createBreakdown(prevState: any, formData: FormData) {
     // Get components from form data
     const components: Array<{ component: string; subcomponent: string }> = [];
     let index = 0;
+
     while (formData.get(`components[${index}][component]`)) {
       components.push({
         component: formData.get(`components[${index}][component]`) as string,
-        subcomponent: formData.get(`components[${index}][subcomponent]`) as string,
+        subcomponent: formData.get(
+          `components[${index}][subcomponent]`,
+        ) as string,
       });
       index++;
     }
@@ -123,7 +139,10 @@ export async function createBreakdown(prevState: any, formData: FormData) {
     if (photo && photo.size > 0) {
       try {
         if (!photo.type.startsWith("image/")) {
-          return { success: false, message: "Invalid file type. Please upload an image." };
+          return {
+            success: false,
+            message: "Invalid file type. Please upload an image.",
+          };
         }
         if (photo.size > 3 * 1024 * 1024) {
           return { success: false, message: "File size exceeds 3MB limit." };
@@ -132,10 +151,8 @@ export async function createBreakdown(prevState: any, formData: FormData) {
         const bytes = await photo.arrayBuffer();
         const buffer = Buffer.from(bytes);
 
-        const { buffer: compressedBuffer, contentType } = await compressImageToUnder(
-          buffer,
-          300 * 1024
-        );
+        const { buffer: compressedBuffer, contentType } =
+          await compressImageToUnder(buffer, 300 * 1024);
 
         // Generate unique filename + ext sesuai encoding
         const fileId = randomUUID();
@@ -152,12 +169,13 @@ export async function createBreakdown(prevState: any, formData: FormData) {
             Body: compressedBuffer,
             ContentType: contentType,
             CacheControl: "public, max-age=31536000, immutable",
-          })
+          }),
         );
 
         photoPath = publicUrlFor(objectKey);
       } catch (error) {
         consolePino.error("Error processing photo:", error);
+
         return { success: false, message: "Failed to process photo upload." };
       }
     }
@@ -176,27 +194,36 @@ export async function createBreakdown(prevState: any, formData: FormData) {
     }
 
     if (components.length === 0) {
-      return { success: false, message: "At least one component must be added!" };
+      return {
+        success: false,
+        message: "At least one component must be added!",
+      };
     }
 
     const validPriorities = ["low", "medium", "high"];
+
     if (!validPriorities.includes(priority)) {
       return { success: false, message: "Invalid priority value!" };
     }
 
     const validShifts = ["siang", "malam"];
+
     if (!validShifts.includes(shift)) {
       return { success: false, message: "Invalid shift value!" };
     }
 
     // Check if unit exists
     const unitExists = await prisma.unit.findUnique({ where: { id: unitId } });
+
     if (!unitExists) {
       return { success: false, message: "Unit not found!" };
     }
 
     // Check if reporter exists
-    const reporterExists = await prisma.user.findUnique({ where: { id: reportedById } });
+    const reporterExists = await prisma.user.findUnique({
+      where: { id: reportedById },
+    });
+
     if (!reporterExists) {
       return { success: false, message: "Reporter user not found!" };
     }
@@ -220,8 +247,10 @@ export async function createBreakdown(prevState: any, formData: FormData) {
       });
 
       let nextNumber = 1;
+
       if (last?.breakdownNumber) {
         const match = last.breakdownNumber.match(/\d+$/);
+
         if (match) nextNumber = parseInt(match[0], 10) + 1;
       }
 
@@ -268,16 +297,23 @@ export async function createBreakdown(prevState: any, formData: FormData) {
 
     return {
       success: true,
-      message: `Breakdown for ${newBreakdown.unit.name} (${newBreakdown.unit.assetTag}) reported successfully!`,
+      message: `Workorder for ${newBreakdown.unit.name} (${newBreakdown.unit.assetTag}) reported successfully!`,
     };
   } catch (error: unknown) {
     consolePino.error("Error creating breakdown:", error);
 
-    if (error instanceof Error && "code" in error && (error as any).code === "P2003") {
+    if (
+      error instanceof Error &&
+      "code" in error &&
+      (error as any).code === "P2003"
+    ) {
       return { success: false, message: "Invalid unit or user reference!" };
     }
 
-    return { success: false, message: "Failed to report breakdown. Please try again." };
+    return {
+      success: false,
+      message: "Failed to report workorder. Please try again.",
+    };
   }
 }
 

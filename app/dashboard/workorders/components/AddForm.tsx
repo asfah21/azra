@@ -557,28 +557,28 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
           {/* Success Message */}
           {state?.success && state?.message && (
             <Card className="border-success-200 bg-success-50">
-              <CardBody className="py-3">
+              <div className="py-3">
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-success-500 rounded-full" />
                   <p className="text-success-700 text-sm font-medium">
                     {state.message}
                   </p>
                 </div>
-              </CardBody>
+              </div>
             </Card>
           )}
 
           {/* Error Messages */}
           {!state?.success && state?.message && (
             <Card className="border-danger-200 bg-danger-50">
-              <CardBody className="py-3">
+              <div className="py-3">
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-danger-500 rounded-full" />
                   <p className="text-danger-700 text-sm font-medium">
                     {state.message}
                   </p>
                 </div>
-              </CardBody>
+              </div>
             </Card>
           )}
         </form>

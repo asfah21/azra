@@ -277,13 +277,13 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
           />
 
           {/* User Selection */}
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-1">
             <Autocomplete
               isRequired
               allowsCustomValue={false}
-              classNames={{
-                base: "min-h-unit-16 py-2",
-              }}
+              // classNames={{
+              //   base: "min-h-unit-16 py-2",
+              // }}
               defaultItems={users}
               isLoading={loadingUsers}
               label="Reported By"

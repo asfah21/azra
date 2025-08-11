@@ -1,5 +1,6 @@
 // lib/prisma.ts
 import { PrismaClient } from "@prisma/client";
+
 import { consolePino } from "./logger";
 
 const globalForPrisma = global as unknown as { prisma: PrismaClient };
