@@ -59,13 +59,13 @@ export default function Cards() {
   return (
     <motion.div
       animate="visible"
-      className="px-6 md:px-20 flex justify-center"
+      className="md:px-20 flex justify-center"
       initial="hidden"
       variants={fadeIn} // animasi untuk lapisan utama
     >
       <motion.div
         animate="visible"
-        className="backdrop-blur-md bg-white/5 dark:bg-default-400/10 rounded-xl p-6 w-full"
+        className="backdrop-blur-md bg-none md:bg-white/5 md:dark:bg-default-400/10 rounded-xl p-6 w-full"
         initial="hidden"
         variants={staggerContainer} // animasi isi grid
       >

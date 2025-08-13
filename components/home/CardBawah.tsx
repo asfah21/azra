@@ -34,7 +34,7 @@ export default function CardBawah() {
 
   return (
     <section className="px-6 md:px-20 relative gap-2 w-full flex flex-col items-center z-20">
-      <div className="justify-center mt-8 md:mx-16 px-4 mt-14 grid grid-cols-1 md:grid-cols-2 gap-4 lg:grid-cols-2">
+      <div className="justify-center mt-8 md:mx-16 mt-14 grid grid-cols-1 md:grid-cols-2 gap-4 lg:grid-cols-2">
         {features.map((feature, index) => (
           <motion.div
             key={index}

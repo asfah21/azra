@@ -44,7 +44,7 @@ const cards = [
   },
   {
     title: "Need Help?",
-    description: "Reach out to our support team for assistance or feedback.",
+    description: "Reach out to our support team for assistance, feedback, or suggestions.",
     iconLeft: <TbHelpHexagonFilled className="text-success-500" size={30} />,
     iconRight: <TbExternalLink />,
   },
@@ -53,7 +53,7 @@ const cards = [
 export default function FooterBefore() {
   return (
     <motion.section
-      className="px-6 relative z-10 gap-2 w-full flex flex-col items-center mt-16 lg:mt-44 pb-16 lg:pb-28"
+      className="px-6 relative z-10 gap-2 w-full flex flex-col items-center mt-4 lg:mt-44 pb-16 lg:pb-28"
       initial="hidden"
       variants={staggerContainer}
       viewport={{ once: true, amount: 0.3 }}
@@ -61,7 +61,7 @@ export default function FooterBefore() {
     >
       <div className="max-w-4xl flex flex-col gap-8">
         <motion.div
-          className="mt-16 flex flex-col gap-2 justify-center w-full items-center"
+          className="mt-8 flex flex-col gap-2 justify-center w-full items-center"
           variants={fadeIn}
         >
           <h1 className="tracking-tight inline font-semibold text-4xl lg:text-6xl">
@@ -76,7 +76,7 @@ export default function FooterBefore() {
           We’re committed to helping you manage assets efficiently and securely.
         </motion.p>
 
-        <div className="mb-12" />
+        {/* <div className="mb-2" /> */}
 
         <motion.div
           className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:grid-cols-3"
