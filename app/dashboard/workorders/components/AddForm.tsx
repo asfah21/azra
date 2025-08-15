@@ -149,9 +149,9 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
       return;
     }
 
-    // Validate file size (3MB limit)
-    if (file.size > 3 * 1024 * 1024) {
-      setPhotoError("File size exceeds 3MB limit");
+    // Validate file size (1MB limit)
+    if (file.size > 1 * 1024 * 1024) {
+      setPhotoError("File size exceeds 1MB limit");
 
       return;
     }
@@ -509,7 +509,7 @@ export function AddWoForm({ onClose, onBreakdownAdded }: AddWoFormProps) {
               <p className="text-sm text-danger-500">{photoError}</p>
             )}
             <p className="text-xs text-gray-500">
-              Max file size: 3MB. Supported formats: JPEG, PNG, GIF.
+              Max file size: 1MB. Supported formats: JPEG, PNG, GIF.
             </p>
           </div>
 

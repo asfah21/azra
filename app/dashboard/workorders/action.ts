@@ -144,8 +144,8 @@ export async function createBreakdown(prevState: any, formData: FormData) {
             message: "Invalid file type. Please upload an image.",
           };
         }
-        if (photo.size > 3 * 1024 * 1024) {
-          return { success: false, message: "File size exceeds 3MB limit." };
+        if (photo.size > 1 * 1024 * 1024) {
+          return { success: false, message: "File size exceeds 1MB limit." };
         }
 
         const bytes = await photo.arrayBuffer();
@@ -288,7 +288,7 @@ export async function createBreakdown(prevState: any, formData: FormData) {
       data: {
         logType: "breakdown",
         referenceId: newBreakdown.id,
-        message: `Workorder reported for ${newBreakdown.unit.name} (${newBreakdown.unit.assetTag})`,
+        message: `WO reported for ${newBreakdown.unit.name} (${newBreakdown.unit.assetTag})`,
         unitId,
       },
     });
@@ -297,7 +297,7 @@ export async function createBreakdown(prevState: any, formData: FormData) {
 
     return {
       success: true,
-      message: `Workorder for ${newBreakdown.unit.name} (${newBreakdown.unit.assetTag}) reported successfully!`,
+      message: `WO for ${newBreakdown.unit.name} (${newBreakdown.unit.assetTag}) reported successfully!`,
     };
   } catch (error: unknown) {
     consolePino.error("Error creating breakdown:", error);

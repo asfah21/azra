@@ -2,6 +2,58 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
 
+// CORS allowlist configuration
+const ALLOWED_ORIGINS = [
+  process.env.NEXT_PUBLIC_BASE_URL || "",
+  "http://localhost:3000",
+  "http://localhost:3001",
+].filter(Boolean) as string[];
+
+function isAllowedOrigin(origin?: string | null) {
+  // Jika tidak ada header Origin, biarkan (same-origin atau server-to-server)
+  if (!origin) return true;
+  try {
+    const o = new URL(origin).origin;
+    return ALLOWED_ORIGINS.includes(o);
+  } catch {
+    return false;
+  }
+}
+
+function buildCorsHeaders(origin?: string | null) {
+  if (!origin || !isAllowedOrigin(origin)) return {} as Record<string, string>;
+  return {
+    "Access-Control-Allow-Origin": origin,
+    Vary: "Origin",
+    "Access-Control-Allow-Methods": "GET,OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+  } as Record<string, string>;
+}
+
+function jsonWithCors(
+  data: any,
+  init: ResponseInit = {},
+  origin?: string | null,
+) {
+  const headers = new Headers(init.headers);
+  const cors = buildCorsHeaders(origin);
+  for (const [k, v] of Object.entries(cors)) headers.set(k, v);
+  return NextResponse.json(data, { ...init, headers });
+}
+
+// Handle preflight
+export async function OPTIONS(req: NextRequest) {
+  const origin = req.headers.get("origin");
+  if (!isAllowedOrigin(origin)) {
+    // Jangan mengirim header CORS jika origin tidak diizinkan
+    return new NextResponse(null, { status: 204 });
+  }
+  return new NextResponse(null, {
+    status: 204,
+    headers: buildCorsHeaders(origin),
+  });
+}
+
 export async function GET(req: NextRequest) {
   // const session = await getServerSession(authOptions); //Proteksi API
 
@@ -10,6 +62,11 @@ export async function GET(req: NextRequest) {
   // }
 
   try {
+    const origin = req.headers.get("origin");
+    // Tolak jika ada Origin tetapi tidak di allowlist
+    if (origin && !isAllowedOrigin(origin)) {
+      return new NextResponse("Forbidden", { status: 403 });
+    }
     // Hindari multiple parsing URL
     const url = new URL(req.url);
     const search = url.searchParams;
@@ -26,11 +83,15 @@ export async function GET(req: NextRequest) {
         orderBy: { name: "asc" },
       });
 
-      return NextResponse.json(unitsData, {
-        headers: {
-          "Cache-Control": "public, max-age=60", // Tambahan ringan
+      return jsonWithCors(
+        unitsData,
+        {
+          headers: {
+            "Cache-Control": "public, max-age=60", // Tambahan ringan
+          },
         },
-      });
+        origin,
+      );
     }
 
     // 2. Return next breakdown number
@@ -53,7 +114,7 @@ export async function GET(req: NextRequest) {
         return `${prefix}${nextNum.toString().padStart(4, "0")}`;
       });
 
-      return NextResponse.json({ nextBreakdownNumber });
+      return jsonWithCors({ nextBreakdownNumber }, {}, origin);
     }
 
     // 3. Return breakdown by ID
@@ -72,10 +133,10 @@ export async function GET(req: NextRequest) {
       });
 
       if (!breakdown) {
-        return NextResponse.json(null, { status: 404 });
+        return jsonWithCors(null, { status: 404 }, origin);
       }
 
-      return NextResponse.json(breakdown);
+      return jsonWithCors(breakdown, {}, origin);
     }
 
     // 4. Return all breakdowns (default)
@@ -145,10 +206,14 @@ export async function GET(req: NextRequest) {
           }
         }
 
-        return NextResponse.json({
-          allBreakdowns,
-          breakdownStats: { total, progress, rfu, pending, overdue },
-        });
+        return jsonWithCors(
+          {
+            allBreakdowns,
+            breakdownStats: { total, progress, rfu, pending, overdue },
+          },
+          {},
+          origin,
+        );
       } catch (error) {
         lastError = error;
         if (i < maxRetries)
@@ -156,7 +221,7 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    return NextResponse.json(
+    return jsonWithCors(
       {
         allBreakdowns: [],
         breakdownStats: {
@@ -168,11 +233,14 @@ export async function GET(req: NextRequest) {
         },
       },
       { status: 500 },
+      origin,
     );
   } catch (error) {
-    return NextResponse.json(
+    const origin = req.headers.get("origin");
+    return jsonWithCors(
       { error: "Internal server error" },
       { status: 500 },
+      origin,
     );
   }
 }

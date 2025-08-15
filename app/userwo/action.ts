@@ -200,10 +200,10 @@ export async function createBreakdown(prevState: any, formData: FormData) {
         }
 
         // Validasi input user maks 3 MB (ingat: proxy/Next body limit harus > 3MB)
-        if (photo.size > 3 * 1024 * 1024) {
+        if (photo.size > 1 * 1024 * 1024) {
           consolePino.info("File too large (raw):", photo.size);
 
-          return { success: false, message: "File size exceeds 3MB limit." };
+          return { success: false, message: "File size exceeds 1MB limit." };
         }
 
         // Convert file ke buffer
@@ -317,7 +317,7 @@ export async function createBreakdown(prevState: any, formData: FormData) {
       data: {
         logType: "breakdown",
         referenceId: newBreakdown.id,
-        message: `Breakdown reported for ${newBreakdown.unit.name} (${newBreakdown.unit.assetTag}) by ${newBreakdown.reportedBy.name}`,
+        message: `WO reported for ${newBreakdown.unit.name} (${newBreakdown.unit.assetTag}) by ${newBreakdown.reportedBy.name}`,
         unitId,
       },
     });
@@ -327,7 +327,7 @@ export async function createBreakdown(prevState: any, formData: FormData) {
 
     return {
       success: true,
-      message: `Breakdown for ${newBreakdown.unit.name} (${newBreakdown.unit.assetTag}) reported successfully!`,
+      message: `WO for ${newBreakdown.unit.name} (${newBreakdown.unit.assetTag}) reported successfully!`,
     };
   } catch (error: unknown) {
     consolePino.error("Error creating breakdown:", error);
