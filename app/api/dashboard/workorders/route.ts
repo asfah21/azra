@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
+import { Redis } from "@upstash/redis";
+import { Ratelimit } from "@upstash/ratelimit";
 
 // CORS allowlist configuration
 const ALLOWED_ORIGINS = [
@@ -10,8 +12,8 @@ const ALLOWED_ORIGINS = [
 ].filter(Boolean) as string[];
 
 function isAllowedOrigin(origin?: string | null) {
-  // Jika tidak ada header Origin, biarkan (same-origin atau server-to-server)
-  if (!origin) return true;
+  // Jika tidak ada header Origin, jangan izinkan (untuk memblokir Postman/curl)
+  if (!origin) return false;
   try {
     const o = new URL(origin).origin;
     return ALLOWED_ORIGINS.includes(o);
@@ -41,6 +43,31 @@ function jsonWithCors(
   return NextResponse.json(data, { ...init, headers });
 }
 
+// -------- Rate limiting (Upstash) --------
+// Gunakan singletons agar tidak re-init pada hot reload / serverless re-use
+const redis = Redis.fromEnv?.()
+  || new Redis({
+    url: process.env.UPSTASH_REDIS_REST_URL!,
+    token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+  });
+
+const ratelimit = new Ratelimit({
+  redis,
+  // 15 permintaan per 1 menit per IP
+  limiter: Ratelimit.slidingWindow(15, "1 m"),
+  analytics: true,
+  prefix: "wo:api",
+});
+
+function getClientIp(req: NextRequest) {
+  const xf = req.headers.get("x-forwarded-for");
+  if (xf) return xf.split(",")[0].trim();
+  const realIp = req.headers.get("x-real-ip");
+  if (realIp) return realIp;
+  // Sebagai fallback, pakai user-agent untuk mengelompokkan kasar (tidak ideal)
+  return req.headers.get("user-agent") || "unknown";
+}
+
 // Handle preflight
 export async function OPTIONS(req: NextRequest) {
   const origin = req.headers.get("origin");
@@ -62,9 +89,40 @@ export async function GET(req: NextRequest) {
   // }
 
   try {
-    const origin = req.headers.get("origin");
-    // Tolak jika ada Origin tetapi tidak di allowlist
-    if (origin && !isAllowedOrigin(origin)) {
+    // Rate limiting lebih dulu
+    const ip = getClientIp(req);
+    const { success, limit, remaining, reset } = await ratelimit.limit(
+      `wo:get:${ip}`,
+    );
+
+    let originHeaderFor429 = req.headers.get("origin");
+    if (!originHeaderFor429) {
+      const ref = req.headers.get("referer");
+      try {
+        if (ref) originHeaderFor429 = new URL(ref).origin;
+      } catch {}
+    }
+
+    if (!success) {
+      const headers = new Headers(buildCorsHeaders(originHeaderFor429));
+      headers.set("Retry-After", Math.max(0, Math.ceil((reset - Date.now()) / 1000)).toString());
+      headers.set("X-RateLimit-Limit", String(limit));
+      headers.set("X-RateLimit-Remaining", String(Math.max(0, remaining)));
+      return new NextResponse("Too Many Requests", { status: 429, headers });
+    }
+
+    let origin = req.headers.get("origin");
+    // Jika tidak ada Origin, coba fallback ke Referer
+    if (!origin) {
+      const referer = req.headers.get("referer");
+      try {
+        if (referer) origin = new URL(referer).origin;
+      } catch {
+        // ignore parse error
+      }
+    }
+    // Tolak jika origin (dari Origin/Referer) tidak di allowlist
+    if (!isAllowedOrigin(origin)) {
       return new NextResponse("Forbidden", { status: 403 });
     }
     // Hindari multiple parsing URL
@@ -236,7 +294,13 @@ export async function GET(req: NextRequest) {
       origin,
     );
   } catch (error) {
-    const origin = req.headers.get("origin");
+    let origin = req.headers.get("origin");
+    if (!origin) {
+      const referer = req.headers.get("referer");
+      try {
+        if (referer) origin = new URL(referer).origin;
+      } catch {}
+    }
     return jsonWithCors(
       { error: "Internal server error" },
       { status: 500 },

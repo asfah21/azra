@@ -33,7 +33,7 @@ export default function WorkorderClientPage({
 
       return res.data;
     },
-    refetchInterval: 60000,
+    refetchInterval: 60000, // interval 1 menit atau 60.000 ms
     initialData,
   });
 
