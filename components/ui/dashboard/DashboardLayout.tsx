@@ -1,6 +1,7 @@
 "use client";
 
 import { useSession, signOut } from "next-auth/react";
+import { Role } from "@prisma/client";
 import { useRouter, usePathname } from "next/navigation";
 import {
   useEffect,
@@ -10,7 +11,7 @@ import {
   useRef,
   useTransition,
 } from "react";
-import { FiSettings, FiPackage, FiBarChart2, FiUsers } from "react-icons/fi";
+import { FiSettings, FiPackage, FiBarChart2, FiUsers, FiShield } from "react-icons/fi";
 import { PiWrench } from "react-icons/pi";
 import { LuLayoutDashboard } from "react-icons/lu";
 
@@ -20,6 +21,8 @@ import { Sidebar } from "./Sidebar";
 import { Topbar } from "./Topbar";
 
 import { consolePino } from "@/lib/logger";
+import { navItems as navItemsConfig } from '@/lib/config/navigation';
+
 
 // Key untuk localStorage
 export const ACTIVE_TABS_KEY = "dashboard-active-tabs";
@@ -53,47 +56,38 @@ export default function UIDashboardLayout({
   const isNavigatingRef = useRef(false);
   const lastPathnameRef = useRef(pathname);
 
-  const navItems = useMemo(
-    () => [
-      {
-        id: "dashboard",
-        title: "Dashboard",
-        path: "/dashboard",
-        icon: <LuLayoutDashboard />,
-      },
-      {
-        id: "workorders",
-        title: "Work Orders",
-        path: "/dashboard/workorders",
-        icon: <PiWrench />,
-      },
-      {
-        id: "assets",
-        title: "Assets",
-        path: "/dashboard/assets",
-        icon: <FiPackage />,
-      },
-      {
-        id: "reports",
-        title: "Reports",
-        path: "/dashboard/reports",
-        icon: <FiBarChart2 />,
-      },
-      {
-        id: "user",
-        title: "Users",
-        path: "/dashboard/users",
-        icon: <FiUsers />,
-      },
-      {
-        id: "settings",
-        title: "Settings",
-        path: "/dashboard/settings",
-        icon: <FiSettings />,
-      },
-    ],
-    [],
-  );
+  const iconMap: { [key: string]: React.ReactElement } = {
+    dashboard: <LuLayoutDashboard />,
+    wrench: <PiWrench />,
+    package: <FiPackage />,
+    "bar-chart-2": <FiBarChart2 />,
+    users: <FiUsers />,
+    settings: <FiSettings />,
+    shield: <FiShield />,
+  };
+
+  const navItems = useMemo(() => {
+    const userRole = session?.user?.role;
+    if (!userRole) {
+      return [];
+    }
+
+    // Jika user adalah super_admin, kembalikan semua menu
+    if (userRole === 'super_admin') {
+      return navItemsConfig.map(item => ({
+        ...item,
+        icon: iconMap[item.icon] || <FiSettings />,
+      }));
+    }
+
+    // Untuk role lainnya, filter berdasarkan konfigurasi
+    return navItemsConfig
+      .filter(item => item.roles.some(role => role === userRole))
+      .map(item => ({
+        ...item,
+        icon: iconMap[item.icon] || <FiSettings />,
+      }));
+  }, [session?.user?.role]);
 
   // Optimized pathname matcher
   const getMatchedItem = useCallback(
@@ -171,13 +165,28 @@ export default function UIDashboardLayout({
     return null;
   }, [navItems]);
 
-  // Handle session redirect
+  // Handle session redirect dan pengecekan akses
   useEffect(() => {
     if (status === "loading") return;
+    
     if (!session) {
       router.push("/login");
+      return;
     }
-  }, [status, session, router]);
+
+    // Cek jika mencoba mengakses halaman yang membutuhkan role tertentu
+    const currentNavItem = navItems.find(item => 
+      pathname === item.path || pathname.startsWith(`${item.path}/`)
+    );
+
+    if (currentNavItem?.roles && currentNavItem.roles.length > 0 && 
+        !currentNavItem.roles.includes(session.user?.role as any) && 
+        session.user?.role !== 'super_admin') {
+      // Redirect ke dashboard jika tidak memiliki akses
+      router.push('/dashboard');
+      return;
+    }
+  }, [status, session, router, pathname, navItems]);
 
   // Single initialization effect
   useEffect(() => {

@@ -34,7 +34,8 @@ export default function BuildWith() {
       whileInView="visible"
     >
       <motion.h3 className="mb-8 text-large text-default-500" variants={fadeIn}>
-        A full-stack application built with
+        {/* A full-stack application built with */}
+        Developed with modern enterprise technologies for PT GSI
       </motion.h3>
 
       <motion.div

@@ -51,14 +51,10 @@ export const Navbar = () => {
         <NavbarBrand as="li" className="gap-3 max-w-fit">
           <NextLink className="flex justify-start items-center gap-1" href="/">
             <div className="flex items-center gap-2 ml-1">
-              <div className="w-8 h-8 bg-gradient-to-br from-primary to-success-300 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">
-                  <Logo />
-                </span>
-              </div>
-              <h1 className="text-xl font-bold text-foreground">
+              <Logo />
+              {/* <h1 className="text-xl font-bold text-foreground">
                 AZRA <VersiApp />
-              </h1>
+              </h1> */}
             </div>
             {/* <Logo />
             <p className="font-bold text-inherit">AZRA</p> */}

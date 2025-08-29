@@ -102,12 +102,12 @@ export function Topbar({
           {menuOpen ? <FiX size={20} /> : <FiMenu size={20} />}
         </Button>
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-gradient-to-br from-primary to-success-300 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-sm">
+          {/* <div className="w-8 h-8 bg-gradient-to-br from-primary to-success-300 rounded-lg flex items-center justify-center">
+            <span className="text-white font-bold text-sm"> */}
               <Logo />
-            </span>
-          </div>
-          <h1 className="text-xl font-bold text-foreground">AZRA</h1>
+            {/* </span> */}
+          {/* </div> */}
+          {/* <h1 className="text-xl font-bold text-foreground">AZRA</h1> */}
         </div>
 
         <div className="flex items-center gap-2">
@@ -207,9 +207,9 @@ export function Topbar({
 
         <div className="flex items-center gap-3">
           <ThemeSwitch />
-          <Button isIconOnly className="text-default-500" variant="light">
+          {/* <Button isIconOnly className="text-default-500" variant="light">
             <FiBell size={19} />
-          </Button>
+          </Button> */}
           <Dropdown placement="bottom-end">
             <DropdownTrigger>
               <div className="flex items-center gap-2 cursor-pointer hover:bg-default-100 rounded-lg p-2 transition-colors">

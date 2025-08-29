@@ -5,7 +5,7 @@ import { memo } from "react";
 
 import { VersionApp } from "../ChipVersion";
 
-import { Logo } from "@/components/icons";
+import { Logo, LogoGsi } from "@/components/icons";
 
 interface SidebarProps {
   sidebarCollapsed: boolean;
@@ -92,20 +92,12 @@ export const Sidebar = memo(function Sidebar({
         } px-4 py-5 flex-shrink-0`}
       >
         <div className="flex items-center gap-2 min-w-0">
-          <div className="w-8 h-8 bg-gradient-to-br from-primary to-success-300 rounded-lg flex items-center justify-center flex-shrink-0">
-            <span className="text-white font-bold text-sm">
-              <Logo />
-            </span>
-          </div>
-          <div
-            className={`transition-all duration-200 ease-out min-w-0 ${
-              sidebarCollapsed
-                ? "opacity-0 w-0 overflow-hidden"
-                : "opacity-100 w-auto"
-            }`}
-          >
-            {!sidebarCollapsed && <VersionApp />}
-          </div>
+          {sidebarCollapsed ? (
+            // <span className="font-bold">ada</span>
+            <LogoGsi/>
+          ) : (
+            <Logo />
+          )}
         </div>
       </div>
 
@@ -130,3 +122,4 @@ export const Sidebar = memo(function Sidebar({
     </aside>
   );
 });
+             

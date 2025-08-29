@@ -104,14 +104,14 @@ export default function LoginPage() {
             </div> */}
           </div>
           <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-primary to-success-300 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">
+            {/* <div className="w-8 h-8 bg-gradient-to-br from-primary to-success-300 rounded-lg flex items-center justify-center"> */}
+              {/* <span className="text-white font-bold text-sm"> */}
                 <Logo />
-              </span>
-            </div>
-            <h1 className="text-xl font-bold text-foreground">
+              {/* </span> */}
+            {/* </div> */}
+            {/* <h1 className="text-xl font-bold text-foreground">
               AZRA <VersiApp />
-            </h1>
+            </h1> */}
           </div>
           <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
             Please enter your credentials to access your account

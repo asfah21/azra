@@ -57,10 +57,10 @@ export default function Hero() {
               pauseTime={1100}
               typingSpeed={85}
               words={[
-                "A stunning application",
-                "Crafted for simplicity",
-                "Better asset control",
-                "Seamless Management",
+                "Integrated system",
+                "Designed for efficiency",
+                "Enhanced asset control",
+                "Made for PT GSI",
               ]}
             />
             {/* a stunning
@@ -71,9 +71,7 @@ export default function Hero() {
             className="my-2 text-base md:text-lg font-normal text-default-500 text-center md:text-left"
             variants={fadeIn}
           >
-            Sleek, fast app to manage assets, track statuses (maintenance,
-            damaged, etc.) and export A to Z records to Excel. Simple, powerful
-            for all users.
+           Internal system to manage assets, monitor status (operational, maintenance, breakdown), and export complete records to Excel. Efficient, reliable, and built exclusively for <span className="text-[#FEC72C] font-semibold truncate">PT Gunung Samudera Internasional</span>
           </motion.p>
 
           <motion.div

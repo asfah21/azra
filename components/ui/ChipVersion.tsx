@@ -22,3 +22,14 @@ export function VersiApp() {
     </>
   );
 }
+
+export function VersiAppSm() {
+  return (
+    <>
+      <p>
+        v0.4.6
+      </p>
+      {/* <span className="text-xs text-default-500 ml-1">(MVP)</span> */}
+    </>
+  );
+}
