@@ -1,10 +1,9 @@
 "use client";
 
 import { Divider, Tooltip, Button } from "@heroui/react";
-import { memo } from "react";
+import { memo, useMemo } from "react";
 
-import { VersionApp } from "../ChipVersion";
-
+import { useRoleAccess } from "@/hooks/useRoleAccess";
 import { Logo, LogoGsi } from "@/components/icons";
 
 interface SidebarProps {
@@ -68,19 +67,37 @@ NavButton.displayName = "NavButton";
 
 export const Sidebar = memo(function Sidebar({
   sidebarCollapsed,
-  setSidebarCollapsed: _setSidebarCollapsed,
+  setSidebarCollapsed,
   navItems,
   activeTab,
   openNewTab,
   session,
 }: SidebarProps) {
+  // Ambil konfigurasi akses dari backend
+  const { roleAccess, loading } = useRoleAccess();
+  const userRole = session?.user?.role;
+
+  // Filter menu sesuai role user dan konfigurasi akses
+  const filteredNavItems = useMemo(() => {
+    if (!userRole || loading) return null;
+    if (userRole === "super_admin") {
+      return navItems;
+    }
+
+    // roleAccess: array of { menu, role }
+    return navItems.filter((item) =>
+      roleAccess.some(
+        (access) => access.menu === item.id && access.role === userRole,
+      ),
+    );
+  }, [navItems, roleAccess, userRole, loading]);
+
   return (
     <aside
       className={`bg-content1 border-r border-divider h-full md:h-screen shadow-small transition-all duration-200 ease-out ${
         sidebarCollapsed ? "w-20" : "w-64"
       } hidden md:flex flex-col relative`}
       style={{
-        // Force hardware acceleration untuk smooth transitions
         transform: "translateZ(0)",
         willChange: "width",
       }}
@@ -92,12 +109,7 @@ export const Sidebar = memo(function Sidebar({
         } px-4 py-5 flex-shrink-0`}
       >
         <div className="flex items-center gap-2 min-w-0">
-          {sidebarCollapsed ? (
-            // <span className="font-bold">ada</span>
-            <LogoGsi/>
-          ) : (
-            <Logo />
-          )}
+          {sidebarCollapsed ? <LogoGsi /> : <Logo />}
         </div>
       </div>
 
@@ -105,21 +117,22 @@ export const Sidebar = memo(function Sidebar({
 
       {/* Navigation Section */}
       <nav className="flex-1 flex flex-col gap-1 p-3 min-h-0 overflow-hidden">
-        {navItems.map((item) => {
-          const isActive = activeTab === item.id;
+        {filteredNavItems &&
+          filteredNavItems.length > 0 &&
+          filteredNavItems.map((item) => {
+            const isActive = activeTab === item.id;
 
-          return (
-            <NavButton
-              key={item.id}
-              isActive={isActive}
-              item={item}
-              sidebarCollapsed={sidebarCollapsed}
-              onPress={() => openNewTab(item)}
-            />
-          );
-        })}
+            return (
+              <NavButton
+                key={item.id}
+                isActive={isActive}
+                item={item}
+                sidebarCollapsed={sidebarCollapsed}
+                onPress={() => openNewTab(item)}
+              />
+            );
+          })}
       </nav>
     </aside>
   );
 });
-             

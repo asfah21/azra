@@ -15,7 +15,14 @@ export const consolePino = pino({
           const method =
             o.level >= 50 ? "error" : o.level >= 40 ? "warn" : "log";
 
-          console[method](o);
+          // Print error/warn/log with message if available, fallback to object
+          if (method === "error") {
+            console.error(o.msg || o);
+          } else if (method === "warn") {
+            console.warn(o.msg || o);
+          } else {
+            console.log(o.msg || o);
+          }
         },
         serialize: true,
       },

@@ -1,6 +1,6 @@
 "use client";
 
-import { FiBell, FiLogOut, FiMenu, FiX, FiSettings } from "react-icons/fi";
+import { FiLogOut, FiMenu, FiX, FiSettings } from "react-icons/fi";
 import { Input } from "@heroui/input";
 import { Kbd } from "@heroui/kbd";
 import { Button } from "@heroui/button";
@@ -104,8 +104,8 @@ export function Topbar({
         <div className="flex items-center gap-2">
           {/* <div className="w-8 h-8 bg-gradient-to-br from-primary to-success-300 rounded-lg flex items-center justify-center">
             <span className="text-white font-bold text-sm"> */}
-              <Logo />
-            {/* </span> */}
+          <Logo />
+          {/* </span> */}
           {/* </div> */}
           {/* <h1 className="text-xl font-bold text-foreground">AZRA</h1> */}
         </div>

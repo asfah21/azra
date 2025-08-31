@@ -2,34 +2,166 @@
 
 import { signIn, useSession } from "next-auth/react";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import {
-  Button,
-  Input,
-  Alert,
-  Divider,
-  Card,
-  CardHeader,
-  CardBody,
-  CardFooter,
-} from "@heroui/react";
-import {
-  ExclamationCircleIcon,
-  EyeIcon,
-  EyeSlashIcon,
-} from "@heroicons/react/24/outline";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Alert, Card, CardHeader, CardFooter } from "@heroui/react";
+import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 
-import { VersiApp } from "@/components/ui/ChipVersion";
 import { Logo } from "@/components/icons";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [isVisible, setIsVisible] = useState(false);
+  const searchParams = useSearchParams();
   const router = useRouter();
   const { data: session, status } = useSession();
+  // Cek localStorage untuk auto-fill
+  const [email, setEmail] = useState(() => {
+    if (typeof window !== "undefined") {
+      const remembered = localStorage.getItem("azra_remember");
+
+      if (remembered) {
+        try {
+          const creds = JSON.parse(remembered);
+
+          return creds.email || "";
+        } catch {}
+      }
+    }
+
+    return "";
+  });
+  const [password, setPassword] = useState(() => {
+    if (typeof window !== "undefined") {
+      const remembered = localStorage.getItem("azra_remember");
+
+      if (remembered) {
+        try {
+          const creds = JSON.parse(remembered);
+
+          return creds.password || "";
+        } catch {}
+      }
+    }
+
+    return "";
+  });
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [loginAttempts, setLoginAttempts] = useState(0);
+  const [isLocked, setIsLocked] = useState(false);
+  const [lockUntil, setLockUntil] = useState<Date | null>(null);
+
+  // Redirect if already authenticated
+  useEffect(() => {
+    if (status === "authenticated" && session) {
+      const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+
+      router.push(callbackUrl);
+    }
+  }, [status, session, router, searchParams]);
+
+  // Check for error in URL (from NextAuth)
+  useEffect(() => {
+    const errorParam = searchParams.get("error");
+
+    if (errorParam === "CredentialsSignin") {
+      setError("Email atau password salah. Silakan coba lagi.");
+      setLoginAttempts((prev) => prev + 1);
+    } else if (errorParam) {
+      setError("Terjadi kesalahan saat login. Silakan coba lagi nanti.");
+    }
+  }, [searchParams]);
+
+  // Check for locked account
+  useEffect(() => {
+    if (loginAttempts >= 5) {
+      const lockTime = new Date();
+
+      lockTime.setMinutes(lockTime.getMinutes() + 15);
+      setLockUntil(lockTime);
+      setIsLocked(true);
+
+      const timer = setTimeout(
+        () => {
+          setIsLocked(false);
+          setLoginAttempts(0);
+          setLockUntil(null);
+        },
+        15 * 60 * 1000,
+      ); // 15 minutes
+
+      return () => clearTimeout(timer);
+    }
+  }, [loginAttempts]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (isLocked) {
+      setError(`Akun terkunci hingga ${lockUntil?.toLocaleTimeString()}`);
+
+      return;
+    }
+
+    if (!email || !password) {
+      setError("Email dan password harus diisi");
+
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+
+    try {
+      const result = await signIn("credentials", {
+        redirect: false,
+        email,
+        password,
+        remember: rememberMe.toString(),
+        callbackUrl: searchParams.get("callbackUrl") || "/dashboard",
+      });
+
+      if (result?.error) {
+        setError("Email atau password salah");
+        setLoginAttempts((prev) => prev + 1);
+      } else {
+        // Reset attempts on successful login
+        setLoginAttempts(0);
+        // Save credentials if rememberMe checked
+        if (rememberMe) {
+          localStorage.setItem(
+            "azra_remember",
+            JSON.stringify({ email, password }),
+          );
+        } else {
+          localStorage.removeItem("azra_remember");
+        }
+      }
+    } catch (error) {
+      console.error("Login error:", error);
+      setError("Terjadi kesalahan saat login. Silakan coba lagi.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const [isVisible, setIsVisible] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
+
+  const toggleVisibility = () => setIsVisible(!isVisible);
+  const toggleRememberMe = () => setRememberMe(!rememberMe);
+
+  const getRemainingLockTime = () => {
+    if (!lockUntil) return 0;
+    const now = new Date();
+
+    return Math.max(0, lockUntil.getTime() - now.getTime());
+  };
+
+  const formatRemainingTime = (ms: number) => {
+    const minutes = Math.ceil(ms / (60 * 1000));
+
+    return `${minutes} menit`;
+  };
 
   // Redirect jika sudah login
   useEffect(() => {
@@ -37,37 +169,6 @@ export default function LoginPage() {
       router.push("/dashboard");
     }
   }, [status, router]);
-
-  const toggleVisibility = () => setIsVisible(!isVisible);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    setLoading(true);
-
-    try {
-      const result = await signIn("credentials", {
-        email,
-        password,
-        redirect: false,
-      });
-
-      if (result?.error) {
-        setError(result.error);
-      } else if (result?.ok) {
-        router.push("/dashboard");
-        router.refresh();
-      } else {
-        setError("An unexpected error occurred. Please try again.");
-      }
-    } catch (err) {
-      /* eslint-disable no-console */
-      console.error("Login error:", err);
-      setError("An error occurred during login. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
 
   // Tampilkan loading jika sedang mengecek session
   if (status === "loading" || status === "authenticated") {
@@ -105,9 +206,9 @@ export default function LoginPage() {
           </div>
           <div className="flex items-center gap-2">
             {/* <div className="w-8 h-8 bg-gradient-to-br from-primary to-success-300 rounded-lg flex items-center justify-center"> */}
-              {/* <span className="text-white font-bold text-sm"> */}
-                <Logo />
-              {/* </span> */}
+            {/* <span className="text-white font-bold text-sm"> */}
+            <Logo />
+            {/* </span> */}
             {/* </div> */}
             {/* <h1 className="text-xl font-bold text-foreground">
               AZRA <VersiApp />
@@ -127,60 +228,65 @@ export default function LoginPage() {
           </div> */}
         </CardHeader>
 
-        <Divider className="my-2 sm:my-3 opacity-40" />
+        {/* <Divider className="my-2 sm:my-3 opacity-40" /> */}
 
-        <CardBody className="flex flex-col gap-3 sm:gap-4 px-4 sm:px-8 py-2 sm:py-6">
+        {/* <div className="shadow-xl border border-gray-100 overflow-hidden"> */}
+        <div className="bg-gradient-to-r from-green-600 to-blue-800 h-1.5 w-full" />
+        <div className="space-y-6 p-6">
           {error && (
-            <Alert
-              className="mb-3 sm:mb-4 border-l-4 border-red-500 bg-red-50 dark:bg-red-900/20 py-2"
-              startContent={
-                <ExclamationCircleIcon className="h-4 w-4 sm:h-5 sm:w-5 text-red-500" />
-              }
-            >
-              <span className="text-sm text-red-700 dark:text-red-300">
-                {error}
-              </span>
+            <Alert className="mb-6">
+              {error}
+              {isLocked && lockUntil && (
+                <div className="mt-1 text-xs">
+                  Coba lagi dalam {formatRemainingTime(getRemainingLockTime())}
+                </div>
+              )}
             </Alert>
           )}
+          {/* <div className="space-y-2">
+              <h3 className="text-lg font-semibold text-gray-900">
+                Masuk ke Akun
+              </h3>
+              <p className="text-sm text-gray-500">
+                Gunakan email dan kata sandi Anda untuk melanjutkan
+              </p>
+            </div> */}
 
-          <form
-            className="flex flex-col gap-3 sm:gap-5"
-            onSubmit={handleSubmit}
-          >
-            <div className="space-y-1">
+          <form className="space-y-5" onSubmit={handleSubmit}>
+            <div className="space-y-2">
               <label
                 className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300"
                 htmlFor="email"
               >
                 Email
               </label>
-              <Input
-                isRequired
-                className="w-full"
-                classNames={{
-                  input: "text-sm sm:text-base text-gray-800 dark:text-white",
-                  inputWrapper:
-                    "h-10 sm:h-12 border-gray-300 dark:border-gray-600 hover:border-blue-500 dark:hover:border-blue-400",
-                }}
-                isDisabled={loading}
-                placeholder="you@gmail.com"
-                radius="sm"
-                size="sm"
-                style={{ outline: "none" }}
-                type="email"
-                value={email}
-                variant="bordered"
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setEmail(e.target.value)
-                }
-                onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
-                  e.target.style.outline = "none";
-                }}
-              />
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <svg
+                    className="h-5 w-5 text-gray-400"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
+                    <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
+                  </svg>
+                </div>
+                <input
+                  required
+                  autoComplete="email"
+                  className="bg-gray-50 dark:bg-gray-900 block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  disabled={isLocked || loading}
+                  id="email"
+                  placeholder="email@contoh.com"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
             </div>
 
-            <div className="space-y-1">
-              <div className="flex justify-between items-center">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
                 <label
                   className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300"
                   htmlFor="password"
@@ -188,73 +294,117 @@ export default function LoginPage() {
                   Password
                 </label>
                 {/* <a
-                  className="text-xs text-blue-600 hover:underline dark:text-blue-400"
-                  href="/forgot-password"
+                  className="text-xs font-medium text-blue-600 hover:text-blue-500"
+                  href="#"
                 >
                   Forgot password?
                 </a> */}
               </div>
-              <Input
-                isRequired
-                className="w-full"
-                classNames={{
-                  input: "text-sm sm:text-base text-gray-800 dark:text-white",
-                  inputWrapper:
-                    "h-10 sm:h-12 border-gray-300 dark:border-gray-600 hover:border-blue-500 dark:hover:border-blue-400",
-                }}
-                endContent={
-                  <button
-                    className="focus:outline-none"
-                    type="button"
-                    onClick={toggleVisibility}
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <svg
+                    className="h-5 w-5 text-gray-400"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
                   >
-                    {isVisible ? (
-                      <EyeSlashIcon className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
-                    ) : (
-                      <EyeIcon className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
-                    )}
-                  </button>
-                }
-                isDisabled={loading}
-                placeholder="••••••••"
-                radius="sm"
-                size="sm"
-                style={{ outline: "none" }}
-                type={isVisible ? "text" : "password"}
-                value={password}
-                variant="bordered"
-                onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setPassword(e.target.value)
-                }
-                onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
-                  e.target.style.outline = "none";
-                }}
-              />
+                    <path
+                      clipRule="evenodd"
+                      d="M5 9V7a5 5 0 0110 0v2a2 2 0 012 2v5a2 2 0 01-2 2H5a2 2 0 01-2-2v-5a2 2 0 012-2zm8-2v2H7V7a3 3 0 016 0z"
+                      fillRule="evenodd"
+                    />
+                  </svg>
+                </div>
+                <input
+                  required
+                  autoComplete="current-password"
+                  className="bg-gray-50 dark:bg-gray-900 block w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
+                  disabled={isLocked || loading}
+                  id="password"
+                  placeholder="••••••••"
+                  type={isVisible ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+                <button
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700 focus:outline-none disabled:opacity-50"
+                  disabled={isLocked || loading}
+                  type="button"
+                  onClick={toggleVisibility}
+                >
+                  {isVisible ? (
+                    <EyeSlashIcon className="h-5 w-5" />
+                  ) : (
+                    <EyeIcon className="h-5 w-5" />
+                  )}
+                </button>
+              </div>
             </div>
 
-            <Button
-              className="w-full mt-1 h-10 sm:h-12 font-medium tracking-wide"
-              color="primary"
-              disabled={loading || !email || !password}
-              isLoading={loading}
-              radius="sm"
-              size="md"
-              style={{
-                background:
-                  "linear-gradient(135deg,rgb(58, 180, 58),rgb(35, 38, 223))",
-              }}
-              type="submit"
-            >
-              {loading ? "Signing in..." : "Sign In"}
-            </Button>
+            <div className="flex items-center">
+              <input
+                checked={rememberMe}
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                id="remember-me"
+                name="remember-me"
+                type="checkbox"
+                onChange={toggleRememberMe}
+              />
+              <label
+                className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300"
+                htmlFor="remember-me"
+              >
+                &nbsp;Remember this device
+              </label>
+            </div>
+
+            <div className="pt-2">
+              <button
+                className={`w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 ${isLocked ? "opacity-50 cursor-not-allowed" : ""} ${loading ? "opacity-70" : ""}`}
+                disabled={isLocked || loading}
+                type="submit"
+              >
+                {loading ? (
+                  <>
+                    <svg
+                      className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      />
+                      <path
+                        className="opacity-75"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        fill="currentColor"
+                      />
+                    </svg>
+                    processing...
+                  </>
+                ) : (
+                  "Login"
+                )}
+              </button>
+            </div>
           </form>
-        </CardBody>
+        </div>
 
         <CardFooter className="mt-2 flex justify-center py-3 sm:py-6 bg-gray-50 dark:bg-gray-900/50 rounded-b-xl sm:rounded-b-2xl">
-          <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400 text-center">
-            2025 © Copyright by PT Gunung Samudera Internasional
+          <p className="text-xs text-center text-gray-500">
+            {new Date().getFullYear()} © Copyright by PT Gunung Samudera
+            Internasional
           </p>
         </CardFooter>
+
+        {/* <div className="text-center mt-4">
+          <VersiApp className="text-xs text-gray-400" />
+        </div> */}
       </Card>
     </div>
   );

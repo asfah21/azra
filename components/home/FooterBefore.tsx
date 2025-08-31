@@ -44,7 +44,8 @@ const cards = [
   },
   {
     title: "Need Help?",
-    description: "Reach out to our support team for assistance, feedback, or suggestions.",
+    description:
+      "Reach out to our support team for assistance, feedback, or suggestions.",
     iconLeft: <TbHelpHexagonFilled className="text-success-500" size={30} />,
     iconRight: <TbExternalLink />,
   },

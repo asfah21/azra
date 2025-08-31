@@ -13,7 +13,7 @@ import {
 import { Card, Skeleton } from "@heroui/react";
 import { useMemo, useState } from "react";
 
-import { VersiApp } from "@/components/ui/ChipVersion";
+import { VersiAppReport } from "@/components/ui/ChipVersion";
 import { consolePino } from "@/lib/logger";
 
 interface Props {
@@ -204,8 +204,9 @@ export default function ListReportButton({
             <span className="bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent font-semibold hover:from-green-600 hover:to-blue-600 transition-all duration-300">
               AZRA
             </span>{" "}
-            <VersiApp />, our MVP release. This is an early version, and some
-            features are still being built. Stay tuned for updates!
+            <VersiAppReport />
+            &nbsp;our MVP release. This is an early version and some features
+            are still being built, stay tuned for updates!
           </p>
         </div>
       </Card>

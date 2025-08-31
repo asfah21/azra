@@ -71,7 +71,12 @@ export default function Hero() {
             className="my-2 text-base md:text-lg font-normal text-default-500 text-center md:text-left"
             variants={fadeIn}
           >
-           Internal system to manage assets, monitor status (operational, maintenance, breakdown), and export complete records to Excel. Efficient, reliable, and built exclusively for <span className="text-[#FEC72C] font-semibold truncate">PT Gunung Samudera Internasional</span>
+            Internal system to manage assets, monitor status (operational,
+            maintenance, breakdown), and export complete records to Excel.
+            Efficient, reliable, and built exclusively for{" "}
+            <span className="text-[#FEC72C] font-semibold truncate">
+              PT Gunung Samudera Internasional
+            </span>
           </motion.p>
 
           <motion.div

@@ -50,8 +50,16 @@ export function ProfileProvider({ children }: { children: React.ReactNode }) {
       } else {
         consolePino.warn("No profile found in response");
       }
-    } catch (err) {
-      consolePino.error("Error fetching profile:", err);
+    } catch (err: any) {
+      // Axios error: check for unauthorized
+      if (err?.response?.status === 401) {
+        setProfile(null);
+        consolePino.info("Unauthorized: session expired or user logged out.");
+      } else {
+        const errorMsg = err?.message || JSON.stringify(err);
+
+        consolePino.error("Error fetching profile:", errorMsg);
+      }
     } finally {
       setIsLoading(false);
     }

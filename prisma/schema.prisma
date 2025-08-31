@@ -135,6 +135,13 @@ enum Role {
   guest
 }
 
+
+model RoleAccess {
+  id    String @id @default(uuid())
+  menu  String
+  role  Role
+}
+
 enum BreakdownStatus {
   pending
   in_progress

@@ -17,8 +17,6 @@ import NextLink from "next/link";
 import clsx from "clsx";
 import { BsFillLayersFill } from "react-icons/bs";
 
-import { VersiApp } from "./ui/ChipVersion";
-
 import { siteConfig } from "@/config/site";
 import { ThemeSwitch } from "@/components/theme-switch";
 import { SearchIcon, Logo } from "@/components/icons";

@@ -1,7 +1,6 @@
 "use client";
 
 import { useSession, signOut } from "next-auth/react";
-import { Role } from "@prisma/client";
 import { useRouter, usePathname } from "next/navigation";
 import {
   useEffect,
@@ -11,7 +10,14 @@ import {
   useRef,
   useTransition,
 } from "react";
-import { FiSettings, FiPackage, FiBarChart2, FiUsers, FiShield } from "react-icons/fi";
+import {
+  FiSettings,
+  FiPackage,
+  FiBarChart2,
+  FiUsers,
+  FiShield,
+  FiClock,
+} from "react-icons/fi";
 import { PiWrench } from "react-icons/pi";
 import { LuLayoutDashboard } from "react-icons/lu";
 
@@ -21,8 +27,8 @@ import { Sidebar } from "./Sidebar";
 import { Topbar } from "./Topbar";
 
 import { consolePino } from "@/lib/logger";
-import { navItems as navItemsConfig } from '@/lib/config/navigation';
-
+import { defaultNavItems } from "@/lib/config/navigation";
+import { useRoleAccess } from "@/hooks/useRoleAccess";
 
 // Key untuk localStorage
 export const ACTIVE_TABS_KEY = "dashboard-active-tabs";
@@ -56,38 +62,50 @@ export default function UIDashboardLayout({
   const isNavigatingRef = useRef(false);
   const lastPathnameRef = useRef(pathname);
 
+  //ubah icon sidebar disini
   const iconMap: { [key: string]: React.ReactElement } = {
     dashboard: <LuLayoutDashboard />,
     wrench: <PiWrench />,
     package: <FiPackage />,
-    "bar-chart-2": <FiBarChart2 />,
+    barChart: <FiBarChart2 />,
     users: <FiUsers />,
     settings: <FiSettings />,
     shield: <FiShield />,
+    clock: <FiClock />,
   };
+
+  // Ambil role access dari backend
+  const { roleAccess, loading: loadingRoleAccess } = useRoleAccess();
 
   const navItems = useMemo(() => {
     const userRole = session?.user?.role;
-    if (!userRole) {
+
+    if (!userRole || loadingRoleAccess) {
       return [];
     }
 
-    // Jika user adalah super_admin, kembalikan semua menu
-    if (userRole === 'super_admin') {
-      return navItemsConfig.map(item => ({
+    // Jika user adalah super_admin, kembalikan semua menu (akses penuh)
+    if (userRole === "super_admin") {
+      return defaultNavItems.map((item) => ({
         ...item,
         icon: iconMap[item.icon] || <FiSettings />,
       }));
     }
 
-    // Untuk role lainnya, filter berdasarkan konfigurasi
-    return navItemsConfig
-      .filter(item => item.roles.some(role => role === userRole))
-      .map(item => ({
+    // Untuk role lain, filter menu berdasarkan hasil API role access
+    return defaultNavItems
+      .filter(
+        (item) =>
+          item.id &&
+          roleAccess.some(
+            (access) => access.menu === item.id && access.role === userRole,
+          ),
+      )
+      .map((item) => ({
         ...item,
         icon: iconMap[item.icon] || <FiSettings />,
       }));
-  }, [session?.user?.role]);
+  }, [session?.user?.role, roleAccess, loadingRoleAccess]);
 
   // Optimized pathname matcher
   const getMatchedItem = useCallback(
@@ -168,22 +186,27 @@ export default function UIDashboardLayout({
   // Handle session redirect dan pengecekan akses
   useEffect(() => {
     if (status === "loading") return;
-    
+
     if (!session) {
       router.push("/login");
+
       return;
     }
 
     // Cek jika mencoba mengakses halaman yang membutuhkan role tertentu
-    const currentNavItem = navItems.find(item => 
-      pathname === item.path || pathname.startsWith(`${item.path}/`)
+    const currentNavItem = navItems.find(
+      (item) => pathname === item.path || pathname.startsWith(`${item.path}/`),
     );
 
-    if (currentNavItem?.roles && currentNavItem.roles.length > 0 && 
-        !currentNavItem.roles.includes(session.user?.role as any) && 
-        session.user?.role !== 'super_admin') {
+    if (
+      currentNavItem?.defaultRoles &&
+      currentNavItem.defaultRoles.length > 0 &&
+      !currentNavItem.defaultRoles.includes(session.user?.role as any) &&
+      session.user?.role !== "super_admin"
+    ) {
       // Redirect ke dashboard jika tidak memiliki akses
-      router.push('/dashboard');
+      router.push("/dashboard");
+
       return;
     }
   }, [status, session, router, pathname, navItems]);
