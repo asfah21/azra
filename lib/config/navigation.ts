@@ -56,6 +56,7 @@ export const defaultNavItems = [
     path: "/dashboard/auth",
     icon: "shield",
     defaultRoles: ["admin_heavy"],
+    // defaultRoles: [],
   },
 ] as const;
 

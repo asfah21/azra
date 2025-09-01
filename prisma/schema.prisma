@@ -29,6 +29,7 @@ model User {
   resolvedRFUs       RFUReport[] @relation("ResolvedBy")
   assignedUnits      Unit[]      @relation("AssignedTo")
   createdUnits       Unit[]      @relation("CreatedBy")
+  timeEntries        TimeEntry[]
 }
 
 model Category {
@@ -147,4 +148,27 @@ enum BreakdownStatus {
   in_progress
   rfu
   overdue
+}
+
+enum ShiftType {
+  DAY
+  NIGHT
+}
+
+model TimeEntry {
+  id           String    @id @default(uuid())
+  userId       String
+  user         User      @relation(fields: [userId], references: [id])
+  shiftDate    DateTime 
+  shiftType    ShiftType
+  activity     String
+  activityDesc String
+  location     String?
+  startTime    DateTime
+  endTime      DateTime
+  durationSec  Int
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  @@index([userId, shiftDate, shiftType])
+  @@index([shiftDate, shiftType])
 }

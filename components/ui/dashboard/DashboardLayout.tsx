@@ -183,31 +183,25 @@ export default function UIDashboardLayout({
     return null;
   }, [navItems]);
 
-  // Handle session redirect dan pengecekan akses
+  // Handle session redirect & dynamic access (berdasarkan hasil filtering navItems)
   useEffect(() => {
     if (status === "loading") return;
-
     if (!session) {
       router.push("/login");
-
       return;
     }
+    // super_admin bebas
+    if (session.user?.role === "super_admin") return;
 
-    // Cek jika mencoba mengakses halaman yang membutuhkan role tertentu
-    const currentNavItem = navItems.find(
-      (item) => pathname === item.path || pathname.startsWith(`${item.path}/`),
+    // Root dashboard selalu aman
+    if (pathname === "/dashboard" || pathname === "/dashboard/") return;
+
+    // Jika path sekarang tidak ada di navItems yang difilter => tidak punya akses
+    const pathAllowed = navItems.some(
+      (item) => pathname === item.path || pathname.startsWith(item.path + "/"),
     );
-
-    if (
-      currentNavItem?.defaultRoles &&
-      currentNavItem.defaultRoles.length > 0 &&
-      !currentNavItem.defaultRoles.includes(session.user?.role as any) &&
-      session.user?.role !== "super_admin"
-    ) {
-      // Redirect ke dashboard jika tidak memiliki akses
-      router.push("/dashboard");
-
-      return;
+    if (!pathAllowed) {
+      router.replace("/dashboard");
     }
   }, [status, session, router, pathname, navItems]);
 

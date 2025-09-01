@@ -14,8 +14,9 @@ import {
 } from "@heroui/react";
 import axios from "axios";
 import { set } from "date-fns";
-import { Clock, Calendar, CloudSnow, Clock7, Hourglass } from "lucide-react";
+import { Clock, Calendar, CloudSnow, Clock7, Hourglass, Save, CircleX } from "lucide-react";
 import { useEffect, useState } from "react";
+import { getShiftInfo } from "@/lib/dateUtils";
 
 interface TimeLogProps {
   project: string;
@@ -33,6 +34,7 @@ interface TimeLogProps {
   endTime: string;
   setEndTime: (value: string) => void;
   date: Date;
+  onSaved?: () => void;
   onClose: () => void;
 }
 
@@ -59,11 +61,14 @@ export default function TimeLog(props: TimeLogProps) {
     endTime,
     setEndTime,
     date,
-    onClose,
+  onClose,
+  onSaved,
   } = props;
   const [units, setUnits] = useState<Unit[]>([]);
   const [loadingUnits, setLoadingUnits] = useState(true);
   const [selectedUnitId, setSelectedUnitId] = useState<string>("");
+  const [saving, setSaving] = useState(false);
+  const shiftInfo = getShiftInfo();
 
   // --- Handler & utilitas waktu ---
   // Tempatkan di bawah deklarasi props agar bisa akses variabel props
@@ -277,12 +282,48 @@ export default function TimeLog(props: TimeLogProps) {
           </div>
         </div>
         <div className="flex items-center gap-2 mt-4">
-          <Button color="primary">Add time log</Button>
+          <Button
+            color="success"
+            startContent={<Save size={16} />}
+            isLoading={saving}
+            onPress={async () => {
+              // Basic validation
+              if (!desc || !task || !startTime || !endTime) return;
+              if (!/^\d{2}:\d{2}$/.test(startTime) || !/^\d{2}:\d{2}$/.test(endTime)) return;
+              setSaving(true);
+              try {
+                const payload = {
+                  shiftDate: shiftInfo.shiftDate,
+                  shiftType: shiftInfo.shiftType,
+                  activity: project || desc.split(" ")[0] || "Activity",
+                  activityDesc: desc,
+                  location: task,
+                  startTime,
+                  endTime,
+                };
+                const res = await fetch('/api/timesheet', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify(payload),
+                });
+                if (res.ok) {
+                  onSaved && onSaved();
+                  onClose();
+                } else {
+                  // TODO: tangani error (toast / alert)
+                }
+              } finally {
+                setSaving(false);
+              }
+            }}
+          >
+            Save
+          </Button>
           <Button
             color="danger"
-            startContent={<CloudSnow size={16} />}
-            variant="flat"
-            onClick={onClose}
+            startContent={<CircleX size={16} />}
+            // variant="flat"
+            onPress={onClose}
           >
             Close
           </Button>

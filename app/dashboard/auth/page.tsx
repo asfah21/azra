@@ -19,6 +19,7 @@ import {
 } from "@heroui/react";
 import { Modal, ModalContent } from "@heroui/react";
 import { Power, Save, Shield } from "lucide-react";
+import FocusLock from "react-focus-lock";
 
 import { defaultNavItems } from "@/lib/config/navigation";
 import { DEFAULT_ROLES } from "@/lib/utils/roleAccess";
@@ -73,6 +74,10 @@ export default function RoleManagement() {
   // Ambil konfigurasi akses dari API
   useEffect(() => {
     const fetchRoleAccessFromAPI = async () => {
+      const accessMap: Record<string, string[]> = {};
+      defaultNavItems.forEach((item) => {
+        accessMap[item.id] = []; // Nilai default
+      });
       try {
         setIsLoading(true);
         const res = await fetch("/api/role-access");
@@ -81,11 +86,6 @@ export default function RoleManagement() {
         const data = await res.json(); // [{menu, role}]
 
         // Mapping: {menuId: [role, ...]}
-        const accessMap: Record<string, string[]> = {};
-
-        defaultNavItems.forEach((item) => {
-          accessMap[item.id] = [];
-        });
         data.forEach((entry: { menu: string; role: string }) => {
           if (!accessMap[entry.menu]) accessMap[entry.menu] = [];
           accessMap[entry.menu].push(entry.role);
@@ -101,6 +101,21 @@ export default function RoleManagement() {
 
     fetchRoleAccessFromAPI();
   }, []);
+
+  // Client-side guard (pelengkap middleware) khusus halaman auth
+  useEffect(() => {
+    if (status !== "authenticated") return;
+    if (!session?.user) return;
+    // super_admin selalu boleh
+    if (session.user.role === "super_admin") return;
+    // Tunggu data roleAccess selesai dimuat supaya tidak redirect prematur
+    if (isLoading) return;
+
+    const allowedRoles = accessConfig["auth"] || [];
+    if (!allowedRoles.includes(session.user.role)) {
+      router.replace("/dashboard");
+    }
+  }, [status, session, accessConfig, isLoading, router]);
 
   // Handle perubahan centang pada checkbox
   const handleRoleToggle = useCallback(
@@ -267,21 +282,23 @@ export default function RoleManagement() {
             placement="top-center"
             onOpenChange={setShowSuccessModal}
           >
-            <ModalContent>
-              {(onClose) => (
-                <div className="p-6 text-center">
-                  <h3 className="text-lg font-semibold mb-2 text-success">
-                    Perubahan berhasil disimpan!
-                  </h3>
-                  <p className="text-sm text-gray-600 mb-4">
-                    Konfigurasi akses role sudah diperbarui.
-                  </p>
-                  <Button color="success" onPress={onClose}>
-                    Tutup
-                  </Button>
-                </div>
-              )}
-            </ModalContent>
+            <FocusLock>
+              <ModalContent>
+                {(onClose) => (
+                  <div className="p-6 text-center">
+                    <h3 className="text-lg font-semibold mb-2 text-success">
+                      Perubahan berhasil disimpan!
+                    </h3>
+                    <p className="text-sm text-gray-600 mb-4">
+                      Konfigurasi akses role sudah diperbarui.
+                    </p>
+                    <Button color="success" onPress={onClose}>
+                      Tutup
+                    </Button>
+                  </div>
+                )}
+              </ModalContent>
+            </FocusLock>
           </Modal>
 
           {/* Modal konfirmasi reset ke default */}
@@ -357,9 +374,7 @@ export default function RoleManagement() {
                             <div className="flex justify-center">
                               <Checkbox
                                 aria-label={`Akses ${r.name} untuk ${item.title}`}
-                                isSelected={selectedRoles[item.id]?.includes(
-                                  r.role,
-                                )}
+                                isSelected={selectedRoles[item.id]?.includes(r.role) || false}
                                 radius="sm"
                                 onValueChange={(checked) =>
                                   handleRoleToggle(item.id, r.role, checked)
@@ -383,26 +398,28 @@ export default function RoleManagement() {
         placement="top-center"
         onOpenChange={setShowSuccessModal}
       >
-        <ModalContent>
-          {(onClose) => (
-            <div className="p-6 text-center">
-              <h3 className="text-lg font-semibold mb-2 text-green-600 dark:text-green-400">
-                Changes saved successfully!
-              </h3>
-              <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
-                Role access configuration has been updated.
-              </p>
-              <Button
-                className="bg-green-600 text-white dark:bg-green-500 dark:text-gray-900"
-                color="success"
-                onPress={onClose}
-              >
-                Close
-              </Button>
-              {/* Removed autoFocus for accessibility */}
-            </div>
-          )}
-        </ModalContent>
+        <FocusLock>
+          <ModalContent>
+            {(onClose) => (
+              <div className="p-6 text-center">
+                <h3 className="text-lg font-semibold mb-2 text-green-600 dark:text-green-400">
+                  Changes saved successfully!
+                </h3>
+                <p className="text-sm text-gray-600 dark:text-gray-300 mb-4">
+                  Role access configuration has been updated.
+                </p>
+                <Button
+                  className="bg-green-600 text-white dark:bg-green-500 dark:text-gray-900"
+                  color="success"
+                  onPress={onClose}
+                >
+                  Close
+                </Button>
+                {/* Removed autoFocus for accessibility */}
+              </div>
+            )}
+          </ModalContent>
+        </FocusLock>
       </Modal>
     </div>
   );
