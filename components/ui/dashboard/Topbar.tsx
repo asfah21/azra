@@ -21,18 +21,21 @@ import { Logo, SearchIcon } from "@/components/icons";
 import { useProfile } from "@/app/context/ProfileContext";
 import { consolePino } from "@/lib/logger";
 
+// Import tipe dari Sidebar
+import type { SidebarNavItem, SidebarNavChild } from "./Sidebar";
+
 interface TopbarProps {
   menuOpen: boolean;
   setMenuOpen: (open: boolean) => void;
   sidebarCollapsed: boolean;
   setSidebarCollapsed: (collapsed: boolean) => void;
-  activeTabs: any[];
+  activeTabs: Array<SidebarNavItem | SidebarNavChild>;
   activeTab: string;
-  handleTabClick: (tab: any) => void;
+  handleTabClick: (tab: SidebarNavItem | SidebarNavChild) => void;
   closeTab: (tabId: string, e: React.MouseEvent) => void;
   signOut: () => void;
-  navItems: any[];
-  openNewTab: (tab: any) => void;
+  navItems: Array<SidebarNavItem | SidebarNavChild>;
+  openNewTab: (tab: SidebarNavItem | SidebarNavChild) => void;
   session: any;
 }
 

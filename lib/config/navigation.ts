@@ -18,9 +18,24 @@ export const defaultNavItems = [
   {
     id: "timesheet",
     title: "Timesheet",
-    path: "/dashboard/timesheet",
     icon: "clock",
     defaultRoles: ["admin_heavy", "admin_elec", "pengawas", "mekanik", "guest"],
+    children: [
+      {
+        id: "timesheetform",
+        title: "Form",
+        path: "/dashboard/timesheet",
+        icon: "fileInput",
+        defaultRoles: ["admin_heavy", "admin_elec", "pengawas", "mekanik", "guest"],
+      },
+      {
+        id: "timesheetlist",
+        title: "List",
+        path: "/dashboard/timesheetlist",
+        icon: "luList",
+        defaultRoles: ["admin_heavy", "admin_elec", "mekanik", "guest"],
+      },
+    ],
   },
   {
     id: "assets",

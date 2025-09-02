@@ -192,8 +192,17 @@ export default function RoleManagement() {
   const handleConfirmReset = useCallback(async () => {
     const defaultRoles: Record<string, string[]> = {};
 
-    defaultNavItems.forEach((item: NavItem) => {
-      defaultRoles[item.id] = [...item.defaultRoles];
+    defaultNavItems.forEach((item) => {
+      if ('defaultRoles' in item) {
+        defaultRoles[item.id] = [...item.defaultRoles];
+      }
+      if ('children' in item && item.children) {
+        item.children.forEach((child) => {
+          if ('defaultRoles' in child) {
+            defaultRoles[child.id] = [...child.defaultRoles];
+          }
+        });
+      }
     });
     setSelectedRoles(defaultRoles);
     setAccessConfig(defaultRoles);
@@ -363,7 +372,16 @@ export default function RoleManagement() {
                 </>
               </TableHeader>
               <TableBody>
-                {defaultNavItems.map((item) => (
+                {(() => {
+                  const items: any[] = [];
+                  defaultNavItems.forEach((item) => {
+                    items.push(item);
+                    if ('children' in item && Array.isArray(item.children)) {
+                      items.push(...item.children);
+                    }
+                  });
+                  return items;
+                })().map((item) => (
                   <TableRow key={item.id}>
                     {[
                       <TableCell key="menu">{item.title}</TableCell>,

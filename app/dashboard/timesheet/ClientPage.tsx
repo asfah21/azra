@@ -7,6 +7,7 @@ import { fromDate } from "@internationalized/date";
 import TimeLog from "./components/TimeLog";
 import { getShiftInfo } from "@/lib/dateUtils";
 import { FiClock } from "react-icons/fi";
+import { LuFileText } from "react-icons/lu";
 
 export default function TimesheetClientPage() {
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
@@ -110,10 +111,10 @@ export default function TimesheetClientPage() {
       {/* Header */}
       <div className="flex items-center gap-3 mb-6 sm:mb-8">
         <div className="p-2 bg-gradient-to-br from-primary-100 to-primary-50 rounded-xl">
-          <FiClock className="w-6 h-6 text-primary-600" />
+          <LuFileText className="w-6 h-6 text-primary-600" />
         </div>
         <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent">
-          Timesheet
+          Timesheet Form
         </h1>
       </div>
 

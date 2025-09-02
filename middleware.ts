@@ -5,14 +5,34 @@ import { defaultNavItems } from "@/lib/config/navigation"; // static mapping pat
 
 // Helper: find nav item by pathname
 function findNavItem(pathname: string) {
-  // Exact match first
-  let item = defaultNavItems.find((n) => n.path === pathname);
+  // Exact match child first
+  for (const parent of defaultNavItems) {
+    if ('children' in parent && Array.isArray(parent.children)) {
+      const child = parent.children.find((c) => c.path === pathname);
+      if (child) return child;
+    }
+  }
+
+  // Exact match parent
+  let item = defaultNavItems.find((n) => 'path' in n && n.path === pathname);
   if (item) return item;
-  // Prefix match (e.g. /dashboard/users/123)
+
+  // Prefix match child first
+  for (const parent of defaultNavItems) {
+    if ('children' in parent && Array.isArray(parent.children)) {
+      const child = parent.children.find(
+        (c) => c.path && pathname.startsWith(c.path + "/"),
+      );
+      if (child) return child;
+    }
+  }
+
+  // Prefix match parent
   item = defaultNavItems.find(
-    (n) => n.path !== "/dashboard" && pathname.startsWith(n.path + "/"),
+    (n) => 'path' in n && n.path !== "/dashboard" && pathname.startsWith(n.path + "/"),
   );
   if (item) return item;
+
   // Fallback dashboard root
   if (pathname.startsWith("/dashboard")) {
     return defaultNavItems.find((n) => n.id === "dashboard");
@@ -92,13 +112,37 @@ export async function middleware(request: NextRequest) {
       // Fail open: jika API gagal, gunakan defaultRoles dari config
     }
 
-    // Tentukan allowed roles untuk menu ini
-    let allowedRoles = dynamicAccess[targetItem.id];
-    if (!allowedRoles || allowedRoles.length === 0) {
-      // Jika belum dikonfigurasi di DB, pakai defaultRoles statis
-      allowedRoles = (targetItem as any).defaultRoles
-        ? [...(targetItem as any).defaultRoles]
-        : validRoles.filter((r) => r !== "super_admin");
+    // Jika targetItem adalah child menu, cek akses child saja
+    let isChild = false;
+    for (const parent of defaultNavItems) {
+      if ('children' in parent && Array.isArray(parent.children)) {
+        if (parent.children.some((c) => c.id === targetItem.id)) {
+          isChild = true;
+          break;
+        }
+      }
+    }
+
+  let allowedRoles: string[] = [];
+    if (isChild) {
+      allowedRoles = dynamicAccess[targetItem.id];
+      // Jika child tidak punya entry di DB dan defaultRoles kosong, akses ditolak
+      if ((!allowedRoles || allowedRoles.length === 0)) {
+        if ((targetItem as any).defaultRoles && (targetItem as any).defaultRoles.length > 0) {
+          allowedRoles = [...(targetItem as any).defaultRoles];
+        } else {
+          // Tidak ada akses sama sekali
+          allowedRoles = [];
+        }
+      }
+    } else {
+      // Parent menu: cek akses parent
+      allowedRoles = dynamicAccess[targetItem.id];
+      if (!allowedRoles || allowedRoles.length === 0) {
+        allowedRoles = (targetItem as any).defaultRoles
+          ? [...(targetItem as any).defaultRoles]
+          : validRoles.filter((r) => r !== "super_admin");
+      }
     }
 
     const hasAccess = allowedRoles.includes(userRole);

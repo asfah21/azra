@@ -17,15 +17,14 @@ import {
   FiUsers,
   FiShield,
   FiClock,
+  FiTool,
+  FiBook,
 } from "react-icons/fi";
-import { PiWrench } from "react-icons/pi";
-import { LuLayoutDashboard } from "react-icons/lu";
-
+import { LuFileText, LuFileType, LuFileType2, LuLayoutDashboard, LuList } from "react-icons/lu";
 import { LoadingSpinner } from "../skeleton";
-
 import { Sidebar } from "./Sidebar";
+import type { SidebarNavItem, SidebarNavChild } from "./Sidebar";
 import { Topbar } from "./Topbar";
-
 import { consolePino } from "@/lib/logger";
 import { defaultNavItems } from "@/lib/config/navigation";
 import { useRoleAccess } from "@/hooks/useRoleAccess";
@@ -65,13 +64,15 @@ export default function UIDashboardLayout({
   //ubah icon sidebar disini
   const iconMap: { [key: string]: React.ReactElement } = {
     dashboard: <LuLayoutDashboard />,
-    wrench: <PiWrench />,
+    wrench: <FiTool />,
     package: <FiPackage />,
     barChart: <FiBarChart2 />,
     users: <FiUsers />,
     settings: <FiSettings />,
     shield: <FiShield />,
     clock: <FiClock />,
+    fileInput: <LuFileText/>,
+    luList: <LuList />,
   };
 
   // Ambil role access dari backend
@@ -84,12 +85,26 @@ export default function UIDashboardLayout({
       return [];
     }
 
+    // Helper untuk konversi icon pada children
+    const mapChildrenIcon = (children: readonly any[]) =>
+      Array.from(children ?? []).map((child) => ({
+        ...child,
+        icon: iconMap[child.icon] || <FiSettings />,
+      }));
+
     // Jika user adalah super_admin, kembalikan semua menu (akses penuh)
     if (userRole === "super_admin") {
-      return defaultNavItems.map((item) => ({
-        ...item,
-        icon: iconMap[item.icon] || <FiSettings />,
-      }));
+      return defaultNavItems.map((item) => {
+        let children;
+        if ('children' in item && item.children) {
+          children = mapChildrenIcon(item.children);
+        }
+        return {
+          ...item,
+          icon: iconMap[item.icon] || <FiSettings />,
+          children,
+        };
+      });
     }
 
     // Untuk role lain, filter menu berdasarkan hasil API role access
@@ -101,24 +116,86 @@ export default function UIDashboardLayout({
             (access) => access.menu === item.id && access.role === userRole,
           ),
       )
-      .map((item) => ({
-        ...item,
-        icon: iconMap[item.icon] || <FiSettings />,
-      }));
+      .map((item) => {
+        let children;
+        if ('children' in item && item.children) {
+          children = mapChildrenIcon(item.children);
+        }
+        return {
+          ...item,
+          icon: iconMap[item.icon] || <FiSettings />,
+          children,
+        };
+      });
   }, [session?.user?.role, roleAccess, loadingRoleAccess]);
 
   // Optimized pathname matcher
   const getMatchedItem = useCallback(
     (path: string) => {
       // Direct match first (most common case)
-      const directMatch = navItems.find((item) => item.path === path);
+      let directMatch: SidebarNavItem | SidebarNavChild | undefined = navItems.find((item) => 'path' in item && item.path === path);
+      if (!directMatch) {
+        for (const item of navItems) {
+          if ('children' in item && item.children) {
+            const childMatch = item.children.find((child) => child.path === path);
+            if (childMatch) {
+              directMatch = {
+                ...childMatch,
+                icon: iconMap[childMatch.icon as string] || <FiSettings />,
+              };
+              break;
+            }
+          }
+        }
+      }
+      if (!directMatch) {
+        // Cari pada children jika parent tidak punya path
+        for (const item of navItems) {
+          if ('children' in item && item.children) {
+            const childMatch = item.children.find((child) => child.path === path);
+            if (childMatch) {
+              directMatch = childMatch;
+              break;
+            }
+          }
+        }
+      }
 
       if (directMatch) return directMatch;
 
       // Prefix match (excluding dashboard for specificity)
-      const prefixMatch = navItems.find(
-        (item) => path.startsWith(item.path) && item.path !== "/dashboard",
+      let prefixMatch: SidebarNavItem | SidebarNavChild | undefined = navItems.find(
+        (item) => 'path' in item && item.path && path.startsWith(item.path) && item.path !== "/dashboard",
       );
+      if (!prefixMatch) {
+        for (const item of navItems) {
+          if ('children' in item && item.children) {
+            const childPrefix = item.children.find(
+              (child) => child.path && path.startsWith(child.path),
+            );
+            if (childPrefix) {
+              prefixMatch = {
+                ...childPrefix,
+                icon: iconMap[childPrefix.icon as string] || <FiSettings />,
+              };
+              break;
+            }
+          }
+        }
+      }
+      if (!prefixMatch) {
+        for (const item of navItems) {
+          if (item.children) {
+            const childPrefix = item.children.find(
+              (child) => child.path && path.startsWith(child.path),
+            );
+            if (childPrefix) {
+              prefixMatch = childPrefix;
+              break;
+            }
+          }
+        }
+      }
 
       if (prefixMatch) return prefixMatch;
 
@@ -159,8 +236,20 @@ export default function UIDashboardLayout({
         const parsedTabs = JSON.parse(savedTabs);
         const validTabs = parsedTabs
           .map((tab: any) => {
-            const navItem = navItems.find((item) => item.id === tab.id);
-
+            // Cari di parent
+            let navItem = navItems.find((item) => item.id === tab.id);
+            if (!navItem) {
+              // Cari di children
+              for (const parent of navItems) {
+                if ('children' in parent && parent.children) {
+                  const child = parent.children.find((c: any) => c.id === tab.id);
+                  if (child) {
+                    navItem = child;
+                    break;
+                  }
+                }
+              }
+            }
             return navItem ? { ...navItem } : null;
           })
           .filter(Boolean);
@@ -197,9 +286,17 @@ export default function UIDashboardLayout({
     if (pathname === "/dashboard" || pathname === "/dashboard/") return;
 
     // Jika path sekarang tidak ada di navItems yang difilter => tidak punya akses
-    const pathAllowed = navItems.some(
-      (item) => pathname === item.path || pathname.startsWith(item.path + "/"),
-    );
+      const pathAllowed = navItems.some((item) => {
+        if ('path' in item && item.path && (pathname === item.path || pathname.startsWith(item.path + "/"))) {
+          return true;
+        }
+        if ('children' in item && item.children) {
+          return item.children.some(
+            (child) => child.path && (pathname === child.path || pathname.startsWith(child.path + "/")),
+          );
+        }
+        return false;
+      });
     if (!pathAllowed) {
       router.replace("/dashboard");
     }
@@ -207,7 +304,7 @@ export default function UIDashboardLayout({
 
   // Single initialization effect
   useEffect(() => {
-    if (status === "loading" || !session) return;
+    if (status === "loading" || !session || navItems.length === 0) return;
 
     const currentMatchedItem = getMatchedItem(pathname);
     const savedData = loadTabsFromStorage();
@@ -217,7 +314,21 @@ export default function UIDashboardLayout({
       const savedActiveTab = navItems.find(
         (item) => item.id === savedData.activeTab,
       );
-      const currentPathTab = navItems.find((item) => item.path === pathname);
+      let currentPathTab: SidebarNavItem | SidebarNavChild | undefined = navItems.find((item) => 'path' in item && item.path === pathname);
+      if (!currentPathTab) {
+        for (const item of navItems) {
+          if ('children' in item && item.children) {
+            const childTab = item.children.find((child) => child.path === pathname);
+            if (childTab) {
+              currentPathTab = {
+                ...childTab,
+                icon: iconMap[childTab.icon as string] || <FiSettings />,
+              };
+              break;
+            }
+          }
+        }
+      }
 
       if (
         currentPathTab &&
@@ -229,7 +340,7 @@ export default function UIDashboardLayout({
           const tabExists = prevTabs.some(
             (tab) => tab.id === currentPathTab.id,
           );
-          const newTabs = tabExists ? prevTabs : [...prevTabs, currentPathTab];
+          const newTabs = tabExists ? prevTabs : [currentPathTab, ...prevTabs];
 
           saveTabsToStorage(newTabs, currentPathTab.id);
 
@@ -237,7 +348,16 @@ export default function UIDashboardLayout({
         });
       } else {
         // Use saved data
-        setActiveTabs(savedData.tabs);
+        setActiveTabs((prevTabs) => {
+          // Gabungkan tab lama dan tab dari savedData tanpa duplikasi
+          const mergedTabs = [...prevTabs];
+          savedData.tabs.forEach((tab: any) => {
+            if (!mergedTabs.some((t) => t.id === tab.id)) {
+              mergedTabs.push(tab);
+            }
+          });
+          return mergedTabs;
+        });
         setActiveTab(savedData.activeTab);
       }
     } else if (currentMatchedItem) {
@@ -288,20 +408,17 @@ export default function UIDashboardLayout({
         const existingTab = prevTabs.find(
           (tab) => tab.id === currentMatchedItem.id,
         );
-
         if (existingTab) {
           if (activeTab !== currentMatchedItem.id) {
             setActiveTab(currentMatchedItem.id);
             saveTabsToStorage(prevTabs, currentMatchedItem.id);
           }
-
           return prevTabs;
         } else {
-          const newTabs = [...prevTabs, currentMatchedItem];
-
+          // Jangan hapus tab lain, hanya tambahkan tab baru di belakang
+          const newTabs = [currentMatchedItem, ...prevTabs];
           setActiveTab(currentMatchedItem.id);
           saveTabsToStorage(newTabs, currentMatchedItem.id);
-
           return newTabs;
         }
       });
@@ -352,16 +469,14 @@ export default function UIDashboardLayout({
 
       setActiveTabs((prevTabs) => {
         const existingTab = prevTabs.find((t) => t.id === tab.id);
-        const newTabs = existingTab ? prevTabs : [tab, ...prevTabs];
-
+  const newTabs = existingTab ? prevTabs : [tab, ...prevTabs];
+        setActiveTab(tab.id);
+        saveTabsToStorage(newTabs, tab.id);
+        setPendingNavigation({ path: tab.path, tabId: tab.id });
         return newTabs;
       });
-
-      setActiveTab(tab.id);
-      saveTabsToStorage(activeTabs, tab.id);
-      setPendingNavigation({ path: tab.path, tabId: tab.id });
     },
-    [activeTab, activeTabs, saveTabsToStorage],
+    [activeTab, saveTabsToStorage],
   );
 
   const closeTab = useCallback(
