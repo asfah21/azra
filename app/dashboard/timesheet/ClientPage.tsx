@@ -35,6 +35,7 @@ export default function TimesheetClientPage() {
   const [endTime, setEndTime] = useState("");
   //   const [keepOpen, setKeepOpen] = useState(false);
   const [showTimeLog, setShowTimeLog] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [entries, setEntries] = useState<any[]>([]);
   const [loadingEntries, setLoadingEntries] = useState(true);
   const [shiftInfo, setShiftInfo] = useState(() => getShiftInfo());
@@ -203,7 +204,52 @@ export default function TimesheetClientPage() {
           tag={tag}
           task={task}
       onSaved={() => fetchEntries(shiftInfo)}
-      onClose={() => setShowTimeLog(false)}
+      onClose={() => { setShowTimeLog(false); setEditingId(null); }}
+      onAddLocalEntry={(entry) => {
+        // create temporary id and compute durationSec
+        const tempId = `temp-${Date.now()}`;
+        const [h, m, s] = (entry.duration || '00:00:00').split(':').map(Number);
+        const durationSec = (h || 0) * 3600 + (m || 0) * 60 + (s || 0);
+        const e = {
+          id: tempId,
+          userId: 'local',
+          activity: entry.activity,
+          activityDesc: entry.activityDesc,
+          location: entry.location,
+          startTime: new Date(shiftInfo.shiftDate + 'T' + entry.startTime + ':00.000Z').toISOString(),
+          endTime: new Date(shiftInfo.shiftDate + 'T' + entry.endTime + ':00.000Z').toISOString(),
+          duration: entry.duration,
+          durationSec,
+        };
+        setEntries((prev) => {
+          const next = [...prev, e];
+          recomputeTotal(next);
+          return next;
+        });
+      }}
+      editingId={editingId}
+      onUpdateLocalEntry={(id, entry) => {
+        setEntries((prev) => {
+          const next = prev.map((it) => {
+            if (it.id !== id) return it;
+            const [h, m, s] = (entry.duration || '00:00:00').split(':').map(Number);
+            const durationSec = (h || 0) * 3600 + (m || 0) * 60 + (s || 0);
+            return {
+              ...it,
+              activity: entry.activity,
+              activityDesc: entry.activityDesc,
+              location: entry.location,
+              startTime: new Date(shiftInfo.shiftDate + 'T' + entry.startTime + ':00.000Z').toISOString(),
+              endTime: new Date(shiftInfo.shiftDate + 'T' + entry.endTime + ':00.000Z').toISOString(),
+              duration: entry.duration,
+              durationSec,
+            };
+          });
+          recomputeTotal(next);
+          return next;
+        });
+        setEditingId(null);
+      }}
         />
       )}
 
@@ -222,7 +268,7 @@ export default function TimesheetClientPage() {
             </div>
           )}
           {!loadingEntries && entries.length === 0 && (
-            <div className="p-4 text-sm text-default-500">No activities this shift.</div>
+            <div className="p-4 text-sm text-default-500">No activities</div>
           )}
           {!loadingEntries &&
             entries.map((e) => (
@@ -241,6 +287,23 @@ export default function TimesheetClientPage() {
                     {" - "}
                     {new Date(e.endTime).toLocaleTimeString("id-ID", { hour: '2-digit', minute: '2-digit', hour12: false })}
                   </div>
+                </div>
+                <div className="flex items-center gap-2 ml-2">
+                  <Button size="sm" onPress={() => {
+                    // open modal for editing and prefill fields
+                    setEditingId(e.id);
+                    setProject(e.activity);
+                    setDesc(e.activityDesc);
+                    setTask(e.location || "");
+                    // convert ISO times back to HH:MM
+                    const s = new Date(e.startTime);
+                    const en = new Date(e.endTime);
+                    const pad = (n: number) => n.toString().padStart(2,'0');
+                    setStartTime(`${pad(s.getHours())}:${pad(s.getMinutes())}`);
+                    setEndTime(`${pad(en.getHours())}:${pad(en.getMinutes())}`);
+                    setDuration(e.duration || "00:00:00");
+                    setShowTimeLog(true);
+                  }}>Edit</Button>
                 </div>
               </div>
             ))}

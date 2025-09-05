@@ -19,21 +19,21 @@ export const defaultNavItems = [
     id: "timesheet",
     title: "Timesheet",
     icon: "clock",
-    defaultRoles: ["admin_heavy", "admin_elec", "pengawas", "mekanik", "guest"],
+    defaultRoles: ["admin_heavy", "guest"],
     children: [
       {
         id: "timesheetform",
         title: "Form",
         path: "/dashboard/timesheet",
         icon: "fileInput",
-        defaultRoles: ["admin_heavy", "admin_elec", "pengawas", "mekanik", "guest"],
+        defaultRoles: ["admin_heavy", "guest"],
       },
       {
         id: "timesheetlist",
         title: "List",
         path: "/dashboard/timesheetlist",
         icon: "luList",
-        defaultRoles: ["admin_heavy", "admin_elec", "mekanik", "guest"],
+        defaultRoles: ["admin_heavy", "guest"],
       },
     ],
   },
@@ -63,7 +63,7 @@ export const defaultNavItems = [
     title: "Settings",
     path: "/dashboard/settings",
     icon: "settings",
-    defaultRoles: ["admin_heavy"],
+    defaultRoles: ["admin_heavy", "admin_elec", "pengawas", "mekanik", "guest"],
   },
   {
     id: "auth",

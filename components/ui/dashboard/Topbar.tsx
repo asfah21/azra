@@ -142,7 +142,7 @@ export function Topbar({
               <DropdownItem
                 key="settings"
                 startContent={<FiSettings size={16} />}
-                onPress={() => router.push("./settings")}
+                onPress={() => router.push("/dashboard/settings")}
               >
                 Settings
               </DropdownItem>
@@ -246,7 +246,7 @@ export function Topbar({
               <DropdownItem
                 key="settings"
                 startContent={<FiSettings size={16} />}
-                onPress={() => router.push("./settings")}
+                onPress={() => router.push("/dashboard/settings")}
               >
                 Settings
               </DropdownItem>

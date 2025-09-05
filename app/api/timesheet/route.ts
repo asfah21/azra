@@ -24,22 +24,29 @@ export async function GET(request: Request) {
   const shiftDate = searchParams.get('shiftDate');
   const shiftType = searchParams.get('shiftType') as 'DAY' | 'NIGHT' | null;
 
-  if (!shiftDate || !/^\d{4}-\d{2}-\d{2}$/.test(shiftDate) || !shiftType) {
-    return NextResponse.json({ error: 'Invalid query' }, { status: 400 });
+  let where: any = { userId: session.user.id };
+  if (shiftDate && /^\d{4}-\d{2}-\d{2}$/.test(shiftDate)) {
+    where.shiftDate = new Date(shiftDate + 'T00:00:00.000Z');
+  }
+  if (shiftType) {
+    where.shiftType = shiftType;
   }
 
   try {
-  // @ts-ignore Model will exist after migration
-  const entries = await (prisma as any).timeEntry.findMany({
-      where: { userId: session.user.id, shiftDate: new Date(shiftDate + 'T00:00:00.000Z'), shiftType },
+    // @ts-ignore Model will exist after migration
+    const entries = await (prisma as any).timeEntry.findMany({
+      where,
       orderBy: { startTime: 'asc' },
+      include: { user: true },
     });
-  return NextResponse.json(entries.map((e: any) => ({
+    return NextResponse.json(entries.map((e: any) => ({
       id: e.id,
+      userId: e.userId,
+      userName: e.user?.name || '-',
       activity: e.activity,
       activityDesc: e.activityDesc,
       location: e.location,
-      shiftDate: shiftDate,
+      shiftDate: e.shiftDate.toISOString().slice(0, 10),
       shiftType: e.shiftType,
       startTime: e.startTime,
       endTime: e.endTime,

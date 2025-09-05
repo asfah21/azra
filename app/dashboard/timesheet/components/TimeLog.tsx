@@ -35,6 +35,9 @@ interface TimeLogProps {
   setEndTime: (value: string) => void;
   date: Date;
   onSaved?: () => void;
+  onAddLocalEntry?: (entry: any) => void;
+  editingId?: string | null;
+  onUpdateLocalEntry?: (id: string, entry: any) => void;
   onClose: () => void;
 }
 
@@ -63,6 +66,9 @@ export default function TimeLog(props: TimeLogProps) {
     date,
   onClose,
   onSaved,
+  onAddLocalEntry,
+  editingId,
+  onUpdateLocalEntry,
   } = props;
   const [units, setUnits] = useState<Unit[]>([]);
   const [loadingUnits, setLoadingUnits] = useState(true);
@@ -174,11 +180,9 @@ export default function TimeLog(props: TimeLogProps) {
               isLoading={loadingUnits}
               labelPlacement="outside-top"
               placeholder={loadingUnits ? "Loading activities..." : "Select activity"}
-              selectedKey={selectedUnitId}
-              style={{ outline: "none" }}
-              onSelectionChange={(key: any) =>
-                setSelectedUnitId(key?.toString() || "")
-              }
+                selectedKey={selectedUnitId}
+                style={{ outline: "none" }}
+                onSelectionChange={(key: any) => setSelectedUnitId(key?.toString() || "")}
               // onChange={(e) => setProject(e.target.value)}
             >
               {(item) => (
@@ -286,7 +290,7 @@ export default function TimeLog(props: TimeLogProps) {
             color="success"
             startContent={<Save size={16} />}
             isLoading={saving}
-            onPress={async () => {
+              onPress={async () => {
               // Basic validation
               if (!desc || !task || !startTime || !endTime) return;
               if (!/^\d{2}:\d{2}$/.test(startTime) || !/^\d{2}:\d{2}$/.test(endTime)) return;
@@ -300,18 +304,26 @@ export default function TimeLog(props: TimeLogProps) {
                   location: task,
                   startTime,
                   endTime,
+                  duration: calcDuration(startTime, endTime),
                 };
-                const res = await fetch('/api/timesheet', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify(payload),
-                });
-                if (res.ok) {
-                  onSaved && onSaved();
-                  onClose();
+
+                // If editing, update parent entry
+                if (editingId && onUpdateLocalEntry) {
+                  onUpdateLocalEntry(editingId, payload);
+                } else if (onAddLocalEntry) {
+                  onAddLocalEntry(payload);
                 } else {
-                  // TODO: tangani error (toast / alert)
+                  // fallback: persist single entry to API
+                  const res = await fetch('/api/timesheet', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                  });
+                  if (res.ok) {
+                    onSaved && onSaved();
+                  }
                 }
+                onClose();
               } finally {
                 setSaving(false);
               }
