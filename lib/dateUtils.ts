@@ -38,10 +38,13 @@ export type ShiftInfo = { shiftType: 'DAY' | 'NIGHT'; shiftDate: string; nextBou
 export function getShiftInfo(now: Date = new Date(), timezoneOffsetMinutes?: number): ShiftInfo {
   const local = new Date(now);
   if (timezoneOffsetMinutes !== undefined) {
-    // Konversi: buat waktu "lokal" sintetis sesuai offset target.
-    const currentOffset = local.getTimezoneOffset(); // menit (biasanya negatif untuk GMT+)
-    const diff = currentOffset - timezoneOffsetMinutes; // selisih menit yang perlu diterapkan
-    local.setMinutes(local.getMinutes() + diff);
+  // Konversi: buat waktu "lokal" sintetis sesuai offset target (timezoneOffsetMinutes adalah menit positif untuk GMT+8 == 480)
+  // Date.getTimezoneOffset() returns minutes to add to local time to get UTC (e.g., -480 for GMT+8).
+  // We want the difference between target offset (in getTimezoneOffset units) and current offset.
+  const currentOffset = local.getTimezoneOffset(); // minutes to add to local -> UTC (e.g., -480 for GMT+8)
+  const targetOffset = -timezoneOffsetMinutes; // convert minutes-east (480) -> getTimezoneOffset style (-480)
+  const diff = targetOffset - currentOffset; // minutes to add to local date to align with target timezone
+  local.setMinutes(local.getMinutes() + diff);
   }
 
   const year = local.getFullYear();

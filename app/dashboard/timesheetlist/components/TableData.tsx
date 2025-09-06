@@ -53,7 +53,16 @@ export default function TableDatas({ timesheetData }: { timesheetData: Timesheet
     return groups;
   };
   const grouped = React.useMemo(() => groupByUserShift(filteredData), [filteredData]);
-  const groupKeys = Object.keys(grouped);
+  // Sort groups so the most recent (by entry startTime) appears first
+  const groupKeys = React.useMemo(() => {
+    return Object.keys(grouped).sort((a, b) => {
+      const aEntries = grouped[a] || [];
+      const bEntries = grouped[b] || [];
+      const aMax = aEntries.reduce((mx, it) => Math.max(mx, new Date(it.startTime).getTime()), 0);
+      const bMax = bEntries.reduce((mx, it) => Math.max(mx, new Date(it.startTime).getTime()), 0);
+      return bMax - aMax; // descending
+    });
+  }, [grouped]);
 
   const paginationData = React.useMemo(() => {
     const totalPages = Math.ceil(groupKeys.length / ROWS_PER_PAGE);
@@ -144,11 +153,14 @@ export default function TableDatas({ timesheetData }: { timesheetData: Timesheet
               }
             >
               <TableHeader>
-                <TableColumn>NAME</TableColumn>
+                <TableColumn>UNIT</TableColumn>
+                <TableColumn>USER</TableColumn>
+                <TableColumn>DATE</TableColumn>
+                
                 <TableColumn>LOCATION</TableColumn>
                 <TableColumn>SHIFT</TableColumn>
                 <TableColumn>ACTIVITY</TableColumn>
-                <TableColumn>ACTION</TableColumn>
+                <TableColumn>ACTIONS</TableColumn>
               </TableHeader>
               <TableBody>
                 {paginationData.items.map((key, idx) => {
@@ -156,7 +168,23 @@ export default function TableDatas({ timesheetData }: { timesheetData: Timesheet
                   const first = entries[0];
                   return (
                     <TableRow key={key}>
+                      <TableCell>{
+                        // Use activity (which the ClientPage shows as unit/assetTag) to avoid DB changes
+                        first.activity || '-'
+                      }</TableCell>
                       <TableCell>{first.userName || '-'}</TableCell>
+                      <TableCell>{
+                        // format shiftDate (YYYY-MM-DD) into dd/mm/yyyy in Asia/Singapore
+                        (() => {
+                          try {
+                            const dt = new Date(first.shiftDate + 'T00:00:00Z');
+                            return dt.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'Asia/Singapore' });
+                          } catch (e) {
+                            return first.shiftDate;
+                          }
+                        })()
+                      }</TableCell>
+                      
                       <TableCell>{first.location || '-'}</TableCell>
                       <TableCell>{first.shiftType}</TableCell>
                       <TableCell>

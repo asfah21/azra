@@ -161,14 +161,31 @@ model TimeEntry {
   user         User      @relation(fields: [userId], references: [id])
   shiftDate    DateTime 
   shiftType    ShiftType
-  activity     String
-  activityDesc String
-  location     String?
-  startTime    DateTime
-  endTime      DateTime
-  durationSec  Int
+  assetTag     String?
+  status       String?
+  approvedBy   String?
+  hourMeter        Int?
+  totalProdHour    Float?   @default(0) 
+  totalNonProdHour Float?   @default(0) 
+  activities   TimeActivity[]
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
   @@index([userId, shiftDate, shiftType])
   @@index([shiftDate, shiftType])
+}
+
+model TimeActivity {
+  id           String    @id @default(uuid())
+  timeEntryId  String
+  timeEntry    TimeEntry @relation(fields: [timeEntryId], references: [id], onDelete: Cascade)
+  activity     String
+  activityDesc String?
+  location     String?
+  isProd       String?
+  startTime    DateTime
+  endTime      DateTime
+  durationSec  Int
+  createdAt    DateTime  @default(now())
+
+  @@index([timeEntryId])
 }

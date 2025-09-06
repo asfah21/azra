@@ -1,8 +1,8 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { Button, DatePicker, Spinner } from "@heroui/react";
-import { Calendar, Plus, Settings2, Shield } from "lucide-react";
+import { Button, DatePicker, Spinner, Modal, ModalContent } from "@heroui/react";
+import { ArrowBigDown, ArrowUp, Calendar, CarFront, MapPin, NotebookPen, Plus, Settings2, Shield } from "lucide-react";
 import { fromDate } from "@internationalized/date";
 import TimeLog from "./components/TimeLog";
 import { getShiftInfo } from "@/lib/dateUtils";
@@ -38,6 +38,9 @@ export default function TimesheetClientPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [entries, setEntries] = useState<any[]>([]);
   const [loadingEntries, setLoadingEntries] = useState(true);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<{ id: string; activity?: string } | null>(null);
+  const [deleting, setDeleting] = useState(false);
   const [shiftInfo, setShiftInfo] = useState(() => getShiftInfo());
   const [totalDuration, setTotalDuration] = useState<string>("00:00:00");
 
@@ -146,7 +149,18 @@ export default function TimesheetClientPage() {
           <Button
             color="primary"
             startContent={<Plus size={16} />}
-            onPress={() => setShowTimeLog(true)}
+            onPress={() => {
+              // Reset form fields for new activity (only when adding, not editing)
+              setEditingId(null);
+              setProject("");
+              setDesc("");
+              setTask("");
+              setTag("");
+              setStartTime("");
+              setEndTime("");
+              setDuration("");
+              setShowTimeLog(true);
+            }}
           >
             Add Activity
           </Button>
@@ -186,78 +200,203 @@ export default function TimesheetClientPage() {
         </div>
       </div>
 
-    {showTimeLog && (
-        <TimeLog
-          date={date}
-          desc={desc}
-          duration={duration}
-          endTime={endTime}
-          project={project}
-          setDesc={setDesc}
-          setDuration={setDuration}
-          setEndTime={setEndTime}
-          setProject={setProject}
-          setStartTime={setStartTime}
-          setTag={setTag}
-          setTask={setTask}
-          startTime={startTime}
-          tag={tag}
-          task={task}
-      onSaved={() => fetchEntries(shiftInfo)}
-      onClose={() => { setShowTimeLog(false); setEditingId(null); }}
-      onAddLocalEntry={(entry) => {
-        // create temporary id and compute durationSec
-        const tempId = `temp-${Date.now()}`;
-        const [h, m, s] = (entry.duration || '00:00:00').split(':').map(Number);
-        const durationSec = (h || 0) * 3600 + (m || 0) * 60 + (s || 0);
-        const e = {
-          id: tempId,
-          userId: 'local',
-          activity: entry.activity,
-          activityDesc: entry.activityDesc,
-          location: entry.location,
-          startTime: new Date(shiftInfo.shiftDate + 'T' + entry.startTime + ':00.000Z').toISOString(),
-          endTime: new Date(shiftInfo.shiftDate + 'T' + entry.endTime + ':00.000Z').toISOString(),
-          duration: entry.duration,
-          durationSec,
-        };
-        setEntries((prev) => {
-          const next = [...prev, e];
-          recomputeTotal(next);
-          return next;
-        });
-      }}
-      editingId={editingId}
-      onUpdateLocalEntry={(id, entry) => {
-        setEntries((prev) => {
-          const next = prev.map((it) => {
-            if (it.id !== id) return it;
-            const [h, m, s] = (entry.duration || '00:00:00').split(':').map(Number);
-            const durationSec = (h || 0) * 3600 + (m || 0) * 60 + (s || 0);
-            return {
-              ...it,
-              activity: entry.activity,
-              activityDesc: entry.activityDesc,
-              location: entry.location,
-              startTime: new Date(shiftInfo.shiftDate + 'T' + entry.startTime + ':00.000Z').toISOString(),
-              endTime: new Date(shiftInfo.shiftDate + 'T' + entry.endTime + ':00.000Z').toISOString(),
-              duration: entry.duration,
-              durationSec,
-            };
-          });
-          recomputeTotal(next);
-          return next;
-        });
-        setEditingId(null);
-      }}
-        />
-      )}
+      <Modal
+        isOpen={showTimeLog}
+        scrollBehavior="inside"
+        placement="center"
+        size="4xl"
+        isDismissable={false}
+        onOpenChange={(open) => {
+          if (!open) {
+            setShowTimeLog(false);
+            setEditingId(null);
+          }
+        }}
+      >
+        <ModalContent>
+          {(onClose) => (
+            <TimeLog
+              date={date}
+              desc={desc}
+              duration={duration}
+              endTime={endTime}
+              project={project}
+              setDesc={setDesc}
+              setDuration={setDuration}
+              setEndTime={setEndTime}
+              setProject={setProject}
+              setStartTime={setStartTime}
+              setTag={setTag}
+              setTask={setTask}
+              startTime={startTime}
+              tag={tag}
+              task={task}
+              onSaved={() => fetchEntries(shiftInfo)}
+              onClose={() => {
+                // close both modal and internal state
+                onClose();
+                setShowTimeLog(false);
+                setEditingId(null);
+              }}
+              onAddLocalEntry={async (entry) => {
+                // persist to server
+                try {
+                  const payload = {
+                    shiftDate: shiftInfo.shiftDate,
+                    shiftType: shiftInfo.shiftType,
+                    activity: entry.activity || entry.activityDesc?.split(' ')[0] || 'Activity',
+                    activityDesc: entry.activityDesc,
+                    location: entry.location,
+                    startTime: entry.startTime,
+                    endTime: entry.endTime,
+                  };
+                  const res = await fetch('/api/timesheet', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                  });
+                  if (res.ok) {
+                    const created = await res.json();
+                    // append created entry to list (include assetTag if returned)
+                    setEntries((prev) => {
+                      const next = [...prev, created];
+                      recomputeTotal(next);
+                      return next;
+                    });
+                    // reload from server to ensure persisted entries are in sync
+                    fetchEntries(shiftInfo);
+                  } else {
+                    // fallback to local entry if server fails
+                    const tempId = `temp-${Date.now()}`;
+                    const [h, m, s] = (entry.duration || '00:00:00').split(':').map(Number);
+                    const durationSec = (h || 0) * 3600 + (m || 0) * 60 + (s || 0);
+                    const e = {
+                      id: tempId,
+                      userId: 'local',
+                      activity: entry.activity,
+                      activityDesc: entry.activityDesc,
+                      location: entry.location,
+                      startTime: new Date(shiftInfo.shiftDate + 'T' + entry.startTime + ':00.000Z').toISOString(),
+                      endTime: new Date(shiftInfo.shiftDate + 'T' + entry.endTime + ':00.000Z').toISOString(),
+                      duration: entry.duration,
+                      durationSec,
+                      unitId: entry.unitId || undefined,
+                      assetTag: entry.assetTag || undefined,
+                    };
+                    setEntries((prev) => {
+                      const next = [...prev, e];
+                      recomputeTotal(next);
+                      return next;
+                    });
+                  }
+                } catch (err) {
+                  // create local fallback
+                  const tempId = `temp-${Date.now()}`;
+                  const [h, m, s] = (entry.duration || '00:00:00').split(':').map(Number);
+                  const durationSec = (h || 0) * 3600 + (m || 0) * 60 + (s || 0);
+                  const e = {
+                    id: tempId,
+                    userId: 'local',
+                    activity: entry.activity,
+                    activityDesc: entry.activityDesc,
+                    location: entry.location,
+                    startTime: new Date(shiftInfo.shiftDate + 'T' + entry.startTime + ':00.000Z').toISOString(),
+                    endTime: new Date(shiftInfo.shiftDate + 'T' + entry.endTime + ':00.000Z').toISOString(),
+                    duration: entry.duration,
+                    durationSec,
+                  };
+                  setEntries((prev) => {
+                    const next = [...prev, e];
+                    recomputeTotal(next);
+                    return next;
+                  });
+                }
+              }}
+              editingId={editingId}
+              onUpdateLocalEntry={async (id, entry) => {
+                try {
+                  // if id starts with temp-, skip server update and just update local
+                  if (id.startsWith('temp-')) {
+                    setEntries((prev) => {
+                      const next = prev.map((it) => {
+                        if (it.id !== id) return it;
+                        const [h, m, s] = (entry.duration || '00:00:00').split(':').map(Number);
+                        const durationSec = (h || 0) * 3600 + (m || 0) * 60 + (s || 0);
+                        return {
+                          ...it,
+                          activity: entry.activity,
+                          activityDesc: entry.activityDesc,
+                          location: entry.location,
+                          startTime: new Date(shiftInfo.shiftDate + 'T' + entry.startTime + ':00.000Z').toISOString(),
+                          endTime: new Date(shiftInfo.shiftDate + 'T' + entry.endTime + ':00.000Z').toISOString(),
+                          duration: entry.duration,
+                          durationSec,
+                        };
+                      });
+                      recomputeTotal(next);
+                      return next;
+                    });
+                  } else {
+                    const payload = {
+                      activity: entry.activity,
+                      activityDesc: entry.activityDesc,
+                      location: entry.location,
+                      startTime: entry.startTime,
+                      endTime: entry.endTime,
+                    };
+                    const res = await fetch(`/api/timesheet/${id}`, {
+                      method: 'PATCH',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify(payload),
+                    });
+                    if (res.ok) {
+                      const updated = await res.json();
+                      setEntries((prev) => {
+                        const next = prev.map((it) => (it.id === id ? { ...updated, assetTag: updated.assetTag } : it));
+                        recomputeTotal(next);
+                        return next;
+                      });
+                      // reload entries from server to ensure persisted changes remain after refresh
+                      fetchEntries(shiftInfo);
+                    }
+                  }
+                } catch (err) {
+                  // fallback to local update
+                  setEntries((prev) => {
+                    const next = prev.map((it) => {
+                      if (it.id !== id) return it;
+                      const [h, m, s] = (entry.duration || '00:00:00').split(':').map(Number);
+                      const durationSec = (h || 0) * 3600 + (m || 0) * 60 + (s || 0);
+                      return {
+                        ...it,
+                        activity: entry.activity,
+                        activityDesc: entry.activityDesc,
+                        location: entry.location,
+                        startTime: new Date(shiftInfo.shiftDate + 'T' + entry.startTime + ':00.000Z').toISOString(),
+                        endTime: new Date(shiftInfo.shiftDate + 'T' + entry.endTime + ':00.000Z').toISOString(),
+                        duration: entry.duration,
+                        durationSec,
+                        unitId: entry.unitId || it.unitId,
+                        assetTag: entry.assetTag || it.assetTag,
+                      };
+                    });
+                    recomputeTotal(next);
+                    return next;
+                  });
+                }
+                setEditingId(null);
+              }}
+            />
+          )}
+        </ModalContent>
+      </Modal>
 
       {/* Entries List */}
       <div className="mt-6">
         <div className="flex items-center justify-between mb-2 text-sm text-default-500">
           <span>
-            Shift: <b>{shiftInfo.shiftType}</b> ({shiftInfo.shiftDate})
+            {/* Shift: <b>{shiftInfo.shiftType}</b> ({shiftInfo.shiftDate}) */}
+            Shift: <b>{shiftInfo.shiftType === "DAY" ? "SIANG" : "MALAM"}</b>
           </span>
           <span className="font-mono">Total: <b>{totalDuration}</b></span>
         </div>
@@ -272,15 +411,24 @@ export default function TimesheetClientPage() {
           )}
           {!loadingEntries &&
             entries.map((e) => (
-              <div key={e.id} className="p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-                <div className="flex flex-col">
+              <div key={e.id} className="p-4 flex flex-col md:flex-row md:items-center md:justify-between md:flex-wrap gap-2 border-none">
+                <div className="border border-default-200 dark:border-default-100 rounded-md p-2 flex flex-col md:flex-row md:items-center md:justify-between md:flex-wrap gap-2 w-full">
+                <div className="flex flex-col md:flex-1 md:order-1">
                   <span className="text-sm">
-                    <span className="font-medium">{e.activity}</span>{" "}
-                    <span className="text-default-500">{e.activityDesc}</span>
+                    <span className="pb-2 flex items-center text-default-500 truncate max-w-[200px]">
+                      <CarFront size={18} className="text-yellow-500 shrink-0" />
+                      <span className="font-medium">{e.activity} {" "}</span>&nbsp;
+                      <MapPin size={16} className="text-red-500 shrink-0" />
+                      <span className="truncate">{e.location}</span>
+                    </span>
+
                   </span>
-                  <span className="text-xs text-default-400">{e.location}</span>
+                  <span className="text-xs text-default-700 truncate max-w-[300px] flex items-center">
+                    <NotebookPen size={14} className="text-default-700 shrink-0" />
+                    <span className="ml-1">{" "} {e.activityDesc}</span>
+                  </span>
                 </div>
-                <div className="text-right">
+                <div className="text-right md:order-2 md:w-auto">
                   <div className="text-sm font-semibold font-mono">{e.duration}</div>
                   <div className="text-[11px] text-default-400 font-mono">
                     {new Date(e.startTime).toLocaleTimeString("id-ID", { hour: '2-digit', minute: '2-digit', hour12: false })}
@@ -288,7 +436,7 @@ export default function TimesheetClientPage() {
                     {new Date(e.endTime).toLocaleTimeString("id-ID", { hour: '2-digit', minute: '2-digit', hour12: false })}
                   </div>
                 </div>
-                <div className="flex items-center gap-2 ml-2">
+                <div className="flex items-center gap-2 ml-2 md:ml-0 md:w-full md:justify-end md:order-3 md:mt-3">
                   <Button size="sm" onPress={() => {
                     // open modal for editing and prefill fields
                     setEditingId(e.id);
@@ -304,11 +452,63 @@ export default function TimesheetClientPage() {
                     setDuration(e.duration || "00:00:00");
                     setShowTimeLog(true);
                   }}>Edit</Button>
+                  <Button size="sm" color="danger" variant="flat" onPress={() => {
+                    // open delete confirmation modal
+                    setDeleteTarget({ id: e.id, activity: e.activity });
+                    setShowDeleteConfirm(true);
+                  }}>Delete</Button>
+                </div>
                 </div>
               </div>
             ))}
         </div>
       </div>
+
+      {/* Delete confirmation modal */}
+      <Modal isOpen={showDeleteConfirm} placement="center" size="sm" onOpenChange={(open) => {
+        if (!open) {
+          setShowDeleteConfirm(false);
+          setDeleteTarget(null);
+        }
+      }}>
+        <ModalContent>
+          {(onClose) => (
+            <div className="p-4">
+              <h3 className="font-semibold mb-2">Confirm delete</h3>
+              <p className="text-sm text-default-500 mb-4">Delete <b>{deleteTarget?.activity}</b> activity?</p>
+              <div className="flex gap-2 justify-end">
+                <Button variant="flat" onPress={() => { onClose(); setShowDeleteConfirm(false); setDeleteTarget(null); }}>Cancel</Button>
+                <Button color="danger" isLoading={deleting} onPress={async () => {
+                  if (!deleteTarget) return;
+                  setDeleting(true);
+                  const id = deleteTarget.id;
+                  try {
+                    if (id.startsWith('temp-')) {
+                      setEntries((prev) => {
+                        const next = prev.filter(it => it.id !== id);
+                        recomputeTotal(next);
+                        return next;
+                      });
+                    } else {
+                      const res = await fetch(`/api/timesheet/${id}`, { method: 'DELETE' });
+                      if (res.ok) {
+                        fetchEntries(shiftInfo);
+                      }
+                    }
+                  } catch (err) {
+                    // ignore
+                  } finally {
+                    setDeleting(false);
+                    onClose();
+                    setShowDeleteConfirm(false);
+                    setDeleteTarget(null);
+                  }
+                }}>Delete</Button>
+              </div>
+            </div>
+          )}
+        </ModalContent>
+      </Modal>
     </div>
   );
 }

@@ -11,12 +11,14 @@ import {
   Button,
   Autocomplete,
   AutocompleteItem,
+  DatePicker,
 } from "@heroui/react";
 import axios from "axios";
 import { set } from "date-fns";
 import { Clock, Calendar, CloudSnow, Clock7, Hourglass, Save, CircleX } from "lucide-react";
 import { useEffect, useState } from "react";
 import { getShiftInfo } from "@/lib/dateUtils";
+import { today, fromDate } from "@internationalized/date";
 
 interface TimeLogProps {
   project: string;
@@ -164,10 +166,19 @@ export default function TimeLog(props: TimeLogProps) {
   
       fetchUnits();
     }, []);
+
+  // If parent pre-fills `project` (e.g., on edit), try to select corresponding unit
+  useEffect(() => {
+    if (!project || units.length === 0) return;
+    const found = units.find((u) => u.name === project || `${u.name} (${u.assetTag})` === project);
+    if (found) {
+      setSelectedUnitId(found.id);
+    }
+  }, [project, units]);
   
   return (
     <Card className="mb-6">
-      <CardHeader className="font-semibold text-lg">Add timesheet activity</CardHeader>
+      <CardHeader className="font-semibold text-lg">Timesheet activity</CardHeader>
       <Divider />
       <CardBody>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -175,14 +186,22 @@ export default function TimeLog(props: TimeLogProps) {
             <Autocomplete
               isRequired
               defaultItems={units}
-              label="Select activity"
+              label="Select Unit"
               value={project}
               isLoading={loadingUnits}
               labelPlacement="outside-top"
-              placeholder={loadingUnits ? "Loading activities..." : "Select activity"}
+              placeholder={loadingUnits ? "Loading units..." : "Select | find unit"}
                 selectedKey={selectedUnitId}
                 style={{ outline: "none" }}
-                onSelectionChange={(key: any) => setSelectedUnitId(key?.toString() || "")}
+                onSelectionChange={(key: any) => {
+                  const id = key?.toString() || "";
+                  setSelectedUnitId(id);
+                  // set project to the selected unit's name so it is saved as activity
+                  const sel = units.find((u) => u.id === id);
+                  if (sel) {
+                    setProject(sel.assetTag);
+                  }
+                }}
               // onChange={(e) => setProject(e.target.value)}
             >
               {(item) => (
@@ -227,20 +246,7 @@ export default function TimeLog(props: TimeLogProps) {
             /> */}
           </div>
           <div className="flex flex-col gap-3">
-            <Input
-              label="Duration"
-              placeholder="hh:mm:ss"
-              startContent={<Hourglass size={16} />}
-              value={duration}
-              labelPlacement="outside-top"
-              onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
-                  e.target.style.outline = "none";
-                }}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                setDuration(e.target.value)}
-              onBlur={(e: React.FocusEvent<HTMLInputElement>) =>
-                handleDurationChange(e.target.value)}
-            />
+            
             <div className="flex gap-3 my-2">
               <Input
                 isRequired
@@ -270,28 +276,43 @@ export default function TimeLog(props: TimeLogProps) {
               />
             </div>
             <Input
-              readOnly
-              label="Date"
+              label="Duration (automaticly)"
+              placeholder="hh:mm:ss"
+              startContent={<Hourglass size={16} />}
+              value={duration}
               labelPlacement="outside-top"
-              startContent={<Calendar size={16} />}
               onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
                   e.target.style.outline = "none";
                 }}
-              value={date.toLocaleDateString("en-GB")}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setDuration(e.target.value)}
+              onBlur={(e: React.FocusEvent<HTMLInputElement>) =>
+                handleDurationChange(e.target.value)}
             />
-            <div className="flex items-center gap-2">
+            <DatePicker
+              label="Date (automaticly)"
+              labelPlacement="outside"
+              startContent={<Calendar size={16} />}
+              // Use date passed from parent (ClientPage) as the default value.
+              // Convert JS Date -> CalendarDate via fromDate; fallback to today()
+              defaultValue={
+                date ? (fromDate(date, "Asia/Singapore") as any) : today
+              }
+            />
+            {/* <div className="flex items-center gap-2">
               <span className="text-green-600 font-semibold">Not billable</span>
               <span className="text-gray-500">Rp0,00 Cost</span>
-            </div>
+            </div> */}
           </div>
         </div>
         <div className="flex items-center gap-2 mt-4">
           <Button
             color="success"
             startContent={<Save size={16} />}
+            isDisabled={!desc || !task || !startTime || !endTime || saving}
             isLoading={saving}
-              onPress={async () => {
-              // Basic validation
+            onPress={async () => {
+              // Basic validation (redundant but keeps safety when pressing)
               if (!desc || !task || !startTime || !endTime) return;
               if (!/^\d{2}:\d{2}$/.test(startTime) || !/^\d{2}:\d{2}$/.test(endTime)) return;
               setSaving(true);
@@ -305,6 +326,8 @@ export default function TimeLog(props: TimeLogProps) {
                   startTime,
                   endTime,
                   duration: calcDuration(startTime, endTime),
+                  unitId: selectedUnitId || undefined,
+                  assetTag: units.find((u) => u.id === selectedUnitId)?.assetTag,
                 };
 
                 // If editing, update parent entry
@@ -329,7 +352,7 @@ export default function TimeLog(props: TimeLogProps) {
               }
             }}
           >
-            Save
+            {saving ? "Saving..." : "Save"}
           </Button>
           <Button
             color="danger"
