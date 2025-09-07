@@ -15,6 +15,8 @@ import {
   DropdownItem,
 } from "@heroui/react";
 import { useRouter } from "next/navigation";
+import { ChevronDown } from "lucide-react";
+import { useState } from "react";
 
 import { ThemeSwitch } from "@/components/theme-switch";
 import { Logo, SearchIcon } from "@/components/icons";
@@ -54,6 +56,9 @@ export function Topbar({
   session,
 }: TopbarProps) {
   const router = useRouter();
+  
+  // State untuk mobile dropdown menu expand/collapse
+  const [expandedMobileMenus, setExpandedMobileMenus] = useState<{ [key: string]: boolean }>({});
 
   const { profile } = useProfile();
   // const { profile, isLoading } = useProfile();
@@ -162,29 +167,80 @@ export function Topbar({
 
       {/* Mobile Dropdown */}
       {menuOpen && (
-        <Card className="md:hidden absolute top-16 left-0 right-0 z-[9999] shadow-large rounded-none">
-          <CardBody className="p-4 space-y-2">
-            {navItems.map((item) => {
-              const isActive = activeTab === item.id;
-
-              return (
-                <Button
-                  key={item.id}
-                  className="w-full justify-start h-12 touch-manipulation"
-                  color={isActive ? "primary" : "default"}
-                  startContent={<span className="text-lg">{item.icon}</span>}
-                  variant={isActive ? "flat" : "light"}
-                  onPress={() => {
-                    openNewTab(item);
-                    setMenuOpen(false);
-                  }}
-                >
-                  {item.title}
-                </Button>
-              );
-            })}
-          </CardBody>
-        </Card>
+        <>
+          {/* Overlay untuk menutup menu ketika diklik di luar */}
+          <div 
+            className="md:hidden fixed inset-0 z-[9998] bg-black/20"
+            onClick={() => setMenuOpen(false)}
+          />
+          <Card className="md:hidden absolute top-16 left-0 right-0 z-[9999] shadow-large rounded-none">
+            <CardBody className="p-4 space-y-2">
+              {navItems.map((item) => {
+                const isActive = activeTab === item.id;
+                
+                // Jika item punya children, tampilkan dengan dropdown
+                if ('children' in item && item.children && item.children.length > 0) {
+                  return (
+                    <div key={item.id} className="w-full">
+                      <Button
+                        className="w-full justify-start h-12 touch-manipulation"
+                        color={isActive ? "primary" : "default"}
+                        startContent={<span className="text-lg">{item.icon}</span>}
+                        endContent={
+                          <span className={`ml-auto transition-transform ${expandedMobileMenus[item.id] ? "rotate-180" : "rotate-0"}`}>
+                            <ChevronDown size={18}/>
+                          </span>
+                        }
+                        variant={isActive ? "flat" : "light"}
+                        onPress={() => setExpandedMobileMenus((prev) => ({ ...prev, [item.id]: !prev[item.id] }))}
+                      >
+                        {item.title}
+                      </Button>
+                      {expandedMobileMenus[item.id] && (
+                        <div className="pl-6 pt-1 space-y-1">
+                          {item.children.map((child: SidebarNavChild) => (
+                            <Button
+                              key={child.id}
+                              className="w-full h-10 justify-start touch-manipulation"
+                              variant={activeTab === child.id ? "flat" : "light"}
+                              color={activeTab === child.id ? "primary" : "default"}
+                              startContent={<span className="text-base">{child.icon}</span>}
+                              onPress={() => {
+                                openNewTab(child);
+                                setMenuOpen(false);
+                                // Reset expanded state ketika navigasi
+                                setExpandedMobileMenus({});
+                              }}
+                            >
+                              <span className="ml-2 text-sm">{child.title}</span>
+                            </Button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                }
+                
+                // Menu biasa tanpa children
+                return (
+                  <Button
+                    key={item.id}
+                    className="w-full justify-start h-12 touch-manipulation"
+                    color={isActive ? "primary" : "default"}
+                    startContent={<span className="text-lg">{item.icon}</span>}
+                    variant={isActive ? "flat" : "light"}
+                    onPress={() => {
+                      openNewTab(item);
+                      setMenuOpen(false);
+                    }}
+                  >
+                    {item.title}
+                  </Button>
+                );
+              })}
+            </CardBody>
+          </Card>
+        </>
       )}
 
       {/* Desktop Topbar */}

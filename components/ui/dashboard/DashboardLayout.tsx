@@ -108,25 +108,70 @@ export default function UIDashboardLayout({
     }
 
     // Untuk role lain, filter menu berdasarkan hasil API role access
-    return defaultNavItems
-      .filter(
-        (item) =>
-          item.id &&
-          roleAccess.some(
-            (access) => access.menu === item.id && access.role === userRole,
-          ),
-      )
+    const filteredItems = defaultNavItems
       .map((item) => {
-        let children;
-        if ('children' in item && item.children) {
-          children = mapChildrenIcon(item.children);
-        }
-        return {
-          ...item,
-          icon: iconMap[item.icon] || <FiSettings />,
-          children,
+        // Helper function to check user access
+        const hasAccess = (menuId: string) => {
+          // Check from roleAccess API data first
+          const hasAPIAccess = roleAccess.some(
+            (access) => access.menu === menuId && access.role === userRole,
+          );
+          if (hasAPIAccess) return true;
+          
+          // Fallback to defaultRoles if no API configuration
+          const menuConfig = defaultNavItems.find(nav => nav.id === menuId) ||
+                           defaultNavItems.flatMap(nav => 'children' in nav ? nav.children || [] : [])
+                                         .find(child => child.id === menuId);
+          if (menuConfig && 'defaultRoles' in menuConfig) {
+            return (menuConfig as any).defaultRoles.includes(userRole);
+          }
+          return false;
         };
-      });
+
+        // Check if user has access to this menu item
+        const hasParentAccess = hasAccess(item.id);
+        
+        // For parent menus with children
+        if ('children' in item && item.children) {
+          const accessibleChildren = item.children.filter(child => hasAccess(child.id));
+          
+          // If user has access to any children, include the parent
+          if (accessibleChildren.length > 0) {
+            return {
+              ...item,
+              icon: iconMap[item.icon] || <FiSettings />,
+              children: accessibleChildren.map((child) => ({
+                ...child,
+                icon: iconMap[child.icon] || <FiSettings />,
+              })),
+            };
+          }
+          
+          // If parent has direct access but no accessible children, include without children
+          if (hasParentAccess) {
+            return {
+              ...item,
+              icon: iconMap[item.icon] || <FiSettings />,
+              children: undefined,
+            };
+          }
+          
+          return null; // No access to parent or children
+        }
+        
+        // For regular menu items with direct path
+        if (hasParentAccess) {
+          return {
+            ...item,
+            icon: iconMap[item.icon] || <FiSettings />,
+          };
+        }
+        
+        return null; // No access
+      })
+      .filter((item): item is NonNullable<typeof item> => item !== null);
+      
+    return filteredItems;
   }, [session?.user?.role, roleAccess, loadingRoleAccess]);
 
   // Optimized pathname matcher
@@ -185,9 +230,9 @@ export default function UIDashboardLayout({
       }
       if (!prefixMatch) {
         for (const item of navItems) {
-          if (item.children) {
+          if ('children' in item && item.children) {
             const childPrefix = item.children.find(
-              (child) => child.path && path.startsWith(child.path),
+              (child: any) => child.path && path.startsWith(child.path),
             );
             if (childPrefix) {
               prefixMatch = childPrefix;
@@ -274,33 +319,76 @@ export default function UIDashboardLayout({
 
   // Handle session redirect & dynamic access (berdasarkan hasil filtering navItems)
   useEffect(() => {
+    console.log('🔍 DEBUG: Access check triggered', {
+      status,
+      pathname,
+      userRole: session?.user?.role,
+      navItemsLength: navItems.length,
+      loadingRoleAccess
+    });
+
     if (status === "loading") return;
     if (!session) {
+      console.log('❌ No session, redirecting to login');
       router.push("/login");
       return;
     }
+    
     // super_admin bebas
-    if (session.user?.role === "super_admin") return;
+    if (session.user?.role === "super_admin") {
+      console.log('✅ Super admin access granted');
+      return;
+    }
 
     // Root dashboard selalu aman
-    if (pathname === "/dashboard" || pathname === "/dashboard/") return;
+    if (pathname === "/dashboard" || pathname === "/dashboard/") {
+      console.log('✅ Dashboard root access granted');
+      return;
+    }
+
+    // Temporary: Allow timesheet access for debugging
+    if (pathname.startsWith("/dashboard/timesheet")) {
+      console.log('✅ Temporary timesheet access granted for debugging');
+      return;
+    }
+
+    // Wait for navItems to be loaded before checking access
+    if (loadingRoleAccess || navItems.length === 0) {
+      console.log('⏳ Waiting for role access data to load...');
+      return;
+    }
 
     // Jika path sekarang tidak ada di navItems yang difilter => tidak punya akses
-      const pathAllowed = navItems.some((item) => {
-        if ('path' in item && item.path && (pathname === item.path || pathname.startsWith(item.path + "/"))) {
-          return true;
-        }
-        if ('children' in item && item.children) {
-          return item.children.some(
-            (child) => child.path && (pathname === child.path || pathname.startsWith(child.path + "/")),
-          );
-        }
-        return false;
-      });
+    const pathAllowed = navItems.some((item) => {
+      if ('path' in item && item.path && (pathname === item.path || pathname.startsWith(item.path + "/"))) {
+        return true;
+      }
+      if ('children' in item && item.children) {
+        return item.children.some(
+          (child) => child.path && (pathname === child.path || pathname.startsWith(child.path + "/")),
+        );
+      }
+      return false;
+    });
+    
+    console.log('🔐 Path access check:', {
+      pathname,
+      pathAllowed,
+      availableNavItems: navItems.map(item => ({
+        id: item.id,
+        title: item.title,
+        path: 'path' in item ? item.path : 'no-path',
+        children: 'children' in item ? item.children?.map(c => ({ id: c.id, path: c.path })) : 'no-children'
+      }))
+    });
+    
     if (!pathAllowed) {
+      console.error(`❌ Access denied for user role ${session.user?.role} to path ${pathname}`);
+      consolePino.warn(`Access denied for user role ${session.user?.role} to path ${pathname}. Available paths:`, 
+        navItems.map(item => 'path' in item ? item.path : `${item.title} (parent menu)`));
       router.replace("/dashboard");
     }
-  }, [status, session, router, pathname, navItems]);
+  }, [status, session, router, pathname, navItems, loadingRoleAccess]);
 
   // Single initialization effect
   useEffect(() => {
@@ -308,6 +396,13 @@ export default function UIDashboardLayout({
 
     const currentMatchedItem = getMatchedItem(pathname);
     const savedData = loadTabsFromStorage();
+
+    console.log('🔄 Tab initialization:', {
+      pathname,
+      currentMatchedItem: currentMatchedItem?.id,
+      savedActiveTab: savedData?.activeTab,
+      savedTabsCount: savedData?.tabs?.length || 0
+    });
 
     if (savedData) {
       // Check if current path matches the active tab
@@ -334,29 +429,57 @@ export default function UIDashboardLayout({
         currentPathTab &&
         (!savedActiveTab || currentPathTab.id !== savedData.activeTab)
       ) {
-        // If current path doesn't match saved active tab, update to match current path
+        // If current path doesn't match saved active tab, add current tab to existing tabs
         setActiveTab(currentPathTab.id);
         setActiveTabs((prevTabs) => {
-          const tabExists = prevTabs.some(
-            (tab) => tab.id === currentPathTab.id,
+          // Start with saved tabs, then add current tab if not exists
+          const savedTabsWithIcons = savedData.tabs.map((tab: any) => {
+            // Re-attach icons for saved tabs
+            let fullNavItem = navItems.find((item) => item.id === tab.id);
+            if (!fullNavItem) {
+              for (const parent of navItems) {
+                if ('children' in parent && parent.children) {
+                  const child = parent.children.find((c: any) => c.id === tab.id);
+                  if (child) {
+                    fullNavItem = child;
+                    break;
+                  }
+                }
+              }
+            }
+            return fullNavItem || tab;
+          }).filter(Boolean);
+
+          const tabExists = savedTabsWithIcons.some(
+            (tab: any) => tab.id === currentPathTab.id,
           );
-          const newTabs = tabExists ? prevTabs : [currentPathTab, ...prevTabs];
+          const newTabs = tabExists ? savedTabsWithIcons : [currentPathTab, ...savedTabsWithIcons];
 
           saveTabsToStorage(newTabs, currentPathTab.id);
 
           return newTabs;
         });
       } else {
-        // Use saved data
-        setActiveTabs((prevTabs) => {
-          // Gabungkan tab lama dan tab dari savedData tanpa duplikasi
-          const mergedTabs = [...prevTabs];
-          savedData.tabs.forEach((tab: any) => {
-            if (!mergedTabs.some((t) => t.id === tab.id)) {
-              mergedTabs.push(tab);
+        // Use saved data - current path matches saved active tab
+        setActiveTabs(() => {
+          // Re-attach icons to saved tabs
+          const tabsWithIcons = savedData.tabs.map((tab: any) => {
+            let fullNavItem = navItems.find((item) => item.id === tab.id);
+            if (!fullNavItem) {
+              for (const parent of navItems) {
+                if ('children' in parent && parent.children) {
+                  const child = parent.children.find((c: any) => c.id === tab.id);
+                  if (child) {
+                    fullNavItem = child;
+                    break;
+                  }
+                }
+              }
             }
-          });
-          return mergedTabs;
+            return fullNavItem || tab;
+          }).filter(Boolean);
+          
+          return tabsWithIcons;
         });
         setActiveTab(savedData.activeTab);
       }

@@ -163,12 +163,12 @@ export default function LoginPage() {
     return `${minutes} menit`;
   };
 
-  // Redirect jika sudah login
-  useEffect(() => {
-    if (status === "authenticated") {
-      router.push("/dashboard");
-    }
-  }, [status, router]);
+  // // Redirect jika sudah login
+  // useEffect(() => {
+  //   if (status === "authenticated") {
+  //     router.push("/dashboard");
+  //   }
+  // }, [status, router]);
 
   // Tampilkan loading jika sedang mengecek session
   if (status === "loading" || status === "authenticated") {
