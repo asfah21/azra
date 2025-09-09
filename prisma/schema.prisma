@@ -127,6 +127,7 @@ model UnitHistory {
   unit        Unit     @relation(fields: [unitId], references: [id])
 }
 
+// Legacy enum untuk backward compatibility
 enum Role {
   super_admin
   admin_heavy
@@ -136,11 +137,40 @@ enum Role {
   guest
 }
 
+// New dynamic Role model
+model RoleModel {
+  id          String      @id @default(uuid())
+  code        String      @unique  // 'super_admin', 'op_mining', dll
+  name        String                // 'Super Admin', 'Operator Mining', dll  
+  description String?               // Optional description
+  color       String      @default("default")  // UI color theme
+  isActive    Boolean     @default(true)
+  priority    Int         @default(0)  // For sorting/ordering
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  
+  // Relations
+  roleAccess  RoleAccessNew[]
+  
+  @@map("roles")
+}
 
+// Legacy RoleAccess model (keep for now)
 model RoleAccess {
   id    String @id @default(uuid())
   menu  String
   role  Role
+}
+
+// New dynamic RoleAccess model
+model RoleAccessNew {
+  id      String    @id @default(uuid())
+  menu    String
+  roleId  String
+  role    RoleModel @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  
+  @@unique([menu, roleId])
+  @@map("role_access_new")
 }
 
 enum BreakdownStatus {

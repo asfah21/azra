@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useState, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import {
   Modal,
@@ -13,7 +13,6 @@ import {
   Chip,
 } from "@heroui/react";
 import { Trash2, AlertTriangle } from "lucide-react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { deleteUser } from "../action";
 
@@ -41,41 +40,38 @@ export function DeleteConfirmModal({
   onUserDeleted,
 }: DeleteConfirmModalProps) {
   const { data: session } = useSession();
-  const queryClient = useQueryClient();
+  const [isLoading, setIsLoading] = useState(false);
+  const [result, setResult] = useState<{ success: boolean; message: string } | null>(null);
 
-  // Gunakan mutation seperti DeleteAssetModal
-  const mutation = useMutation({
-    mutationFn: async () => {
-      if (!user) return { success: false, message: "User tidak ditemukan!" };
-      if (session?.user?.role !== "super_admin") {
-        return {
-          success: false,
-          message: "Unauthorized: Hanya Super Admin yang dapat menghapus user.",
-        };
-      }
+  // Reset result when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      setResult(null);
+    }
+  }, [isOpen]);
 
-      // Pastikan deleteUser mengembalikan { success, message }
-      return await deleteUser(user.id, session.user.role);
-    },
-    onSuccess: (data) => {
-      if (data.success) {
-        queryClient.invalidateQueries({ queryKey: ["users-data"] });
+  const handleDelete = async () => {
+    if (!user) return;
+    
+    setIsLoading(true);
+    try {
+      const deleteResult = await deleteUser(user.id, session?.user?.role);
+      setResult(deleteResult);
+      
+      if (deleteResult.success) {
         setTimeout(() => {
           onClose();
           if (onUserDeleted) onUserDeleted();
         }, 1500);
       }
-    },
-  });
-
-  useEffect(() => {
-    if (isOpen) {
-      // Tidak perlu reset manual, mutation akan handle
+    } catch (error) {
+      setResult({
+        success: false,
+        message: "Terjadi kesalahan saat menghapus user."
+      });
+    } finally {
+      setIsLoading(false);
     }
-  }, [isOpen]);
-
-  const handleDelete = () => {
-    mutation.mutate();
   };
 
   const getRoleLabel = (role: string): string => {
@@ -112,8 +108,7 @@ export function DeleteConfirmModal({
     }
   };
 
-  if (!user) return null;
-
+  // Always render modal content, but disable fields if no user
   return (
     <Modal isOpen={isOpen} placement="top-center" onOpenChange={onClose}>
       <ModalContent>
@@ -131,10 +126,10 @@ export function DeleteConfirmModal({
             </ModalHeader>
 
             <ModalBody>
-              {mutation.data ? (
+              {result ? (
                 <div
                   className={`p-4 rounded-lg ${
-                    mutation.data.success
+                    result.success
                       ? "bg-success-50 border border-success-200"
                       : "bg-danger-50 border border-danger-200"
                   }`}
@@ -142,21 +137,21 @@ export function DeleteConfirmModal({
                   <div className="flex items-center gap-2">
                     <span
                       className={`text-lg ${
-                        mutation.data.success
+                        result.success
                           ? "text-success-600"
                           : "text-danger-600"
                       }`}
                     >
-                      {mutation.data.success ? "✅" : "❌"}
+                      {result.success ? "✅" : "❌"}
                     </span>
                     <span
                       className={`font-medium ${
-                        mutation.data.success
+                        result.success
                           ? "text-success-800"
                           : "text-danger-800"
                       }`}
                     >
-                      {mutation.data.message}
+                      {result.message}
                     </span>
                   </div>
                 </div>
@@ -198,8 +193,8 @@ export function DeleteConfirmModal({
                         classNames={{
                           description: "text-default-500",
                         }}
-                        description={user.email}
-                        name={user.name}
+                        description={user?.email || ""}
+                        name={user?.name || ""}
                       />
                     </div>
 
@@ -209,15 +204,15 @@ export function DeleteConfirmModal({
                           Role:
                         </span>
                         <Chip
-                          color={getRoleColor(user.role) as any}
+                          color={getRoleColor(user?.role || "") as any}
                           size="sm"
                           variant="flat"
                         >
-                          {getRoleLabel(user.role)}
+                          {getRoleLabel(user?.role || "")}
                         </Chip>
                       </div>
 
-                      {user.department && (
+                      {user?.department && (
                         <div className="flex items-center gap-2">
                           <span className="text-sm font-medium text-default-600">
                             Department:
@@ -233,14 +228,16 @@ export function DeleteConfirmModal({
                           Bergabung:
                         </span>
                         <span className="text-sm text-default-700">
-                          {new Date(user.createdAt).toLocaleDateString(
-                            "id-ID",
-                            {
-                              day: "numeric",
-                              month: "long",
-                              year: "numeric",
-                            },
-                          )}
+                          {user?.createdAt
+                            ? new Date(user.createdAt).toLocaleDateString(
+                                "id-ID",
+                                {
+                                  day: "numeric",
+                                  month: "long",
+                                  year: "numeric",
+                                },
+                              )
+                            : ""}
                         </span>
                       </div>
                     </div>
@@ -250,11 +247,11 @@ export function DeleteConfirmModal({
             </ModalBody>
 
             <ModalFooter>
-              {!mutation.data && (
+              {!result && (
                 <>
                   <Button
                     color="default"
-                    isDisabled={mutation.isPending}
+                    isDisabled={isLoading}
                     variant="light"
                     onPress={onClose}
                   >
@@ -262,20 +259,20 @@ export function DeleteConfirmModal({
                   </Button>
                   <Button
                     color="danger"
-                    isDisabled={session?.user?.role !== "super_admin"}
-                    isLoading={mutation.isPending}
+                    isDisabled={session?.user?.role !== "super_admin" || !user}
+                    isLoading={isLoading}
                     startContent={
-                      !mutation.isPending ? (
+                      !isLoading ? (
                         <Trash2 className="w-4 h-4" />
                       ) : undefined
                     }
                     onPress={handleDelete}
                   >
-                    {mutation.isPending ? "Menghapus..." : "Hapus User"}
+                    {isLoading ? "Menghapus..." : "Hapus User"}
                   </Button>
                 </>
               )}
-              {mutation.data && (
+              {result && (
                 <Button color="primary" onPress={onClose}>
                   Tutup
                 </Button>

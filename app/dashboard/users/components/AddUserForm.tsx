@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useActionState, useEffect, useState } from "react";
 import {
   ModalHeader,
   ModalBody,
@@ -12,8 +12,6 @@ import {
   Autocomplete,
   AutocompleteItem,
 } from "@heroui/react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
 import { useSession } from "next-auth/react";
 
 import { addUsers } from "../action";
@@ -27,24 +25,40 @@ interface AddUserFormProps {
 
 export function AddUserForms({ onClose, onUserAdded }: AddUserFormProps) {
   const [state, formAction, isPending] = useActionState(addUsers, null);
-  const queryClient = useQueryClient();
-
-  // const [selectedRole, setSelectedRole] = useState("admin_heavy");
 
   const { data: session } = useSession();
 
-  const addUserMutation = useMutation({
-    mutationFn: async (newUser) => {
-      // Panggil server action/API untuk tambah user
-      return await axios.post("/api/dashboard/users", newUser);
-    },
-    onSuccess: () => {
-      // Setelah berhasil tambah user, refresh data user
-      queryClient.invalidateQueries({ queryKey: ["users-data"] });
-      // Atau, jika ingin update cache lokal:
-      // queryClient.setQueryData(["users-data"], (old) => ({ ...old, users: [...old.users, newUser] }));
-    },
-  });
+
+  // Dynamic role options from API
+
+  const [roleOptions, setRoleOptions] = useState<{ value: string; label: string }[]>([]);
+  const [rolesLoading, setRolesLoading] = useState(true);
+  const [selectedRole, setSelectedRole] = useState<string>("");
+
+  useEffect(() => {
+    async function fetchRoles() {
+      setRolesLoading(true);
+      try {
+        const res = await fetch("/api/dashboard/roles");
+        const data = await res.json();
+        if (Array.isArray(data.roles)) {
+          setRoleOptions(
+            data.roles.map((role: any) => ({
+              value: role.code,
+              label: role.name,
+            }))
+          );
+        } else {
+          setRoleOptions([]);
+        }
+      } catch (e) {
+        setRoleOptions([]);
+      } finally {
+        setRolesLoading(false);
+      }
+    }
+    fetchRoles();
+  }, []);
 
   // Auto close modal jika berhasil add user
   useEffect(() => {
@@ -84,14 +98,7 @@ export function AddUserForms({ onClose, onUserAdded }: AddUserFormProps) {
     }
   };
 
-  const userRoles = [
-    { label: "Super Admin", key: "super_admin" },
-    { label: "Admin Heavy", key: "admin_heavy" },
-    { label: "Admin Electrical", key: "admin_elec" },
-    { label: "Pengawas", key: "pengawas" },
-    { label: "Mekanik", key: "mekanik" },
-    { label: "Guest", key: "guest" },
-  ];
+  // CONDITIONAL RENDERING SETELAH SEMUA HOOKS
 
   return (
     <>
@@ -140,24 +147,28 @@ export function AddUserForms({ onClose, onUserAdded }: AddUserFormProps) {
           />
 
           <Autocomplete
-            defaultItems={userRoles}
-            defaultSelectedKey="admin_heavy"
+            items={roleOptions}
+            selectedKey={selectedRole}
+            onSelectionChange={(key) => setSelectedRole(key as string)}
             label="User Roles"
             labelPlacement="outside-top"
-            name="role"
-            placeholder="Search user roles"
+            placeholder={rolesLoading ? "Loading roles..." : "Search user roles"}
+            isLoading={rolesLoading}
             style={{ outline: "none" }}
             variant="bordered"
+            isDisabled={rolesLoading}
             onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
               e.target.style.outline = "none";
             }}
           >
             {(item) => (
-              <AutocompleteItem key={item.label} variant="flat">
-                {item.key}
+              <AutocompleteItem key={item.value} variant="flat">
+                {item.label}
               </AutocompleteItem>
             )}
           </Autocomplete>
+          {/* Hidden input to ensure correct value is submitted */}
+          <input type="hidden" name="role" value={selectedRole || ""} required />
 
           {/* <Autocomplete
             defaultItems={userRoles}

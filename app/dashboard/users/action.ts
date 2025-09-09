@@ -108,6 +108,17 @@ export async function updateUser(
     const department = formData.get("department") as string;
     const currentUserRole = formData.get("currentUserRole") as string;
 
+    // Debug logging
+    consolePino.info("Update user data:", {
+      id,
+      name,
+      email,
+      role,
+      department,
+      currentUserRole,
+      hasPassword: !!password,
+    });
+
     // Validasi role - hanya super_admin yang dapat mengedit user
     if (currentUserRole !== "super_admin") {
       return {

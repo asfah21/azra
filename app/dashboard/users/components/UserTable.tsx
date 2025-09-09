@@ -111,8 +111,8 @@ export default function UserTables({ usersTable }: UserManagementClientProps) {
     return () => clearInterval(interval);
   }, []);
 
-  // Label yang akan ditampilkan - pindahkan ke atas sebelum useMemo
-  const getRoleLabel = (role: string): string => {
+  // Label yang akan ditampilkan - memoized
+  const getRoleLabel = useCallback((role: string): string => {
     switch (role) {
       case "super_admin":
         return "Super Admin";
@@ -127,7 +127,7 @@ export default function UserTables({ usersTable }: UserManagementClientProps) {
       default:
         return role;
     }
-  };
+  }, []);
 
   const handleUserAdded = () => {
     // Refresh halaman untuk update data setelah user ditambah
@@ -189,7 +189,7 @@ export default function UserTables({ usersTable }: UserManagementClientProps) {
         getRoleLabel(user.role).toLowerCase().includes(query)
       );
     });
-  }, [usersTable, searchQuery]);
+  }, [usersTable, searchQuery, getRoleLabel]);
 
   // Hitung data yang akan ditampilkan berdasarkan halaman
   const pages = Math.ceil(filteredData.length / rowsPerPage);
@@ -204,59 +204,11 @@ export default function UserTables({ usersTable }: UserManagementClientProps) {
   };
 
   // Callback untuk import complete
-  const handleUsersImported = () => {
+  const handleUsersImported = useCallback(() => {
     // Refresh the user list after import
     router.refresh();
     onImportOpenChange();
-  };
-
-  // Callback untuk import complete
-  const handleAssetsImported = useCallback(() => {
-    router.refresh();
-    onImportOpenChange();
   }, [router, onImportOpenChange]);
-
-  // Fungsi untuk export data ke Excel
-  const handleExportToExcel = useCallback(() => {
-    // Buat map untuk users lookup
-    const usersMap = new Map(usersTable.map((user) => [user.id, user.name]));
-
-    // Siapkan data untuk export
-    const exportData = filteredData.map((user, index) => ({
-      No: index + 1, // Menambahkan nomor urut mulai dari 1
-      // "User ID": user.id,
-      Name: user.name,
-      Email: user.email,
-      Role: user.role,
-      Department: user.department,
-      "Last Active": formatLastActive(user.lastActive),
-      // "Photo": user.photo,
-    }));
-
-    const ws = XLSX.utils.json_to_sheet(exportData);
-
-    const columnWidths = [
-      { wch: 5 }, // No
-      { wch: 20 }, // Name
-      { wch: 25 }, // Email
-      { wch: 15 }, // Role
-      { wch: 12 }, // Department
-      { wch: 12 }, // Last Active
-    ];
-
-    ws["!cols"] = columnWidths;
-
-    const wb = XLSX.utils.book_new();
-
-    XLSX.utils.book_append_sheet(wb, ws, "Users");
-
-    // Generate nama file dengan timestamp
-    const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, "-");
-    const fileName = `users_${timestamp}.xlsx`;
-
-    // Download file
-    XLSX.writeFile(wb, fileName);
-  }, [filteredData, usersTable]);
 
   const SortIcon = ({
     active,
@@ -316,7 +268,7 @@ export default function UserTables({ usersTable }: UserManagementClientProps) {
     setPage(1); // Reset ke halaman pertama ketika search berubah
   };
 
-  const getRoleColor = (role: string) => {
+  const getRoleColor = useCallback((role: string) => {
     switch (role) {
       case "admin_elec":
         return "danger";
@@ -331,10 +283,10 @@ export default function UserTables({ usersTable }: UserManagementClientProps) {
       default:
         return "default";
     }
-  };
+  }, []);
 
   // Tambahkan fungsi untuk menentukan status berdasarkan lastActive
-  const getUserStatus = (lastActive: Date | null): string => {
+  const getUserStatus = useCallback((lastActive: Date | null): string => {
     if (!lastActive) return "offline";
 
     const now = new Date();
@@ -345,9 +297,9 @@ export default function UserTables({ usersTable }: UserManagementClientProps) {
     if (diffInMinutes < 15) return "online";
 
     return "offline";
-  };
+  }, []);
 
-  const getStatusColor = (status: string) => {
+  const getStatusColor = useCallback((status: string) => {
     switch (status) {
       case "online":
         return "success";
@@ -356,10 +308,10 @@ export default function UserTables({ usersTable }: UserManagementClientProps) {
       default:
         return "default";
     }
-  };
+  }, []);
 
-  // Tambahkan fungsi untuk format waktu last active dengan emoji dan warna
-  const formatLastActive = (
+  // Tambahkan fungsi untuk format waktu last active dengan emoji dan warna - memoized
+  const formatLastActive = useCallback((
     lastActive: Date | null,
   ): { text: string; color: string; emoji: string } => {
     if (!lastActive) return { text: "Never", color: "default", emoji: "❌" };
@@ -389,7 +341,49 @@ export default function UserTables({ usersTable }: UserManagementClientProps) {
       color: "default",
       emoji: "📅",
     };
-  };
+  }, []);
+
+  // Fungsi untuk export data ke Excel
+  const handleExportToExcel = useCallback(() => {
+    // Buat map untuk users lookup
+    const usersMap = new Map(usersTable.map((user) => [user.id, user.name]));
+
+    // Siapkan data untuk export
+    const exportData = filteredData.map((user, index) => ({
+      No: index + 1, // Menambahkan nomor urut mulai dari 1
+      // "User ID": user.id,
+      Name: user.name,
+      Email: user.email,
+      Role: user.role,
+      Department: user.department,
+      "Last Active": formatLastActive(user.lastActive).text,
+      // "Photo": user.photo,
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(exportData);
+
+    const columnWidths = [
+      { wch: 5 }, // No
+      { wch: 20 }, // Name
+      { wch: 25 }, // Email
+      { wch: 15 }, // Role
+      { wch: 12 }, // Department
+      { wch: 12 }, // Last Active
+    ];
+
+    ws["!cols"] = columnWidths;
+
+    const wb = XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(wb, ws, "Users");
+
+    // Generate nama file dengan timestamp
+    const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, "-");
+    const fileName = `users_${timestamp}.xlsx`;
+
+    // Download file
+    XLSX.writeFile(wb, fileName);
+  }, [filteredData, usersTable, formatLastActive]);
 
   return (
     <>
@@ -685,7 +679,7 @@ export default function UserTables({ usersTable }: UserManagementClientProps) {
         </CardBody>
       </Card>
 
-      {/* Modal Add User */}
+      {/* Modal Add User - always rendered */}
       <div className="mx-4">
         <Modal
           isDismissable={false}
@@ -702,14 +696,14 @@ export default function UserTables({ usersTable }: UserManagementClientProps) {
         </Modal>
       </div>
 
-      {/* Modal Detail User */}
+      {/* Modal Detail User - always rendered */}
       <UserDetailModal
         isOpen={isDetailOpen}
         user={selectedUser}
         onClose={onDetailOpenChange}
       />
 
-      {/* Modal Edit User */}
+      {/* Modal Edit User - always rendered */}
       <div className="mx-4">
         <Modal
           isOpen={isEditOpen}
@@ -729,7 +723,7 @@ export default function UserTables({ usersTable }: UserManagementClientProps) {
         </Modal>
       </div>
 
-      {/* Modal Delete User */}
+      {/* Modal Delete User - always rendered */}
       <DeleteConfirmModal
         isOpen={isDeleteOpen}
         user={selectedUser}
@@ -737,7 +731,7 @@ export default function UserTables({ usersTable }: UserManagementClientProps) {
         onUserDeleted={handleUserDeleted}
       />
 
-      {/* Modal Import Asset */}
+      {/* Modal Import Asset - always rendered */}
       <div className="mx-4">
         <Modal
           isOpen={isImportOpen}

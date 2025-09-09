@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useActionState, useEffect, useMemo } from "react";
 import { useSession } from "next-auth/react";
 import {
   ModalHeader,
@@ -36,48 +36,70 @@ export function EditUserModal({
   user,
   onClose,
   onUserUpdated,
-}: EditUserModalProps) {
+  isOpen = true,
+}: EditUserModalProps & { isOpen?: boolean }) {
   const { data: session } = useSession();
-  const queryClient = useQueryClient();
+  const [state, formAction, isPending] = useActionState(updateUser, null);
+  
+  // Static role options untuk menghindari masalah hooks
+  const staticRoleOptions = [
+    { value: "super_admin", label: "Super Admin" },
+    { value: "admin_heavy", label: "Admin Heavy" },
+    { value: "admin_elec", label: "Admin Electrical" },
+    { value: "pengawas", label: "Pengawas" },
+    { value: "mekanik", label: "Mekanik" },
+    { value: "guest", label: "Guest" },
+  ];
 
-  // React Query mutation untuk update user
-  const mutation = useMutation({
-    mutationFn: async (formData: FormData) => {
-      return await updateUser(null, formData);
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["users-data"] });
-      setTimeout(() => {
+  // Auto close modal jika berhasil update user
+  useEffect(() => {
+    if (state?.message && !state?.errors) {
+      const timer = setTimeout(() => {
         onClose();
-        if (onUserUpdated) onUserUpdated();
+        if (onUserUpdated) {
+          onUserUpdated();
+        }
       }, 500);
-    },
-  });
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+      return () => clearTimeout(timer);
+    }
+  }, [state?.message, state?.errors, onClose, onUserUpdated]);
+
+  // Find matching role option for current user role - memoized untuk consistency
+  const currentRoleKey = useMemo(() => {
+    if (!user?.role || !staticRoleOptions.length) return "";
+    
+    // Find by value
+    const byValue = staticRoleOptions.find(option => option.value === user.role);
+    if (byValue) return byValue.value;
+    
+    // Last fallback: return as is
+    return user.role;
+  }, [user?.role, staticRoleOptions]);
+
+  const handleSubmit = async (formData: FormData) => {
     if (user) {
-      const formData = new FormData(e.currentTarget);
-
       formData.append("id", user.id);
       if (session?.user?.role) {
         formData.append("currentUserRole", session.user.role);
       }
-      mutation.mutate(formData);
+      
+      // Debug logging
+      console.log("FormData being sent:", {
+        id: formData.get("id"),
+        name: formData.get("name"),
+        email: formData.get("email"),
+        role: formData.get("role"),
+        department: formData.get("department"),
+        currentUserRole: formData.get("currentUserRole"),
+        hasPassword: !!formData.get("password"),
+      });
+      
+      await formAction(formData);
     }
   };
 
-  if (!user) return null;
-
-  const userRoles = [
-    { label: "Super Admin", key: "super_admin" },
-    { label: "Admin Heavy", key: "admin_heavy" },
-    { label: "Admin Electrical", key: "admin_elec" },
-    { label: "Pengawas", key: "pengawas" },
-    { label: "Mekanik", key: "mekanik" },
-    { label: "Guest", key: "guest" },
-  ];
-
+  // Always render modal content, but disable form fields if no user
   return (
     <>
       <ModalHeader className="flex flex-col gap-1">
@@ -86,28 +108,30 @@ export function EditUserModal({
       </ModalHeader>
 
       <ModalBody>
-        <form className="space-y-4" id="editUserForm" onSubmit={handleSubmit}>
+        <form action={handleSubmit} className="space-y-4" id="editUserForm">
           <Input
             isRequired
-            defaultValue={user.name}
+            defaultValue={user?.name || ""}
             label="Name"
             labelPlacement="outside-top"
             name="name"
             placeholder="Enter user name"
             variant="bordered"
+            isDisabled={!user}
             onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
               e.target.style.outline = "none";
             }}
           />
           <Input
             isRequired
-            defaultValue={user.email}
+            defaultValue={user?.email || ""}
             label="Email"
             labelPlacement="outside-top"
             name="email"
             placeholder="Enter email address"
             type="email"
             variant="bordered"
+            isDisabled={!user}
             onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
               e.target.style.outline = "none";
             }}
@@ -119,67 +143,56 @@ export function EditUserModal({
             placeholder="Enter new password (optional)"
             type="password"
             variant="bordered"
+            isDisabled={!user}
             onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
               e.target.style.outline = "none";
             }}
           />
 
           <Autocomplete
-            defaultItems={userRoles}
-            defaultSelectedKey={user.role || ""}
+            defaultItems={staticRoleOptions}
+            defaultSelectedKey={user ? currentRoleKey : ""}
             label="User Roles"
             labelPlacement="outside-top"
             name="role"
             placeholder="Search user roles"
             style={{ outline: "none" }}
             variant="bordered"
+            isDisabled={!user}
             onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
               e.target.style.outline = "none";
             }}
+            // force value to be the enum value, not label
+            selectedKey={user ? currentRoleKey : ""}
           >
             {(item) => (
-              <AutocompleteItem key={item.label} variant="flat">
-                {item.key}
+              <AutocompleteItem key={item.value} variant="flat">
+                {item.value}
               </AutocompleteItem>
             )}
           </Autocomplete>
 
-          {/* <Select
-            isRequired
-            defaultSelectedKeys={[user.role]}
-            label="Role"
-            name="role"
-            placeholder="Select user role"
-            variant="bordered"
-          >
-            <SelectItem key="super_admin">Super Admin</SelectItem>
-            <SelectItem key="admin_heavy">Admin Heavy</SelectItem>
-            <SelectItem key="admin_elec">Admin Electrical</SelectItem>
-            <SelectItem key="pengawas">Pengawas</SelectItem>
-            <SelectItem key="mekanik">Mekanik</SelectItem>
-            <SelectItem key="guest">Guest</SelectItem>
-          </Select> */}
-
           <Input
-            defaultValue={user.department || ""}
+            defaultValue={user?.department || ""}
             label="Department"
             labelPlacement="outside-top"
             name="department"
             placeholder="Enter department (optional)"
             variant="bordered"
+            isDisabled={!user}
             onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
               e.target.style.outline = "none";
             }}
           />
 
           {/* Success Message */}
-          {mutation.data && mutation.data.message && !mutation.data.errors && (
+          {state?.message && !state?.errors && (
             <Card className="border-success-200 bg-success-50">
               <CardBody className="py-3">
                 <div className="flex items-center gap-2">
                   <div className="w-2 h-2 bg-success-500 rounded-full" />
                   <p className="text-success-700 text-sm font-medium">
-                    {mutation.data.message}
+                    {state.message}
                   </p>
                 </div>
               </CardBody>
@@ -187,15 +200,25 @@ export function EditUserModal({
           )}
 
           {/* Error Messages */}
-          {mutation.data && mutation.data.message && mutation.data.errors && (
+          {(state?.errors?.general || state?.errors?.email) && (
             <Card className="border-danger-200 bg-danger-50">
               <CardBody className="py-3">
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-danger-500 rounded-full" />
-                  <p className="text-danger-700 text-sm font-medium">
-                    {mutation.data.message}
-                  </p>
-                </div>
+                {state.errors.general && (
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="w-2 h-2 bg-danger-500 rounded-full" />
+                    <p className="text-danger-700 text-sm font-medium">
+                      {state.errors.general}
+                    </p>
+                  </div>
+                )}
+                {state.errors.email && (
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-danger-500 rounded-full" />
+                    <p className="text-danger-700 text-sm font-medium">
+                      {state.errors.email}
+                    </p>
+                  </div>
+                )}
               </CardBody>
             </Card>
           )}
@@ -206,7 +229,7 @@ export function EditUserModal({
         <Button
           className="font-medium"
           color="danger"
-          isDisabled={mutation.isPending}
+          isDisabled={isPending || !user}
           variant="light"
           onPress={onClose}
         >
@@ -216,11 +239,11 @@ export function EditUserModal({
           className="font-medium bg-gradient-to-r from-blue-500 to-purple-600 text-white"
           color="primary"
           form="editUserForm"
-          isDisabled={mutation.isPending}
-          isLoading={mutation.isPending}
+          isDisabled={isPending || !user}
+          isLoading={isPending}
           type="submit"
         >
-          {mutation.isPending ? "Updating..." : "Update User"}
+          {isPending ? "Updating..." : "Update User"}
         </Button>
       </ModalFooter>
     </>

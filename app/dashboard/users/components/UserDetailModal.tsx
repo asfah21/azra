@@ -25,6 +25,8 @@ import {
   Activity,
 } from "lucide-react";
 
+import { useRoleMap } from "@/hooks/useRoles";
+
 interface User {
   id: string;
   name: string;
@@ -46,42 +48,8 @@ export default function UserDetailModal({
   onClose,
   user,
 }: UserDetailModalProps) {
-  if (!user) return null;
-
-  // Fungsi helper yang sama dengan UserTable
-  const getRoleLabel = (role: string): string => {
-    switch (role) {
-      case "super_admin":
-        return "Super Admin";
-      case "pengawas":
-        return "Foreman";
-      case "mekanik":
-        return "Mekanik";
-      case "admin_heavy":
-        return "Admin PAM";
-      case "admin_elec":
-        return "Admin";
-      default:
-        return role;
-    }
-  };
-
-  const getRoleColor = (role: string) => {
-    switch (role) {
-      case "admin_elec":
-        return "danger";
-      case "admin_heavy":
-        return "warning";
-      case "pengawas":
-        return "secondary";
-      case "mekanik":
-        return "primary";
-      case "super_admin":
-        return "success";
-      default:
-        return "default";
-    }
-  };
+  // Dynamic role mapping
+  const { getRoleLabel, getRoleColor, loading: roleLoading } = useRoleMap();
 
   const getUserStatus = (lastActive: Date | null): string => {
     if (!lastActive) return "offline";
@@ -150,6 +118,7 @@ export default function UserDetailModal({
     });
   };
 
+  // Always render modal content, disable fields if no user
   return (
     <Modal isOpen={isOpen} placement="top-center" size="2xl" onClose={onClose}>
       <ModalContent>
@@ -159,12 +128,12 @@ export default function UserDetailModal({
               <div className="flex items-center gap-3">
                 <Avatar
                   className="bg-primary text-white"
-                  name={user.name}
+                  name={user?.name || ""}
                   size="lg"
                 />
                 <div>
-                  <h2 className="text-xl font-semibold">{user.name}</h2>
-                  <p className="text-sm text-default-500">{user.email}</p>
+                  <h2 className="text-xl font-semibold">{user?.name || ""}</h2>
+                  <p className="text-sm text-default-500">{user?.email || ""}</p>
                 </div>
               </div>
             </ModalHeader>
@@ -175,16 +144,16 @@ export default function UserDetailModal({
                   <Chip
                     classNames={{
                       content:
-                        getUserStatus(user.lastActive) === "online"
+                        getUserStatus(user?.lastActive || null) === "online"
                           ? "text-success-600 font-medium"
                           : "",
                     }}
                     color={
-                      getStatusColor(getUserStatus(user.lastActive)) as any
+                      getStatusColor(getUserStatus(user?.lastActive || null)) as any
                     }
                     size="lg"
                     startContent={
-                      getUserStatus(user.lastActive) === "online" ? (
+                      getUserStatus(user?.lastActive || null) === "online" ? (
                         <UserCheck className="w-4 h-4" />
                       ) : (
                         <UserX className="w-4 h-4" />
@@ -192,15 +161,15 @@ export default function UserDetailModal({
                     }
                     variant="dot"
                   >
-                    {getUserStatus(user.lastActive)}
+                    {getUserStatus(user?.lastActive || null)}
                   </Chip>
                   <Chip
-                    color={getRoleColor(user.role) as any}
+                    color={getRoleColor(user?.role || "") as any}
                     size="lg"
                     startContent={<Shield className="w-4 h-4" />}
                     variant="flat"
                   >
-                    {getRoleLabel(user.role)}
+                    {getRoleLabel(user?.role || "")}
                   </Chip>
                 </div>
 
@@ -214,7 +183,7 @@ export default function UserDetailModal({
                         <Mail className="w-5 h-5 text-primary" />
                         <h3 className="font-semibold">Email</h3>
                       </div>
-                      <p className="text-sm text-default-600">{user.email}</p>
+                      <p className="text-sm text-default-600">{user?.email || ""}</p>
                     </CardBody>
                   </Card>
 
@@ -225,7 +194,7 @@ export default function UserDetailModal({
                         <h3 className="font-semibold">Department</h3>
                       </div>
                       <p className="text-sm text-default-600">
-                        {user.department || "Not assigned"}
+                        {user?.department || "Not assigned"}
                       </p>
                     </CardBody>
                   </Card>
@@ -237,7 +206,7 @@ export default function UserDetailModal({
                         <h3 className="font-semibold">Joined Date</h3>
                       </div>
                       <p className="text-sm text-default-600">
-                        {formatDate(user.createdAt)}
+                        {user?.createdAt ? formatDate(user.createdAt) : ""}
                       </p>
                     </CardBody>
                   </Card>
@@ -250,14 +219,14 @@ export default function UserDetailModal({
                       </div>
                       <div className="flex items-center gap-2">
                         <span className="text-lg">
-                          {formatLastActive(user.lastActive).emoji}
+                          {formatLastActive(user?.lastActive || null).emoji}
                         </span>
                         <Chip
-                          color={formatLastActive(user.lastActive).color as any}
+                          color={formatLastActive(user?.lastActive || null).color as any}
                           size="sm"
                           variant="flat"
                         >
-                          {formatLastActive(user.lastActive).text}
+                          {formatLastActive(user?.lastActive || null).text}
                         </Chip>
                       </div>
                     </CardBody>
