@@ -1,6 +1,6 @@
 "use client";
-import React from "react";
-import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Card, CardHeader, CardBody, Divider, Chip, Input, Pagination, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, Button } from "@heroui/react";
+import React, { useState } from "react";
+import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Card, CardHeader, CardBody, Divider, Chip, Input, Pagination, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, Button, SelectItem, Select } from "@heroui/react";
 import { Package, Search, Edit } from "lucide-react";
 
 interface TimesheetEntry {
@@ -18,11 +18,13 @@ interface TimesheetEntry {
   durationSec?: number;
   duration?: string;
   assetTag?: string;
+  status?: string;
 }
 
 export default function TableDatas({ timesheetData }: { timesheetData: TimesheetEntry[] }) {
-  const [searchQuery, setSearchQuery] = React.useState("");
-  const [page, setPage] = React.useState(1);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [page, setPage] = useState(1);
+  const [statusFilter, setStatusFilter] = useState("all");
   const deferredSearchQuery = React.useDeferredValue(searchQuery);
   const ROWS_PER_PAGE = 10;
 
@@ -34,14 +36,22 @@ export default function TableDatas({ timesheetData }: { timesheetData: Timesheet
   }, []);
 
   const filteredData = React.useMemo(() => {
-    if (!deferredSearchQuery.trim()) return timesheetData;
+    let data = timesheetData;
+    if (statusFilter !== "all") {
+      data = data.filter((entry) => {
+        if (statusFilter === "open") return entry.status !== "closed";
+        if (statusFilter === "closed") return entry.status === "closed";
+        return true;
+      });
+    }
+    if (!deferredSearchQuery.trim()) return data;
     const query = deferredSearchQuery.toLowerCase();
-    return timesheetData.filter((entry) =>
+    return data.filter((entry) =>
       entry.activity.toLowerCase().includes(query) ||
       entry.activityDesc.toLowerCase().includes(query) ||
       (entry.location?.toLowerCase().includes(query) ?? false)
     );
-  }, [timesheetData, deferredSearchQuery]);
+  }, [timesheetData, deferredSearchQuery, statusFilter]);
 
   // Sort by startTime descending
   const sortedData = React.useMemo(() => {
@@ -74,7 +84,7 @@ export default function TableDatas({ timesheetData }: { timesheetData: Timesheet
             <p className="text-small text-default-600">Aktivitas Timesheet User</p>
           </div>
         </div>
-        <div className="flex gap-2 w-full sm:w-auto">
+        <div className="flex gap-2 w-full sm:w-auto items-center">
           <Input
             className="hidden sm:flex w-64"
             placeholder="Cari aktivitas..."
@@ -88,6 +98,18 @@ export default function TableDatas({ timesheetData }: { timesheetData: Timesheet
             }}
             onValueChange={handleSearchChange}
           />
+          <Select
+            size="sm"
+            className="w-32"
+            value={statusFilter}
+            defaultSelectedKeys={["all"]}
+            onChange={e => setStatusFilter(e.target.value)}
+            aria-label="Filter Status"
+          >
+            <SelectItem key="all" >All</SelectItem>
+            <SelectItem key="open" >Open</SelectItem>
+            <SelectItem key="closed" >Closed</SelectItem>
+          </Select>
         </div>
       </CardHeader>
       <Divider />

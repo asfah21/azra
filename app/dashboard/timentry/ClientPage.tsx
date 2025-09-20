@@ -18,7 +18,15 @@ export default function TimeEntryClientPage() {
   const handleAddOrEditActivity = async (entry: any) => {
     let eid = openEntryId;
     if (!eid) {
-      const r = await fetch('/api/timentry', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'open', shiftDate: shiftInfo.shiftDate, shiftType: shiftInfo.shiftType }) });
+      const payload: any = { action: 'open', shiftDate: shiftInfo.shiftDate, shiftType: shiftInfo.shiftType };
+      // Pastikan assetTag diambil dari unit jika belum ada di selectedAssetTag
+      let assetTag = selectedAssetTag;
+      if (!assetTag && selectedUnitId && units.length > 0) {
+        const found = units.find(u => u.id === selectedUnitId);
+        if (found) assetTag = found.assetTag;
+      }
+      if (assetTag) payload.assetTag = assetTag;
+      const r = await fetch('/api/timentry', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
       if (r.ok) {
         const d = await r.json(); eid = d.id; setOpenEntryId(eid);
       }
@@ -31,7 +39,7 @@ export default function TimeEntryClientPage() {
       const [eh, em] = entry.endTime.split(":").map(Number);
       let sec = (eh*60+em)*60 - (sh*60+sm)*60;
       if (sec < 0) sec = 0;
-      const h = Math.floor(sec/3600).toString().padStart(2,"0");
+      const h = Math.floor(sec/3600).toString().padStart(2,"0");  
       const m = Math.floor((sec%3600)/60).toString().padStart(2,"0");
       const s = Math.floor(sec%60).toString().padStart(2,"0");
       duration = `${h}:${m}:${s}`;
@@ -199,6 +207,7 @@ export default function TimeEntryClientPage() {
                   const sel = units.find((u) => u.id === id);
                   if (sel) {
                     setProject(sel.assetTag);
+                    setSelectedAssetTag(sel.assetTag);
                   }
                 }}
             >
@@ -395,7 +404,9 @@ export default function TimeEntryClientPage() {
             </div>
           )}
           {!loadingEntries && entries.length === 0 && <div>No activities</div>}
-          {!loadingEntries && entries.map((e:any) => {
+          {!loadingEntries && [...entries]
+            .sort((a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime())
+            .map((e:any) => {
             return (
               <div key={e.id} className="py-2 flex flex-col md:flex-row md:items-center md:justify-between gap-2">
                 <div className="flex-1">
@@ -404,23 +415,20 @@ export default function TimeEntryClientPage() {
                     <span className="truncate font-semibold">&nbsp;{e.location}</span>
                   </span>
                  <span className="pb-1 text-sm text-default-700 max-w-full md:max-w-[300px] flex items-start">
-  <NotebookPen size={14} className="text-blue-400 shrink-0 mt-[2px]" />
-  <span className="ml-1 break-words whitespace-normal md:whitespace-nowrap">
-    {e.activityDesc}
-  </span>
-</span>
-
-
-
-
-                  {/* <div className="font-semibold">{e.activity}</div> */}
-                  {/* <div className="text-sm">{e.activityDesc}</div> */}
-                  {/* <div className="text-xs">{e.startTime} - {e.endTime}</div> */}
-                  <div className="text-[11px] text-default-400 font-mono">
-                    {new Date(e.startTime).toLocaleTimeString("id-ID", { hour: '2-digit', minute: '2-digit', hour12: false })}
-                    {" - "}
-                    {new Date(e.endTime).toLocaleTimeString("id-ID", { hour: '2-digit', minute: '2-digit', hour12: false })}
-                  </div>
+                  <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" className="text-blue-500"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></svg>
+                  {/* <NotebookPen size={14} className="text-blue-400 shrink-0 mt-[2px]" /> */}
+                  <span className="ml-1 break-words whitespace-normal md:whitespace-nowrap">
+                    {e.activityDesc}
+                  </span>
+                </span>
+                <span className="pb-1 text-sm text-default-700 max-w-full md:max-w-[300px] flex items-start">
+                  <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" className="mt-0.5 text-green-500"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                    <span className="text-[11px] text-default-400 font-mono ml-1">
+                      {new Date(e.startTime).toLocaleTimeString("id-ID", { hour: '2-digit', minute: '2-digit', hour12: false })}
+                      {" - "}
+                      {new Date(e.endTime).toLocaleTimeString("id-ID", { hour: '2-digit', minute: '2-digit', hour12: false })}
+                  </span>
+                </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Button size="sm" onClick={() => {

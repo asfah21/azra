@@ -17,17 +17,15 @@ export async function GET(request: Request) {
 
   try {
   const where: any = { userId: session.user.id };
-    if (shiftDate && /^\d{4}-\d{2}-\d{2}$/.test(shiftDate)) where.shiftDate = new Date(shiftDate + 'T00:00:00.000Z');
-    if (shiftType) where.shiftType = shiftType;
-  // only consider non-closed sessions for dashboard listing
-  where.status = { not: 'closed' };
+  if (shiftDate && /^\d{4}-\d{2}-\d{2}$/.test(shiftDate)) where.shiftDate = new Date(shiftDate + 'T00:00:00.000Z');
+  if (shiftType) where.shiftType = shiftType;
 
-    const entries = await prisma.timeEntry.findMany({ where, include: { activities: true }, orderBy: { createdAt: 'asc' } });
+  const entries = await prisma.timeEntry.findMany({ where, include: { activities: true, user: true }, orderBy: { createdAt: 'asc' } });
 
     // detect open session for this user+shift: use latest timeEntry if exists
     const open = entries.length ? entries[entries.length - 1] : null;
 
-    // flatten activities for frontend convenience
+    // flatten activities for frontend convenience, include parent info
     const activities: any[] = [];
     for (const te of entries) {
       for (const a of te.activities || []) {
@@ -41,6 +39,10 @@ export async function GET(request: Request) {
           endTime: a.endTime,
           durationSec: a.durationSec,
           assetTag: te.assetTag || null,
+          shiftDate: te.shiftDate?.toISOString().slice(0,10) || null,
+          shiftType: te.shiftType || null,
+          userName: te.user?.name || '-',
+          status: te.status || null,
         });
       }
     }
