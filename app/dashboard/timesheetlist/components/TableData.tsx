@@ -5,16 +5,19 @@ import { Package, Search, Edit } from "lucide-react";
 
 interface TimesheetEntry {
   id: string;
-  userId: string;
+  timeEntryId?: string;
+  userId?: string;
   userName?: string;
   activity: string;
   activityDesc: string;
   location?: string;
-  shiftDate: string;
-  shiftType: string;
+  shiftDate?: string;
+  shiftType?: string;
   startTime: string;
   endTime: string;
-  duration: string;
+  durationSec?: number;
+  duration?: string;
+  assetTag?: string;
 }
 
 export default function TableDatas({ timesheetData }: { timesheetData: TimesheetEntry[] }) {
@@ -36,40 +39,17 @@ export default function TableDatas({ timesheetData }: { timesheetData: Timesheet
     return timesheetData.filter((entry) =>
       entry.activity.toLowerCase().includes(query) ||
       entry.activityDesc.toLowerCase().includes(query) ||
-      (entry.location?.toLowerCase().includes(query) ?? false) ||
-      entry.shiftDate.toLowerCase().includes(query) ||
-      entry.shiftType.toLowerCase().includes(query)
+      (entry.location?.toLowerCase().includes(query) ?? false)
     );
   }, [timesheetData, deferredSearchQuery]);
 
-  // Group data per user per shift
-  const groupByUserShift = (data: TimesheetEntry[]) => {
-    const groups: Record<string, TimesheetEntry[]> = {};
-    data.forEach(entry => {
-      const key = `${entry.userId}-${entry.shiftDate}-${entry.shiftType}`;
-      if (!groups[key]) groups[key] = [];
-      groups[key].push(entry);
-    });
-    return groups;
-  };
-  const grouped = React.useMemo(() => groupByUserShift(filteredData), [filteredData]);
-  // Sort groups so the most recent (by entry startTime) appears first
-  const groupKeys = React.useMemo(() => {
-    return Object.keys(grouped).sort((a, b) => {
-      const aEntries = grouped[a] || [];
-      const bEntries = grouped[b] || [];
-      const aMax = aEntries.reduce((mx, it) => Math.max(mx, new Date(it.startTime).getTime()), 0);
-      const bMax = bEntries.reduce((mx, it) => Math.max(mx, new Date(it.startTime).getTime()), 0);
-      return bMax - aMax; // descending
-    });
-  }, [grouped]);
+  // Sort by startTime descending
+  const sortedData = React.useMemo(() => {
+    return [...filteredData].sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime());
+  }, [filteredData]);
 
-  const paginationData = React.useMemo(() => {
-    const totalPages = Math.ceil(groupKeys.length / ROWS_PER_PAGE);
-    const start = (page - 1) * ROWS_PER_PAGE;
-    const items = groupKeys.slice(start, start + ROWS_PER_PAGE);
-    return { totalPages, items };
-  }, [groupKeys, page]);
+  const totalPages = Math.ceil(sortedData.length / ROWS_PER_PAGE);
+  const pagedData = sortedData.slice((page - 1) * ROWS_PER_PAGE, page * ROWS_PER_PAGE);
 
   const handlePageChange = React.useCallback((newPage: number) => {
     React.startTransition(() => {
@@ -88,7 +68,7 @@ export default function TableDatas({ timesheetData }: { timesheetData: Timesheet
             <div className="flex items-center gap-2">
               <p className="text-xl font-semibold text-default-800 text-left">Timesheet</p>
               <Chip className="text-sm font-bold" color="success" radius="sm" size="sm" variant="flat">
-                {groupKeys.length}
+                {pagedData.length}
               </Chip>
             </div>
             <p className="text-small text-default-600">Aktivitas Timesheet User</p>
@@ -126,7 +106,7 @@ export default function TableDatas({ timesheetData }: { timesheetData: Timesheet
             onValueChange={handleSearchChange}
           />
         </div>
-        {paginationData.items.length === 0 ? (
+  {pagedData.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <Package className="w-12 h-12 text-default-300 mb-4" />
             <p className="text-default-500">
@@ -137,7 +117,7 @@ export default function TableDatas({ timesheetData }: { timesheetData: Timesheet
           <div className="overflow-x-auto">
             <Table aria-label="Timesheet table"
               bottomContent={
-                paginationData.totalPages > 1 && (
+                totalPages > 1 && (
                   <div className="flex w-full justify-center">
                     <Pagination
                       isCompact
@@ -145,7 +125,7 @@ export default function TableDatas({ timesheetData }: { timesheetData: Timesheet
                       showShadow
                       color="primary"
                       page={page}
-                      total={paginationData.totalPages}
+                      total={totalPages}
                       onChange={handlePageChange}
                     />
                   </div>
@@ -156,62 +136,27 @@ export default function TableDatas({ timesheetData }: { timesheetData: Timesheet
                 <TableColumn>UNIT</TableColumn>
                 <TableColumn>USER</TableColumn>
                 <TableColumn>DATE</TableColumn>
-                
                 <TableColumn>LOCATION</TableColumn>
                 <TableColumn>SHIFT</TableColumn>
                 <TableColumn>ACTIVITY</TableColumn>
-                <TableColumn>ACTIONS</TableColumn>
+                <TableColumn>START</TableColumn>
+                <TableColumn>END</TableColumn>
+                <TableColumn>DURATION</TableColumn>
               </TableHeader>
               <TableBody>
-                {paginationData.items.map((key, idx) => {
-                  const entries = grouped[key];
-                  const first = entries[0];
-                  return (
-                    <TableRow key={key}>
-                      <TableCell>{
-                        // Use activity (which the ClientPage shows as unit/assetTag) to avoid DB changes
-                        first.activity || '-'
-                      }</TableCell>
-                      <TableCell>{first.userName || '-'}</TableCell>
-                      <TableCell>{
-                        // format shiftDate (YYYY-MM-DD) into dd/mm/yyyy in Asia/Singapore
-                        (() => {
-                          try {
-                            const dt = new Date(first.shiftDate + 'T00:00:00Z');
-                            return dt.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'Asia/Singapore' });
-                          } catch (e) {
-                            return first.shiftDate;
-                          }
-                        })()
-                      }</TableCell>
-                      
-                      <TableCell>{first.location || '-'}</TableCell>
-                      <TableCell>{first.shiftType}</TableCell>
-                      <TableCell>
-                        <Dropdown>
-                          <DropdownTrigger>
-                            <Button variant="flat" size="sm">Lihat Aktivitas</Button>
-                          </DropdownTrigger>
-                          <DropdownMenu aria-label="Aktivitas List">
-                            {entries.map(e => (
-                              <DropdownItem key={e.id} className="flex items-center justify-between">
-                                <span>{e.activity} - {e.activityDesc}</span>
-                                <Button isIconOnly size="sm" variant="light" onPress={() => alert(`Edit ${e.activity}`)}>
-                                  <Edit className="w-4 h-4" />
-                                </Button>
-                              </DropdownItem>
-                            ))}
-                          </DropdownMenu>
-                        </Dropdown>
-                      </TableCell>
-                      <TableCell>
-                        <Button size="sm" color="primary" variant="flat" onPress={() => alert(`Edit shift ${first.shiftDate} - ${first.shiftType}`)}>
-                          Edit Shift
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
+                {pagedData.map((entry, idx) => (
+                  <TableRow key={entry.id}>
+                    <TableCell>{entry.assetTag || '-'}</TableCell>
+                    <TableCell>{entry.userName || '-'}</TableCell>
+                    <TableCell>{entry.shiftDate || '-'}</TableCell>
+                    <TableCell>{entry.location || '-'}</TableCell>
+                    <TableCell>{entry.shiftType || '-'}</TableCell>
+                    <TableCell>{entry.activity || '-'}</TableCell>
+                    <TableCell>{entry.startTime ? new Date(entry.startTime).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false }) : '-'}</TableCell>
+                    <TableCell>{entry.endTime ? new Date(entry.endTime).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false }) : '-'}</TableCell>
+                    <TableCell>{entry.duration || '-'}</TableCell>
+                  </TableRow>
+                ))}
               </TableBody>
             </Table>
           </div>

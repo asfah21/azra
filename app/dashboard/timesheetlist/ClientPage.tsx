@@ -8,15 +8,19 @@ import TableDatas from "./components/TableData";
 
 export default function TimesheetListClientPage() {
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["timesheet"],
+    queryKey: ["timentry-list"],
     queryFn: async () => {
-      const res = await axios.get(`/api/timesheet`);
-      return res.data;
+      const res = await axios.get(`/api/timentry`);
+      // API returns { entries, openEntryId }, flatten activities for table
+      if (res.data && Array.isArray(res.data.entries)) {
+        return res.data.entries;
+      }
+      return [];
     },
     refetchInterval: 10000,
   });
 
-  // Data timesheet per user
+  // Data timesheet: flat activities from timentry
   const timesheetEntries = Array.isArray(data) ? data : [];
 
   return (
