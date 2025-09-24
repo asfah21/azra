@@ -73,6 +73,7 @@ export default function UIDashboardLayout({
     clock: <FiClock />,
     fileInput: <LuFileText/>,
     luList: <LuList />,
+    ListAll: <LuFileType2/>,
   };
 
   // Ambil role access dari backend
@@ -347,7 +348,7 @@ export default function UIDashboardLayout({
     }
 
     // Temporary: Allow timesheet access for debugging
-    if (pathname.startsWith("/dashboard/timesheet")) {
+    if (pathname.startsWith("/dashboard/timentry")) {
       console.log('✅ Temporary timesheet access granted for debugging');
       return;
     }

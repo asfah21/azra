@@ -7,6 +7,8 @@ import { ChevronDown, ChevronUp } from "lucide-react";
 import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Card, CardHeader, CardBody, Divider, Chip, Input, Pagination, Button } from "@heroui/react";
 import { Edit, Package, Search } from "lucide-react";
 import { useSessionUser } from "@/hooks/useSessionUser";
+import Activity from "./Activity";
+import { Modal, ModalContent } from "@heroui/react";
 
 interface TimesheetEntry {
   id: string;
@@ -26,6 +28,23 @@ interface TimesheetEntry {
 }
 
 export default function TableDatas({ timesheetData }: { timesheetData: TimesheetEntry[] }) {
+  // State for delete activity modal
+  const [showDeleteModal, setShowDeleteModal] = React.useState(false);
+  const [deleteActivity, setDeleteActivity] = React.useState<any | null>(null);
+  const [deletingActivityId, setDeletingActivityId] = React.useState<string | null>(null);
+  // State for edit modal
+  const [showEditModal, setShowEditModal] = React.useState(false);
+  const [editActivity, setEditActivity] = React.useState<any | null>(null);
+
+  // State for Activity modal fields
+  const [editProject, setEditProject] = React.useState("");
+  const [editTask, setEditTask] = React.useState("");
+  const [editDesc, setEditDesc] = React.useState("");
+  const [editTag, setEditTag] = React.useState("");
+  const [editDuration, setEditDuration] = React.useState("");
+  const [editStartTime, setEditStartTime] = React.useState("");
+  const [editEndTime, setEditEndTime] = React.useState("");
+  const [editDate, setEditDate] = React.useState(new Date());
   // Ambil nama user dari session auth
   const sessionUser = useSessionUser();
   const currentUserName = sessionUser?.name || 'Admin';
@@ -289,12 +308,89 @@ export default function TableDatas({ timesheetData }: { timesheetData: Timesheet
                                     </div>
                                   </div>
                                   <div className="flex items-center gap-1 mt-2 md:mt-0">
-                                    <button className="px-2 py-1 rounded text-xs font-medium bg-default-200 dark:bg-zinc-800 text-blue-600 hover:bg-default-300 dark:hover:bg-zinc-700 transition" title="Edit Activity">
+                                    <button
+                                      className="px-2 py-1 rounded text-xs font-medium bg-default-200 dark:bg-zinc-800 text-blue-500 hover:bg-default-300 dark:hover:bg-zinc-700 transition"
+                                      title="Edit Activity"
+                                      onClick={() => {
+                                        setEditActivity(a);
+                                        setEditProject(a.activity || "");
+                                        setEditTask(a.location || "");
+                                        setEditDesc(a.activityDesc || "");
+                                        setEditTag(a.assetTag || "");
+                                        setEditDuration(a.duration || "");
+                                        setEditStartTime(a.startTime ? new Date(a.startTime).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : "");
+                                        setEditEndTime(a.endTime ? new Date(a.endTime).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : "");
+                                        setEditDate(a.shiftDate ? new Date(a.shiftDate) : new Date());
+                                        setShowEditModal(true);
+                                      }}
+                                    >
                                       Edit
                                     </button>
-                                    <button className="px-2 py-1 rounded text-xs font-medium bg-red-100 dark:bg-red-900 text-red-600 hover:bg-red-200 dark:hover:bg-red-800 transition" title="Delete Activity">
-                                      Delete
+      {/* Modal Edit Activity */}
+      <Modal isOpen={showEditModal} placement="center" size="xl" onOpenChange={open => { if (!open) setShowEditModal(false); }}>
+        <ModalContent>
+          <Activity
+            project={editProject}
+            setProject={setEditProject}
+            task={editTask}
+            setTask={setEditTask}
+            desc={editDesc}
+            setDesc={setEditDesc}
+            tag={editTag}
+            setTag={setEditTag}
+            duration={editDuration}
+            setDuration={setEditDuration}
+            startTime={editStartTime}
+            setStartTime={setEditStartTime}
+            endTime={editEndTime}
+            setEndTime={setEditEndTime}
+            date={editDate}
+            editingId={editActivity?.id}
+            onClose={() => setShowEditModal(false)}
+            onUpdateLocalEntry={(id, updated) => {
+              setLocalData(prev => prev.map(e => e.id === id ? { ...e, ...updated } : e));
+              setShowEditModal(false);
+            }}
+          />
+        </ModalContent>
+      </Modal>
+                                    <button
+                                      className="px-2 py-1 rounded text-xs font-medium bg-red-100 dark:bg-red-900 text-red-300 hover:bg-red-200 dark:hover:bg-red-800 transition"
+                                      title="Delete Activity"
+                                      onClick={() => {
+                                        setDeleteActivity(a);
+                                        setShowDeleteModal(true);
+                                      }}
+                                      disabled={deletingActivityId === a.id}
+                                    >
+                                      {deletingActivityId === a.id ? 'Deleting...' : 'Delete'}
                                     </button>
+      {/* Modal Delete Activity */}
+      <Modal isOpen={showDeleteModal} placement="center" size="sm" onOpenChange={open => { if (!open) setShowDeleteModal(false); }}>
+        <ModalContent>
+          <div className="p-6 flex flex-col items-center">
+            <div className="text-lg font-semibold mb-2">Hapus Activity?</div>
+            <div className="mb-4 text-center text-default-600">Yakin ingin menghapus activity ini?</div>
+            <div className="flex gap-2 justify-center">
+              <Button color="danger" isLoading={deletingActivityId === deleteActivity?.id} onPress={async () => {
+                setDeletingActivityId(deleteActivity.id);
+                try {
+                  // Call API to delete activity
+                  await fetch(`/api/timesheetall/activity/${deleteActivity.id}`, { method: 'DELETE' });
+                  // Remove from local state
+                  setLocalData(prev => prev.filter(e => e.id !== deleteActivity.id));
+                  setShowDeleteModal(false);
+                } catch (err) {
+                  // Optionally show error
+                } finally {
+                  setDeletingActivityId(null);
+                }
+              }}>Hapus</Button>
+              <Button variant="flat" onPress={() => setShowDeleteModal(false)}>Batal</Button>
+            </div>
+          </div>
+        </ModalContent>
+      </Modal>
                                   </div>
                                 </div>
                               ))}

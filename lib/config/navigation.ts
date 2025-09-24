@@ -24,7 +24,7 @@ export const defaultNavItems = [
       {
         id: "timesheetform",
         title: "Form",
-        path: "/dashboard/timesheet",
+        path: "/dashboard/timentry",
         icon: "fileInput",
         defaultRoles: ["admin_heavy", "guest"],
       },
@@ -34,6 +34,13 @@ export const defaultNavItems = [
         path: "/dashboard/timesheetlist",
         icon: "luList",
         defaultRoles: ["admin_heavy", "guest"],
+      },
+       {
+        id: "timesheetall",
+        title: "All ",
+        path: "/dashboard/timesheetall",
+        icon: "ListAll",
+        defaultRoles: ["admin_heavy"],
       },
     ],
   },
