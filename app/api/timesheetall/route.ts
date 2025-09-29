@@ -26,6 +26,7 @@ export async function GET(request: Request) {
           shiftDate: te.shiftDate?.toISOString().slice(0, 10) || null,
           shiftType: te.shiftType || null,
           userName: te.user?.name || '-',
+          approvedBy: te.approvedBy || null,
         });
       }
     }

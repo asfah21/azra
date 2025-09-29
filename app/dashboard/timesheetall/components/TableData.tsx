@@ -25,6 +25,7 @@ interface TimesheetEntry {
   durationSec?: number;
   duration?: string;
   assetTag?: string;
+  approvedBy?: string; // Added property
 }
 
 export default function TableDatas({ timesheetData }: { timesheetData: TimesheetEntry[] }) {
@@ -239,7 +240,7 @@ export default function TableDatas({ timesheetData }: { timesheetData: Timesheet
                   const first = activities[0];
                   return (
                     <>
-                      <TableRow key={tid} onClick={() => setSelectedRow(selectedRow === tid ? null : tid)} className={`cursor-pointer transition-colors ${selectedRow === tid ? 'bg-[#27272a]' : ''}`}>
+                      <TableRow key={tid} onClick={() => setSelectedRow(selectedRow === tid ? null : tid)} className={`cursor-pointer transition-colors ${selectedRow === tid ? 'bg-gray-100 dark:bg-[#27272a]' : ''}`}>
                         <TableCell className="truncate flex items-center py-2 mt-1.5 gap-2 text-center">
                           <span className="ml-2">
                             {selectedRow === tid ? <ChevronUp size={16} className="text-blue-500" /> : <ChevronDown size={18} className="text-gray-400" />}
@@ -255,25 +256,34 @@ export default function TableDatas({ timesheetData }: { timesheetData: Timesheet
                         <TableCell className="text-center">{first.endTime ? new Date(first.endTime).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false }) : '-'}</TableCell>
                         <TableCell className="text-center">{activities.reduce((sum, a) => sum + (a.durationSec || 0), 0) || '-'}</TableCell>
                         <TableCell className="text-center">
-                          <Button
-                            variant="solid"
-                            size="sm"
-                            color="success"
-                            className="mr-2"
-                            onPress={() => handleApprove({ ...first, timeEntryId: tid })}
-                          >
-                            <Edit className="w-4 h-4 mr-2" /> Approve
-                          </Button>
-                          <Button
-                            variant="solid"
-                            size="sm"
-                            color="danger"
-                            isLoading={deletingId === tid}
-                            disabled={deletingId === tid}
-                            onPress={() => handleDelete({ ...first, timeEntryId: tid })}
-                          >
-                            <Edit className="w-4 h-4 mr-2" /> Reject
-                          </Button>
+                          {first.approvedBy == null ? (
+                            <>
+                              <Button
+                                variant="solid"
+                                size="sm"
+                                color="success"
+                                className="mr-2"
+                                onPress={() => handleApprove({ ...first, timeEntryId: tid })}
+                              >
+                                <Edit className="w-4 h-4 mr-2" /> Approve
+                              </Button>
+                              <Button
+                                variant="solid"
+                                size="sm"
+                                color="danger"
+                                isLoading={deletingId === tid}
+                                disabled={deletingId === tid}
+                                onPress={() => handleDelete({ ...first, timeEntryId: tid })}
+                              >
+                                <Edit className="w-4 h-4 mr-2" /> Reject
+                              </Button>
+                            </>
+                          ) : (
+                            <div>
+                              <span className="text-xs text-green-600">Approved By: </span>
+                              <span className="text-xs text-gray-900 font-semibold dark:text-gray-100">{first.approvedBy} </span>
+                            </div>
+                          )}
                         </TableCell>
                       </TableRow>
                       {selectedRow === tid && (
@@ -308,24 +318,39 @@ export default function TableDatas({ timesheetData }: { timesheetData: Timesheet
                                     </div>
                                   </div>
                                   <div className="flex items-center gap-1 mt-2 md:mt-0">
-                                    <button
-                                      className="px-2 py-1 rounded text-xs font-medium bg-default-200 dark:bg-zinc-800 text-blue-500 hover:bg-default-300 dark:hover:bg-zinc-700 transition"
-                                      title="Edit Activity"
-                                      onClick={() => {
-                                        setEditActivity(a);
-                                        setEditProject(a.activity || "");
-                                        setEditTask(a.location || "");
-                                        setEditDesc(a.activityDesc || "");
-                                        setEditTag(a.assetTag || "");
-                                        setEditDuration(a.duration || "");
-                                        setEditStartTime(a.startTime ? new Date(a.startTime).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : "");
-                                        setEditEndTime(a.endTime ? new Date(a.endTime).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : "");
-                                        setEditDate(a.shiftDate ? new Date(a.shiftDate) : new Date());
-                                        setShowEditModal(true);
-                                      }}
-                                    >
-                                      Edit
-                                    </button>
+                                    {first.approvedBy == null ? (
+                                      <>
+                                        <button
+                                          className="px-2 py-1 rounded text-xs font-medium bg-default-200 dark:bg-zinc-800 text-blue-500 hover:bg-default-300 dark:hover:bg-zinc-700 transition"
+                                          title="Edit Activity"
+                                          onClick={() => {
+                                            setEditActivity(a);
+                                            setEditProject(a.activity || "");
+                                            setEditTask(a.location || "");
+                                            setEditDesc(a.activityDesc || "");
+                                            setEditTag(a.assetTag || "");
+                                            setEditDuration(a.duration || "");
+                                            setEditStartTime(a.startTime ? new Date(a.startTime).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : "");
+                                            setEditEndTime(a.endTime ? new Date(a.endTime).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : "");
+                                            setEditDate(a.shiftDate ? new Date(a.shiftDate) : new Date());
+                                            setShowEditModal(true);
+                                          }}
+                                        >
+                                          Edit
+                                        </button>
+                                        <button
+                                          className="px-2 py-1 rounded text-xs font-medium bg-red-100 dark:bg-red-900 text-red-300 hover:bg-red-200 dark:hover:bg-red-800 transition"
+                                          title="Delete Activity"
+                                          onClick={() => {
+                                            setDeleteActivity(a);
+                                            setShowDeleteModal(true);
+                                          }}
+                                          disabled={deletingActivityId === a.id}
+                                        >
+                                          {deletingActivityId === a.id ? 'Deleting...' : 'Delete'}
+                                        </button>
+                                      </>
+                                    ) : null}
       {/* Modal Edit Activity */}
       <Modal isOpen={showEditModal} placement="center" size="xl" onOpenChange={open => { if (!open) setShowEditModal(false); }}>
         <ModalContent>
@@ -354,17 +379,7 @@ export default function TableDatas({ timesheetData }: { timesheetData: Timesheet
           />
         </ModalContent>
       </Modal>
-                                    <button
-                                      className="px-2 py-1 rounded text-xs font-medium bg-red-100 dark:bg-red-900 text-red-300 hover:bg-red-200 dark:hover:bg-red-800 transition"
-                                      title="Delete Activity"
-                                      onClick={() => {
-                                        setDeleteActivity(a);
-                                        setShowDeleteModal(true);
-                                      }}
-                                      disabled={deletingActivityId === a.id}
-                                    >
-                                      {deletingActivityId === a.id ? 'Deleting...' : 'Delete'}
-                                    </button>
+                                    {/* Delete button is now only rendered inside the approvedBy == null conditional above */}
       {/* Modal Delete Activity */}
       <Modal isOpen={showDeleteModal} placement="center" size="sm" onOpenChange={open => { if (!open) setShowDeleteModal(false); }}>
         <ModalContent>

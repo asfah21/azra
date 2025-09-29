@@ -106,6 +106,23 @@ export const Sidebar = memo(function Sidebar({
     );
   }, [navItems, roleAccess, userRole, loading]);
 
+  // Track if sidebar is temporarily expanded by hover
+  const [hovered, setHovered] = useState(false);
+
+  // Only auto-expand/collapse if sidebarCollapsed is true
+  const handleMouseEnter = () => {
+    if (sidebarCollapsed) {
+      setSidebarCollapsed(false);
+      setHovered(true);
+    }
+  };
+  const handleMouseLeave = () => {
+    if (hovered) {
+      setSidebarCollapsed(true);
+      setHovered(false);
+    }
+  };
+
   return (
     <aside
       className={`bg-content1 border-r border-divider h-full md:h-screen shadow-small transition-all duration-200 ease-out ${
@@ -115,6 +132,8 @@ export const Sidebar = memo(function Sidebar({
         transform: "translateZ(0)",
         willChange: "width",
       }}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
       {/* Header Section */}
       <div
@@ -151,23 +170,30 @@ export const Sidebar = memo(function Sidebar({
                   <Button
                     className={`w-full transition-all duration-200 ease-out ${sidebarCollapsed ? "justify-center min-w-12 px-0" : "justify-start"} h-12`}
                     startContent={<span className="text-lg flex-shrink-0">{item.icon}</span>}
-                    endContent={<span className={`ml-auto transition-transform ${expandedMenus[item.id] ? "rotate-180" : "rotate-0"}`}><ChevronDown size={18}/></span>}
+                    endContent={
+                      !sidebarCollapsed && (
+                        <span className={`ml-auto transition-transform ${expandedMenus[item.id] ? "rotate-180" : "rotate-0"}`}><ChevronDown size={18}/></span>
+                      )
+                    }
                     variant={isActive ? "flat" : "light"}
                     onPress={() => setExpandedMenus((prev) => ({ ...prev, [item.id]: !prev[item.id] }))}
                   >
                     <span className={`transition-all duration-200 ease-out whitespace-nowrap ${sidebarCollapsed ? "opacity-0 w-0 overflow-hidden ml-0" : "opacity-100 w-auto ml-2"}`}>{item.title}</span>
                   </Button>
                   {expandedMenus[item.id] && (
-                    <div className="pl-8 pt-1">
+                    <div className={sidebarCollapsed ? "flex flex-col items-center pt-1" : "pl-8 pt-1"}>
                       {childrenToShow.map((child: SidebarNavChild) => (
                         <Button
                           key={child.id}
-                          className="w-full h-10 justify-start"
+                          className={sidebarCollapsed ? "w-12 h-12 justify-center px-0" : "w-full h-10 justify-start"}
                           variant={activeTab === child.id ? "flat" : "light"}
-                          startContent={<span className="text-lg">{child.icon}</span>}
+                          startContent={
+                            // ukuran icon
+                            <span className={sidebarCollapsed ? "text-base" : "text-lg"}>{child.icon}</span>
+                          }
                           onPress={() => openNewTab(child)}
                         >
-                          <span className="ml-2">{child.title}</span>
+                          {sidebarCollapsed ? null : <span className="ml-2">{child.title}</span>}
                         </Button>
                       ))}
                     </div>
