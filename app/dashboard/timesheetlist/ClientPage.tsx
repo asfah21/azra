@@ -10,8 +10,8 @@ export default function TimesheetListClientPage() {
   const { data, isLoading, isError } = useQuery({
     queryKey: ["timentry-list"],
     queryFn: async () => {
-      const res = await axios.get(`/api/timentry`);
-      // API returns { entries, openEntryId }, flatten activities for table
+      const res = await axios.get(`/api/timesheetall`);
+      // API returns { entries }, flatten activities for table
       if (res.data && Array.isArray(res.data.entries)) {
         return res.data.entries;
       }

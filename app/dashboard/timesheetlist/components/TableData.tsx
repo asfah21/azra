@@ -19,7 +19,18 @@ interface TimesheetEntry {
   duration?: string;
   assetTag?: string;
   status?: string;
+  approvedBy?: string; // Added property
 }
+
+const formatDuration = (seconds: number) => {
+  if (!seconds || seconds <= 0) return '-';
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const parts = [];
+  if (hours > 0) parts.push(`${hours} jam`);
+  if (minutes > 0) parts.push(`${minutes} menit`);
+  return parts.join(' ');
+};
 
 export default function TableDatas({ timesheetData }: { timesheetData: TimesheetEntry[] }) {
   const [searchQuery, setSearchQuery] = useState("");
@@ -155,12 +166,13 @@ export default function TableDatas({ timesheetData }: { timesheetData: Timesheet
               }
             >
               <TableHeader>
+                <TableColumn>STATUS</TableColumn>
                 <TableColumn>UNIT</TableColumn>
                 <TableColumn>USER</TableColumn>
                 <TableColumn>DATE</TableColumn>
-                <TableColumn>LOCATION</TableColumn>
+                {/* <TableColumn>LOCATION</TableColumn> */}
                 <TableColumn>SHIFT</TableColumn>
-                <TableColumn>ACTIVITY</TableColumn>
+                {/* <TableColumn>ACTIVITY</TableColumn> */}
                 <TableColumn>START</TableColumn>
                 <TableColumn>END</TableColumn>
                 <TableColumn>DURATION</TableColumn>
@@ -168,15 +180,16 @@ export default function TableDatas({ timesheetData }: { timesheetData: Timesheet
               <TableBody>
                 {pagedData.map((entry, idx) => (
                   <TableRow key={entry.id}>
+                    <TableCell>{entry.approvedBy ?? '-'}</TableCell>
                     <TableCell>{entry.assetTag || '-'}</TableCell>
                     <TableCell>{entry.userName || '-'}</TableCell>
                     <TableCell>{entry.shiftDate || '-'}</TableCell>
-                    <TableCell>{entry.location || '-'}</TableCell>
+                    {/* <TableCell>{entry.location || '-'}</TableCell> */}
                     <TableCell>{entry.shiftType || '-'}</TableCell>
-                    <TableCell>{entry.activity || '-'}</TableCell>
+                    {/* <TableCell>{entry.activity || '-'}</TableCell> */}
                     <TableCell>{entry.startTime ? new Date(entry.startTime).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false }) : '-'}</TableCell>
                     <TableCell>{entry.endTime ? new Date(entry.endTime).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false }) : '-'}</TableCell>
-                    <TableCell>{entry.duration || '-'}</TableCell>
+                    <TableCell>{formatDuration(entry.durationSec || 0)}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

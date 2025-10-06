@@ -325,42 +325,38 @@ export default function TimeEntryClientPage() {
             Tambah Activity
           </Button>
         )}
-        {openEntryId && (
-          <>
-            <Button
-              startContent={<Settings2 size={16} />}
-              color="danger"
-              disabled={entries.length === 0}
-              onPress={() => setShowCloseConfirm(true)}
-            >Tutup Timesheet</Button>
-            <Modal isOpen={showCloseConfirm} placement="center" size="sm" onOpenChange={(open) => {
-              if (!open) setShowCloseConfirm(false);
-            }}>
-              <ModalContent>
-                {(onClose) => (
-                  <div className="p-4">
-                    <h3 className="font-semibold mb-2">Confirm Close</h3>
-                    <p className="text-sm text-default-500 mb-4">Apakah yakin menutup sesi timesheet ini?</p>
-                    <div className="flex gap-2 justify-end">
-                      <Button variant="flat" onPress={() => { onClose(); setShowCloseConfirm(false); }}>Batal</Button>
-                      <Button color="danger" onPress={async () => {
-                        if (openEntryId) {
-                          await fetch(`/api/timentry/${openEntryId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'close' }) });
-                          setOpenEntryId(null);
-                          setEntries([]);
-                          try { fetchEntries(shiftInfo); } catch (_) { /* ignore */ }
-                        }
-                        onClose();
-                        setShowCloseConfirm(false);
-                      }}>Tutup</Button>
-                    </div>
-                  </div>
-                )}
-              </ModalContent>
-            </Modal>
-          </>
+        {openEntryId && entries.length > 0 && (
+          <Button
+            startContent={<Settings2 size={16} />}
+            color="danger"
+            onPress={() => setShowCloseConfirm(true)}
+          >Tutup Timesheet</Button>
         )}
-
+        <Modal isOpen={showCloseConfirm} placement="center" size="sm" onOpenChange={(open) => {
+          if (!open) setShowCloseConfirm(false);
+        }}>
+          <ModalContent>
+            {(onClose) => (
+              <div className="p-4">
+                <h3 className="font-semibold mb-2">Confirm Close</h3>
+                <p className="text-sm text-default-500 mb-4">Apakah yakin menutup sesi timesheet ini?</p>
+                <div className="flex gap-2 justify-end">
+                  <Button variant="flat" onPress={() => { onClose(); setShowCloseConfirm(false); }}>Batal</Button>
+                  <Button color="danger" onPress={async () => {
+                    if (openEntryId) {
+                      await fetch(`/api/timentry/${openEntryId}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'close' }) });
+                      setOpenEntryId(null);
+                      setEntries([]);
+                      try { fetchEntries(shiftInfo); } catch (_) { /* ignore */ }
+                    }
+                    onClose();
+                    setShowCloseConfirm(false);
+                  }}>Tutup</Button>
+                </div>
+              </div>
+            )}
+          </ModalContent>
+        </Modal>
       </div>
 
   <Modal isOpen={showTimeLog} placement="center" size="4xl" isDismissable={false} onOpenChange={(open) => { if (!open) setShowTimeLog(false); }}>

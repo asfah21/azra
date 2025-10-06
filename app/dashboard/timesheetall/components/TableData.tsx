@@ -28,6 +28,16 @@ interface TimesheetEntry {
   approvedBy?: string; // Added property
 }
 
+const formatDuration = (seconds: number) => {
+  if (!seconds || seconds <= 0) return '-';
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const parts = [];
+  if (hours > 0) parts.push(`${hours} jam`);
+  if (minutes > 0) parts.push(`${minutes} menit`);
+  return parts.join(' ');
+};
+
 export default function TableDatas({ timesheetData }: { timesheetData: TimesheetEntry[] }) {
   // State for delete activity modal
   const [showDeleteModal, setShowDeleteModal] = React.useState(false);
@@ -254,7 +264,7 @@ export default function TableDatas({ timesheetData }: { timesheetData: Timesheet
                         {/* Kolom activity dihapus */}
                         <TableCell className="text-center">{first.startTime ? new Date(first.startTime).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false }) : '-'}</TableCell>
                         <TableCell className="text-center">{first.endTime ? new Date(first.endTime).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false }) : '-'}</TableCell>
-                        <TableCell className="text-center">{activities.reduce((sum, a) => sum + (a.durationSec || 0), 0) || '-'}</TableCell>
+                        <TableCell className="text-center">{formatDuration(activities.reduce((sum, a) => sum + (a.durationSec || 0), 0))}</TableCell>
                         <TableCell className="text-center">
                           {first.approvedBy == null ? (
                             <>
@@ -351,61 +361,61 @@ export default function TableDatas({ timesheetData }: { timesheetData: Timesheet
                                         </button>
                                       </>
                                     ) : null}
-      {/* Modal Edit Activity */}
-      <Modal isOpen={showEditModal} placement="center" size="xl" onOpenChange={open => { if (!open) setShowEditModal(false); }}>
-        <ModalContent>
-          <Activity
-            project={editProject}
-            setProject={setEditProject}
-            task={editTask}
-            setTask={setEditTask}
-            desc={editDesc}
-            setDesc={setEditDesc}
-            tag={editTag}
-            setTag={setEditTag}
-            duration={editDuration}
-            setDuration={setEditDuration}
-            startTime={editStartTime}
-            setStartTime={setEditStartTime}
-            endTime={editEndTime}
-            setEndTime={setEditEndTime}
-            date={editDate}
-            editingId={editActivity?.id}
-            onClose={() => setShowEditModal(false)}
-            onUpdateLocalEntry={(id, updated) => {
-              setLocalData(prev => prev.map(e => e.id === id ? { ...e, ...updated } : e));
-              setShowEditModal(false);
-            }}
-          />
-        </ModalContent>
-      </Modal>
+                                    {/* Modal Edit Activity */}
+                                    <Modal isOpen={showEditModal} placement="center" size="xl" onOpenChange={open => { if (!open) setShowEditModal(false); }}>
+                                      <ModalContent>
+                                        <Activity
+                                          project={editProject}
+                                          setProject={setEditProject}
+                                          task={editTask}
+                                          setTask={setEditTask}
+                                          desc={editDesc}
+                                          setDesc={setEditDesc}
+                                          tag={editTag}
+                                          setTag={setEditTag}
+                                          duration={editDuration}
+                                          setDuration={setEditDuration}
+                                          startTime={editStartTime}
+                                          setStartTime={setEditStartTime}
+                                          endTime={editEndTime}
+                                          setEndTime={setEditEndTime}
+                                          date={editDate}
+                                          editingId={editActivity?.id}
+                                          onClose={() => setShowEditModal(false)}
+                                          onUpdateLocalEntry={(id, updated) => {
+                                            setLocalData(prev => prev.map(e => e.id === id ? { ...e, ...updated } : e));
+                                            setShowEditModal(false);
+                                          }}
+                                        />
+                                      </ModalContent>
+                                    </Modal>
                                     {/* Delete button is now only rendered inside the approvedBy == null conditional above */}
-      {/* Modal Delete Activity */}
-      <Modal isOpen={showDeleteModal} placement="center" size="sm" onOpenChange={open => { if (!open) setShowDeleteModal(false); }}>
-        <ModalContent>
-          <div className="p-6 flex flex-col items-center">
-            <div className="text-lg font-semibold mb-2">Hapus Activity?</div>
-            <div className="mb-4 text-center text-default-600">Yakin ingin menghapus activity ini?</div>
-            <div className="flex gap-2 justify-center">
-              <Button color="danger" isLoading={deletingActivityId === deleteActivity?.id} onPress={async () => {
-                setDeletingActivityId(deleteActivity.id);
-                try {
-                  // Call API to delete activity
-                  await fetch(`/api/timesheetall/activity/${deleteActivity.id}`, { method: 'DELETE' });
-                  // Remove from local state
-                  setLocalData(prev => prev.filter(e => e.id !== deleteActivity.id));
-                  setShowDeleteModal(false);
-                } catch (err) {
-                  // Optionally show error
-                } finally {
-                  setDeletingActivityId(null);
-                }
-              }}>Hapus</Button>
-              <Button variant="flat" onPress={() => setShowDeleteModal(false)}>Batal</Button>
-            </div>
-          </div>
-        </ModalContent>
-      </Modal>
+                                    {/* Modal Delete Activity */}
+                                    <Modal isOpen={showDeleteModal} placement="center" size="sm" onOpenChange={open => { if (!open) setShowDeleteModal(false); }}>
+                                      <ModalContent>
+                                        <div className="p-6 flex flex-col items-center">
+                                          <div className="text-lg font-semibold mb-2">Hapus Activity?</div>
+                                          <div className="mb-4 text-center text-default-600">Yakin ingin menghapus activity ini?</div>
+                                          <div className="flex gap-2 justify-center">
+                                            <Button color="danger" isLoading={deletingActivityId === deleteActivity?.id} onPress={async () => {
+                                              setDeletingActivityId(deleteActivity.id);
+                                              try {
+                                                // Call API to delete activity
+                                                await fetch(`/api/timesheetall/activity/${deleteActivity.id}`, { method: 'DELETE' });
+                                                // Remove from local state
+                                                setLocalData(prev => prev.filter(e => e.id !== deleteActivity.id));
+                                                setShowDeleteModal(false);
+                                              } catch (err) {
+                                                // Optionally show error
+                                              } finally {
+                                                setDeletingActivityId(null);
+                                              }
+                                            }}>Hapus</Button>
+                                            <Button variant="flat" onPress={() => setShowDeleteModal(false)}>Batal</Button>
+                                          </div>
+                                        </div>
+                                      </ModalContent>
+                                    </Modal>
                                   </div>
                                 </div>
                               ))}
