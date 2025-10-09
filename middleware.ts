@@ -1,35 +1,43 @@
 import type { NextRequest } from "next/server";
+
 import { NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
+
 import { defaultNavItems } from "@/lib/config/navigation"; // static mapping path<->menu id
 
 // Helper: find nav item by pathname
 function findNavItem(pathname: string) {
   // Exact match child first
   for (const parent of defaultNavItems) {
-    if ('children' in parent && Array.isArray(parent.children)) {
+    if ("children" in parent && Array.isArray(parent.children)) {
       const child = parent.children.find((c) => c.path === pathname);
+
       if (child) return child;
     }
   }
 
   // Exact match parent
-  let item = defaultNavItems.find((n) => 'path' in n && n.path === pathname);
+  let item = defaultNavItems.find((n) => "path" in n && n.path === pathname);
+
   if (item) return item;
 
   // Prefix match child first
   for (const parent of defaultNavItems) {
-    if ('children' in parent && Array.isArray(parent.children)) {
+    if ("children" in parent && Array.isArray(parent.children)) {
       const child = parent.children.find(
         (c) => c.path && pathname.startsWith(c.path + "/"),
       );
+
       if (child) return child;
     }
   }
 
   // Prefix match parent
   item = defaultNavItems.find(
-    (n) => 'path' in n && n.path !== "/dashboard" && pathname.startsWith(n.path + "/"),
+    (n) =>
+      "path" in n &&
+      n.path !== "/dashboard" &&
+      pathname.startsWith(n.path + "/"),
   );
   if (item) return item;
 
@@ -37,6 +45,7 @@ function findNavItem(pathname: string) {
   if (pathname.startsWith("/dashboard")) {
     return defaultNavItems.find((n) => n.id === "dashboard");
   }
+
   return null;
 }
 
@@ -53,7 +62,9 @@ export async function middleware(request: NextRequest) {
     // Tidak ada session => redirect login
     if (!token) {
       const url = new URL("/login", request.url);
+
       url.searchParams.set("callbackUrl", pathname);
+
       return NextResponse.redirect(url);
     }
 
@@ -69,6 +80,7 @@ export async function middleware(request: NextRequest) {
       "mekanik",
       "guest",
     ];
+
     if (!userRole || !validRoles.includes(userRole)) {
       return NextResponse.redirect(new URL("/login", request.url));
     }
@@ -80,6 +92,7 @@ export async function middleware(request: NextRequest) {
 
     // Identifikasi nav item target
     const targetItem = findNavItem(pathname);
+
     if (!targetItem) {
       // Path tidak dikenali => izinkan (atau bisa redirect 404)
       return NextResponse.next();
@@ -91,6 +104,7 @@ export async function middleware(request: NextRequest) {
 
     // Ambil konfigurasi akses dinamis dari API (database)
     let dynamicAccess: Record<string, string[]> = {};
+
     try {
       const apiUrl = new URL("/api/role-access", request.url);
       const res = await fetch(apiUrl.toString(), {
@@ -100,9 +114,11 @@ export async function middleware(request: NextRequest) {
         // Hindari cache agar perubahan cepat berlaku
         cache: "no-store",
       });
+
       if (res.ok) {
         // Data: array { menu, role }
         const data: Array<{ menu: string; role: string }> = await res.json();
+
         for (const entry of data) {
           if (!dynamicAccess[entry.menu]) dynamicAccess[entry.menu] = [];
           dynamicAccess[entry.menu].push(entry.role);
@@ -114,8 +130,9 @@ export async function middleware(request: NextRequest) {
 
     // Jika targetItem adalah child menu, cek akses child saja
     let isChild = false;
+
     for (const parent of defaultNavItems) {
-      if ('children' in parent && Array.isArray(parent.children)) {
+      if ("children" in parent && Array.isArray(parent.children)) {
         if (parent.children.some((c) => c.id === targetItem.id)) {
           isChild = true;
           break;
@@ -123,12 +140,16 @@ export async function middleware(request: NextRequest) {
       }
     }
 
-  let allowedRoles: string[] = [];
+    let allowedRoles: string[] = [];
+
     if (isChild) {
       allowedRoles = dynamicAccess[targetItem.id];
       // Jika child tidak punya entry di DB dan defaultRoles kosong, akses ditolak
-      if ((!allowedRoles || allowedRoles.length === 0)) {
-        if ((targetItem as any).defaultRoles && (targetItem as any).defaultRoles.length > 0) {
+      if (!allowedRoles || allowedRoles.length === 0) {
+        if (
+          (targetItem as any).defaultRoles &&
+          (targetItem as any).defaultRoles.length > 0
+        ) {
           allowedRoles = [...(targetItem as any).defaultRoles];
         } else {
           // Tidak ada akses sama sekali
@@ -146,9 +167,11 @@ export async function middleware(request: NextRequest) {
     }
 
     const hasAccess = allowedRoles.includes(userRole);
+
     if (!hasAccess) {
       // Redirect balik ke dashboard (hindari loop jika sudah di dashboard)
       const redirectUrl = new URL("/dashboard", request.url);
+
       return NextResponse.redirect(redirectUrl);
     }
   }

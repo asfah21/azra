@@ -75,6 +75,7 @@ export default function RoleManagement() {
   useEffect(() => {
     const fetchRoleAccessFromAPI = async () => {
       const accessMap: Record<string, string[]> = {};
+
       defaultNavItems.forEach((item) => {
         accessMap[item.id] = []; // Nilai default
       });
@@ -112,6 +113,7 @@ export default function RoleManagement() {
     if (isLoading) return;
 
     const allowedRoles = accessConfig["auth"] || [];
+
     if (!allowedRoles.includes(session.user.role)) {
       router.replace("/dashboard");
     }
@@ -193,12 +195,12 @@ export default function RoleManagement() {
     const defaultRoles: Record<string, string[]> = {};
 
     defaultNavItems.forEach((item) => {
-      if ('defaultRoles' in item) {
+      if ("defaultRoles" in item) {
         defaultRoles[item.id] = [...item.defaultRoles];
       }
-      if ('children' in item && item.children) {
+      if ("children" in item && item.children) {
         item.children.forEach((child) => {
-          if ('defaultRoles' in child) {
+          if ("defaultRoles" in child) {
             defaultRoles[child.id] = [...child.defaultRoles];
           }
         });
@@ -374,12 +376,14 @@ export default function RoleManagement() {
               <TableBody>
                 {(() => {
                   const items: any[] = [];
+
                   defaultNavItems.forEach((item) => {
                     items.push(item);
-                    if ('children' in item && Array.isArray(item.children)) {
+                    if ("children" in item && Array.isArray(item.children)) {
                       items.push(...item.children);
                     }
                   });
+
                   return items;
                 })().map((item) => (
                   <TableRow key={item.id}>
@@ -392,7 +396,10 @@ export default function RoleManagement() {
                             <div className="flex justify-center">
                               <Checkbox
                                 aria-label={`Akses ${r.name} untuk ${item.title}`}
-                                isSelected={selectedRoles[item.id]?.includes(r.role) || false}
+                                isSelected={
+                                  selectedRoles[item.id]?.includes(r.role) ||
+                                  false
+                                }
                                 radius="sm"
                                 onValueChange={(checked) =>
                                   handleRoleToggle(item.id, r.role, checked)

@@ -1,24 +1,28 @@
-import { consolePino } from "@/lib/logger";
 import {
   Card,
   CardBody,
   CardHeader,
   Divider,
   Input,
-  Select,
-  SelectItem,
-  Textarea,
   Button,
   Autocomplete,
   AutocompleteItem,
   DatePicker,
 } from "@heroui/react";
 import axios from "axios";
-import { set } from "date-fns";
-import { Clock, Calendar, CloudSnow, Clock7, Hourglass, Save, CircleX } from "lucide-react";
+import {
+  Clock,
+  Calendar,
+  Clock7,
+  Hourglass,
+  Save,
+  CircleX,
+} from "lucide-react";
 import { useEffect, useState } from "react";
-import { getShiftInfo } from "@/lib/dateUtils";
 import { today, fromDate } from "@internationalized/date";
+
+import { getShiftInfo } from "@/lib/dateUtils";
+import { consolePino } from "@/lib/logger";
 
 interface TimeLogProps {
   project: string;
@@ -66,11 +70,11 @@ export default function TimeLog(props: TimeLogProps) {
     endTime,
     setEndTime,
     date,
-  onClose,
-  onSaved,
-  onAddLocalEntry,
-  editingId,
-  onUpdateLocalEntry,
+    onClose,
+    onSaved,
+    onAddLocalEntry,
+    editingId,
+    onUpdateLocalEntry,
   } = props;
   const [units, setUnits] = useState<Unit[]>([]);
   const [loadingUnits, setLoadingUnits] = useState(true);
@@ -87,24 +91,36 @@ export default function TimeLog(props: TimeLogProps) {
     val = val.replace(/[^\d:]/g, "");
     if (!val) return "";
     let [h, m] = val.split(":");
+
     h = h ? h.padStart(2, "0") : "00";
     m = m ? m.padStart(2, "0") : "00";
     let hour = parseInt(h, 10);
     let min = parseInt(m, 10);
+
     if (isNaN(hour) || hour < 0 || hour > 23) hour = 0;
     if (isNaN(min) || min < 0 || min > 59) min = 0;
-    return hour.toString().padStart(2, "0") + ":" + min.toString().padStart(2, "0");
+
+    return (
+      hour.toString().padStart(2, "0") + ":" + min.toString().padStart(2, "0")
+    );
   }
 
   function calcDuration(start: string, end: string) {
-  if (!/^\d{2}:\d{2}$/.test(start) || !/^\d{2}:\d{2}$/.test(end)) return "";
-  const [sh, sm] = start.split(":").map(Number);
-  const [eh, em] = end.split(":").map(Number);
-  let mins = (eh * 60 + em) - (sh * 60 + sm);
-  if (mins < 0) mins += 24 * 60;
-  const h = Math.floor(mins / 60);
-  const m = mins % 60;
-  return h.toString().padStart(2, "0") + ":" + m.toString().padStart(2, "0") + ":00";
+    if (!/^\d{2}:\d{2}$/.test(start) || !/^\d{2}:\d{2}$/.test(end)) return "";
+    const [sh, sm] = start.split(":").map(Number);
+    const [eh, em] = end.split(":").map(Number);
+    let mins = eh * 60 + em - (sh * 60 + sm);
+
+    if (mins < 0) mins += 24 * 60;
+    const h = Math.floor(mins / 60);
+    const m = mins % 60;
+
+    return (
+      h.toString().padStart(2, "0") +
+      ":" +
+      m.toString().padStart(2, "0") +
+      ":00"
+    );
   }
 
   function addDuration(start: string, dur: string) {
@@ -112,24 +128,31 @@ export default function TimeLog(props: TimeLogProps) {
     const [sh, sm] = start.split(":").map(Number);
     const [dh, dm] = dur.split(":").map(Number);
     let mins = sh * 60 + sm + dh * 60 + dm;
+
     mins = mins % (24 * 60);
     const h = Math.floor(mins / 60);
     const m = mins % 60;
+
     return h.toString().padStart(2, "0") + ":" + m.toString().padStart(2, "0");
   }
 
   function handleStartTimeChange(val: string) {
     const formatted = formatTimeInput(val);
+
     setStartTime(formatted);
     if (/^\d{2}:\d{2}$/.test(formatted) && /^\d{2}:\d{2}$/.test(endTime)) {
       setDuration(calcDuration(formatted, endTime));
-    } else if (/^\d{2}:\d{2}$/.test(formatted) && /^\d{2}:\d{2}$/.test(duration)) {
+    } else if (
+      /^\d{2}:\d{2}$/.test(formatted) &&
+      /^\d{2}:\d{2}$/.test(duration)
+    ) {
       setEndTime(addDuration(formatted, duration));
     }
   }
 
   function handleEndTimeChange(val: string) {
     const formatted = formatTimeInput(val);
+
     setEndTime(formatted);
     if (/^\d{2}:\d{2}$/.test(startTime) && /^\d{2}:\d{2}$/.test(formatted)) {
       setDuration(calcDuration(startTime, formatted));
@@ -138,6 +161,7 @@ export default function TimeLog(props: TimeLogProps) {
 
   function handleDurationChange(val: string) {
     let formatted = formatTimeInput(val);
+
     // Always format to HH:MM:00 for duration
     if (/^\d{2}:\d{2}$/.test(formatted)) {
       formatted = formatted + ":00";
@@ -145,40 +169,46 @@ export default function TimeLog(props: TimeLogProps) {
     setDuration(formatted);
     if (/^\d{2}:\d{2}:00$/.test(formatted) && /^\d{2}:\d{2}$/.test(startTime)) {
       // Remove :00 for calculation
-      const dur = formatted.slice(0,5);
+      const dur = formatted.slice(0, 5);
+
       setEndTime(addDuration(startTime, dur));
     }
   }
 
-   // Load units data on component mount
-    useEffect(() => {
-      const fetchUnits = async () => {
-        try {
-          const res = await axios.get("/api/dashboard/workorders?units=true");
-  
-          setUnits(res.data);
-          setLoadingUnits(false);
-        } catch (error) {
-          consolePino.error("Failed to load units:", error);
-          setLoadingUnits(false);
-        }
-      };
-  
-      fetchUnits();
-    }, []);
+  // Load units data on component mount
+  useEffect(() => {
+    const fetchUnits = async () => {
+      try {
+        const res = await axios.get("/api/dashboard/workorders?units=true");
+
+        setUnits(res.data);
+        setLoadingUnits(false);
+      } catch (error) {
+        consolePino.error("Failed to load units:", error);
+        setLoadingUnits(false);
+      }
+    };
+
+    fetchUnits();
+  }, []);
 
   // If parent pre-fills `project` (e.g., on edit), try to select corresponding unit
   useEffect(() => {
     if (!project || units.length === 0) return;
-    const found = units.find((u) => u.name === project || `${u.name} (${u.assetTag})` === project);
+    const found = units.find(
+      (u) => u.name === project || `${u.name} (${u.assetTag})` === project,
+    );
+
     if (found) {
       setSelectedUnitId(found.id);
     }
   }, [project, units]);
-  
+
   return (
     <Card className="mb-6">
-      <CardHeader className="font-semibold text-lg">Timesheet activity</CardHeader>
+      <CardHeader className="font-semibold text-lg">
+        Timesheet activity
+      </CardHeader>
       <Divider />
       <CardBody>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -186,58 +216,62 @@ export default function TimeLog(props: TimeLogProps) {
             <Autocomplete
               isRequired
               defaultItems={units}
-              label="Select Unit"
-              value={project}
               isLoading={loadingUnits}
+              label="Select Unit"
               labelPlacement="outside-top"
-              placeholder={loadingUnits ? "Loading units..." : "Select | find unit"}
-                selectedKey={selectedUnitId}
-                style={{ outline: "none" }}
-                onSelectionChange={(key: any) => {
-                  const id = key?.toString() || "";
-                  setSelectedUnitId(id);
-                  // set project to the selected unit's name so it is saved as activity
-                  const sel = units.find((u) => u.id === id);
-                  if (sel) {
-                    setProject(sel.assetTag);
-                  }
-                }}
+              placeholder={
+                loadingUnits ? "Loading units..." : "Select | find unit"
+              }
+              selectedKey={selectedUnitId}
+              style={{ outline: "none" }}
+              value={project}
+              onSelectionChange={(key: any) => {
+                const id = key?.toString() || "";
+
+                setSelectedUnitId(id);
+                // set project to the selected unit's name so it is saved as activity
+                const sel = units.find((u) => u.id === id);
+
+                if (sel) {
+                  setProject(sel.assetTag);
+                }
+              }}
               // onChange={(e) => setProject(e.target.value)}
             >
               {(item) => (
-              <AutocompleteItem
-                key={item.id}
-                textValue={`${item.name} (${item.assetTag})`}
-              >
-                {item.name} ({item.assetTag})
-              </AutocompleteItem>
-            )}
+                <AutocompleteItem
+                  key={item.id}
+                  textValue={`${item.name} (${item.assetTag})`}
+                >
+                  {item.name} ({item.assetTag})
+                </AutocompleteItem>
+              )}
             </Autocomplete>
-             <input name="unitId" type="hidden" value={selectedUnitId} />
+            <input name="unitId" type="hidden" value={selectedUnitId} />
             <Input
               isRequired
-              label="Activity description"
               className="my-2"
-              placeholder="Describe the activity"
+              label="Activity description"
               labelPlacement="outside-top"
+              placeholder="Describe the activity"
               value={desc}
               onChange={(e) => setDesc(e.target.value)}
               onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
-                  e.target.style.outline = "none";
-                }}
-            />            
+                e.target.style.outline = "none";
+              }}
+            />
             <Input
               isRequired
               label="Location"
-              value={task}
-              placeholder="Enter location"
               labelPlacement="outside-top"
-              onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
-                  e.target.style.outline = "none";
-                }}
+              placeholder="Enter location"
+              value={task}
               onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                  setTask(e.target.value)
-                }
+                setTask(e.target.value)
+              }
+              onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+                e.target.style.outline = "none";
+              }}
             />
             {/* <Input
               label="Add a tag..."
@@ -246,58 +280,59 @@ export default function TimeLog(props: TimeLogProps) {
             /> */}
           </div>
           <div className="flex flex-col gap-3">
-            
             <div className="flex gap-3 my-2">
               <Input
                 isRequired
                 label="Start time"
+                labelPlacement="outside-top"
                 placeholder="Start time"
                 startContent={<Clock7 size={16} />}
-                labelPlacement="outside-top"
                 value={startTime}
+                onBlur={(e) => handleStartTimeChange(e.target.value)}
+                onChange={(e) => setStartTime(e.target.value)}
                 onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
                   e.target.style.outline = "none";
                 }}
-                onChange={(e) => setStartTime(e.target.value)}
-                onBlur={(e) => handleStartTimeChange(e.target.value)}
               />
               <Input
                 isRequired
                 label="End time"
+                labelPlacement="outside-top"
                 placeholder="End Time"
                 startContent={<Clock size={16} />}
-                labelPlacement="outside-top"
                 value={endTime}
+                onBlur={(e) => handleEndTimeChange(e.target.value)}
+                onChange={(e) => setEndTime(e.target.value)}
                 onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
                   e.target.style.outline = "none";
                 }}
-                onChange={(e) => setEndTime(e.target.value)}
-                onBlur={(e) => handleEndTimeChange(e.target.value)}
               />
             </div>
             <Input
               label="Duration (automaticly)"
+              labelPlacement="outside-top"
               placeholder="hh:mm:ss"
               startContent={<Hourglass size={16} />}
               value={duration}
-              labelPlacement="outside-top"
-              onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
-                  e.target.style.outline = "none";
-                }}
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-                setDuration(e.target.value)}
               onBlur={(e: React.FocusEvent<HTMLInputElement>) =>
-                handleDurationChange(e.target.value)}
+                handleDurationChange(e.target.value)
+              }
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                setDuration(e.target.value)
+              }
+              onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+                e.target.style.outline = "none";
+              }}
             />
             <DatePicker
-              label="Date (automaticly)"
-              labelPlacement="outside"
-              startContent={<Calendar size={16} />}
-              // Use date passed from parent (ClientPage) as the default value.
-              // Convert JS Date -> CalendarDate via fromDate; fallback to today()
               defaultValue={
                 date ? (fromDate(date, "Asia/Singapore") as any) : today
               }
+              label="Date (automaticly)"
+              startContent={<Calendar size={16} />}
+              // Use date passed from parent (ClientPage) as the default value.
+              // Convert JS Date -> CalendarDate via fromDate; fallback to today()
+              labelPlacement="outside"
             />
             {/* <div className="flex items-center gap-2">
               <span className="text-green-600 font-semibold">Not billable</span>
@@ -308,13 +343,17 @@ export default function TimeLog(props: TimeLogProps) {
         <div className="flex items-center gap-2 mt-4">
           <Button
             color="success"
-            startContent={<Save size={16} />}
             isDisabled={!desc || !task || !startTime || !endTime || saving}
             isLoading={saving}
+            startContent={<Save size={16} />}
             onPress={async () => {
               // Basic validation (redundant but keeps safety when pressing)
               if (!desc || !task || !startTime || !endTime) return;
-              if (!/^\d{2}:\d{2}$/.test(startTime) || !/^\d{2}:\d{2}$/.test(endTime)) return;
+              if (
+                !/^\d{2}:\d{2}$/.test(startTime) ||
+                !/^\d{2}:\d{2}$/.test(endTime)
+              )
+                return;
               setSaving(true);
               try {
                 const payload = {
@@ -327,7 +366,8 @@ export default function TimeLog(props: TimeLogProps) {
                   endTime,
                   duration: calcDuration(startTime, endTime),
                   unitId: selectedUnitId || undefined,
-                  assetTag: units.find((u) => u.id === selectedUnitId)?.assetTag,
+                  assetTag: units.find((u) => u.id === selectedUnitId)
+                    ?.assetTag,
                 };
 
                 // If editing, update parent entry
@@ -337,11 +377,12 @@ export default function TimeLog(props: TimeLogProps) {
                   onAddLocalEntry(payload);
                 } else {
                   // fallback: persist single entry to API
-                  const res = await fetch('/api/timesheet', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                  const res = await fetch("/api/timesheet", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(payload),
                   });
+
                   if (res.ok) {
                     onSaved && onSaved();
                   }

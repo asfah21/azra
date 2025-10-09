@@ -1,5 +1,7 @@
 "use client";
 
+import type { SidebarNavItem, SidebarNavChild } from "./Sidebar";
+
 import { useSession, signOut } from "next-auth/react";
 import { useRouter, usePathname } from "next/navigation";
 import {
@@ -18,13 +20,19 @@ import {
   FiShield,
   FiClock,
   FiTool,
-  FiBook,
 } from "react-icons/fi";
-import { LuFileText, LuFileType, LuFileType2, LuLayoutDashboard, LuList } from "react-icons/lu";
+import {
+  LuFileText,
+  LuFileType2,
+  LuLayoutDashboard,
+  LuList,
+} from "react-icons/lu";
+
 import { LoadingSpinner } from "../skeleton";
+
 import { Sidebar } from "./Sidebar";
-import type { SidebarNavItem, SidebarNavChild } from "./Sidebar";
 import { Topbar } from "./Topbar";
+
 import { consolePino } from "@/lib/logger";
 import { defaultNavItems } from "@/lib/config/navigation";
 import { useRoleAccess } from "@/hooks/useRoleAccess";
@@ -71,9 +79,9 @@ export default function UIDashboardLayout({
     settings: <FiSettings />,
     shield: <FiShield />,
     clock: <FiClock />,
-    fileInput: <LuFileText/>,
+    fileInput: <LuFileText />,
     luList: <LuList />,
-    ListAll: <LuFileType2/>,
+    ListAll: <LuFileType2 />,
   };
 
   // Ambil role access dari backend
@@ -97,9 +105,11 @@ export default function UIDashboardLayout({
     if (userRole === "super_admin") {
       return defaultNavItems.map((item) => {
         let children;
-        if ('children' in item && item.children) {
+
+        if ("children" in item && item.children) {
           children = mapChildrenIcon(item.children);
         }
+
         return {
           ...item,
           icon: iconMap[item.icon] || <FiSettings />,
@@ -117,25 +127,32 @@ export default function UIDashboardLayout({
           const hasAPIAccess = roleAccess.some(
             (access) => access.menu === menuId && access.role === userRole,
           );
+
           if (hasAPIAccess) return true;
-          
+
           // Fallback to defaultRoles if no API configuration
-          const menuConfig = defaultNavItems.find(nav => nav.id === menuId) ||
-                           defaultNavItems.flatMap(nav => 'children' in nav ? nav.children || [] : [])
-                                         .find(child => child.id === menuId);
-          if (menuConfig && 'defaultRoles' in menuConfig) {
+          const menuConfig =
+            defaultNavItems.find((nav) => nav.id === menuId) ||
+            defaultNavItems
+              .flatMap((nav) => ("children" in nav ? nav.children || [] : []))
+              .find((child) => child.id === menuId);
+
+          if (menuConfig && "defaultRoles" in menuConfig) {
             return (menuConfig as any).defaultRoles.includes(userRole);
           }
+
           return false;
         };
 
         // Check if user has access to this menu item
         const hasParentAccess = hasAccess(item.id);
-        
+
         // For parent menus with children
-        if ('children' in item && item.children) {
-          const accessibleChildren = item.children.filter(child => hasAccess(child.id));
-          
+        if ("children" in item && item.children) {
+          const accessibleChildren = item.children.filter((child) =>
+            hasAccess(child.id),
+          );
+
           // If user has access to any children, include the parent
           if (accessibleChildren.length > 0) {
             return {
@@ -147,7 +164,7 @@ export default function UIDashboardLayout({
               })),
             };
           }
-          
+
           // If parent has direct access but no accessible children, include without children
           if (hasParentAccess) {
             return {
@@ -156,10 +173,10 @@ export default function UIDashboardLayout({
               children: undefined,
             };
           }
-          
+
           return null; // No access to parent or children
         }
-        
+
         // For regular menu items with direct path
         if (hasParentAccess) {
           return {
@@ -167,11 +184,11 @@ export default function UIDashboardLayout({
             icon: iconMap[item.icon] || <FiSettings />,
           };
         }
-        
+
         return null; // No access
       })
       .filter((item): item is NonNullable<typeof item> => item !== null);
-      
+
     return filteredItems;
   }, [session?.user?.role, roleAccess, loadingRoleAccess]);
 
@@ -179,11 +196,16 @@ export default function UIDashboardLayout({
   const getMatchedItem = useCallback(
     (path: string) => {
       // Direct match first (most common case)
-      let directMatch: SidebarNavItem | SidebarNavChild | undefined = navItems.find((item) => 'path' in item && item.path === path);
+      let directMatch: SidebarNavItem | SidebarNavChild | undefined =
+        navItems.find((item) => "path" in item && item.path === path);
+
       if (!directMatch) {
         for (const item of navItems) {
-          if ('children' in item && item.children) {
-            const childMatch = item.children.find((child) => child.path === path);
+          if ("children" in item && item.children) {
+            const childMatch = item.children.find(
+              (child) => child.path === path,
+            );
+
             if (childMatch) {
               directMatch = {
                 ...childMatch,
@@ -197,8 +219,11 @@ export default function UIDashboardLayout({
       if (!directMatch) {
         // Cari pada children jika parent tidak punya path
         for (const item of navItems) {
-          if ('children' in item && item.children) {
-            const childMatch = item.children.find((child) => child.path === path);
+          if ("children" in item && item.children) {
+            const childMatch = item.children.find(
+              (child) => child.path === path,
+            );
+
             if (childMatch) {
               directMatch = childMatch;
               break;
@@ -210,15 +235,22 @@ export default function UIDashboardLayout({
       if (directMatch) return directMatch;
 
       // Prefix match (excluding dashboard for specificity)
-      let prefixMatch: SidebarNavItem | SidebarNavChild | undefined = navItems.find(
-        (item) => 'path' in item && item.path && path.startsWith(item.path) && item.path !== "/dashboard",
-      );
+      let prefixMatch: SidebarNavItem | SidebarNavChild | undefined =
+        navItems.find(
+          (item) =>
+            "path" in item &&
+            item.path &&
+            path.startsWith(item.path) &&
+            item.path !== "/dashboard",
+        );
+
       if (!prefixMatch) {
         for (const item of navItems) {
-          if ('children' in item && item.children) {
+          if ("children" in item && item.children) {
             const childPrefix = item.children.find(
               (child) => child.path && path.startsWith(child.path),
             );
+
             if (childPrefix) {
               prefixMatch = {
                 ...childPrefix,
@@ -231,10 +263,11 @@ export default function UIDashboardLayout({
       }
       if (!prefixMatch) {
         for (const item of navItems) {
-          if ('children' in item && item.children) {
+          if ("children" in item && item.children) {
             const childPrefix = item.children.find(
               (child: any) => child.path && path.startsWith(child.path),
             );
+
             if (childPrefix) {
               prefixMatch = childPrefix;
               break;
@@ -284,11 +317,15 @@ export default function UIDashboardLayout({
           .map((tab: any) => {
             // Cari di parent
             let navItem = navItems.find((item) => item.id === tab.id);
+
             if (!navItem) {
               // Cari di children
               for (const parent of navItems) {
-                if ('children' in parent && parent.children) {
-                  const child = parent.children.find((c: any) => c.id === tab.id);
+                if ("children" in parent && parent.children) {
+                  const child = parent.children.find(
+                    (c: any) => c.id === tab.id,
+                  );
+
                   if (child) {
                     navItem = child;
                     break;
@@ -296,6 +333,7 @@ export default function UIDashboardLayout({
                 }
               }
             }
+
             return navItem ? { ...navItem } : null;
           })
           .filter(Boolean);
@@ -320,73 +358,94 @@ export default function UIDashboardLayout({
 
   // Handle session redirect & dynamic access (berdasarkan hasil filtering navItems)
   useEffect(() => {
-    console.log('🔍 DEBUG: Access check triggered', {
+    console.log("🔍 DEBUG: Access check triggered", {
       status,
       pathname,
       userRole: session?.user?.role,
       navItemsLength: navItems.length,
-      loadingRoleAccess
+      loadingRoleAccess,
     });
 
     if (status === "loading") return;
     if (!session) {
-      console.log('❌ No session, redirecting to login');
+      console.log("❌ No session, redirecting to login");
       router.push("/login");
+
       return;
     }
-    
+
     // super_admin bebas
     if (session.user?.role === "super_admin") {
-      console.log('✅ Super admin access granted');
+      console.log("✅ Super admin access granted");
+
       return;
     }
 
     // Root dashboard selalu aman
     if (pathname === "/dashboard" || pathname === "/dashboard/") {
-      console.log('✅ Dashboard root access granted');
+      console.log("✅ Dashboard root access granted");
+
       return;
     }
 
     // Temporary: Allow timesheet access for debugging
     if (pathname.startsWith("/dashboard/timentry")) {
-      console.log('✅ Temporary timesheet access granted for debugging');
+      console.log("✅ Temporary timesheet access granted for debugging");
+
       return;
     }
 
     // Wait for navItems to be loaded before checking access
     if (loadingRoleAccess || navItems.length === 0) {
-      console.log('⏳ Waiting for role access data to load...');
+      console.log("⏳ Waiting for role access data to load...");
+
       return;
     }
 
     // Jika path sekarang tidak ada di navItems yang difilter => tidak punya akses
     const pathAllowed = navItems.some((item) => {
-      if ('path' in item && item.path && (pathname === item.path || pathname.startsWith(item.path + "/"))) {
+      if (
+        "path" in item &&
+        item.path &&
+        (pathname === item.path || pathname.startsWith(item.path + "/"))
+      ) {
         return true;
       }
-      if ('children' in item && item.children) {
+      if ("children" in item && item.children) {
         return item.children.some(
-          (child) => child.path && (pathname === child.path || pathname.startsWith(child.path + "/")),
+          (child) =>
+            child.path &&
+            (pathname === child.path || pathname.startsWith(child.path + "/")),
         );
       }
+
       return false;
     });
-    
-    console.log('🔐 Path access check:', {
+
+    console.log("🔐 Path access check:", {
       pathname,
       pathAllowed,
-      availableNavItems: navItems.map(item => ({
+      availableNavItems: navItems.map((item) => ({
         id: item.id,
         title: item.title,
-        path: 'path' in item ? item.path : 'no-path',
-        children: 'children' in item ? item.children?.map(c => ({ id: c.id, path: c.path })) : 'no-children'
-      }))
+        path: "path" in item ? item.path : "no-path",
+        children:
+          "children" in item
+            ? item.children?.map((c) => ({ id: c.id, path: c.path }))
+            : "no-children",
+      })),
     });
-    
+
     if (!pathAllowed) {
-      console.error(`❌ Access denied for user role ${session.user?.role} to path ${pathname}`);
-      consolePino.warn(`Access denied for user role ${session.user?.role} to path ${pathname}. Available paths:`, 
-        navItems.map(item => 'path' in item ? item.path : `${item.title} (parent menu)`));
+      console.error(
+        `❌ Access denied for user role ${session.user?.role} to path ${pathname}`,
+      );
+      consolePino.warn(
+        `Access denied for user role ${session.user?.role} to path ${pathname}. Available paths:`,
+        navItems.map((item) =>
+          "path" in item ? item.path : `${item.title} (parent menu)`,
+        ),
+      );
       router.replace("/dashboard");
     }
   }, [status, session, router, pathname, navItems, loadingRoleAccess]);
@@ -398,11 +457,11 @@ export default function UIDashboardLayout({
     const currentMatchedItem = getMatchedItem(pathname);
     const savedData = loadTabsFromStorage();
 
-    console.log('🔄 Tab initialization:', {
+    console.log("🔄 Tab initialization:", {
       pathname,
       currentMatchedItem: currentMatchedItem?.id,
       savedActiveTab: savedData?.activeTab,
-      savedTabsCount: savedData?.tabs?.length || 0
+      savedTabsCount: savedData?.tabs?.length || 0,
     });
 
     if (savedData) {
@@ -410,11 +469,16 @@ export default function UIDashboardLayout({
       const savedActiveTab = navItems.find(
         (item) => item.id === savedData.activeTab,
       );
-      let currentPathTab: SidebarNavItem | SidebarNavChild | undefined = navItems.find((item) => 'path' in item && item.path === pathname);
+      let currentPathTab: SidebarNavItem | SidebarNavChild | undefined =
+        navItems.find((item) => "path" in item && item.path === pathname);
+
       if (!currentPathTab) {
         for (const item of navItems) {
-          if ('children' in item && item.children) {
-            const childTab = item.children.find((child) => child.path === pathname);
+          if ("children" in item && item.children) {
+            const childTab = item.children.find(
+              (child) => child.path === pathname,
+            );
+
             if (childTab) {
               currentPathTab = {
                 ...childTab,
@@ -434,27 +498,36 @@ export default function UIDashboardLayout({
         setActiveTab(currentPathTab.id);
         setActiveTabs((prevTabs) => {
           // Start with saved tabs, then add current tab if not exists
-          const savedTabsWithIcons = savedData.tabs.map((tab: any) => {
-            // Re-attach icons for saved tabs
-            let fullNavItem = navItems.find((item) => item.id === tab.id);
-            if (!fullNavItem) {
-              for (const parent of navItems) {
-                if ('children' in parent && parent.children) {
-                  const child = parent.children.find((c: any) => c.id === tab.id);
-                  if (child) {
-                    fullNavItem = child;
-                    break;
+          const savedTabsWithIcons = savedData.tabs
+            .map((tab: any) => {
+              // Re-attach icons for saved tabs
+              let fullNavItem = navItems.find((item) => item.id === tab.id);
+
+              if (!fullNavItem) {
+                for (const parent of navItems) {
+                  if ("children" in parent && parent.children) {
+                    const child = parent.children.find(
+                      (c: any) => c.id === tab.id,
+                    );
+
+                    if (child) {
+                      fullNavItem = child;
+                      break;
+                    }
                   }
                 }
               }
-            }
-            return fullNavItem || tab;
-          }).filter(Boolean);
+
+              return fullNavItem || tab;
+            })
+            .filter(Boolean);
 
           const tabExists = savedTabsWithIcons.some(
             (tab: any) => tab.id === currentPathTab.id,
           );
-          const newTabs = tabExists ? savedTabsWithIcons : [currentPathTab, ...savedTabsWithIcons];
+          const newTabs = tabExists
+            ? savedTabsWithIcons
+            : [currentPathTab, ...savedTabsWithIcons];
 
           saveTabsToStorage(newTabs, currentPathTab.id);
 
@@ -464,22 +537,29 @@ export default function UIDashboardLayout({
         // Use saved data - current path matches saved active tab
         setActiveTabs(() => {
           // Re-attach icons to saved tabs
-          const tabsWithIcons = savedData.tabs.map((tab: any) => {
-            let fullNavItem = navItems.find((item) => item.id === tab.id);
-            if (!fullNavItem) {
-              for (const parent of navItems) {
-                if ('children' in parent && parent.children) {
-                  const child = parent.children.find((c: any) => c.id === tab.id);
-                  if (child) {
-                    fullNavItem = child;
-                    break;
+          const tabsWithIcons = savedData.tabs
+            .map((tab: any) => {
+              let fullNavItem = navItems.find((item) => item.id === tab.id);
+
+              if (!fullNavItem) {
+                for (const parent of navItems) {
+                  if ("children" in parent && parent.children) {
+                    const child = parent.children.find(
+                      (c: any) => c.id === tab.id,
+                    );
+
+                    if (child) {
+                      fullNavItem = child;
+                      break;
+                    }
                   }
                 }
               }
-            }
-            return fullNavItem || tab;
-          }).filter(Boolean);
-          
+
+              return fullNavItem || tab;
+            })
+            .filter(Boolean);
+
           return tabsWithIcons;
         });
         setActiveTab(savedData.activeTab);
@@ -532,17 +612,21 @@ export default function UIDashboardLayout({
         const existingTab = prevTabs.find(
           (tab) => tab.id === currentMatchedItem.id,
         );
+
         if (existingTab) {
           if (activeTab !== currentMatchedItem.id) {
             setActiveTab(currentMatchedItem.id);
             saveTabsToStorage(prevTabs, currentMatchedItem.id);
           }
+
           return prevTabs;
         } else {
           // Jangan hapus tab lain, hanya tambahkan tab baru di belakang
           const newTabs = [currentMatchedItem, ...prevTabs];
+
           setActiveTab(currentMatchedItem.id);
           saveTabsToStorage(newTabs, currentMatchedItem.id);
+
           return newTabs;
         }
       });
@@ -593,10 +677,12 @@ export default function UIDashboardLayout({
 
       setActiveTabs((prevTabs) => {
         const existingTab = prevTabs.find((t) => t.id === tab.id);
-  const newTabs = existingTab ? prevTabs : [tab, ...prevTabs];
+        const newTabs = existingTab ? prevTabs : [tab, ...prevTabs];
+
         setActiveTab(tab.id);
         saveTabsToStorage(newTabs, tab.id);
         setPendingNavigation({ path: tab.path, tabId: tab.id });
+
         return newTabs;
       });
     },

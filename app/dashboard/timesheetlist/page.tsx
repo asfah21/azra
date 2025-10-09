@@ -1,6 +1,6 @@
 import { Metadata } from "next";
 
-import TimesheetListClientPage from "./ClientPage"
+import TimesheetListClientPage from "./ClientPage";
 
 export const metadata: Metadata = {
   title: "Timesheet Management",

@@ -1,20 +1,25 @@
-"use client"
-import { TimesheetListSkeleton } from "@/components/ui/skeleton";
+"use client";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { LuList } from "react-icons/lu";
+
 import DashboardFooter from "../components/DashboardFooter";
+
 import TableDatas from "./components/TableData";
+
+import { TimesheetListSkeleton } from "@/components/ui/skeleton";
 
 export default function TimesheetListClientPage() {
   const { data, isLoading, isError } = useQuery({
     queryKey: ["timentry-list"],
     queryFn: async () => {
       const res = await axios.get(`/api/timesheetall`);
+
       // API returns { entries }, flatten activities for table
       if (res.data && Array.isArray(res.data.entries)) {
         return res.data.entries;
       }
+
       return [];
     },
     refetchInterval: 10000,

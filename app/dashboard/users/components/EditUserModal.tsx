@@ -40,7 +40,7 @@ export function EditUserModal({
 }: EditUserModalProps & { isOpen?: boolean }) {
   const { data: session } = useSession();
   const [state, formAction, isPending] = useActionState(updateUser, null);
-  
+
   // Static role options untuk menghindari masalah hooks
   const staticRoleOptions = [
     { value: "super_admin", label: "Super Admin" },
@@ -68,11 +68,14 @@ export function EditUserModal({
   // Find matching role option for current user role - memoized untuk consistency
   const currentRoleKey = useMemo(() => {
     if (!user?.role || !staticRoleOptions.length) return "";
-    
+
     // Find by value
-    const byValue = staticRoleOptions.find(option => option.value === user.role);
+    const byValue = staticRoleOptions.find(
+      (option) => option.value === user.role,
+    );
+
     if (byValue) return byValue.value;
-    
+
     // Last fallback: return as is
     return user.role;
   }, [user?.role, staticRoleOptions]);
@@ -83,7 +86,7 @@ export function EditUserModal({
       if (session?.user?.role) {
         formData.append("currentUserRole", session.user.role);
       }
-      
+
       // Debug logging
       console.log("FormData being sent:", {
         id: formData.get("id"),
@@ -94,7 +97,7 @@ export function EditUserModal({
         currentUserRole: formData.get("currentUserRole"),
         hasPassword: !!formData.get("password"),
       });
-      
+
       await formAction(formData);
     }
   };
@@ -112,12 +115,12 @@ export function EditUserModal({
           <Input
             isRequired
             defaultValue={user?.name || ""}
+            isDisabled={!user}
             label="Name"
             labelPlacement="outside-top"
             name="name"
             placeholder="Enter user name"
             variant="bordered"
-            isDisabled={!user}
             onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
               e.target.style.outline = "none";
             }}
@@ -125,25 +128,25 @@ export function EditUserModal({
           <Input
             isRequired
             defaultValue={user?.email || ""}
+            isDisabled={!user}
             label="Email"
             labelPlacement="outside-top"
             name="email"
             placeholder="Enter email address"
             type="email"
             variant="bordered"
-            isDisabled={!user}
             onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
               e.target.style.outline = "none";
             }}
           />
           <Input
+            isDisabled={!user}
             label="New Password (empty to keep current)"
             labelPlacement="outside-top"
             name="password"
             placeholder="Enter new password (optional)"
             type="password"
             variant="bordered"
-            isDisabled={!user}
             onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
               e.target.style.outline = "none";
             }}
@@ -152,18 +155,18 @@ export function EditUserModal({
           <Autocomplete
             defaultItems={staticRoleOptions}
             defaultSelectedKey={user ? currentRoleKey : ""}
+            isDisabled={!user}
             label="User Roles"
             labelPlacement="outside-top"
             name="role"
             placeholder="Search user roles"
+            selectedKey={user ? currentRoleKey : ""}
             style={{ outline: "none" }}
-            variant="bordered"
-            isDisabled={!user}
             onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
               e.target.style.outline = "none";
             }}
             // force value to be the enum value, not label
-            selectedKey={user ? currentRoleKey : ""}
+            variant="bordered"
           >
             {(item) => (
               <AutocompleteItem key={item.value} variant="flat">
@@ -174,12 +177,12 @@ export function EditUserModal({
 
           <Input
             defaultValue={user?.department || ""}
+            isDisabled={!user}
             label="Department"
             labelPlacement="outside-top"
             name="department"
             placeholder="Enter department (optional)"
             variant="bordered"
-            isDisabled={!user}
             onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
               e.target.style.outline = "none";
             }}

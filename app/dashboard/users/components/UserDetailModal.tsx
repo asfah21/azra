@@ -133,7 +133,9 @@ export default function UserDetailModal({
                 />
                 <div>
                   <h2 className="text-xl font-semibold">{user?.name || ""}</h2>
-                  <p className="text-sm text-default-500">{user?.email || ""}</p>
+                  <p className="text-sm text-default-500">
+                    {user?.email || ""}
+                  </p>
                 </div>
               </div>
             </ModalHeader>
@@ -149,7 +151,9 @@ export default function UserDetailModal({
                           : "",
                     }}
                     color={
-                      getStatusColor(getUserStatus(user?.lastActive || null)) as any
+                      getStatusColor(
+                        getUserStatus(user?.lastActive || null),
+                      ) as any
                     }
                     size="lg"
                     startContent={
@@ -183,7 +187,9 @@ export default function UserDetailModal({
                         <Mail className="w-5 h-5 text-primary" />
                         <h3 className="font-semibold">Email</h3>
                       </div>
-                      <p className="text-sm text-default-600">{user?.email || ""}</p>
+                      <p className="text-sm text-default-600">
+                        {user?.email || ""}
+                      </p>
                     </CardBody>
                   </Card>
 
@@ -222,7 +228,10 @@ export default function UserDetailModal({
                           {formatLastActive(user?.lastActive || null).emoji}
                         </span>
                         <Chip
-                          color={formatLastActive(user?.lastActive || null).color as any}
+                          color={
+                            formatLastActive(user?.lastActive || null)
+                              .color as any
+                          }
                           size="sm"
                           variant="flat"
                         >

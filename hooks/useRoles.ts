@@ -43,8 +43,10 @@ export function useRoles() {
     setError(null);
     try {
       const res = await fetch("/api/roles");
+
       if (!res.ok) throw new Error("Failed to fetch roles");
       const data = await res.json();
+
       setRoles(data);
     } catch (err: any) {
       setError(err.message);
@@ -62,15 +64,23 @@ export function useRoles() {
 
     if (!res.ok) {
       const error = await res.json();
+
       throw new Error(error.message || "Failed to create role");
     }
 
     const newRole = await res.json();
-    setRoles(prev => [...prev, newRole].sort((a, b) => a.priority - b.priority));
+
+    setRoles((prev) =>
+      [...prev, newRole].sort((a, b) => a.priority - b.priority),
+    );
+
     return newRole;
   };
 
-  const updateRole = async (id: string, roleData: UpdateRoleData): Promise<Role> => {
+  const updateRole = async (
+    id: string,
+    roleData: UpdateRoleData,
+  ): Promise<Role> => {
     const res = await fetch(`/api/roles/${id}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
@@ -79,15 +89,18 @@ export function useRoles() {
 
     if (!res.ok) {
       const error = await res.json();
+
       throw new Error(error.message || "Failed to update role");
     }
 
     const updatedRole = await res.json();
-    setRoles(prev => 
-      prev.map(role => 
-        role.id === id ? updatedRole : role
-      ).sort((a, b) => a.priority - b.priority)
+
+    setRoles((prev) =>
+      prev
+        .map((role) => (role.id === id ? updatedRole : role))
+        .sort((a, b) => a.priority - b.priority),
     );
+
     return updatedRole;
   };
 
@@ -98,13 +111,17 @@ export function useRoles() {
 
     if (!res.ok) {
       const error = await res.json();
+
       throw new Error(error.message || "Failed to delete role");
     }
 
-    setRoles(prev => prev.filter(role => role.id !== id));
+    setRoles((prev) => prev.filter((role) => role.id !== id));
   };
 
-  const toggleRoleStatus = async (id: string, isActive: boolean): Promise<Role> => {
+  const toggleRoleStatus = async (
+    id: string,
+    isActive: boolean,
+  ): Promise<Role> => {
     return updateRole(id, { isActive });
   };
 
@@ -136,8 +153,10 @@ export function useRoleOptions() {
       setError(null);
       try {
         const res = await fetch("/api/roles");
+
         if (!res.ok) throw new Error("Failed to fetch roles");
         const data = await res.json();
+
         setRoles(data);
       } catch (err: any) {
         setError(err.message);
@@ -148,10 +167,10 @@ export function useRoleOptions() {
 
     fetchRoles();
   }, []);
-  
+
   const roleOptions = roles
-    .filter(role => role.isActive)
-    .map(role => ({
+    .filter((role) => role.isActive)
+    .map((role) => ({
       value: role.code, // Gunakan code, bukan id
       label: role.name,
       code: role.code,
@@ -173,8 +192,10 @@ export function useRoleMap() {
       setError(null);
       try {
         const res = await fetch("/api/roles");
+
         if (!res.ok) throw new Error("Failed to fetch roles");
         const data = await res.json();
+
         setRoles(data);
       } catch (err: any) {
         setError(err.message);
@@ -185,14 +206,18 @@ export function useRoleMap() {
 
     fetchRoles();
   }, []);
-  
-  const roleMap = roles.reduce((acc, role) => {
-    acc[role.code] = {
-      name: role.name,
-      color: role.color,
-    };
-    return acc;
-  }, {} as Record<string, { name: string; color: string }>);
+
+  const roleMap = roles.reduce(
+    (acc, role) => {
+      acc[role.code] = {
+        name: role.name,
+        color: role.color,
+      };
+
+      return acc;
+    },
+    {} as Record<string, { name: string; color: string }>,
+  );
 
   const getRoleLabel = (roleCode: string): string => {
     return roleMap[roleCode]?.name || roleCode;

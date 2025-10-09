@@ -1,7 +1,25 @@
 "use client";
 import React, { useState } from "react";
-import { Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Card, CardHeader, CardBody, Divider, Chip, Input, Pagination, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, Button, SelectItem, Select } from "@heroui/react";
-import { Package, Search, Edit } from "lucide-react";
+import {
+  Table,
+  TableHeader,
+  TableColumn,
+  TableBody,
+  TableRow,
+  TableCell,
+  Card,
+  CardHeader,
+  CardBody,
+  Divider,
+  Chip,
+  Input,
+  Pagination,
+  Button,
+  SelectItem,
+  Select,
+} from "@heroui/react";
+import { Package, Search, FileText } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 interface TimesheetEntry {
   id: string;
@@ -23,16 +41,23 @@ interface TimesheetEntry {
 }
 
 const formatDuration = (seconds: number) => {
-  if (!seconds || seconds <= 0) return '-';
+  if (!seconds || seconds <= 0) return "-";
   const hours = Math.floor(seconds / 3600);
   const minutes = Math.floor((seconds % 3600) / 60);
   const parts = [];
+
   if (hours > 0) parts.push(`${hours} jam`);
   if (minutes > 0) parts.push(`${minutes} menit`);
-  return parts.join(' ');
+
+  return parts.join(" ");
 };
 
-export default function TableDatas({ timesheetData }: { timesheetData: TimesheetEntry[] }) {
+export default function TableDatas({
+  timesheetData,
+}: {
+  timesheetData: TimesheetEntry[];
+}) {
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState("all");
@@ -48,29 +73,39 @@ export default function TableDatas({ timesheetData }: { timesheetData: Timesheet
 
   const filteredData = React.useMemo(() => {
     let data = timesheetData;
+
     if (statusFilter !== "all") {
       data = data.filter((entry) => {
         if (statusFilter === "open") return entry.status !== "closed";
         if (statusFilter === "closed") return entry.status === "closed";
+
         return true;
       });
     }
     if (!deferredSearchQuery.trim()) return data;
     const query = deferredSearchQuery.toLowerCase();
-    return data.filter((entry) =>
-      entry.activity.toLowerCase().includes(query) ||
-      entry.activityDesc.toLowerCase().includes(query) ||
-      (entry.location?.toLowerCase().includes(query) ?? false)
+
+    return data.filter(
+      (entry) =>
+        entry.activity.toLowerCase().includes(query) ||
+        entry.activityDesc.toLowerCase().includes(query) ||
+        (entry.location?.toLowerCase().includes(query) ?? false),
     );
   }, [timesheetData, deferredSearchQuery, statusFilter]);
 
   // Sort by startTime descending
   const sortedData = React.useMemo(() => {
-    return [...filteredData].sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime());
+    return [...filteredData].sort(
+      (a, b) =>
+        new Date(b.startTime).getTime() - new Date(a.startTime).getTime(),
+    );
   }, [filteredData]);
 
   const totalPages = Math.ceil(sortedData.length / ROWS_PER_PAGE);
-  const pagedData = sortedData.slice((page - 1) * ROWS_PER_PAGE, page * ROWS_PER_PAGE);
+  const pagedData = sortedData.slice(
+    (page - 1) * ROWS_PER_PAGE,
+    page * ROWS_PER_PAGE,
+  );
 
   const handlePageChange = React.useCallback((newPage: number) => {
     React.startTransition(() => {
@@ -87,12 +122,22 @@ export default function TableDatas({ timesheetData }: { timesheetData: Timesheet
           </div>
           <div className="flex flex-col flex-1 text-left">
             <div className="flex items-center gap-2">
-              <p className="text-xl font-semibold text-default-800 text-left">Timesheet</p>
-              <Chip className="text-sm font-bold" color="success" radius="sm" size="sm" variant="flat">
+              <p className="text-xl font-semibold text-default-800 text-left">
+                Timesheet
+              </p>
+              <Chip
+                className="text-sm font-bold"
+                color="success"
+                radius="sm"
+                size="sm"
+                variant="flat"
+              >
                 {pagedData.length}
               </Chip>
             </div>
-            <p className="text-small text-default-600">Aktivitas Timesheet User</p>
+            <p className="text-small text-default-600">
+              Aktivitas Timesheet User
+            </p>
           </div>
         </div>
         <div className="flex gap-2 w-full sm:w-auto items-center">
@@ -110,16 +155,16 @@ export default function TableDatas({ timesheetData }: { timesheetData: Timesheet
             onValueChange={handleSearchChange}
           />
           <Select
-            size="sm"
-            className="w-32"
-            value={statusFilter}
-            defaultSelectedKeys={["all"]}
-            onChange={e => setStatusFilter(e.target.value)}
             aria-label="Filter Status"
+            className="w-32"
+            defaultSelectedKeys={["all"]}
+            size="sm"
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
           >
-            <SelectItem key="all" >All</SelectItem>
-            <SelectItem key="open" >Open</SelectItem>
-            <SelectItem key="closed" >Closed</SelectItem>
+            <SelectItem key="all">All</SelectItem>
+            <SelectItem key="open">Open</SelectItem>
+            <SelectItem key="closed">Closed</SelectItem>
           </Select>
         </div>
       </CardHeader>
@@ -139,16 +184,19 @@ export default function TableDatas({ timesheetData }: { timesheetData: Timesheet
             onValueChange={handleSearchChange}
           />
         </div>
-  {pagedData.length === 0 ? (
+        {pagedData.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 text-center">
             <Package className="w-12 h-12 text-default-300 mb-4" />
             <p className="text-default-500">
-              {deferredSearchQuery ? "Tidak ada aktivitas ditemukan" : "Belum ada data timesheet"}
+              {deferredSearchQuery
+                ? "Tidak ada aktivitas ditemukan"
+                : "Belum ada data timesheet"}
             </p>
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <Table aria-label="Timesheet table"
+            <Table
+              aria-label="Timesheet table"
               bottomContent={
                 totalPages > 1 && (
                   <div className="flex w-full justify-center">
@@ -180,16 +228,54 @@ export default function TableDatas({ timesheetData }: { timesheetData: Timesheet
               <TableBody>
                 {pagedData.map((entry, idx) => (
                   <TableRow key={entry.id}>
-                    <TableCell>{entry.approvedBy ?? '-'}</TableCell>
-                    <TableCell>{entry.assetTag || '-'}</TableCell>
-                    <TableCell>{entry.userName || '-'}</TableCell>
-                    <TableCell>{entry.shiftDate || '-'}</TableCell>
+                    <TableCell>
+                      <div className="flex gap-4 items-center">
+                        <Button
+                          isIconOnly
+                          aria-label="Detail Timesheet"
+                          color="secondary"
+                          size="sm"
+                          onPress={() =>
+                            router.push(
+                              `/dashboard/timesheetlist/detail/${entry.id}`,
+                            )
+                          }
+                        >
+                          <FileText />
+                        </Button>
+                        {entry.approvedBy ?? "-"}
+                      </div>
+                    </TableCell>
+                    <TableCell>{entry.assetTag || "-"}</TableCell>
+                    <TableCell>{entry.userName || "-"}</TableCell>
+                    <TableCell>{entry.shiftDate || "-"}</TableCell>
                     {/* <TableCell>{entry.location || '-'}</TableCell> */}
-                    <TableCell>{entry.shiftType || '-'}</TableCell>
+                    <TableCell>{entry.shiftType || "-"}</TableCell>
                     {/* <TableCell>{entry.activity || '-'}</TableCell> */}
-                    <TableCell>{entry.startTime ? new Date(entry.startTime).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false }) : '-'}</TableCell>
-                    <TableCell>{entry.endTime ? new Date(entry.endTime).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false }) : '-'}</TableCell>
-                    <TableCell>{formatDuration(entry.durationSec || 0)}</TableCell>
+                    <TableCell>
+                      {entry.startTime
+                        ? new Date(entry.startTime).toLocaleTimeString(
+                            "id-ID",
+                            {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                              hour12: false,
+                            },
+                          )
+                        : "-"}
+                    </TableCell>
+                    <TableCell>
+                      {entry.endTime
+                        ? new Date(entry.endTime).toLocaleTimeString("id-ID", {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                            hour12: false,
+                          })
+                        : "-"}
+                    </TableCell>
+                    <TableCell>
+                      {formatDuration(entry.durationSec || 0)}
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>

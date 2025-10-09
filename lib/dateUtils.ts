@@ -32,19 +32,28 @@ export function formatDateISO(date: Date | string | null | undefined): string {
 // =====================
 // Timesheet shift helpers
 // =====================
-export type ShiftInfo = { shiftType: 'DAY' | 'NIGHT'; shiftDate: string; nextBoundary: Date };
+export type ShiftInfo = {
+  shiftType: "DAY" | "NIGHT";
+  shiftDate: string;
+  nextBoundary: Date;
+};
 
 // timezoneOffsetMinutes: misal +8 jam => 480. Default gunakan offset lokal runtime.
-export function getShiftInfo(now: Date = new Date(), timezoneOffsetMinutes?: number): ShiftInfo {
+export function getShiftInfo(
+  now: Date = new Date(),
+  timezoneOffsetMinutes?: number,
+): ShiftInfo {
   const local = new Date(now);
+
   if (timezoneOffsetMinutes !== undefined) {
-  // Konversi: buat waktu "lokal" sintetis sesuai offset target (timezoneOffsetMinutes adalah menit positif untuk GMT+8 == 480)
-  // Date.getTimezoneOffset() returns minutes to add to local time to get UTC (e.g., -480 for GMT+8).
-  // We want the difference between target offset (in getTimezoneOffset units) and current offset.
-  const currentOffset = local.getTimezoneOffset(); // minutes to add to local -> UTC (e.g., -480 for GMT+8)
-  const targetOffset = -timezoneOffsetMinutes; // convert minutes-east (480) -> getTimezoneOffset style (-480)
-  const diff = targetOffset - currentOffset; // minutes to add to local date to align with target timezone
-  local.setMinutes(local.getMinutes() + diff);
+    // Konversi: buat waktu "lokal" sintetis sesuai offset target (timezoneOffsetMinutes adalah menit positif untuk GMT+8 == 480)
+    // Date.getTimezoneOffset() returns minutes to add to local time to get UTC (e.g., -480 for GMT+8).
+    // We want the difference between target offset (in getTimezoneOffset units) and current offset.
+    const currentOffset = local.getTimezoneOffset(); // minutes to add to local -> UTC (e.g., -480 for GMT+8)
+    const targetOffset = -timezoneOffsetMinutes; // convert minutes-east (480) -> getTimezoneOffset style (-480)
+    const diff = targetOffset - currentOffset; // minutes to add to local date to align with target timezone
+
+    local.setMinutes(local.getMinutes() + diff);
   }
 
   const year = local.getFullYear();
@@ -55,18 +64,18 @@ export function getShiftInfo(now: Date = new Date(), timezoneOffsetMinutes?: num
   // Anchor midnight lokal
   const midnight = new Date(year, month, date, 0, 0, 0, 0);
 
-  let shiftType: 'DAY' | 'NIGHT';
+  let shiftType: "DAY" | "NIGHT";
   let shiftDateObj: Date; // midnight anchor
   let nextBoundary: Date;
 
   if (hour >= 6 && hour < 18) {
     // DAY shift
-    shiftType = 'DAY';
+    shiftType = "DAY";
     shiftDateObj = midnight; // hari ini
     nextBoundary = new Date(year, month, date, 18, 0, 0, 0); // 18:00 hari ini
   } else {
     // NIGHT shift
-    shiftType = 'NIGHT';
+    shiftType = "NIGHT";
     if (hour >= 18) {
       // malam baru mulai hari ini jam >=18
       shiftDateObj = midnight; // anchor = hari ini
@@ -79,23 +88,34 @@ export function getShiftInfo(now: Date = new Date(), timezoneOffsetMinutes?: num
   }
 
   const shiftDate = formatDateISO(shiftDateObj);
+
   return { shiftType, shiftDate, nextBoundary };
 }
 
-export function parseHHMM(value: string): { hours: number; minutes: number } | null {
+export function parseHHMM(
+  value: string,
+): { hours: number; minutes: number } | null {
   if (!/^\d{2}:\d{2}$/.test(value)) return null;
-  const [h, m] = value.split(':').map(Number);
+  const [h, m] = value.split(":").map(Number);
+
   if (h > 23 || m > 59) return null;
+
   return { hours: h, minutes: m };
 }
 
-export function buildDateTime(shiftDate: string, timeHHMM: string, shiftType: 'DAY' | 'NIGHT'): Date | null {
+export function buildDateTime(
+  shiftDate: string,
+  timeHHMM: string,
+  shiftType: "DAY" | "NIGHT",
+): Date | null {
   const parsed = parseHHMM(timeHHMM);
+
   if (!parsed) return null;
-  const base = new Date(shiftDate + 'T00:00:00');
+  const base = new Date(shiftDate + "T00:00:00");
   // base dianggap di timezone server; untuk konsistensi cukup gunakan UTC interpretasi.
   const dt = new Date(base);
-  if (shiftType === 'DAY') {
+
+  if (shiftType === "DAY") {
     dt.setHours(parsed.hours, parsed.minutes, 0, 0);
   } else {
     // NIGHT: rentang 18:00 shiftDate sampai 06:00 shiftDate+1
@@ -107,6 +127,7 @@ export function buildDateTime(shiftDate: string, timeHHMM: string, shiftType: 'D
       dt.setHours(parsed.hours, parsed.minutes, 0, 0);
     }
   }
+
   return dt;
 }
 

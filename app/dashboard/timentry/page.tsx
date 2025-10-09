@@ -1,8 +1,8 @@
-import TimeEntryClientPage from './ClientPage';
+import TimeEntryClientPage from "./ClientPage";
 
 export const metadata = {
-  title: 'Time Entry',
-  description: 'Create and manage time entries',
+  title: "Time Entry",
+  description: "Create and manage time entries",
 };
 
 export default function Page() {

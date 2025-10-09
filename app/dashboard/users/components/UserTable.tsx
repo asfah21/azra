@@ -311,37 +311,40 @@ export default function UserTables({ usersTable }: UserManagementClientProps) {
   }, []);
 
   // Tambahkan fungsi untuk format waktu last active dengan emoji dan warna - memoized
-  const formatLastActive = useCallback((
-    lastActive: Date | null,
-  ): { text: string; color: string; emoji: string } => {
-    if (!lastActive) return { text: "Never", color: "default", emoji: "❌" };
+  const formatLastActive = useCallback(
+    (
+      lastActive: Date | null,
+    ): { text: string; color: string; emoji: string } => {
+      if (!lastActive) return { text: "Never", color: "default", emoji: "❌" };
 
-    const now = new Date();
-    const diffInMinutes = Math.floor(
-      (now.getTime() - lastActive.getTime()) / (1000 * 60),
-    );
-    const diffInHours = Math.floor(diffInMinutes / 60);
-    const diffInDays = Math.floor(diffInHours / 24);
+      const now = new Date();
+      const diffInMinutes = Math.floor(
+        (now.getTime() - lastActive.getTime()) / (1000 * 60),
+      );
+      const diffInHours = Math.floor(diffInMinutes / 60);
+      const diffInDays = Math.floor(diffInHours / 24);
 
-    if (diffInMinutes < 1)
-      return { text: "Just now", color: "success", emoji: "✅" };
-    if (diffInMinutes < 60)
-      return { text: `${diffInMinutes}m ago`, color: "primary", emoji: "⏰" };
-    if (diffInHours < 24)
-      return { text: `${diffInHours}h ago`, color: "warning", emoji: "⚠️" };
-    if (diffInDays < 7)
-      return { text: `${diffInDays}d ago`, color: "danger", emoji: "🔴" };
+      if (diffInMinutes < 1)
+        return { text: "Just now", color: "success", emoji: "✅" };
+      if (diffInMinutes < 60)
+        return { text: `${diffInMinutes}m ago`, color: "primary", emoji: "⏰" };
+      if (diffInHours < 24)
+        return { text: `${diffInHours}h ago`, color: "warning", emoji: "⚠️" };
+      if (diffInDays < 7)
+        return { text: `${diffInDays}d ago`, color: "danger", emoji: "🔴" };
 
-    return {
-      text: lastActive.toLocaleDateString("id-ID", {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-      }),
-      color: "default",
-      emoji: "📅",
-    };
-  }, []);
+      return {
+        text: lastActive.toLocaleDateString("id-ID", {
+          day: "numeric",
+          month: "short",
+          year: "numeric",
+        }),
+        color: "default",
+        emoji: "📅",
+      };
+    },
+    [],
+  );
 
   // Fungsi untuk export data ke Excel
   const handleExportToExcel = useCallback(() => {

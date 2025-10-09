@@ -28,10 +28,11 @@ export function AddUserForms({ onClose, onUserAdded }: AddUserFormProps) {
 
   const { data: session } = useSession();
 
-
   // Dynamic role options from API
 
-  const [roleOptions, setRoleOptions] = useState<{ value: string; label: string }[]>([]);
+  const [roleOptions, setRoleOptions] = useState<
+    { value: string; label: string }[]
+  >([]);
   const [rolesLoading, setRolesLoading] = useState(true);
   const [selectedRole, setSelectedRole] = useState<string>("");
 
@@ -41,12 +42,13 @@ export function AddUserForms({ onClose, onUserAdded }: AddUserFormProps) {
       try {
         const res = await fetch("/api/dashboard/roles");
         const data = await res.json();
+
         if (Array.isArray(data.roles)) {
           setRoleOptions(
             data.roles.map((role: any) => ({
               value: role.code,
               label: role.name,
-            }))
+            })),
           );
         } else {
           setRoleOptions([]);
@@ -147,19 +149,21 @@ export function AddUserForms({ onClose, onUserAdded }: AddUserFormProps) {
           />
 
           <Autocomplete
+            isDisabled={rolesLoading}
+            isLoading={rolesLoading}
             items={roleOptions}
-            selectedKey={selectedRole}
-            onSelectionChange={(key) => setSelectedRole(key as string)}
             label="User Roles"
             labelPlacement="outside-top"
-            placeholder={rolesLoading ? "Loading roles..." : "Search user roles"}
-            isLoading={rolesLoading}
+            placeholder={
+              rolesLoading ? "Loading roles..." : "Search user roles"
+            }
+            selectedKey={selectedRole}
             style={{ outline: "none" }}
             variant="bordered"
-            isDisabled={rolesLoading}
             onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
               e.target.style.outline = "none";
             }}
+            onSelectionChange={(key) => setSelectedRole(key as string)}
           >
             {(item) => (
               <AutocompleteItem key={item.value} variant="flat">
@@ -168,7 +172,12 @@ export function AddUserForms({ onClose, onUserAdded }: AddUserFormProps) {
             )}
           </Autocomplete>
           {/* Hidden input to ensure correct value is submitted */}
-          <input type="hidden" name="role" value={selectedRole || ""} required />
+          <input
+            required
+            name="role"
+            type="hidden"
+            value={selectedRole || ""}
+          />
 
           {/* <Autocomplete
             defaultItems={userRoles}

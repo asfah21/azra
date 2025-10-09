@@ -1,5 +1,7 @@
 "use client";
 
+import type { SidebarNavItem, SidebarNavChild } from "./Sidebar";
+
 import { FiLogOut, FiMenu, FiX, FiSettings } from "react-icons/fi";
 import { Input } from "@heroui/input";
 import { Kbd } from "@heroui/kbd";
@@ -24,7 +26,6 @@ import { useProfile } from "@/app/context/ProfileContext";
 import { consolePino } from "@/lib/logger";
 
 // Import tipe dari Sidebar
-import type { SidebarNavItem, SidebarNavChild } from "./Sidebar";
 
 interface TopbarProps {
   menuOpen: boolean;
@@ -56,9 +57,11 @@ export function Topbar({
   session,
 }: TopbarProps) {
   const router = useRouter();
-  
+
   // State untuk mobile dropdown menu expand/collapse
-  const [expandedMobileMenus, setExpandedMobileMenus] = useState<{ [key: string]: boolean }>({});
+  const [expandedMobileMenus, setExpandedMobileMenus] = useState<{
+    [key: string]: boolean;
+  }>({});
 
   const { profile } = useProfile();
   // const { profile, isLoading } = useProfile();
@@ -169,30 +172,49 @@ export function Topbar({
       {menuOpen && (
         <>
           {/* Overlay untuk menutup menu ketika diklik di luar */}
-          <div 
+          <div
             className="md:hidden fixed inset-0 z-[9998] bg-black/20"
+            role="button"
+            tabIndex={0}
             onClick={() => setMenuOpen(false)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") setMenuOpen(false);
+            }}
           />
+
           <Card className="md:hidden absolute top-16 left-0 right-0 z-[9999] shadow-large rounded-none">
             <CardBody className="p-4 space-y-2">
               {navItems.map((item) => {
                 const isActive = activeTab === item.id;
-                
+
                 // Jika item punya children, tampilkan dengan dropdown
-                if ('children' in item && item.children && item.children.length > 0) {
+                if (
+                  "children" in item &&
+                  item.children &&
+                  item.children.length > 0
+                ) {
                   return (
                     <div key={item.id} className="w-full">
                       <Button
                         className="w-full justify-start h-12 touch-manipulation"
                         color={isActive ? "primary" : "default"}
-                        startContent={<span className="text-lg">{item.icon}</span>}
                         endContent={
-                          <span className={`ml-auto transition-transform ${expandedMobileMenus[item.id] ? "rotate-180" : "rotate-0"}`}>
-                            <ChevronDown size={18}/>
+                          <span
+                            className={`ml-auto transition-transform ${expandedMobileMenus[item.id] ? "rotate-180" : "rotate-0"}`}
+                          >
+                            <ChevronDown size={18} />
                           </span>
                         }
+                        startContent={
+                          <span className="text-lg">{item.icon}</span>
+                        }
                         variant={isActive ? "flat" : "light"}
-                        onPress={() => setExpandedMobileMenus((prev) => ({ ...prev, [item.id]: !prev[item.id] }))}
+                        onPress={() =>
+                          setExpandedMobileMenus((prev) => ({
+                            ...prev,
+                            [item.id]: !prev[item.id],
+                          }))
+                        }
                       >
                         {item.title}
                       </Button>
@@ -202,9 +224,15 @@ export function Topbar({
                             <Button
                               key={child.id}
                               className="w-full h-10 justify-start touch-manipulation"
-                              variant={activeTab === child.id ? "flat" : "light"}
-                              color={activeTab === child.id ? "primary" : "default"}
-                              startContent={<span className="text-base">{child.icon}</span>}
+                              color={
+                                activeTab === child.id ? "primary" : "default"
+                              }
+                              startContent={
+                                <span className="text-base">{child.icon}</span>
+                              }
+                              variant={
+                                activeTab === child.id ? "flat" : "light"
+                              }
                               onPress={() => {
                                 openNewTab(child);
                                 setMenuOpen(false);
@@ -212,7 +240,9 @@ export function Topbar({
                                 setExpandedMobileMenus({});
                               }}
                             >
-                              <span className="ml-2 text-sm">{child.title}</span>
+                              <span className="ml-2 text-sm">
+                                {child.title}
+                              </span>
                             </Button>
                           ))}
                         </div>
@@ -220,7 +250,7 @@ export function Topbar({
                     </div>
                   );
                 }
-                
+
                 // Menu biasa tanpa children
                 return (
                   <Button

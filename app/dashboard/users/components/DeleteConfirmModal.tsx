@@ -41,7 +41,10 @@ export function DeleteConfirmModal({
 }: DeleteConfirmModalProps) {
   const { data: session } = useSession();
   const [isLoading, setIsLoading] = useState(false);
-  const [result, setResult] = useState<{ success: boolean; message: string } | null>(null);
+  const [result, setResult] = useState<{
+    success: boolean;
+    message: string;
+  } | null>(null);
 
   // Reset result when modal opens
   useEffect(() => {
@@ -52,12 +55,13 @@ export function DeleteConfirmModal({
 
   const handleDelete = async () => {
     if (!user) return;
-    
+
     setIsLoading(true);
     try {
       const deleteResult = await deleteUser(user.id, session?.user?.role);
+
       setResult(deleteResult);
-      
+
       if (deleteResult.success) {
         setTimeout(() => {
           onClose();
@@ -67,7 +71,7 @@ export function DeleteConfirmModal({
     } catch (error) {
       setResult({
         success: false,
-        message: "Terjadi kesalahan saat menghapus user."
+        message: "Terjadi kesalahan saat menghapus user.",
       });
     } finally {
       setIsLoading(false);
@@ -137,18 +141,14 @@ export function DeleteConfirmModal({
                   <div className="flex items-center gap-2">
                     <span
                       className={`text-lg ${
-                        result.success
-                          ? "text-success-600"
-                          : "text-danger-600"
+                        result.success ? "text-success-600" : "text-danger-600"
                       }`}
                     >
                       {result.success ? "✅" : "❌"}
                     </span>
                     <span
                       className={`font-medium ${
-                        result.success
-                          ? "text-success-800"
-                          : "text-danger-800"
+                        result.success ? "text-success-800" : "text-danger-800"
                       }`}
                     >
                       {result.message}
@@ -262,9 +262,7 @@ export function DeleteConfirmModal({
                     isDisabled={session?.user?.role !== "super_admin" || !user}
                     isLoading={isLoading}
                     startContent={
-                      !isLoading ? (
-                        <Trash2 className="w-4 h-4" />
-                      ) : undefined
+                      !isLoading ? <Trash2 className="w-4 h-4" /> : undefined
                     }
                     onPress={handleDelete}
                   >

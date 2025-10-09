@@ -2,10 +2,10 @@
 
 import { Divider, Tooltip, Button } from "@heroui/react";
 import { memo, useMemo, useState } from "react";
+import { ChevronDown } from "lucide-react";
 
 import { useRoleAccess } from "@/hooks/useRoleAccess";
 import { Logo, LogoGsi } from "@/components/icons";
-import { ChevronDown } from "lucide-react";
 
 // (Deklarasi interface dihapus, gunakan tipe ekspor di bawah)
 export type SidebarNavItem = {
@@ -86,7 +86,9 @@ export const Sidebar = memo(function Sidebar({
   session,
 }: SidebarProps) {
   // State untuk expand/collapse group menu
-  const [expandedMenus, setExpandedMenus] = useState<{ [key: string]: boolean }>({});
+  const [expandedMenus, setExpandedMenus] = useState<{
+    [key: string]: boolean;
+  }>({});
   // Ambil konfigurasi akses dari backend
   const { roleAccess, loading } = useRoleAccess();
   const userRole = session?.user?.role;
@@ -154,46 +156,88 @@ export const Sidebar = memo(function Sidebar({
           filteredNavItems.length > 0 &&
           filteredNavItems.map((item) => {
             const isActive = activeTab === item.id;
+
             // Jika item punya children, tampilkan tombol expand/collapse
-            if ('children' in item && item.children && item.children.length > 0) {
+            if (
+              "children" in item &&
+              item.children &&
+              item.children.length > 0
+            ) {
               // Untuk super_admin, tampilkan semua child tanpa filter
-              const childrenToShow = userRole === "super_admin"
-                ? item.children
-                : item.children.filter((child: SidebarNavChild) =>
-                    roleAccess.some(
-                      (access) => access.menu === child.id && access.role === userRole,
-                    ),
-                  );
+              const childrenToShow =
+                userRole === "super_admin"
+                  ? item.children
+                  : item.children.filter((child: SidebarNavChild) =>
+                      roleAccess.some(
+                        (access) =>
+                          access.menu === child.id && access.role === userRole,
+                      ),
+                    );
+
               if (childrenToShow.length === 0) return null;
+
               return (
                 <div key={item.id} className="relative">
                   <Button
                     className={`w-full transition-all duration-200 ease-out ${sidebarCollapsed ? "justify-center min-w-12 px-0" : "justify-start"} h-12`}
-                    startContent={<span className="text-lg flex-shrink-0">{item.icon}</span>}
                     endContent={
                       !sidebarCollapsed && (
-                        <span className={`ml-auto transition-transform ${expandedMenus[item.id] ? "rotate-180" : "rotate-0"}`}><ChevronDown size={18}/></span>
+                        <span
+                          className={`ml-auto transition-transform ${expandedMenus[item.id] ? "rotate-180" : "rotate-0"}`}
+                        >
+                          <ChevronDown size={18} />
+                        </span>
                       )
                     }
+                    startContent={
+                      <span className="text-lg flex-shrink-0">{item.icon}</span>
+                    }
                     variant={isActive ? "flat" : "light"}
-                    onPress={() => setExpandedMenus((prev) => ({ ...prev, [item.id]: !prev[item.id] }))}
+                    onPress={() =>
+                      setExpandedMenus((prev) => ({
+                        ...prev,
+                        [item.id]: !prev[item.id],
+                      }))
+                    }
                   >
-                    <span className={`transition-all duration-200 ease-out whitespace-nowrap ${sidebarCollapsed ? "opacity-0 w-0 overflow-hidden ml-0" : "opacity-100 w-auto ml-2"}`}>{item.title}</span>
+                    <span
+                      className={`transition-all duration-200 ease-out whitespace-nowrap ${sidebarCollapsed ? "opacity-0 w-0 overflow-hidden ml-0" : "opacity-100 w-auto ml-2"}`}
+                    >
+                      {item.title}
+                    </span>
                   </Button>
                   {expandedMenus[item.id] && (
-                    <div className={sidebarCollapsed ? "flex flex-col items-center pt-1" : "pl-8 pt-1"}>
+                    <div
+                      className={
+                        sidebarCollapsed
+                          ? "flex flex-col items-center pt-1"
+                          : "pl-8 pt-1"
+                      }
+                    >
                       {childrenToShow.map((child: SidebarNavChild) => (
                         <Button
                           key={child.id}
-                          className={sidebarCollapsed ? "w-12 h-12 justify-center px-0" : "w-full h-10 justify-start"}
-                          variant={activeTab === child.id ? "flat" : "light"}
+                          className={
+                            sidebarCollapsed
+                              ? "w-12 h-12 justify-center px-0"
+                              : "w-full h-10 justify-start"
+                          }
                           startContent={
                             // ukuran icon
-                            <span className={sidebarCollapsed ? "text-base" : "text-lg"}>{child.icon}</span>
+                            <span
+                              className={
+                                sidebarCollapsed ? "text-base" : "text-lg"
+                              }
+                            >
+                              {child.icon}
+                            </span>
                           }
+                          variant={activeTab === child.id ? "flat" : "light"}
                           onPress={() => openNewTab(child)}
                         >
-                          {sidebarCollapsed ? null : <span className="ml-2">{child.title}</span>}
+                          {sidebarCollapsed ? null : (
+                            <span className="ml-2">{child.title}</span>
+                          )}
                         </Button>
                       ))}
                     </div>
@@ -201,6 +245,7 @@ export const Sidebar = memo(function Sidebar({
                 </div>
               );
             }
+
             // Menu biasa
             return (
               <NavButton

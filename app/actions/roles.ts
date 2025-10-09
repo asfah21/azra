@@ -37,14 +37,8 @@ const createRoleSchema = z.object({
     .string()
     .max(255, "Description must be less than 255 characters")
     .optional(),
-  color: z
-    .string()
-    .min(1, "Color is required")
-    .default("default"),
-  priority: z
-    .number()
-    .min(0, "Priority must be non-negative")
-    .default(0),
+  color: z.string().min(1, "Color is required").default("default"),
+  priority: z.number().min(0, "Priority must be non-negative").default(0),
 });
 
 const updateRoleSchema = createRoleSchema.partial();
@@ -78,8 +72,8 @@ export async function createRole(
     const rawData = {
       code: formData.get("code") as string,
       name: formData.get("name") as string,
-      description: formData.get("description") as string || undefined,
-      color: formData.get("color") as string || "default",
+      description: (formData.get("description") as string) || undefined,
+      color: (formData.get("color") as string) || "default",
       priority: parseInt(formData.get("priority") as string) || 0,
     };
 
@@ -103,7 +97,9 @@ export async function createRole(
       data: validatedData,
     });
 
-    consolePino.info(`Role created: ${role.name} (${role.code}) by ${session.user.email}`);
+    consolePino.info(
+      `Role created: ${role.name} (${role.code}) by ${session.user.email}`,
+    );
 
     // Revalidate pages
     revalidatePath("/dashboard/roles");
@@ -112,14 +108,14 @@ export async function createRole(
     return {
       success: `Role "${role.name}" created successfully`,
     };
-
   } catch (error) {
     if (error instanceof z.ZodError) {
       const fieldErrors: Record<string, string[]> = {};
-      
+
       error.issues.forEach((issue) => {
         if (issue.path[0]) {
           const field = issue.path[0] as string;
+
           if (!fieldErrors[field]) {
             fieldErrors[field] = [];
           }
@@ -131,6 +127,7 @@ export async function createRole(
     }
 
     consolePino.error("Error creating role:", error);
+
     return {
       errors: {
         general: "Failed to create role. Please try again.",
@@ -180,16 +177,18 @@ export async function updateRole(
 
     // Parse and validate form data
     const rawData = {
-      code: formData.get("code") as string || undefined,
-      name: formData.get("name") as string || undefined,
-      description: formData.get("description") as string || undefined,
-      color: formData.get("color") as string || undefined,
-      priority: formData.get("priority") ? parseInt(formData.get("priority") as string) : undefined,
+      code: (formData.get("code") as string) || undefined,
+      name: (formData.get("name") as string) || undefined,
+      description: (formData.get("description") as string) || undefined,
+      color: (formData.get("color") as string) || undefined,
+      priority: formData.get("priority")
+        ? parseInt(formData.get("priority") as string)
+        : undefined,
     };
 
     // Remove undefined values
     const cleanData = Object.fromEntries(
-      Object.entries(rawData).filter(([_, value]) => value !== undefined)
+      Object.entries(rawData).filter(([_, value]) => value !== undefined),
     );
 
     const validatedData = updateRoleSchema.parse(cleanData);
@@ -215,7 +214,9 @@ export async function updateRole(
       data: validatedData,
     });
 
-    consolePino.info(`Role updated: ${updatedRole.name} (${updatedRole.code}) by ${session.user.email}`);
+    consolePino.info(
+      `Role updated: ${updatedRole.name} (${updatedRole.code}) by ${session.user.email}`,
+    );
 
     // Revalidate pages
     revalidatePath("/dashboard/roles");
@@ -224,14 +225,14 @@ export async function updateRole(
     return {
       success: `Role "${updatedRole.name}" updated successfully`,
     };
-
   } catch (error) {
     if (error instanceof z.ZodError) {
       const fieldErrors: Record<string, string[]> = {};
-      
+
       error.issues.forEach((issue) => {
         if (issue.path[0]) {
           const field = issue.path[0] as string;
+
           if (!fieldErrors[field]) {
             fieldErrors[field] = [];
           }
@@ -243,6 +244,7 @@ export async function updateRole(
     }
 
     consolePino.error("Error updating role:", error);
+
     return {
       errors: {
         general: "Failed to update role. Please try again.",
@@ -301,7 +303,9 @@ export async function deleteRole(id: string): Promise<FormState> {
       data: { isActive: false },
     });
 
-    consolePino.info(`Role deleted: ${deletedRole.name} (${deletedRole.code}) by ${session.user.email}`);
+    consolePino.info(
+      `Role deleted: ${deletedRole.name} (${deletedRole.code}) by ${session.user.email}`,
+    );
 
     // Revalidate pages
     revalidatePath("/dashboard/roles");
@@ -310,9 +314,9 @@ export async function deleteRole(id: string): Promise<FormState> {
     return {
       success: `Role "${deletedRole.name}" deleted successfully`,
     };
-
   } catch (error) {
     consolePino.error("Error deleting role:", error);
+
     return {
       errors: {
         general: "Failed to delete role. Please try again.",
@@ -322,7 +326,10 @@ export async function deleteRole(id: string): Promise<FormState> {
 }
 
 // Server action: Toggle role status
-export async function toggleRoleStatus(id: string, isActive: boolean): Promise<FormState> {
+export async function toggleRoleStatus(
+  id: string,
+  isActive: boolean,
+): Promise<FormState> {
   try {
     const session = await getServerSession(authOptions);
 
@@ -372,7 +379,10 @@ export async function toggleRoleStatus(id: string, isActive: boolean): Promise<F
     });
 
     const action = isActive ? "activated" : "deactivated";
-    consolePino.info(`Role ${action}: ${updatedRole.name} (${updatedRole.code}) by ${session.user.email}`);
+
+    consolePino.info(
+      `Role ${action}: ${updatedRole.name} (${updatedRole.code}) by ${session.user.email}`,
+    );
 
     // Revalidate pages
     revalidatePath("/dashboard/roles");
@@ -381,9 +391,9 @@ export async function toggleRoleStatus(id: string, isActive: boolean): Promise<F
     return {
       success: `Role "${updatedRole.name}" ${action} successfully`,
     };
-
   } catch (error) {
     consolePino.error("Error toggling role status:", error);
+
     return {
       errors: {
         general: "Failed to update role status. Please try again.",

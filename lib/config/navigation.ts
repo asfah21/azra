@@ -35,7 +35,7 @@ export const defaultNavItems = [
         icon: "luList",
         defaultRoles: ["admin_heavy", "guest"],
       },
-       {
+      {
         id: "timesheetall",
         title: "All ",
         path: "/dashboard/timesheetall",
