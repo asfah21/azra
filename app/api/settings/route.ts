@@ -29,6 +29,7 @@ export async function GET(req: NextRequest) {
         department: true,
         role: true,
         createdAt: true,
+        avatar: true, // include avatar for signature
       },
     });
 
