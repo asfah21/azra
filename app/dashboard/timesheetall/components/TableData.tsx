@@ -3,7 +3,7 @@
 
 "use client";
 import React from "react";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, File, FileLineChart } from "lucide-react";
 import {
   Table,
   TableHeader,
@@ -26,6 +26,7 @@ import { Modal, ModalContent } from "@heroui/react";
 import Activity from "./Activity";
 
 import { useSessionUser } from "@/hooks/useSessionUser";
+import Link from "next/link";
 
 interface TimesheetEntry {
   id: string;
@@ -294,6 +295,7 @@ export default function TableDatas({
               }
             >
               <TableHeader>
+                {/* <TableColumn className="text-center"></TableColumn> */}
                 <TableColumn className="text-center">UNIT</TableColumn>
                 <TableColumn className="text-center">USER</TableColumn>
                 <TableColumn className="text-center">DATE</TableColumn>
@@ -319,6 +321,21 @@ export default function TableDatas({
                         }
                       >
                         <TableCell className="truncate flex items-center py-2 mt-1.5 gap-2 text-center">
+                          <Link href={`/dashboard/timesheetall/detail/${tid}`}>
+                            <Button
+                              isIconOnly
+                              aria-label="Detail"
+                              color="primary"
+                              size="sm"
+                              variant="flat"
+                            >
+                              <FileLineChart />
+                            </Button>
+                          </Link>
+                          {/* <Button isIconOnly aria-label="Take a photo" size="sm" color="warning" variant="flat">
+                            <FileLineChart />
+                          </Button> */}
+                          
                           <span className="ml-2">
                             {selectedRow === tid ? (
                               <ChevronUp className="text-blue-500" size={16} />
@@ -329,7 +346,7 @@ export default function TableDatas({
                               />
                             )}
                           </span>
-                          {first.assetTag || "-"}
+                          {first.assetTag || "-"} 
                         </TableCell>
                         <TableCell className="text-center">
                           {first.userName || "-"}
