@@ -4,6 +4,8 @@ import { useParams } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { FiPrinter, FiDownload, FiZoomIn, FiZoomOut, FiRefreshCw } from "react-icons/fi";
+import { no } from "zod/v4/locales/index.cjs";
+import { LogoGsi } from "@/components/icons";
 
 function formatHour(str: string) {
   if (!str) return "-";
@@ -66,7 +68,26 @@ export default function TimesheetAllDetailPage() {
 
   // Untuk print
   const handlePrint = () => {
-    window.print();
+    if (!contentRef.current) return;
+    const printContents = contentRef.current.innerHTML;
+    const printWindow = window.open("", "_blank", "width=900,height=600");
+    if (!printWindow) return;
+    printWindow.document.write(`
+      <html>
+        <head>
+          <title>Print Timesheet</title>
+          <link href="https://fonts.googleapis.com/css?family=Roboto:400,500,700&display=swap" rel="stylesheet">
+          <style>
+            body { margin: 0; padding: 0; font-family: 'Roboto', Arial, sans-serif; }
+          </style>
+        </head>
+        <body>${printContents}</body>
+      </html>
+    `);
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+    printWindow.close();
   };
 
   // Untuk zoom in/out
@@ -89,33 +110,31 @@ export default function TimesheetAllDetailPage() {
   return (
     <>
       <div
-  style={{
-    position: "sticky",
-    top: 0,
-    zIndex: 1000,
-    backdropFilter: "blur(12px) saturate(180%)",
-    WebkitBackdropFilter: "blur(12px) saturate(180%)",
-    background: "rgba(255, 255, 255, 0.3)",
-    // border: "1px solid rgba(255, 255, 255, 0.18)",
-    borderRadius: "16px",
-    boxShadow: "0 8px 32px 0 rgba(31, 38, 135, 0.15)",
-    padding: "10px 24px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 20,
-    width: "80%",
-    margin: "12px auto",
-  }}
->
-  <button title="Print" onClick={handlePrint} style={toolbarBtnStyle}><FiPrinter /></button>
-  <button title="Download PDF" onClick={handleDownload} style={toolbarBtnStyle}><FiDownload /></button>
-  <button title="Zoom In" onClick={handleZoomIn} style={toolbarBtnStyle}><FiZoomIn /></button>
-  <button title="Zoom Out" onClick={handleZoomOut} style={toolbarBtnStyle}><FiZoomOut /></button>
-  <button title="Reset Zoom" onClick={handleResetZoom} style={toolbarBtnStyle}><FiRefreshCw /></button>
-</div>
-
-
+        style={{
+          position: "sticky",
+          top: 0,
+          zIndex: 1000,
+          backdropFilter: "blur(12px) saturate(180%)",
+          WebkitBackdropFilter: "blur(12px) saturate(180%)",
+          background: "rgba(255, 255, 255, 0.3)",
+          // border: "1px solid rgba(255, 255, 255, 0.18)",
+          borderRadius: "16px",
+          boxShadow: "0 8px 32px 0 rgba(31, 38, 135, 0.15)",
+          padding: "10px 24px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          gap: 20,
+          width: "80%",
+          margin: "12px auto",
+        }}
+      >
+        <button title="Print" onClick={handlePrint} style={toolbarBtnStyle}><FiPrinter /></button>
+        <button title="Download PDF" onClick={handleDownload} style={toolbarBtnStyle}><FiDownload /></button>
+        <button title="Zoom In" onClick={handleZoomIn} style={toolbarBtnStyle}><FiZoomIn /></button>
+        <button title="Zoom Out" onClick={handleZoomOut} style={toolbarBtnStyle}><FiZoomOut /></button>
+        <button title="Reset Zoom" onClick={handleResetZoom} style={toolbarBtnStyle}><FiRefreshCw /></button>
+      </div>
 
       {/* Konten utama */}
       <div
@@ -127,7 +146,8 @@ export default function TimesheetAllDetailPage() {
           marginTop: 30,
           background: "#fff",
           padding: "10mm 8mm",
-          fontFamily: "Arial, Calibri, sans-serif",
+          fontFamily: "'Roboto', Arial, sans-serif", 
+          // fontFamily: "Arial, Calibri, sans-serif",
           fontSize: "10pt",
           color: "#1f2937",
           boxSizing: "border-box",
@@ -135,24 +155,26 @@ export default function TimesheetAllDetailPage() {
           transform: `scale(${zoom})`,
           transformOrigin: "top center",
           transition: "transform 0.2s",
+           pageBreakAfter: "always",
         }}
       >
         {/* HEADER */}
         <table
           style={{
               width: "100%",
-              // borderCollapse: "collapse",
+              borderCollapse: "collapse",
               // marginBottom: 8,
               fontSize: "10pt",
-              border: "1px solid #222",
+              // border: "1px solid #222",
               // borderBottom: "none"
           }}
           >
           <tbody>
               <tr>
               {/* Logo */}
-              <td rowSpan={2} style={{ width: 70, textAlign: "center", borderRight: "1px solid #222", padding: 8, verticalAlign: "middle", background: "#fff" }}>
-                  <img src="/favicon.ico" alt="Logo" style={{ height: 48 }} />
+              <td rowSpan={2} style={{ width: 90, textAlign: "center", borderRight: "1px solid #222", verticalAlign: "middle", background: "#fff" }}>
+                  {/* <img src="/favicon.ico" alt="Logo" style={{ height: 48 }} /> */}
+                  <LogoGsi style={{ height: 63, width: 83, objectFit: "contain", display: "block", paddingBottom: 4 }} />
               </td>
               {/* Title */}
               <td
@@ -175,6 +197,9 @@ export default function TimesheetAllDetailPage() {
                       color: "#222",
                       width: "100%",
                       textAlign: "center",
+                      justifyContent: "center",
+                      verticalAlign: "middle",
+                      paddingBottom: 5,
                       }}
                   >
                       FORM / FORMULIR
@@ -182,8 +207,10 @@ export default function TimesheetAllDetailPage() {
                   <div
                       style={{
                       fontWeight: 800,
-                      fontSize: "15pt",
+                      fontSize: "13pt",
                       color: "#222",
+                      verticalAlign: "middle",
+                      paddingTop: 5,
                       }}
                   >
                       HEAVY EQUIPMENT TIMESHEET
@@ -196,15 +223,15 @@ export default function TimesheetAllDetailPage() {
                   <tbody>
                       <tr>
                       <td style={{ borderBottom: "1px solid #222", borderRight: "1px solid #222", color: "#222", width: 110,   }}>No. Dokumen</td>
-                      <td style={{ borderBottom: "1px solid #222", color: "#222",   }}>: {data.documentNo ?? "-"}</td>
+                      <td style={{ borderBottom: "1px solid #222", color: "#222",   }}>: {data.documentNo ?? "GSI-OPR-001G"}</td>
                       </tr>
                       <tr>
                       <td style={{ borderBottom: "1px solid #222", borderRight: "1px solid #222", color: "#222",   }}>Revisi</td>
-                      <td style={{ borderBottom: "1px solid #222", color: "#222",   }}>: {data.revision ?? "-"}</td>
+                      <td style={{ borderBottom: "1px solid #222", color: "#222",   }}>: {data.revision ?? "1"}</td>
                       </tr>
                       <tr>
                       <td style={{ borderBottom: "1px solid #222", borderRight: "1px solid #222", color: "#222",   }}>Tanggal Efektif</td>
-                      <td style={{ borderBottom: "1px solid #222", color: "#222",   }}>: {data.effectiveDate ?? "-"}</td>
+                      <td style={{ borderBottom: "1px solid #222", color: "#222",   }}>: {data.effectiveDate ?? "18-Sep-24"}</td>
                       </tr>
                       <tr>
                       <td style={{ borderRight: "1px solid #222", color: "#222",   }}>Halaman</td>
@@ -305,7 +332,7 @@ export default function TimesheetAllDetailPage() {
                   background: "#b6d5f7",
                 }}
               >
-                CATATAN<br />OPERATOR
+                CATATAN_OPERATOR
               </th>
               
             </tr>
@@ -497,6 +524,144 @@ export default function TimesheetAllDetailPage() {
           border: "1px solid #222"
         }}>
           TIMESHEET DIKIRIM PADA : {data.createdAt ? new Date(data.createdAt).toLocaleString("id-ID") : "-"}
+        </div>
+
+        {/* KUESIONER FATIGUE & TANDA TANGAN */}
+        <div style={{ marginTop: 18 }}>
+          {/* Kuesioner Fatigue */}
+          <table style={{
+            width: "100%",
+            border: "1px solid #222",
+            borderCollapse: "collapse",
+            fontSize: "8pt",
+            marginBottom: 12,
+            background: "#fff"
+          }}>
+            <thead>
+              <tr>
+                <th colSpan={3} style={{
+                  border: "1px solid #222",
+                  background: "#b6d5f7",
+                  fontWeight: 700,
+                  textAlign: "center",
+                  padding: 6,
+                  fontSize: "9pt"
+                }}>
+                  KUISONER FATIGUE
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                {/* Pernyataan Karyawan */}
+                <td rowSpan={2} style={{
+                  border: "1px solid #222",
+                  width: 180,
+                  verticalAlign: "top",
+                  padding: 6,
+                  fontWeight: 500,
+                  fontSize: "8pt"
+                }}>
+                  <strong><center>
+                  Pernyataan Karyawan</center></strong>
+                  <div style={{ fontWeight: 400, fontSize: "7.5pt", marginTop: 6, justifyContent: "center", textAlign: "center" }}>
+                    Saya bertanda tangan dibawah ini menyatakan telah menjawab dan mengisi timesheet ini dengan sebenar-benarnya tanpa ada paksaan dari pihak manapun
+                  </div>
+                </td>
+                {/* Kolom 1 */}
+                <td style={{ borderRight: "none", padding: 6, fontSize: "7.5pt", width: "40%" }}>
+                  1. Berapa lama anda tidur dalam kurun 24 jam terakhir<br />
+                  &nbsp;&nbsp;a. &lt;6 Jam &nbsp;&nbsp; b. 6-8 Jam &nbsp;&nbsp; c. &gt;8 Jam<br /><br />
+                  2. Pada hari kemarin, berapa kali anda mengantuk?<br />
+                  &nbsp;&nbsp;a. &gt;1 Kali &nbsp;&nbsp; b. 1 Kali &nbsp;&nbsp; c. 0 Kali<br /><br />
+                  3. Pada kondisi normal Anda mungkin bisa mencapai tiga ritase/jam, kira-kira sekarang bisa berapa?<br />
+                  &nbsp;&nbsp;a. &lt;3 Ritase &nbsp;&nbsp; b. 1 Ritase &nbsp;&nbsp; c. &gt;3 Ritase
+                </td>
+                {/* Kolom 2 */}
+                <td style={{ borderLeft: "none", padding: 6, fontSize: "7.5pt", width: "40%" }}>
+                  4. Setelah istirahat dan kembali kerja, apa yang anda rasakan?<br />
+                  &nbsp;&nbsp;a. Malas &nbsp;&nbsp; b. Biasa saja &nbsp;&nbsp; c. Semangat<br /><br />
+                  5. Apakah saat ini Anda membawa badge atau SIMPER?<br />
+                  &nbsp;&nbsp;a. Ya &nbsp;&nbsp; b. Tidak &nbsp;&nbsp; c. Tidak Tau<br /><br />
+                  6. Berapa kali anda terbangun saat istirahat/tidur siang/malam?<br />
+                  &nbsp;&nbsp;a. &gt;2 Kali &nbsp;&nbsp; b. 2 Kali &nbsp;&nbsp; c. &lt;2 Kali
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          {/* Tanda tangan dan jam kerja */}
+          <div style={{ display: "flex", gap: 16, width: "100%" }}>
+            {/* Tanda tangan */}
+            <table style={{
+              flex: 2,
+              width: "60%",
+              border: "1px solid #222",
+              borderCollapse: "collapse",
+              fontSize: "9pt",
+              background: "#fff"
+            }}>
+              <thead>
+                <tr>
+                  <th style={{ border: "1px solid #222", padding: 4, width: "33%", textAlign: "center", background: "#e7f3ff" }}>Dibuat oleh,</th>
+                  <th style={{ border: "1px solid #222", padding: 4, width: "33%", textAlign: "center", background: "#e7f3ff" }}>Diperiksa oleh</th>
+                  <th style={{ border: "1px solid #222", padding: 4, width: "34%", textAlign: "center", background: "#e7f3ff" }}>Diketahui oleh</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style={{ border: "1px solid #222", height: 88, textAlign: "center", verticalAlign: "middle" }}>
+                    <div style={{ fontSize: "8pt", color: "#444" }}>(Operator)</div>
+                  </td>
+                  <td style={{ border: "1px solid #222" }}></td>
+                  <td style={{ border: "1px solid #222" }}></td>
+                </tr>
+                <tr>
+                  <td style={{ border: "1px solid #222", textAlign: "center", fontSize: "8pt", height: "12pt" }}>Operator</td>
+                  <td style={{ border: "1px solid #222", textAlign: "center", fontSize: "8pt", height: "12pt" }}>Foreman Operation</td>
+                  <td style={{ border: "1px solid #222", textAlign: "center", fontSize: "8pt", height: "12pt" }}>Supervisor Operation</td>
+                </tr>
+              </tbody>
+            </table>
+            {/* Jam kerja operator */}
+            <table style={{
+              flex: 1,
+              width: "40%",
+              border: "1px solid #222",
+              borderCollapse: "collapse", 
+              fontSize: "9pt",
+              background: "#fff"
+            }}>
+              <thead>
+                <tr>
+                  <th colSpan={1} style={{ border: "1px solid #222", textAlign: "center", background: "#b6d5f7", fontWeight: 700, padding: 4 }}>
+                    Jam Produktif
+                  </th>
+                  <th colSpan={1} style={{ border: "1px solid #222", textAlign: "center", background: "#b6d5f7", fontWeight: 700, padding: 4 }}>
+                    Jam Non Produktif
+                  </th>
+                </tr>
+                <tr>
+                  <td style={{ border: "1px solid #222", height: 88, textAlign: "center", verticalAlign: "middle" }}>
+                    <div style={{ fontSize: "8pt", color: "#444" }}>(Operator)</div>
+                  </td>
+                  <td style={{ border: "1px solid #222", height: 88, textAlign: "center", verticalAlign: "middle" }}>
+                    <div style={{ fontSize: "8pt", color: "#444" }}>(Operator)</div>
+                  </td> 
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style={{ border: "1px solid #222", textAlign: "center",  fontSize: "8.5pt", color: "#444", height: "12pt" }}>
+                    Jam
+                  </td>
+                  <td style={{ border: "1px solid #222", textAlign: "center", fontSize: "8.5pt", color: "#444", height: "12pt" }}>
+                    Jam
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </>
