@@ -23,6 +23,8 @@ export async function GET(req: NextRequest) {
         createdAt: true,
         lastActive: true,
         photo: true, //tambahanku
+        fid: true, //tambahanku
+        nik: true, //tambahanku
       },
       orderBy: { createdAt: "desc" },
     });

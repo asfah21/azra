@@ -17,7 +17,7 @@ import {
   Pagination,
   Chip,
 } from "@heroui/react";
-import { Search, Upload, Download, Users, FileText, Fingerprint } from "lucide-react";
+import { Search, Upload, Fingerprint } from "lucide-react";
 import * as XLSX from "xlsx";
 
 type LogEntry = {
@@ -41,9 +41,13 @@ type LogsResponse = {
 
 const PAGE_SIZE = 20;
 
-async function fetchLogsFromApi(page: number, signal?: AbortSignal): Promise<LogsResponse> {
+async function fetchLogsFromApi(
+  page: number,
+  signal?: AbortSignal,
+): Promise<LogsResponse> {
   const offset = (page - 1) * PAGE_SIZE;
   const params = new URLSearchParams();
+
   params.set("limit", String(PAGE_SIZE));
   params.set("offset", String(offset));
 
@@ -61,18 +65,21 @@ async function fetchLogsFromApi(page: number, signal?: AbortSignal): Promise<Log
 
   if (!res.ok) {
     const text = await res.text();
+
     throw new Error(`Fetch error (${res.status}): ${text}`);
   }
 
   const json = await res.json();
 
   let rows: LogEntry[] = [];
+
   if (json && Array.isArray(json.rows)) rows = json.rows;
   else if (json && Array.isArray(json.data)) rows = json.data;
   else if (Array.isArray(json)) rows = json;
   else rows = [];
 
   let total: number | null | undefined = undefined;
+
   if (typeof json.total === "number") total = json.total;
   else if (typeof json.count === "number") total = json.count;
   else if (rows[0]?.total_rows) total = Number(rows[0].total_rows);
@@ -88,7 +95,10 @@ async function fetchLogsFromApi(page: number, signal?: AbortSignal): Promise<Log
     total: typeof total === "number" ? total : null,
     limit: Number(json.limit ?? PAGE_SIZE),
     offset: Number(json.offset ?? offset),
-    has_more: typeof json.has_more === "boolean" ? json.has_more : rows.length === PAGE_SIZE,
+    has_more:
+      typeof json.has_more === "boolean"
+        ? json.has_more
+        : rows.length === PAGE_SIZE,
   };
 }
 
@@ -96,6 +106,7 @@ function formatDate(iso?: string) {
   if (!iso) return "-";
   if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(iso)) return iso;
   const d = new Date(String(iso));
+
   if (isNaN(d.getTime())) return String(iso);
   const pad = (n: number) => String(n).padStart(2, "0");
   const yyyy = d.getUTCFullYear();
@@ -104,7 +115,15 @@ function formatDate(iso?: string) {
   const hh = pad(d.getUTCHours());
   const min = pad(d.getUTCMinutes());
   const ss = pad(d.getUTCSeconds());
+
   return `${yyyy}-${mm}-${dd} ${hh}:${min}:${ss}`;
+}
+// Tambahkan helper split date/time berbasis formatDate agar konsisten
+function splitDateTime(iso?: string) {
+  const full = formatDate(iso);
+  if (!full || full === "-") return { date: "-", time: "-" };
+  const [date, time] = full.split(" ");
+  return { date: date ?? "-", time: time ?? "-" };
 }
 
 function mapType(t?: number) {
@@ -112,11 +131,15 @@ function mapType(t?: number) {
   if (t === 1) return "Pulang";
   if (t === 4) return "Lembur Masuk";
   if (t === 5) return "Lembur Pulang";
+
   return String(t ?? "-");
 }
 
 export default function Page() {
   const [rows, setRows] = useState<LogEntry[]>([]);
+  const [usersByFid, setUsersByFid] = useState<Record<string, string>>({});
+  const [usersDeptByFid, setUsersDeptByFid] = useState<Record<string, string>>({});
+  const [usersNikByFid, setUsersNikByFid] = useState<Record<string, string>>({});
   const [total, setTotal] = useState<number | null>(null);
   const [page, setPage] = useState<number>(1);
   const [loading, setLoading] = useState(false);
@@ -133,9 +156,10 @@ export default function Page() {
       setError(null);
       try {
         const res = await fetchLogsFromApi(page, controller.signal);
+
         if (!mounted) return;
         setRows(res.rows ?? []);
-        setHasMore(res.has_more ?? (res.rows.length === PAGE_SIZE));
+        setHasMore(res.has_more ?? res.rows.length === PAGE_SIZE);
         setTotal(typeof res.total === "number" ? res.total : null);
       } catch (err: any) {
         if (!mounted) return;
@@ -146,49 +170,155 @@ export default function Page() {
     }
 
     load();
+
     return () => {
       mounted = false;
       controller.abort();
     };
   }, [page]);
 
+  // load users once and build map by fid -> name & department
+  useEffect(() => {
+    let mounted = true;
+
+    async function loadUsers() {
+      try {
+        const res = await fetch("/api/dashboard/users", { cache: "no-store" });
+        if (!res.ok) return;
+
+        const json = await res.json();
+        const usersList: any[] =
+          json?.data?.users ?? json?.users ?? (Array.isArray(json) ? json : []);
+
+        const nameMap: Record<string, string> = {};
+        const deptMap: Record<string, string> = {};
+        const nikMap: Record<string, string> = {};
+
+        for (const u of usersList) {
+          if (u?.fid != null) {
+            const key = String(u.fid);
+            nameMap[key] = u.name ?? u?.fullName ?? u?.username ?? "";
+            deptMap[key] = u?.department ?? "";
+            nikMap[key] = u?.nik != null ? String(u.nik) : "";
+          }
+        }
+        if (mounted) {
+          setUsersByFid(nameMap);
+          setUsersDeptByFid(deptMap);
+          setUsersNikByFid(nikMap);
+        }
+      } catch {}
+    }
+    loadUsers();
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   // filter client-side by user_id or device_sn quickly (UI similarity)
   const filteredRows = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
+
     if (!q) return rows;
+
     return rows.filter((r) => {
       return (
-        String(r.user_id ?? "").toLowerCase().includes(q) ||
-        String(r.device_sn ?? "").toLowerCase().includes(q) ||
-        String(r.id ?? "").toLowerCase().includes(q)
+        String(r.user_id ?? "")
+          .toLowerCase()
+          .includes(q) ||
+        String(r.device_sn ?? "")
+          .toLowerCase()
+          .includes(q) ||
+        String(r.id ?? "")
+          .toLowerCase()
+          .includes(q)
       );
     });
   }, [rows, searchQuery]);
 
-  const totalPages = typeof total === "number" ? Math.max(1, Math.ceil(total / PAGE_SIZE)) : null;
+  // Helper untuk resolve nama dari user_id (fid)
+  const resolveNameByUserId = useCallback(
+    (userId?: string | number) => {
+      if (userId == null) return "-";
+      return usersByFid[String(userId)] ?? String(userId);
+    },
+    [usersByFid],
+  );
+
+  // Helper untuk resolve NIK dari user_id (fid)
+  const resolveNikByUserId = useCallback(
+    (userId?: string | number) => {
+      if (userId == null) return "-";
+      return usersNikByFid[String(userId)] ?? "-";
+    },
+    [usersNikByFid],
+  );
+
+  // Helper untuk resolve Department dari user_id (fid)
+  const resolveDeptByUserId = useCallback(
+    (userId?: string | number) => {
+      if (userId == null) return "-";
+      return usersDeptByFid[String(userId)] ?? "-";
+    },
+    [usersDeptByFid],
+  );
+
+  const totalPages =
+    typeof total === "number"
+      ? Math.max(1, Math.ceil(total / PAGE_SIZE))
+      : null;
 
   const handleExport = useCallback(() => {
-    const exportData = (filteredRows.length ? filteredRows : rows).map((r, i) => ({
-      No: (page - 1) * PAGE_SIZE + i + 1,
-      id: r.id,
-      user_id: r.user_id,
-      type: mapType(r.type),
-      device_sn: r.device_sn,
-      timestamp: formatDate(r.timestamp ?? r.created_at),
-    }));
-    const ws = XLSX.utils.json_to_sheet(exportData);
-    ws["!cols"] = [{ wch: 6 }, { wch: 8 }, { wch: 8 }, { wch: 16 }, { wch: 20 }];
+    const source = filteredRows.length ? filteredRows : rows;
+
+    const exportData = source.map((r, i) => {
+      const { date, time } = splitDateTime(r.timestamp ?? r.created_at);
+      const name = resolveNameByUserId(r.user_id);
+      const nik = resolveNikByUserId(r.user_id);
+      const department = resolveDeptByUserId(r.user_id);
+
+      return {
+        No: (page - 1) * PAGE_SIZE + i + 1,
+        name,
+        nik,
+        department,
+        user_id: r.user_id ?? "-",
+        type: mapType(r.type),
+        date,
+        time,
+        device_sn: r.device_sn ?? "-",
+      };
+    });
+
+    // pastikan urutan header konsisten
+    const ws = XLSX.utils.json_to_sheet(exportData, {
+      header: ["No", "name", "nik", "department", "user_id", "type", "date", "time", "device_sn"],
+    });
+
+    // Lebar kolom disesuaikan
+    ws["!cols"] = [
+      { wch: 6 },   // No
+      { wch: 24 },  // name
+      { wch: 14 },  // nik
+      { wch: 16 },  // department
+      { wch: 12 },  // user_id
+      { wch: 14 },  // type
+      { wch: 12 },  // date
+      { wch: 10 },  // time
+      { wch: 18 },  // device_sn
+    ];
+
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "logs");
     const ts = new Date().toISOString().slice(0, 19).replace(/:/g, "-");
     XLSX.writeFile(wb, `fingerprint_logs_${ts}.xlsx`);
-  }, [rows, filteredRows, page]);
+  }, [rows, filteredRows, page, resolveNameByUserId, resolveNikByUserId, resolveDeptByUserId]);
 
   // pages used by HeroUI Pagination when totalPages known
   const pages = totalPages ?? Math.max(1, page);
 
   return (
-    <div className="p-6">
+    <div className="p-0 md:p-6">
       <Card>
         <CardHeader className="flex flex-col gap-3 sm:flex-row">
           <div className="flex items-center gap-3 flex-1 justify-start self-start">
@@ -197,7 +327,9 @@ export default function Page() {
             </div>
             <div className="flex flex-col flex-1 min-w-0">
               <div className="flex items-baseline gap-2">
-                <h2 className="text-xl font-semibold text-default-800">Fingerprint</h2>
+                <h2 className="text-xl font-semibold text-default-800">
+                  Fingerprint
+                </h2>
                 <Chip
                   className="text-sm font-bold"
                   color="success"
@@ -205,7 +337,7 @@ export default function Page() {
                   size="sm"
                   variant="flat"
                 >
-                  {typeof total === 'number' ? total : 0}
+                  {typeof total === "number" ? total : 0}
                 </Chip>
               </div>
 
@@ -221,13 +353,25 @@ export default function Page() {
               placeholder="Find ID or User ID ..."
               size="sm"
               startContent={<Search className="w-4 h-4 text-default-400" />}
-              variant="flat"
               value={searchQuery}
-              onFocus={(e: React.FocusEvent<HTMLInputElement>) => { e.target.style.outline = "none"; }}
-              onValueChange={(v: string) => { setSearchQuery(v); setPage(1); }}
+              variant="flat"
+              onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+                e.target.style.outline = "none";
+              }}
+              onValueChange={(v: string) => {
+                setSearchQuery(v);
+                setPage(1);
+              }}
             />
 
-            <Button className="flex-1 sm:flex-none" color="warning" size="sm" startContent={<Upload className="w-4 h-4" />} variant="flat" onPress={handleExport}>
+            <Button
+              className="flex-1 sm:flex-none"
+              color="warning"
+              size="sm"
+              startContent={<Upload className="w-4 h-4" />}
+              variant="flat"
+              onPress={handleExport}
+            >
               Export
             </Button>
 
@@ -245,17 +389,21 @@ export default function Page() {
               placeholder="Cari ID, user_id atau device..."
               size="sm"
               startContent={<Search className="w-4 h-4 text-default-400" />}
-              variant="flat"
               value={searchQuery}
-              onFocus={(e: React.FocusEvent<HTMLInputElement>) => { e.target.style.outline = "none"; }}
-              onValueChange={(v: string) => { setSearchQuery(v); setPage(1); }}
+              variant="flat"
+              onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+                e.target.style.outline = "none";
+              }}
+              onValueChange={(v: string) => {
+                setSearchQuery(v);
+                setPage(1);
+              }}
             />
           </div>
 
           <div className="overflow-x-auto">
             <Table
               aria-label="Fingerprint logs table"
-              className="min-w-full"
               bottomContent={
                 <div className="flex w-full justify-center py-3">
                   <Pagination
@@ -269,28 +417,108 @@ export default function Page() {
                   />
                 </div>
               }
+              className="min-w-full"
             >
               <TableHeader>
                 {/* header styling like UserTable: small uppercase, tight spacing */}
-                <TableColumn className="w-12 text-center text-xs font-medium text-default-600 uppercase tracking-wider select-none">NO</TableColumn>
-                <TableColumn className="w-20 text-center text-xs font-medium text-default-600 uppercase tracking-wider select-none">ID</TableColumn>
-                <TableColumn className="w-24 text-center text-xs font-medium text-default-600 uppercase tracking-wider select-none">USER ID</TableColumn>
-                <TableColumn className="w-28 text-center text-xs font-medium text-default-600 uppercase tracking-wider select-none">TYPE</TableColumn>
-                <TableColumn className="w-56 text-center text-xs font-medium text-default-600 uppercase tracking-wider select-none">DEVICE SN</TableColumn>
-                <TableColumn className="w-48 text-center text-xs font-medium text-default-600 uppercase tracking-wider select-none">TIME</TableColumn>
+                <TableColumn className="w-12 text-center text-xs font-medium text-default-600 uppercase tracking-wider select-none">
+                  NO
+                </TableColumn>
+                {/* <TableColumn className="w-28 text-center text-xs font-medium text-default-600 uppercase tracking-wider select-none">
+                  NIK
+                </TableColumn> */}
+                <TableColumn className="w-20 text-center text-xs font-medium text-default-600 uppercase tracking-wider select-none">
+                  NAME
+                </TableColumn>
+                <TableColumn className="w-28 text-center text-xs font-medium text-default-600 uppercase tracking-wider select-none">
+                  DIVISION
+                </TableColumn>
+                <TableColumn className="w-24 text-center text-xs font-medium text-default-600 uppercase tracking-wider select-none">
+                  USER ID
+                </TableColumn>
+                <TableColumn className="w-28 text-center text-xs font-medium text-default-600 uppercase tracking-wider select-none">
+                  TYPE
+                </TableColumn>
+               <TableColumn className="w-28 text-center text-xs font-medium text-default-600 uppercase tracking-wider select-none">
+                 DATE
+               </TableColumn>
+               <TableColumn className="w-24 text-center text-xs font-medium text-default-600 uppercase tracking-wider select-none">
+                 TIME
+               </TableColumn>
+                <TableColumn className="w-56 text-center text-xs font-medium text-default-600 uppercase tracking-wider select-none">
+                  DEVICE SN
+                </TableColumn>
               </TableHeader>
 
               <TableBody>
                 {filteredRows.map((item: LogEntry, index: number) => {
                   const idx = (page - 1) * PAGE_SIZE + index + 1;
+                  const resolvedName =
+                    item.user_id != null
+                      ? (usersByFid[String(item.user_id)] ?? String(item.user_id))
+                      : "-";
+                  const resolvedDept =
+                    item.user_id != null
+                      ? (usersDeptByFid[String(item.user_id)] ?? "-")
+                      : "-";
+                  const resolvedNik =
+                    item.user_id != null
+                      ? (usersNikByFid[String(item.user_id)] ?? "-")
+                      : "-";
+                 const { date: resolvedDate, time: resolvedTime } = splitDateTime(
+                   item.timestamp ?? item.created_at,
+                 );
+
                   return (
                     <TableRow key={item.id ?? idx} className="hover:bg-default-50">
-                      <TableCell className="text-center align-middle px-6 py-3 text-sm text-default-700">{idx}</TableCell>
-                      <TableCell className="text-center align-middle px-6 py-3 text-sm font-semibold text-default-800">{item.id}</TableCell>
-                      <TableCell className="text-center align-middle px-6 py-3 text-sm text-default-700">{item.user_id ?? "-"}</TableCell>
-                      <TableCell className="text-center align-middle px-6 py-3 text-sm text-default-700 whitespace-pre-line">{mapType(item.type)}</TableCell>
-                      <TableCell className="text-center align-middle px-6 py-3 text-sm text-default-700 truncate">{item.device_sn ?? "-"}</TableCell>
-                      <TableCell className="text-center align-middle px-6 py-3 text-sm text-default-700">{formatDate(item.timestamp ?? item.created_at)}</TableCell>
+                      <TableCell className="text-center align-middle px-6 py-3 text-sm text-default-700">
+                        {idx}
+                      </TableCell>
+                      {/* resolved user name (lookup by fid) */}
+                      <TableCell className="text-center align-middle px-6 py-3 text-sm font-semibold text-default-800">
+                        <div className="text-small align-left">
+                          <p className="font-medium truncate">{resolvedName}</p>
+                          <p className="text-xs text-default-500 mt-0.5">
+                            {resolvedNik || "-"}
+                          </p>
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-center align-middle px-6 py-3 text-sm text-default-700">
+                        {resolvedDept || "-"}
+                      </TableCell>
+                      <TableCell className="text-center align-middle px-6 py-3 text-sm text-default-700">
+                        {item.user_id ?? "-"}
+                      </TableCell>
+                      <TableCell className="text-center align-middle px-6 py-3 text-sm text-default-700 whitespace-pre-line">
+                        <Chip
+                          className="mx-auto"
+                          color={
+                            item.type === 0
+                              ? "success"
+                              : item.type === 1
+                              ? "danger"
+                              : item.type === 4
+                              ? "primary"
+                              : item.type === 5
+                              ? "warning"
+                              : "default"
+                          }
+                          radius="sm"
+                          size="sm"
+                          variant="flat"
+                        >
+                          {mapType(item.type)}
+                        </Chip>
+                      </TableCell>
+                      <TableCell className="text-center align-middle px-6 py-3 text-sm text-default-700 truncate">
+                       <div className="truncate">{resolvedDate}</div>
+                     </TableCell>
+                     <TableCell className="text-center align-middle px-6 py-3 text-sm text-default-700">
+                       {resolvedTime}
+                     </TableCell>
+                      <TableCell className="text-center align-middle px-6 py-3 text-sm text-default-700 truncate">
+                        {item.device_sn ?? "-"}
+                      </TableCell>
                     </TableRow>
                   );
                 })}
@@ -314,7 +542,9 @@ export default function Page() {
 
         <div className="text-sm text-gray-500">
           Total: {total ?? (rows.length > 0 ? "?" : 0)}
-          {totalPages ? ` — Halaman ${page} dari ${totalPages}` : ` — Halaman ${page}`}
+          {totalPages
+            ? ` — Halaman ${page} dari ${totalPages}`
+            : ` — Halaman ${page}`}
         </div>
       </div>
 

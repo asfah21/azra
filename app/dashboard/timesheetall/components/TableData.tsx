@@ -3,7 +3,7 @@
 
 "use client";
 import React from "react";
-import { ChevronDown, ChevronUp, File, FileLineChart } from "lucide-react";
+import { ChevronDown, ChevronUp, FileLineChart } from "lucide-react";
 import {
   Table,
   TableHeader,
@@ -22,11 +22,11 @@ import {
 } from "@heroui/react";
 import { Edit, Package, Search } from "lucide-react";
 import { Modal, ModalContent } from "@heroui/react";
+import Link from "next/link";
 
 import Activity from "./Activity";
 
 import { useSessionUser } from "@/hooks/useSessionUser";
-import Link from "next/link";
 
 interface TimesheetEntry {
   id: string;
@@ -335,7 +335,7 @@ export default function TableDatas({
                           {/* <Button isIconOnly aria-label="Take a photo" size="sm" color="warning" variant="flat">
                             <FileLineChart />
                           </Button> */}
-                          
+
                           <span className="ml-2">
                             {selectedRow === tid ? (
                               <ChevronUp className="text-blue-500" size={16} />
@@ -346,7 +346,7 @@ export default function TableDatas({
                               />
                             )}
                           </span>
-                          {first.assetTag || "-"} 
+                          {first.assetTag || "-"}
                         </TableCell>
                         <TableCell className="text-center">
                           {first.userName || "-"}

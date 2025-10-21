@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useMemo } from "react";
+import { useActionState, useEffect, useMemo, useState, startTransition } from "react";
 import { useSession } from "next-auth/react";
 import {
   ModalHeader,
@@ -68,17 +68,16 @@ export function EditUserModal({
   // Find matching role option for current user role - memoized untuk consistency
   const currentRoleKey = useMemo(() => {
     if (!user?.role || !staticRoleOptions.length) return "";
-
-    // Find by value
-    const byValue = staticRoleOptions.find(
-      (option) => option.value === user.role,
-    );
-
+    const byValue = staticRoleOptions.find((option) => option.value === user.role);
     if (byValue) return byValue.value;
-
-    // Last fallback: return as is
     return user.role;
   }, [user?.role, staticRoleOptions]);
+
+  // state terkontrol untuk pilihan role
+  const [roleKey, setRoleKey] = useState<string>("");
+  useEffect(() => {
+    setRoleKey(currentRoleKey);
+  }, [currentRoleKey]);
 
   const handleSubmit = async (formData: FormData) => {
     if (user) {
@@ -86,6 +85,8 @@ export function EditUserModal({
       if (session?.user?.role) {
         formData.append("currentUserRole", session.user.role);
       }
+      // pastikan role yang dipilih terkirim
+      formData.set("role", roleKey || user.role || "");
 
       // Debug logging
       console.log("FormData being sent:", {
@@ -98,7 +99,9 @@ export function EditUserModal({
         hasPassword: !!formData.get("password"),
       });
 
-      await formAction(formData);
+      startTransition(() => {
+        void formAction(formData);
+      });
     }
   };
 
@@ -154,13 +157,13 @@ export function EditUserModal({
 
           <Autocomplete
             defaultItems={staticRoleOptions}
-            defaultSelectedKey={user ? currentRoleKey : ""}
             isDisabled={!user}
             label="User Roles"
             labelPlacement="outside-top"
             name="role"
             placeholder="Search user roles"
-            selectedKey={user ? currentRoleKey : ""}
+            selectedKey={user ? (roleKey || null) : null}
+            onSelectionChange={(key) => setRoleKey(key?.toString() ?? "")}
             style={{ outline: "none" }}
             onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
               e.target.style.outline = "none";
@@ -169,11 +172,13 @@ export function EditUserModal({
             variant="bordered"
           >
             {(item) => (
-              <AutocompleteItem key={item.value} variant="flat">
-                {item.value}
+              <AutocompleteItem key={item.value} textValue={item.label} variant="flat">
+                {item.label}
               </AutocompleteItem>
             )}
           </Autocomplete>
+          {/* kirim nilai role ke form */}
+          <input type="hidden" name="role" value={roleKey || ""} />
 
           <Input
             defaultValue={user?.department || ""}

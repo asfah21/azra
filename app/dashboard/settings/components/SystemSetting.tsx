@@ -18,6 +18,7 @@ export default function SystemSetting() {
       try {
         const res = await fetch("/api/settings");
         const data = await res.json();
+
         if (data?.profile?.avatar) {
           setSignatureUrl(data.profile.avatar);
         }
@@ -35,20 +36,26 @@ export default function SystemSetting() {
     const bstr = atob(arr[1]);
     let n = bstr.length;
     const u8arr = new Uint8Array(n);
+
     while (n--) {
       u8arr[n] = bstr.charCodeAt(n);
     }
+
     return new File([u8arr], filename, { type: mime });
   }
 
   const handleSave = async () => {
     if (sigPadRef.current && !sigPadRef.current.isEmpty()) {
-      const dataUrl = sigPadRef.current.getTrimmedCanvas().toDataURL("image/png");
+      const dataUrl = sigPadRef.current
+        .getTrimmedCanvas()
+        .toDataURL("image/png");
+
       setTrimmedDataURL(dataUrl);
 
       // Upload to server
       const file = dataURLtoFile(dataUrl, `signature-${Date.now()}.png`);
       const formData = new FormData();
+
       formData.append("signature", file);
 
       try {
@@ -57,6 +64,7 @@ export default function SystemSetting() {
           body: formData,
         });
         const result = await res.json();
+
         if (result.success && result.signatureUrl) {
           setSignatureUrl(result.signatureUrl);
           addToast({
@@ -113,26 +121,51 @@ export default function SystemSetting() {
             <p className="font-medium text-small">Your Signature</p>
             <div className="space-y-2">
               {/* Digital Signature Box */}
-              <div className="border border-dashed border-gray-400 rounded-md bg-white" style={{ height: 300, width: 300, position: 'relative', overflow: 'hidden', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <div
+                className="border border-dashed border-gray-400 rounded-md bg-white"
+                style={{
+                  height: 300,
+                  width: 300,
+                  position: "relative",
+                  overflow: "hidden",
+                  margin: "0 auto",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
                 {loading ? (
                   <span className="text-gray-400 text-sm">Loading...</span>
-                ) : (signatureUrl && signatureUrl !== "null" && signatureUrl !== "") ? (
+                ) : signatureUrl &&
+                  signatureUrl !== "null" &&
+                  signatureUrl !== "" ? (
                   <div className="w-full h-full flex flex-col items-center justify-center">
-                    <img src={signatureUrl} alt="Signature" className="max-h-full max-w-full object-contain mb-6" />
+                    <img
+                      alt="Signature"
+                      className="max-h-full max-w-full object-contain mb-6"
+                      src={signatureUrl}
+                    />
                     <div className="w-full flex justify-center">
-                      <Button color="danger" size="sm" variant="bordered" onPress={() => setSignatureUrl("")}>Ganti Tanda Tangan</Button>
+                      <Button
+                        color="danger"
+                        size="sm"
+                        variant="bordered"
+                        onPress={() => setSignatureUrl("")}
+                      >
+                        Ganti Tanda Tangan
+                      </Button>
                     </div>
                   </div>
                 ) : (
                   <>
                     <SignatureCanvas
                       ref={sigPadRef}
-                      penColor="black"
                       canvasProps={{
                         width: 300,
                         height: 300,
-                        className: "w-full h-full bg-white cursor-crosshair"
+                        className: "w-full h-full bg-white cursor-crosshair",
                       }}
+                      penColor="black"
                     />
                     {(!sigPadRef.current || sigPadRef.current.isEmpty()) && (
                       <span className="text-gray-400 text-sm absolute top-1 select-none pointer-events-none">
@@ -144,8 +177,17 @@ export default function SystemSetting() {
               </div>
               {!signatureUrl && (
                 <div className="flex gap-2 mt-2">
-                  <Button color="primary" size="sm" onPress={handleSave}>Save</Button>
-                  <Button color="default" size="sm" variant="bordered" onPress={handleReset}>Reset</Button>
+                  <Button color="primary" size="sm" onPress={handleSave}>
+                    Save
+                  </Button>
+                  <Button
+                    color="default"
+                    size="sm"
+                    variant="bordered"
+                    onPress={handleReset}
+                  >
+                    Reset
+                  </Button>
                 </div>
               )}
               {trimmedDataURL && (

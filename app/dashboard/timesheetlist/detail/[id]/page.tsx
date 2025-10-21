@@ -2,7 +2,6 @@
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { Button } from "@heroui/react";
 
 export default function TimesheetDetailPage() {
   const params = useParams();
@@ -57,8 +56,8 @@ export default function TimesheetDetailPage() {
       {/* Header */}
       <div style={{ display: "flex", alignItems: "center", marginBottom: 8 }}>
         <img
-          src="/favicon.ico"
           alt="Logo"
+          src="/favicon.ico"
           style={{ height: 48, marginRight: 12 }}
         />
         <div style={{ flex: 1, textAlign: "center" }}>
@@ -129,21 +128,25 @@ export default function TimesheetDetailPage() {
             <th style={{ border: "1px solid #333", padding: 4 }}>Jam</th>
             <th style={{ border: "1px solid #333", padding: 4 }}>Activity</th>
             <th style={{ border: "1px solid #333", padding: 4 }}>Deskripsi</th>
-            <th style={{ border: "1px solid #333", padding: 4 }}>Durasi (menit)</th>
+            <th style={{ border: "1px solid #333", padding: 4 }}>
+              Durasi (menit)
+            </th>
             <th style={{ border: "1px solid #333", padding: 4 }}>Catatan</th>
           </tr>
         </thead>
         <tbody>
-          {(data.activities ?? [
-            {
-              startTime: data.startTime,
-              endTime: data.endTime,
-              activity: data.activity,
-              activityDesc: data.activityDesc,
-              durationSec: data.durationSec,
-              notes: data.notes,
-            },
-          ]).map((act: any, idx: number) => (
+          {(
+            data.activities ?? [
+              {
+                startTime: data.startTime,
+                endTime: data.endTime,
+                activity: data.activity,
+                activityDesc: data.activityDesc,
+                durationSec: data.durationSec,
+                notes: data.notes,
+              },
+            ]
+          ).map((act: any, idx: number) => (
             <tr key={idx}>
               <td style={{ border: "1px solid #333", padding: 4 }}>
                 {act.startTime} - {act.endTime}

@@ -254,7 +254,11 @@ export async function importUsersFromExcel(prevState: any, formData: FormData) {
     if (excelDataJson) {
       try {
         const preview = JSON.parse(excelDataJson);
-        console.log("Received excel rows:", Array.isArray(preview) ? preview.length : "not-array");
+
+        console.log(
+          "Received excel rows:",
+          Array.isArray(preview) ? preview.length : "not-array",
+        );
         console.log("First row preview:", preview[0]);
       } catch (e) {
         console.log("excelDataJson parse error", e);
@@ -300,13 +304,19 @@ export async function importUsersFromExcel(prevState: any, formData: FormData) {
           const email = String(row.email || "").trim();
           const name = String(row.name || "").trim();
           const role = String(row.role || "").trim();
-          const department = row.department ? String(row.department).trim() : null;
+          const department = row.department
+            ? String(row.department).trim()
+            : null;
           const fid = row.fid ? String(row.fid).trim() : null;
           const nik = row.nik ? String(row.nik).trim() : null;
           const passwordRaw = row.password ?? "";
 
           if (!email || !name || !role) {
-            failed.push({ rowIndex: idx + 1, reason: "Missing required fields (name/email/role)" });
+            failed.push({
+              rowIndex: idx + 1,
+              reason: "Missing required fields (name/email/role)",
+            });
+
             return;
           }
 
@@ -315,8 +325,13 @@ export async function importUsersFromExcel(prevState: any, formData: FormData) {
             where: { email },
             select: { id: true },
           });
+
           if (existingByEmail) {
-            failed.push({ rowIndex: idx + 1, reason: `Email sudah ada: ${email}` });
+            failed.push({
+              rowIndex: idx + 1,
+              reason: `Email sudah ada: ${email}`,
+            });
+
             return;
           }
 
@@ -332,8 +347,13 @@ export async function importUsersFromExcel(prevState: any, formData: FormData) {
                 where: whereClause,
                 select: { id: true },
               });
+
               if (existingByFid) {
-                failed.push({ rowIndex: idx + 1, reason: `FID sudah ada: ${fid}` });
+                failed.push({
+                  rowIndex: idx + 1,
+                  reason: `FID sudah ada: ${fid}`,
+                });
+
                 return;
               }
             } catch {
@@ -341,9 +361,10 @@ export async function importUsersFromExcel(prevState: any, formData: FormData) {
             }
           }
 
-          const hashedPassword = passwordRaw && String(passwordRaw).trim() !== ""
-            ? await bcrypt.hash(String(passwordRaw), 10)
-            : "";
+          const hashedPassword =
+            passwordRaw && String(passwordRaw).trim() !== ""
+              ? await bcrypt.hash(String(passwordRaw), 10)
+              : "";
 
           // Include fid/nik converting to numeric when possible (Prisma expects Int for fid in your schema)
           const createData: any = {
@@ -356,6 +377,7 @@ export async function importUsersFromExcel(prevState: any, formData: FormData) {
 
           if (fid) {
             const fidNumber = Number(fid);
+
             if (!Number.isNaN(fidNumber)) {
               // schema expects Int — provide a number
               createData.fid = fidNumber;
@@ -377,7 +399,10 @@ export async function importUsersFromExcel(prevState: any, formData: FormData) {
             });
           } catch (prismaErr: any) {
             // log more details to help debugging (Prisma errors contain meta/code)
-            consolePino.error("Prisma create error for row:", { idx, createData });
+            consolePino.error("Prisma create error for row:", {
+              idx,
+              createData,
+            });
             consolePino.error("Prisma error:", {
               message: prismaErr?.message,
               code: prismaErr?.code,
@@ -387,7 +412,10 @@ export async function importUsersFromExcel(prevState: any, formData: FormData) {
           }
         } catch (err: any) {
           consolePino.error("Row import error:", { idx, err });
-          failed.push({ rowIndex: idx + 1, reason: err?.message || "Unknown error" });
+          failed.push({
+            rowIndex: idx + 1,
+            reason: err?.message || "Unknown error",
+          });
         }
       }),
     );
@@ -408,147 +436,88 @@ export async function importUsersFromExcel(prevState: any, formData: FormData) {
     };
   } catch (error) {
     console.error("Error importing users from Excel:", error);
+
     return { success: false, message: "Server error saat import" };
   }
 }
 
-// export async function importUsersFromExcel(
-//   prevState:any,
-//   formData:FormData,
-// ) {
-//   try {
-//     const excelDataJson = formData.get("excelData") as string;
-//     const createdById = formData.get("createdById") as string;
+export async function getUsersData() {
+  try {
+    const allUsers = await prisma.user.findMany({
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        department: true,
+        createdAt: true,
+        lastActive: true,
+        // tambahkan fid & nik agar dikirim ke client
+        fid: true,
+        nik: true,
+        photo: true,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
 
-//     if (!excelDataJson || !createdById) {
-//       return {
-//         success: false,
-//         message: "Data Excel atau User ID tidak ditemukan!",
-//       };
-//     }
+    // Hitung stats dari data yang sudah di-fetch
+    const totalUsers = allUsers.length;
 
-//     const excelData = JSON.parse(excelDataJson) as any[];
+    // Hitung new users bulan ini
+    const startOfMonth = new Date();
 
-//     if (!Array.isArray(excelData) || excelData.length === 0) {
-//       return {
-//         success: false,
-//         message: "Data Excel kosong atau format tidak valid!",
-//       };
-//     }
+    startOfMonth.setDate(1);
+    startOfMonth.setHours(0, 0, 0, 0);
 
-//     // Validasi user exists
-//     const userExists = await prisma.user.findUnique({
-//       where: { id: createdById },
-//     });
+    const newUsers = allUsers.filter(
+      (user) => user.createdAt >= startOfMonth,
+    ).length;
 
-//     if (!userExists) {
-//       return {
-//         success: false,
-//         message: "User tidak ditemukan!",
-//       };
-//     }
+    // Hitung active users (aktif dalam 30 hari terakhir)
+    const thirtyDaysAgo = new Date();
 
-//     // Simpan data ke database
-//     const usersToCreate = excelData.map((row) => ({
-//       name: row.name,
-//       email: row.email,
-//       password: row.password,
-//       role: row.role,
-//       department: row.department,
-//     }));
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-//     await prisma.user.createMany({
-//       data: usersToCreate,
-//     });
+    const activeUsers = allUsers.filter(
+      (user) => user.lastActive && user.lastActive >= thirtyDaysAgo,
+    ).length;
 
-//     revalidatePath("/dashboard/users");
+    // Hitung inactive users (tidak aktif dalam 30 hari terakhir atau tidak ada lastActive)
+    const inactiveUsers = allUsers.filter(
+      (user) => !user.lastActive || user.lastActive < thirtyDaysAgo,
+    ).length;
 
-//     return {
-//       success: true,
-//       message: "Data users berhasil diimpor!",
-//     };
-//   } catch (error) {
-//     console.error("Error importing users from Excel:", error);
-//     return {
-//       success: false,
-//       message: "Terjadi kesalahan saat mengimpor data users dari Excel.",
-//     };
-//   }
-// }
+    const userStats = {
+      total: totalUsers,
+      new: newUsers,
+      active: activeUsers,
+      inactive: inactiveUsers,
+    };
 
-// export async function getUsersData() {
-//   try {
-//     const allUsers = await prisma.user.findMany({
-//       select: {
-//         id: true,
-//         name: true,
-//         email: true,
-//         role: true,
-//         department: true,
-//         createdAt: true,
-//         lastActive: true,
-//       },
-//       orderBy: {
-//         createdAt: "desc",
-//       },
-//     });
+    return {
+      success: true,
+      data: {
+        users: allUsers,
+        stats: userStats,
+      },
+    };
+  } catch (error) {
+    console.error("Error fetching users data:", error);
 
-//     // Hitung stats dari data yang sudah di-fetch
-//     const totalUsers = allUsers.length;
-
-//     // Hitung new users bulan ini
-//     const startOfMonth = new Date();
-
-//     startOfMonth.setDate(1);
-//     startOfMonth.setHours(0, 0, 0, 0);
-
-//     const newUsers = allUsers.filter(
-//       (user) => user.createdAt >= startOfMonth,
-//     ).length;
-
-//     // Hitung active users (aktif dalam 30 hari terakhir)
-//     const thirtyDaysAgo = new Date();
-
-//     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-
-//     const activeUsers = allUsers.filter(
-//       (user) => user.lastActive && user.lastActive >= thirtyDaysAgo,
-//     ).length;
-
-//     // Hitung inactive users (tidak aktif dalam 30 hari terakhir atau tidak ada lastActive)
-//     const inactiveUsers = allUsers.filter(
-//       (user) => !user.lastActive || user.lastActive < thirtyDaysAgo,
-//     ).length;
-
-//     const userStats = {
-//       total: totalUsers,
-//       new: newUsers,
-//       active: activeUsers,
-//       inactive: inactiveUsers,
-//     };
-
-//     return {
-//       success: true,
-//       data: {
-//         users: allUsers,
-//         stats: userStats,
-//       },
-//     };
-//   } catch (error) {
-//     console.error("Error fetching users data:", error);
-
-//     return {
-//       success: false,
-//       message: "Terjadi kesalahan saat mengambil data users.",
-//       data: {
-//         users: [],
-//         stats: {
-//           total: 0,
-//           new: 0,
-//           active: 0,
-//           inactive: 0,
-//         },
-//       },
-//     };
-//   }
-// }
+    return {
+      success: false,
+      message: "Terjadi kesalahan saat mengambil data users.",
+      data: {
+        users: [],
+        stats: {
+          total: 0,
+          new: 0,
+          active: 0,
+          inactive: 0,
+        },
+      },
+    };
+  }
+}

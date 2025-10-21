@@ -9,8 +9,6 @@ import DashboardFooter from "../components/DashboardFooter";
 // import UserCardGrids from "./components/CardGrid";
 // import UserTables from "./components/UserTable";
 
-import { CardGridSkeleton, TableSkeleton } from "@/components/ui/skeleton";
-
 export default function FingerClientPage() {
   const { data, isLoading, isError } = useQuery({
     queryKey: ["users-data"],

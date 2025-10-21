@@ -29,8 +29,6 @@ import * as XLSX from "xlsx";
 
 import { importUsersFromExcel } from "../action";
 
-import { consolePino } from "@/lib/logger";
-
 interface ImportUserModalProps {
   onClose: () => void;
   onUsersImported?: () => void;
@@ -117,7 +115,9 @@ export function ImportUserModal({
         errors.push("NIK wajib diisi");
       } else if (!/^\d{10,20}$/.test(String(row.nik).trim())) {
         // contoh validasi: numeric antara 10-20 digit (ubah sesuai kebutuhan)
-        warnings.push("Format NIK tidak standar (disarankan numeric, 10-20 digit)");
+        warnings.push(
+          "Format NIK tidak standar (disarankan numeric, 10-20 digit)",
+        );
       }
 
       // Validasi status
@@ -180,12 +180,15 @@ export function ImportUserModal({
   // parsing file -> setExcelData
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+
     if (!file) return;
     setUploadedFileName(file.name);
 
     const reader = new FileReader();
+
     reader.onload = (ev) => {
       const data = ev.target?.result;
+
       if (!data) return;
 
       // read workbook (support binary/string)
@@ -216,10 +219,12 @@ export function ImportUserModal({
   const handleImportSubmit = async () => {
     if (!excelData.length) {
       alert("File belum diparsing atau data kosong");
+
       return;
     }
 
     const fd = new FormData();
+
     fd.append("excelData", JSON.stringify(excelData));
     fd.append("createdById", currentUserId || "");
 
@@ -236,7 +241,15 @@ export function ImportUserModal({
 
   const downloadTemplate = () => {
     // Fields and example rows (include fid & nik)
-    const fields = ["name", "email", "password", "role", "department", "fid", "nik"];
+    const fields = [
+      "name",
+      "email",
+      "password",
+      "role",
+      "department",
+      "fid",
+      "nik",
+    ];
     const exampleRows = [
       {
         name: "Andika",
@@ -260,15 +273,7 @@ export function ImportUserModal({
 
     // Header sheet with column names + short descriptions (human readable)
     const headerRow = [
-      [
-        "name",
-        "email",
-        "password",
-        "role",
-        "department",
-        "fid",
-        "nik",
-      ],
+      ["name", "email", "password", "role", "department", "fid", "nik"],
     ];
 
     const headerWs = XLSX.utils.aoa_to_sheet(headerRow);
@@ -276,6 +281,7 @@ export function ImportUserModal({
     const exampleWs = XLSX.utils.json_to_sheet(exampleRows, { header: fields });
 
     const wb = XLSX.utils.book_new();
+
     XLSX.utils.book_append_sheet(wb, headerWs, "Template (keterangan kolom)");
     XLSX.utils.book_append_sheet(wb, exampleWs, "Contoh Data");
 
@@ -293,12 +299,12 @@ export function ImportUserModal({
 
       <ModalBody className="max-h-[70vh] overflow-y-auto">
         <form
+          className="space-y-6"
+          id="importForm"
           onSubmit={(e) => {
             e.preventDefault();
             handleImportSubmit();
           }}
-          className="space-y-6"
-          id="importForm"
         >
           {/* Template Download Section */}
           <Card className="border-primary-200 bg-primary-50">

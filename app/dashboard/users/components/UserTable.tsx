@@ -59,6 +59,8 @@ interface User {
   createdAt: Date;
   lastActive: Date | null;
   photo?: string;
+  fid?: string | number | null;
+  nik?: string | number | null;
 }
 
 interface UserManagementClientProps {
@@ -521,6 +523,16 @@ export default function UserTables({ usersTable }: UserManagementClientProps) {
                 </TableColumn>
                 <TableColumn
                   className="cursor-pointer select-none"
+                  onClick={() => handleSort("fid")}
+                >
+                  FID
+                  <SortIcon
+                    active={sortColumn === "fid"}
+                    direction={sortDirection}
+                  />
+                </TableColumn>
+                <TableColumn
+                  className="cursor-pointer select-none"
                   onClick={() => handleSort("role")}
                 >
                   ROLE
@@ -580,6 +592,21 @@ export default function UserTables({ usersTable }: UserManagementClientProps) {
                         name={user.name}
                       />
                     </TableCell>
+                    <TableCell>
+                      <div className="text-small">
+                        <p className="font-medium">
+                          {user.fid != null && user.fid !== "null"
+                            ? String(user.fid)
+                            : "-"}
+                        </p>
+                        <p className="text-xs text-default-500 mt-0.5">
+                          {user.nik != null && user.nik !== "null"
+                            ? String(user.nik)
+                            : ""}
+                        </p>
+                      </div>
+                    </TableCell>
+
                     <TableCell>
                       <Chip
                         color={getRoleColor(user.role) as any}
