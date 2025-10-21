@@ -24,6 +24,7 @@ import {
 import {
   LuFileText,
   LuFileType2,
+  LuFingerprint,
   LuLayoutDashboard,
   LuList,
 } from "react-icons/lu";
@@ -82,6 +83,7 @@ export default function UIDashboardLayout({
     fileInput: <LuFileText />,
     luList: <LuList />,
     ListAll: <LuFileType2 />,
+    fingerprint: <LuFingerprint />,
   };
 
   // Ambil role access dari backend

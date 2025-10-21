@@ -15,6 +15,7 @@ import {
   TableRow,
   TableCell,
   Pagination,
+  Chip,
 } from "@heroui/react";
 import { Search, Upload, Download, Users, FileText, Fingerprint } from "lucide-react";
 import * as XLSX from "xlsx";
@@ -195,8 +196,22 @@ export default function Page() {
               <Fingerprint className="w-6 h-6 text-white" />
             </div>
             <div className="flex flex-col flex-1 min-w-0">
-              <p className="text-xl font-semibold text-default-800 text-left">Fingerprint</p>
-              <p className="text-xs sm:text-small text-default-600">Display fingerprint logs</p>
+              <div className="flex items-baseline gap-2">
+                <h2 className="text-xl font-semibold text-default-800">Fingerprint</h2>
+                <Chip
+                  className="text-sm font-bold"
+                  color="success"
+                  radius="sm"
+                  size="sm"
+                  variant="flat"
+                >
+                  {typeof total === 'number' ? total : 0}
+                </Chip>
+              </div>
+
+              <p className="text-xs sm:text-small text-default-600">
+                Display fingerprint logs
+              </p>
             </div>
           </div>
 
@@ -212,13 +227,13 @@ export default function Page() {
               onValueChange={(v: string) => { setSearchQuery(v); setPage(1); }}
             />
 
-            <Button className="flex-1 sm:flex-none" color="success" size="sm" startContent={<Upload className="w-4 h-4" />} variant="flat" onPress={handleExport}>
+            <Button className="flex-1 sm:flex-none" color="warning" size="sm" startContent={<Upload className="w-4 h-4" />} variant="flat" onPress={handleExport}>
               Export
             </Button>
 
-            <Button className="flex-1 sm:flex-none" color="primary" size="sm" startContent={<Download className="w-4 h-4" />} variant="flat" onPress={() => { /* placeholder for import */ }}>
+            {/* <Button className="flex-1 sm:flex-none" color="primary" size="sm" startContent={<Download className="w-4 h-4" />} variant="flat" onPress={() => {  }}>
               Import
-            </Button>
+            </Button> */}
           </div>
         </CardHeader>
 

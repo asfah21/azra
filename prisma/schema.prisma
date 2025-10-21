@@ -12,6 +12,8 @@ model User {
   id                 String      @id @default(uuid())
   name               String
   email              String      @unique
+  fid                Int?        @unique
+  nik                String?        @unique
   password           String
   role               Role
   photo              String?

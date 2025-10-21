@@ -66,6 +66,13 @@ export const defaultNavItems = [
     defaultRoles: ["admin_heavy"],
   },
   {
+    id: "fingerprint",
+    title: "Fingerprint",
+    path: "/dashboard/fingerprint",
+    icon: "fingerprint",
+    defaultRoles: ["admin_elec"],
+  },
+  {
     id: "settings",
     title: "Settings",
     path: "/dashboard/settings",

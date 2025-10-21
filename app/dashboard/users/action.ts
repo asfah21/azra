@@ -247,8 +247,21 @@ export async function deleteUser(id: string, currentUserRole?: string) {
 
 export async function importUsersFromExcel(prevState: any, formData: FormData) {
   try {
-    const excelDataJson = formData.get("excelData") as string;
-    const createdById = formData.get("createdById") as string;
+    const excelDataJson = formData.get("excelData") as string | null;
+    const createdById = formData.get("createdById") as string | null;
+
+    console.log("importUsersFromExcel called, createdById:", createdById);
+    if (excelDataJson) {
+      try {
+        const preview = JSON.parse(excelDataJson);
+        console.log("Received excel rows:", Array.isArray(preview) ? preview.length : "not-array");
+        console.log("First row preview:", preview[0]);
+      } catch (e) {
+        console.log("excelDataJson parse error", e);
+      }
+    } else {
+      console.log("No excelData provided in formData");
+    }
 
     if (!excelDataJson || !createdById) {
       return {
@@ -278,39 +291,124 @@ export async function importUsersFromExcel(prevState: any, formData: FormData) {
       };
     }
 
+    const failed: { rowIndex: number; reason: string }[] = [];
+
     // Hash password jika ada, lalu buat user satu per satu
     await Promise.all(
-      excelData.map(async (row) => {
-        const hashedPassword =
-          row.password && row.password.trim() !== ""
-            ? await bcrypt.hash(row.password, 10)
-            : undefined;
+      excelData.map(async (row, idx) => {
+        try {
+          const email = String(row.email || "").trim();
+          const name = String(row.name || "").trim();
+          const role = String(row.role || "").trim();
+          const department = row.department ? String(row.department).trim() : null;
+          const fid = row.fid ? String(row.fid).trim() : null;
+          const nik = row.nik ? String(row.nik).trim() : null;
+          const passwordRaw = row.password ?? "";
 
-        await prisma.user.create({
-          data: {
-            name: row.name,
-            email: row.email,
+          if (!email || !name || !role) {
+            failed.push({ rowIndex: idx + 1, reason: "Missing required fields (name/email/role)" });
+            return;
+          }
+
+          // Cek duplicate email
+          const existingByEmail = await prisma.user.findUnique({
+            where: { email },
+            select: { id: true },
+          });
+          if (existingByEmail) {
+            failed.push({ rowIndex: idx + 1, reason: `Email sudah ada: ${email}` });
+            return;
+          }
+
+          // Cek duplicate fid jika ada (jika kolom fid ada di schema)
+          if (fid) {
+            try {
+              const fidNumber = Number(fid);
+              const whereClause = Number.isNaN(fidNumber)
+                ? { externalId: fid }
+                : { OR: [{ fid: fidNumber }, { externalId: fid }] };
+
+              const existingByFid = await prisma.user.findFirst({
+                where: whereClause,
+                select: { id: true },
+              });
+              if (existingByFid) {
+                failed.push({ rowIndex: idx + 1, reason: `FID sudah ada: ${fid}` });
+                return;
+              }
+            } catch {
+              // jika kolom fid tidak ada di schema, skip check quietly
+            }
+          }
+
+          const hashedPassword = passwordRaw && String(passwordRaw).trim() !== ""
+            ? await bcrypt.hash(String(passwordRaw), 10)
+            : "";
+
+          // Include fid/nik converting to numeric when possible (Prisma expects Int for fid in your schema)
+          const createData: any = {
+            name,
+            email,
             password: hashedPassword || "",
-            role: row.role,
-            department: row.department,
-          },
-        });
+            role,
+            department: department || null,
+          };
+
+          if (fid) {
+            const fidNumber = Number(fid);
+            if (!Number.isNaN(fidNumber)) {
+              // schema expects Int — provide a number
+              createData.fid = fidNumber;
+            } else {
+              // if not numeric, try fallback field name that could store string IDs
+              createData.externalId = fid;
+            }
+          }
+
+          // In your schema nik is stored as String (error showed "Expected String or Null"),
+          // so always store NIK as string to avoid type mismatch.
+          if (nik) {
+            createData.nik = String(nik);
+          }
+
+          try {
+            await prisma.user.create({
+              data: createData,
+            });
+          } catch (prismaErr: any) {
+            // log more details to help debugging (Prisma errors contain meta/code)
+            consolePino.error("Prisma create error for row:", { idx, createData });
+            consolePino.error("Prisma error:", {
+              message: prismaErr?.message,
+              code: prismaErr?.code,
+              meta: prismaErr?.meta,
+            });
+            throw prismaErr;
+          }
+        } catch (err: any) {
+          consolePino.error("Row import error:", { idx, err });
+          failed.push({ rowIndex: idx + 1, reason: err?.message || "Unknown error" });
+        }
       }),
     );
 
     revalidatePath("/dashboard/users");
+
+    if (failed.length > 0) {
+      return {
+        success: false,
+        message: `Beberapa baris gagal diimpor (${failed.length}). Lihat detail.`,
+        detail: failed,
+      };
+    }
 
     return {
       success: true,
       message: "Data users berhasil diimpor!",
     };
   } catch (error) {
-    consolePino.error("Error importing users from Excel:", error);
-
-    return {
-      success: false,
-      message: "Terjadi kesalahan saat mengimpor data users dari Excel.",
-    };
+    console.error("Error importing users from Excel:", error);
+    return { success: false, message: "Server error saat import" };
   }
 }
 

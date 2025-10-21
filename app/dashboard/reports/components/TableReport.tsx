@@ -244,8 +244,8 @@ export default function TableReport({
             <Clock className="w-6 h-6 text-primary-foreground" />
           </div>
           <div className="flex flex-col flex-1 text-left">
-            <div className="flex items-center gap-2">
-              <p className="text-xl font-semibold text-foreground text-left">
+              <div className="flex items-center justify-between gap-2">
+              <p className="text-xl font-semibold text-foreground">
                 Log Activity
               </p>
               <Chip

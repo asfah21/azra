@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useEffect, useState } from "react";
+import { useActionState, useEffect, useState, startTransition } from "react";
 import { useSession } from "next-auth/react";
 import {
   ModalHeader,
@@ -43,6 +43,8 @@ interface ExcelRow {
   password: string;
   role: string;
   department: string;
+  fid?: string; // tambahkan fid
+  nik?: string; // tambahkan nik
 }
 
 interface ValidationResult {
@@ -107,6 +109,16 @@ export function ImportUserModal({
       if (!row.department?.trim()) {
         errors.push("Department wajib diisi");
       }
+      // Validasi fid & nik (sesuaikan aturan: contoh fid wajib, nik numeric 16)
+      if (!row.fid?.toString().trim()) {
+        errors.push("FID wajib diisi");
+      }
+      if (!row.nik?.toString().trim()) {
+        errors.push("NIK wajib diisi");
+      } else if (!/^\d{10,20}$/.test(String(row.nik).trim())) {
+        // contoh validasi: numeric antara 10-20 digit (ubah sesuai kebutuhan)
+        warnings.push("Format NIK tidak standar (disarankan numeric, 10-20 digit)");
+      }
 
       // Validasi status
       const validRoles = [
@@ -165,49 +177,57 @@ export function ImportUserModal({
     return results;
   };
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-
+  // parsing file -> setExcelData
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
     if (!file) return;
-
     setUploadedFileName(file.name);
-    setIsValidating(true);
 
     const reader = new FileReader();
+    reader.onload = (ev) => {
+      const data = ev.target?.result;
+      if (!data) return;
 
-    reader.onload = (e) => {
-      try {
-        const data = new Uint8Array(e.target?.result as ArrayBuffer);
-        const workbook = XLSX.read(data, { type: "array" });
-        const sheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[sheetName];
-        const jsonData = XLSX.utils.sheet_to_json(worksheet) as ExcelRow[];
+      // read workbook (support binary/string)
+      const wb = XLSX.read(data, { type: "binary" });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const raw: any[] = XLSX.utils.sheet_to_json(ws, { defval: "" });
 
-        setExcelData(jsonData);
-        const validationResults = validateExcelData(jsonData);
+      // normalize header names (case-insensitive) and ensure fields exist
+      const parsed: ExcelRow[] = raw.map((r) => ({
+        name: String(r["name"] ?? r["Name"] ?? r["NAMA"] ?? ""),
+        email: String(r["email"] ?? r["Email"] ?? ""),
+        password: String(r["password"] ?? r["Password"] ?? ""),
+        role: String(r["role"] ?? r["Role"] ?? ""),
+        department: String(r["department"] ?? r["Department"] ?? ""),
+        fid: String(r["fid"] ?? r["FID"] ?? r["Fid"] ?? ""),
+        nik: String(r["nik"] ?? r["NIK"] ?? r["Nik"] ?? ""),
+      }));
 
-        setValidationResults(validationResults);
-      } catch (error) {
-        consolePino.error("Error reading Excel file:", error);
-        setExcelData([]);
-        setValidationResults([]);
-      } finally {
-        setIsValidating(false);
-      }
+      setExcelData(parsed);
+      setValidationResults(validateExcelData(parsed));
     };
-    reader.readAsArrayBuffer(file);
+
+    // read as binary string to support most XLSX files
+    reader.readAsBinaryString(file);
   };
 
-  const handleSubmit = async (formData: FormData) => {
-    if (excelData.length === 0) {
+  // submit to server action
+  const handleImportSubmit = async () => {
+    if (!excelData.length) {
+      alert("File belum diparsing atau data kosong");
       return;
     }
 
-    // Tambahkan data Excel ke FormData
-    formData.append("excelData", JSON.stringify(excelData));
-    formData.append("createdById", currentUserId);
+    const fd = new FormData();
+    fd.append("excelData", JSON.stringify(excelData));
+    fd.append("createdById", currentUserId || "");
 
-    await formAction(formData);
+    // PENTING: panggil formAction di dalam startTransition agar useActionState berjalan benar
+    startTransition(() => {
+      // `void` supaya tidak perlu menunggu di sini — isPending akan dikelola oleh useActionState
+      void formAction(fd);
+    });
   };
 
   const totalRows = excelData.length;
@@ -215,13 +235,17 @@ export function ImportUserModal({
   const invalidRows = totalRows - validRows;
 
   const downloadTemplate = () => {
-    const templateData = [
+    // Fields and example rows (include fid & nik)
+    const fields = ["name", "email", "password", "role", "department", "fid", "nik"];
+    const exampleRows = [
       {
         name: "Andika",
         email: "andika@example.com",
         password: "password123",
         role: "guest",
         department: "IT",
+        fid: "FID001",
+        nik: "3201010101010001",
       },
       {
         name: "Cantika",
@@ -229,32 +253,33 @@ export function ImportUserModal({
         password: "password321",
         role: "guest",
         department: "SCM",
+        fid: "FID002",
+        nik: "3201010101010002",
       },
     ];
 
-    const ws = XLSX.utils.json_to_sheet(templateData);
+    // Header sheet with column names + short descriptions (human readable)
+    const headerRow = [
+      [
+        "name",
+        "email",
+        "password",
+        "role",
+        "department",
+        "fid",
+        "nik",
+      ],
+    ];
+
+    const headerWs = XLSX.utils.aoa_to_sheet(headerRow);
+    // Example data sheet with correct column order
+    const exampleWs = XLSX.utils.json_to_sheet(exampleRows, { header: fields });
+
     const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, headerWs, "Template (keterangan kolom)");
+    XLSX.utils.book_append_sheet(wb, exampleWs, "Contoh Data");
 
-    XLSX.utils.book_append_sheet(wb, ws, "Template User");
-
-    // Add header row with field descriptions
-    const headerData = [
-      {
-        name: "Andika",
-        email: "andika@example.com",
-        password: "password123",
-        role: "guest",
-        department: "IT",
-      },
-    ];
-
-    const headerWs = XLSX.utils.json_to_sheet(headerData);
-    const templateWb = XLSX.utils.book_new();
-
-    XLSX.utils.book_append_sheet(templateWb, headerWs, "Template User");
-    XLSX.utils.book_append_sheet(templateWb, ws, "Contoh Data");
-
-    XLSX.writeFile(templateWb, "template_import_user.xlsx");
+    XLSX.writeFile(wb, "template_import_user.xlsx");
   };
 
   return (
@@ -267,7 +292,14 @@ export function ImportUserModal({
       </ModalHeader>
 
       <ModalBody className="max-h-[70vh] overflow-y-auto">
-        <form action={handleSubmit} className="space-y-6" id="importForm">
+        <form
+          onSubmit={(e) => {
+            e.preventDefault();
+            handleImportSubmit();
+          }}
+          className="space-y-6"
+          id="importForm"
+        >
           {/* Template Download Section */}
           <Card className="border-primary-200 bg-primary-50">
             <CardBody className="p-4">
@@ -310,7 +342,7 @@ export function ImportUserModal({
                   className="hidden"
                   id="excelFile"
                   type="file"
-                  onChange={handleFileUpload}
+                  onChange={handleFileChange}
                 />
                 <Button
                   as="label"
@@ -366,6 +398,8 @@ export function ImportUserModal({
                           <TableColumn>Nama</TableColumn>
                           <TableColumn>Email</TableColumn>
                           <TableColumn>Password</TableColumn>
+                          <TableColumn>FID</TableColumn>
+                          <TableColumn>NIK</TableColumn>
                           <TableColumn>Role</TableColumn>
                           <TableColumn>Department</TableColumn>
                           <TableColumn>Validasi</TableColumn>
@@ -376,6 +410,8 @@ export function ImportUserModal({
                               <TableCell>{row.name}</TableCell>
                               <TableCell>{row.email}</TableCell>
                               <TableCell>{row.password}</TableCell>
+                              <TableCell>{row.fid ?? "-"}</TableCell>
+                              <TableCell>{row.nik ?? "-"}</TableCell>
                               <TableCell>{row.role}</TableCell>
                               <TableCell>{row.department}</TableCell>
                               <TableCell>
