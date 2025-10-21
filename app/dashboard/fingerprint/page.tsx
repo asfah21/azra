@@ -16,6 +16,13 @@ import {
   TableCell,
   Pagination,
   Chip,
+  Modal,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  useDisclosure,
+  Spinner,
 } from "@heroui/react";
 import { Search, Upload, Fingerprint } from "lucide-react";
 import * as XLSX from "xlsx";
@@ -147,6 +154,13 @@ export default function Page() {
   const [hasMore, setHasMore] = useState<boolean | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
 
+  const { isOpen: isExportOpen, onOpen: onOpenExport, onOpenChange: onExportOpenChange } = useDisclosure();
+  const [exporting, setExporting] = useState(false);
+  const [exportingWhich, setExportingWhich] = useState<
+    "current" | "today" | "yesterday" | "sevenDaysAgo" | "all" | null
+  >(null);
+  const [exportProgress, setExportProgress] = useState<number>(0);
+
   useEffect(() => {
     const controller = new AbortController();
     let mounted = true;
@@ -268,17 +282,15 @@ export default function Page() {
       ? Math.max(1, Math.ceil(total / PAGE_SIZE))
       : null;
 
-  const handleExport = useCallback(() => {
-    const source = filteredRows.length ? filteredRows : rows;
-
+  // util: bangun data export dan tulis ke XLSX
+  const exportToXlsx = useCallback((source: LogEntry[], filenameSuffix: string) => {
     const exportData = source.map((r, i) => {
       const { date, time } = splitDateTime(r.timestamp ?? r.created_at);
       const name = resolveNameByUserId(r.user_id);
       const nik = resolveNikByUserId(r.user_id);
       const department = resolveDeptByUserId(r.user_id);
-
       return {
-        No: (page - 1) * PAGE_SIZE + i + 1,
+        No: i + 1,
         name,
         nik,
         department,
@@ -289,32 +301,181 @@ export default function Page() {
         device_sn: r.device_sn ?? "-",
       };
     });
-
-    // pastikan urutan header konsisten
     const ws = XLSX.utils.json_to_sheet(exportData, {
       header: ["No", "name", "nik", "department", "user_id", "type", "date", "time", "device_sn"],
     });
-
-    // Lebar kolom disesuaikan
     ws["!cols"] = [
-      { wch: 6 },   // No
-      { wch: 24 },  // name
-      { wch: 14 },  // nik
-      { wch: 16 },  // department
-      { wch: 12 },  // user_id
-      { wch: 14 },  // type
-      { wch: 12 },  // date
-      { wch: 10 },  // time
-      { wch: 18 },  // device_sn
+      { wch: 6 }, { wch: 24 }, { wch: 14 }, { wch: 16 },
+      { wch: 12 }, { wch: 14 }, { wch: 12 }, { wch: 10 }, { wch: 18 },
     ];
-
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, "logs");
     const ts = new Date().toISOString().slice(0, 19).replace(/:/g, "-");
-    XLSX.writeFile(wb, `fingerprint_logs_${ts}.xlsx`);
-  }, [rows, filteredRows, page, resolveNameByUserId, resolveNikByUserId, resolveDeptByUserId]);
+    XLSX.writeFile(wb, `fingerprint_logs_${filenameSuffix}_${ts}.xlsx`);
+  }, [resolveNameByUserId, resolveNikByUserId, resolveDeptByUserId]);
 
-  // pages used by HeroUI Pagination when totalPages known
+  // export: halaman saat ini (sesuai perilaku lama)
+  const handleExportCurrent = useCallback(async () => {
+    setExporting(true);
+    setExportingWhich("current");
+    setExportProgress(0);
+    const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+    try {
+      const source = filteredRows.length ? filteredRows : rows;
+      // simulasi progres singkat (data sudah ada di client)
+      setExportProgress(40);
+      await sleep(50);
+      setExportProgress(75);
+      exportToXlsx(source, "current_page");
+      setExportProgress(100);
+    } finally {
+      setExporting(false);
+      setExportingWhich(null);
+    }
+  }, [filteredRows, rows, exportToXlsx]);
+
+  // Fetch semua halaman dengan progress callback
+  const fetchAllLogs = useCallback(
+    async (
+      onProgress?: (info: { pagesDone: number; totalPages?: number | null; rowsLoaded: number }) => void,
+    ): Promise<LogEntry[]> => {
+      let all: LogEntry[] = [];
+      // fetch halaman 1 dulu supaya tahu total
+      let p = 1;
+      const first = await fetchLogsFromApi(1);
+      all = all.concat(first.rows ?? []);
+      const totalPages =
+        typeof first.total === "number" ? Math.max(1, Math.ceil(first.total / PAGE_SIZE)) : null;
+      onProgress?.({ pagesDone: 1, totalPages, rowsLoaded: all.length });
+
+      let hasMore = !!first.has_more;
+      // lanjutkan ke halaman berikutnya
+      while (hasMore && (totalPages ? p < totalPages : p < 200)) {
+        p += 1;
+        const res = await fetchLogsFromApi(p);
+        all = all.concat(res.rows ?? []);
+        hasMore = !!res.has_more;
+        const totalPg =
+          typeof res.total === "number" ? Math.max(1, Math.ceil(res.total / PAGE_SIZE)) : totalPages;
+        onProgress?.({ pagesDone: p, totalPages: totalPg, rowsLoaded: all.length });
+        if (!hasMore) break;
+      }
+      return all;
+    },
+    [],
+  );
+
+  // export: semua data "hari ini" (UTC, konsisten dengan formatDate)
+  const handleExportToday = useCallback(async () => {
+    setExporting(true);
+    setExportingWhich("today");
+    setExportProgress(0);
+    try {
+      const all = await fetchAllLogs((info) => {
+        // hitung persen berdasarkan halaman yang selesai
+        const tp = info.totalPages ?? null;
+        const pct = tp && tp > 0 ? Math.min(95, Math.round((info.pagesDone / tp) * 90)) : Math.min(90, info.pagesDone * 5);
+        setExportProgress(pct);
+      });
+       const pad = (n: number) => String(n).padStart(2, "0");
+       const now = new Date();
+       const todayUTC = `${now.getUTCFullYear()}-${pad(now.getUTCMonth() + 1)}-${pad(now.getUTCDate())}`;
+       const todayRows = all.filter((r) => {
+         const { date } = splitDateTime(r.timestamp ?? r.created_at);
+         return date === todayUTC;
+       });
+      setExportProgress((p) => Math.max(p, 97));
+       exportToXlsx(todayRows, "today");
+      setExportProgress(100);
+    } finally {
+      setExporting(false);
+      setExportingWhich(null);
+    }
+  }, [fetchAllLogs, exportToXlsx]);
+
+  // export: kemarin (UTC)
+  const handleExportYesterday = useCallback(async () => {
+    setExporting(true);
+    setExportingWhich("yesterday");
+    setExportProgress(0);
+    try {
+      const all = await fetchAllLogs((info) => {
+        const tp = info.totalPages ?? null;
+        const pct = tp && tp > 0 ? Math.min(95, Math.round((info.pagesDone / tp) * 90)) : Math.min(90, info.pagesDone * 5);
+        setExportProgress(pct);
+      });
+       const pad = (n: number) => String(n).padStart(2, "0");
+       const d = new Date();
+       d.setUTCDate(d.getUTCDate() - 1);
+       const targetUTC = `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`;
+       const rows = all.filter((r) => splitDateTime(r.timestamp ?? r.created_at).date === targetUTC);
+      setExportProgress((p) => Math.max(p, 97));
+       exportToXlsx(rows, "yesterday");
+      setExportProgress(100);
+    } finally {
+      setExporting(false);
+      setExportingWhich(null);
+    }
+  }, [fetchAllLogs, exportToXlsx]);
+
+  // export: 7 hari terakhir (UTC) — termasuk hari ini sampai H-6
+  const handleExport7DaysAgo = useCallback(async () => {
+    setExporting(true);
+    setExportingWhich("sevenDaysAgo");
+    setExportProgress(0);
+    try {
+      const all = await fetchAllLogs((info) => {
+        const tp = info.totalPages ?? null;
+        const pct = tp && tp > 0 ? Math.min(95, Math.round((info.pagesDone / tp) * 90)) : Math.min(90, info.pagesDone * 5);
+        setExportProgress(pct);
+      });
+ 
+      const pad = (n: number) => String(n).padStart(2, "0");
+      const today = new Date();
+      // Kumpulkan string tanggal UTC untuk 7 hari terakhir: [today, today-1, ..., today-6]
+      const last7Days = new Set<string>();
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(today);
+        d.setUTCDate(d.getUTCDate() - i);
+        const s = `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(
+          d.getUTCDate(),
+        )}`;
+        last7Days.add(s);
+      }
+      // Filter baris
+      const rows = all.filter((r) => {
+        const { date } = splitDateTime(r.timestamp ?? r.created_at);
+        return last7Days.has(date);
+      });
+      setExportProgress((p) => Math.max(p, 97));
+      exportToXlsx(rows, "last_7_days");
+      setExportProgress(100);
+    } finally {
+      setExporting(false);
+      setExportingWhich(null);
+    }
+  }, [fetchAllLogs, exportToXlsx]);
+
+  // export: semua data (semua halaman)
+  const handleExportAll = useCallback(async () => {
+    setExporting(true);
+    setExportingWhich("all");
+    setExportProgress(0);
+    try {
+      const all = await fetchAllLogs((info) => {
+        const tp = info.totalPages ?? null;
+        const pct = tp && tp > 0 ? Math.min(95, Math.round((info.pagesDone / tp) * 90)) : Math.min(90, info.pagesDone * 5);
+        setExportProgress(pct);
+      });
+      setExportProgress((p) => Math.max(p, 97));
+       exportToXlsx(all, "all");
+      setExportProgress(100);
+    } finally {
+      setExporting(false);
+      setExportingWhich(null);
+    }
+  }, [fetchAllLogs, exportToXlsx]);
+
   const pages = totalPages ?? Math.max(1, page);
 
   return (
@@ -370,7 +531,7 @@ export default function Page() {
               size="sm"
               startContent={<Upload className="w-4 h-4" />}
               variant="flat"
-              onPress={handleExport}
+              onPress={onOpenExport}
             >
               Export
             </Button>
@@ -523,10 +684,96 @@ export default function Page() {
                   );
                 })}
               </TableBody>
-            </Table>
+            </Table>  
           </div>
         </CardBody>
       </Card>
+
+      {/* Export options modal */}
+      <Modal isOpen={isExportOpen} onOpenChange={onExportOpenChange}>
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader className="text-base flex items-center gap-2">
+                Export data
+                {exporting ? (
+                  <span className="ml-2 text-green-500 text-xs flex items-center gap-1">
+                    {/* <Spinner size="sm" /> */}
+                    Processing.. {exportProgress}%
+                  </span>
+                ) : null}
+              </ModalHeader>
+              <ModalBody className="gap-2">
+                <Button
+                  color="warning"
+                  variant="flat"
+                  isDisabled={exporting}
+                  isLoading={exporting && exportingWhich === "current"}
+                  onPress={async () => {
+                    await handleExportCurrent();
+                    onClose();
+                  }}
+                >
+                  Export current
+                </Button>
+                <Button
+                  color="primary"
+                  variant="flat"
+                  isDisabled={exporting}
+                  isLoading={exporting && exportingWhich === "today"}
+                  onPress={async () => {
+                    await handleExportToday();
+                    onClose();
+                  }}
+                >
+                  Export today
+                </Button>
+                <Button
+                  color="secondary"
+                  variant="flat"
+                  isDisabled={exporting}
+                  isLoading={exporting && exportingWhich === "yesterday"}
+                  onPress={async () => {
+                    await handleExportYesterday();
+                    onClose();
+                  }}
+                >
+                  Export yesterday
+                </Button>
+                <Button
+                  color="danger"
+                  variant="flat"
+                  isDisabled={exporting}
+                  isLoading={exporting && exportingWhich === "sevenDaysAgo"}
+                  onPress={async () => {
+                    await handleExport7DaysAgo();
+                    onClose();
+                  }}
+                >
+                  Export last 7 days
+                </Button>
+                <Button
+                  color="success"
+                  variant="flat"
+                  isDisabled={exporting}
+                  isLoading={exporting && exportingWhich === "all"}
+                  onPress={async () => {
+                    await handleExportAll();
+                    onClose();
+                  }}
+                >
+                  Export all data
+                </Button>
+              </ModalBody>
+              <ModalFooter>
+                <Button variant="flat" onPress={onClose} isDisabled={exporting}>
+                  Close
+                </Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
 
       <div className="mt-4 flex items-center justify-between">
         {/* {totalPages ? (
