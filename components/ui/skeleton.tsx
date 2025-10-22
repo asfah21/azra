@@ -36,6 +36,107 @@ export function LoadingSpinner() {
   );
 }
 
+export function TableFingerprint() {
+  return (
+    <div>
+      <Card>
+        {/* Header */}
+        <CardHeader className="flex flex-col gap-3 sm:flex-row">
+          <div className="flex items-center gap-3 flex-1 justify-start self-start">
+            <div className="p-2 bg-default-500 rounded-lg flex-shrink-0">
+              <Skeleton className="w-6 h-6 rounded" />
+            </div>
+            <div className="flex flex-col flex-1 min-w-0">
+              <Skeleton className="h-5 w-40 rounded mb-1" />
+              <Skeleton className="h-3 w-32 rounded" />
+            </div>
+          </div>
+          <div className="flex gap-2 w-full sm:w-auto items-center">
+            <Skeleton className="hidden sm:flex w-64 h-7 rounded" />
+            <Skeleton className="w-20 h-7 rounded" />
+            <Skeleton className="w-24 h-7 rounded" />
+          </div>
+        </CardHeader>
+        <Divider />
+        <CardBody className="px-0">
+          {/* Search input untuk mobile */}
+          <div className="px-6 pb-4 sm:hidden">
+            <Skeleton className="w-full h-9 rounded" />
+          </div>
+          <div className="overflow-x-auto">
+            <Table aria-label="Work orders table" className="min-w-full">
+              <TableHeader>
+                <TableColumn className="rounded-tl-xl">NO</TableColumn>
+                <TableColumn>NAME</TableColumn>
+                <TableColumn>DIVISION</TableColumn>
+                <TableColumn>USER ID</TableColumn>
+                <TableColumn>TYPE</TableColumn>
+                <TableColumn>DATE</TableColumn>
+                <TableColumn>TIME</TableColumn>
+                <TableColumn className="rounded-tr-xl">DEVICE SN</TableColumn>
+              </TableHeader>
+              <TableBody>
+                {[...Array(10)].map((_, rowIdx) => (
+                  <TableRow key={rowIdx}>
+                    {/* ORDER */}
+                    <TableCell>
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-2">
+                          <Skeleton className="h-4 w-20 rounded" />
+                          <Skeleton className="h-4 w-4 rounded-full" />
+                        </div>
+                        <Skeleton className="h-3 w-24 rounded" />
+                        <Skeleton className="h-3 w-16 rounded" />
+                      </div>
+                    </TableCell>
+                    {/* REPORTED BY */}
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Skeleton className="w-8 h-8 rounded-lg" />
+                        <div>
+                          <Skeleton className="h-3 w-20 rounded" />
+                          <Skeleton className="h-3 w-16 rounded mt-1" />
+                        </div>
+                      </div>
+                    </TableCell>
+                    {/* PRIORITY */}
+                    <TableCell>
+                      <Skeleton className="h-6 w-16 rounded-full" />
+                    </TableCell>
+                    {/* STATUS UNIT */}
+                    <TableCell>
+                      <Skeleton className="h-6 w-16 rounded-full" />
+                    </TableCell>
+                    {/* LOCATION */}
+                    <TableCell>
+                      <Skeleton className="h-3 w-24 rounded" />
+                      <Skeleton className="h-3 w-16 rounded mt-1" />
+                    </TableCell>
+                    {/* STATUS WO */}
+                    <TableCell>
+                      <Skeleton className="h-6 w-20 rounded-full" />
+                      <Skeleton className="h-3 w-16 rounded mt-1" />
+                    </TableCell>
+                    {/* DATE */}
+                    <TableCell>
+                      <Skeleton className="h-3 w-16 rounded" />
+                      <Skeleton className="h-3 w-12 rounded mt-1" />
+                    </TableCell>
+                    {/* ACTIONS */}
+                    <TableCell>
+                      <Skeleton className="h-8 w-8 rounded-full" />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </CardBody>
+      </Card>
+    </div>
+  );
+}
+
 export function TableSkeleton() {
   return (
     <div>
