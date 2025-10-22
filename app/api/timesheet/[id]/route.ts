@@ -40,7 +40,7 @@ const updateSchema = z.object({
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } },
+  { params }: any,
 ) {
   const session = await getServerSession(authOptions);
 
@@ -222,7 +222,7 @@ export async function PATCH(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } },
+  { params }: any,
 ) {
   const session = await getServerSession(authOptions);
 
