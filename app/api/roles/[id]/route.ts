@@ -1,4 +1,3 @@
-// app/api/roles/[id]/route.ts
 import { NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { z } from "zod";
@@ -29,7 +28,7 @@ const updateRoleSchema = z.object({
 // GET: Fetch single role by ID
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } },
+  { params }: any, // was: { params }: { params: { id: string } }
 ) {
   const session = await getServerSession(authOptions);
 
@@ -72,7 +71,7 @@ export async function GET(
 // PUT: Update role
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } },
+  { params }: any, // was: { params }: { params: { id: string } }
 ) {
   const session = await getServerSession(authOptions);
 
@@ -145,7 +144,7 @@ export async function PUT(
 // DELETE: Soft delete role (set isActive to false)
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } },
+  { params }: any, // was: { params }: { params: { id: string } }
 ) {
   const session = await getServerSession(authOptions);
 
