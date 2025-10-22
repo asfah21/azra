@@ -1,6 +1,12 @@
 "use client";
 
-import { useActionState, useEffect, useMemo, useState, startTransition } from "react";
+import {
+  useActionState,
+  useEffect,
+  useMemo,
+  useState,
+  startTransition,
+} from "react";
 import { useSession } from "next-auth/react";
 import {
   ModalHeader,
@@ -68,13 +74,18 @@ export function EditUserModal({
   // Find matching role option for current user role - memoized untuk consistency
   const currentRoleKey = useMemo(() => {
     if (!user?.role || !staticRoleOptions.length) return "";
-    const byValue = staticRoleOptions.find((option) => option.value === user.role);
+    const byValue = staticRoleOptions.find(
+      (option) => option.value === user.role,
+    );
+
     if (byValue) return byValue.value;
+
     return user.role;
   }, [user?.role, staticRoleOptions]);
 
   // state terkontrol untuk pilihan role
   const [roleKey, setRoleKey] = useState<string>("");
+
   useEffect(() => {
     setRoleKey(currentRoleKey);
   }, [currentRoleKey]);
@@ -162,23 +173,27 @@ export function EditUserModal({
             labelPlacement="outside-top"
             name="role"
             placeholder="Search user roles"
-            selectedKey={user ? (roleKey || null) : null}
-            onSelectionChange={(key) => setRoleKey(key?.toString() ?? "")}
+            selectedKey={user ? roleKey || null : null}
             style={{ outline: "none" }}
+            variant="bordered"
             onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
               e.target.style.outline = "none";
             }}
             // force value to be the enum value, not label
-            variant="bordered"
+            onSelectionChange={(key) => setRoleKey(key?.toString() ?? "")}
           >
             {(item) => (
-              <AutocompleteItem key={item.value} textValue={item.label} variant="flat">
+              <AutocompleteItem
+                key={item.value}
+                textValue={item.label}
+                variant="flat"
+              >
                 {item.label}
               </AutocompleteItem>
             )}
           </Autocomplete>
           {/* kirim nilai role ke form */}
-          <input type="hidden" name="role" value={roleKey || ""} />
+          <input name="role" type="hidden" value={roleKey || ""} />
 
           <Input
             defaultValue={user?.department || ""}

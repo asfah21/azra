@@ -22,9 +22,8 @@ import {
   ModalBody,
   ModalFooter,
   useDisclosure,
-  Spinner,
 } from "@heroui/react";
-import { Search, Upload, Fingerprint, UserRoundCheck } from "lucide-react";
+import { Search, Upload, UserRoundCheck } from "lucide-react";
 import * as XLSX from "xlsx";
 
 type LogEntry = {
@@ -128,8 +127,10 @@ function formatDate(iso?: string) {
 // Tambahkan helper split date/time berbasis formatDate agar konsisten
 function splitDateTime(iso?: string) {
   const full = formatDate(iso);
+
   if (!full || full === "-") return { date: "-", time: "-" };
   const [date, time] = full.split(" ");
+
   return { date: date ?? "-", time: time ?? "-" };
 }
 
@@ -145,8 +146,12 @@ function mapType(t?: number) {
 export default function FingerTable() {
   const [rows, setRows] = useState<LogEntry[]>([]);
   const [usersByFid, setUsersByFid] = useState<Record<string, string>>({});
-  const [usersDeptByFid, setUsersDeptByFid] = useState<Record<string, string>>({});
-  const [usersNikByFid, setUsersNikByFid] = useState<Record<string, string>>({});
+  const [usersDeptByFid, setUsersDeptByFid] = useState<Record<string, string>>(
+    {},
+  );
+  const [usersNikByFid, setUsersNikByFid] = useState<Record<string, string>>(
+    {},
+  );
   const [total, setTotal] = useState<number | null>(null);
   const [page, setPage] = useState<number>(1);
   const [loading, setLoading] = useState(false);
@@ -154,7 +159,11 @@ export default function FingerTable() {
   const [hasMore, setHasMore] = useState<boolean | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
 
-  const { isOpen: isExportOpen, onOpen: onOpenExport, onOpenChange: onExportOpenChange } = useDisclosure();
+  const {
+    isOpen: isExportOpen,
+    onOpen: onOpenExport,
+    onOpenChange: onExportOpenChange,
+  } = useDisclosure();
   const [exporting, setExporting] = useState(false);
   const [exportingWhich, setExportingWhich] = useState<
     "current" | "today" | "yesterday" | "sevenDaysAgo" | "all" | null
@@ -198,6 +207,7 @@ export default function FingerTable() {
     async function loadUsers() {
       try {
         const res = await fetch("/api/dashboard/users", { cache: "no-store" });
+
         if (!res.ok) return;
 
         const json = await res.json();
@@ -211,6 +221,7 @@ export default function FingerTable() {
         for (const u of usersList) {
           if (u?.fid != null) {
             const key = String(u.fid);
+
             nameMap[key] = u.name ?? u?.fullName ?? u?.username ?? "";
             deptMap[key] = u?.department ?? "";
             nikMap[key] = u?.nik != null ? String(u.nik) : "";
@@ -224,6 +235,7 @@ export default function FingerTable() {
       } catch {}
     }
     loadUsers();
+
     return () => {
       mounted = false;
     };
@@ -254,6 +266,7 @@ export default function FingerTable() {
   const resolveNameByUserId = useCallback(
     (userId?: string | number) => {
       if (userId == null) return "-";
+
       return usersByFid[String(userId)] ?? String(userId);
     },
     [usersByFid],
@@ -263,6 +276,7 @@ export default function FingerTable() {
   const resolveNikByUserId = useCallback(
     (userId?: string | number) => {
       if (userId == null) return "-";
+
       return usersNikByFid[String(userId)] ?? "-";
     },
     [usersNikByFid],
@@ -272,6 +286,7 @@ export default function FingerTable() {
   const resolveDeptByUserId = useCallback(
     (userId?: string | number) => {
       if (userId == null) return "-";
+
       return usersDeptByFid[String(userId)] ?? "-";
     },
     [usersDeptByFid],
@@ -283,36 +298,60 @@ export default function FingerTable() {
       : null;
 
   // util: bangun data export dan tulis ke XLSX
-  const exportToXlsx = useCallback((source: LogEntry[], filenameSuffix: string) => {
-    const exportData = source.map((r, i) => {
-      const { date, time } = splitDateTime(r.timestamp ?? r.created_at);
-      const name = resolveNameByUserId(r.user_id);
-      const nik = resolveNikByUserId(r.user_id);
-      const department = resolveDeptByUserId(r.user_id);
-      return {
-        No: i + 1,
-        name,
-        nik,
-        department,
-        user_id: r.user_id ?? "-",
-        type: mapType(r.type),
-        date,
-        time,
-        device_sn: r.device_sn ?? "-",
-      };
-    });
-    const ws = XLSX.utils.json_to_sheet(exportData, {
-      header: ["No", "name", "nik", "department", "user_id", "type", "date", "time", "device_sn"],
-    });
-    ws["!cols"] = [
-      { wch: 6 }, { wch: 24 }, { wch: 14 }, { wch: 16 },
-      { wch: 12 }, { wch: 14 }, { wch: 12 }, { wch: 10 }, { wch: 18 },
-    ];
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "logs");
-    const ts = new Date().toISOString().slice(0, 19).replace(/:/g, "-");
-    XLSX.writeFile(wb, `fingerprint_logs_${filenameSuffix}_${ts}.xlsx`);
-  }, [resolveNameByUserId, resolveNikByUserId, resolveDeptByUserId]);
+  const exportToXlsx = useCallback(
+    (source: LogEntry[], filenameSuffix: string) => {
+      const exportData = source.map((r, i) => {
+        const { date, time } = splitDateTime(r.timestamp ?? r.created_at);
+        const name = resolveNameByUserId(r.user_id);
+        const nik = resolveNikByUserId(r.user_id);
+        const department = resolveDeptByUserId(r.user_id);
+
+        return {
+          No: i + 1,
+          name,
+          nik,
+          department,
+          user_id: r.user_id ?? "-",
+          type: mapType(r.type),
+          date,
+          time,
+          device_sn: r.device_sn ?? "-",
+        };
+      });
+      const ws = XLSX.utils.json_to_sheet(exportData, {
+        header: [
+          "No",
+          "name",
+          "nik",
+          "department",
+          "user_id",
+          "type",
+          "date",
+          "time",
+          "device_sn",
+        ],
+      });
+
+      ws["!cols"] = [
+        { wch: 6 },
+        { wch: 24 },
+        { wch: 14 },
+        { wch: 16 },
+        { wch: 12 },
+        { wch: 14 },
+        { wch: 12 },
+        { wch: 10 },
+        { wch: 18 },
+      ];
+      const wb = XLSX.utils.book_new();
+
+      XLSX.utils.book_append_sheet(wb, ws, "logs");
+      const ts = new Date().toISOString().slice(0, 19).replace(/:/g, "-");
+
+      XLSX.writeFile(wb, `fingerprint_logs_${filenameSuffix}_${ts}.xlsx`);
+    },
+    [resolveNameByUserId, resolveNikByUserId, resolveDeptByUserId],
+  );
 
   // export: halaman saat ini (sesuai perilaku lama)
   const handleExportCurrent = useCallback(async () => {
@@ -320,8 +359,10 @@ export default function FingerTable() {
     setExportingWhich("current");
     setExportProgress(0);
     const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
     try {
       const source = filteredRows.length ? filteredRows : rows;
+
       // simulasi progres singkat (data sudah ada di client)
       setExportProgress(40);
       await sleep(50);
@@ -331,35 +372,53 @@ export default function FingerTable() {
     } finally {
       setExporting(false);
       setExportingWhich(null);
-    } 
+    }
   }, [filteredRows, rows, exportToXlsx]);
 
   // Fetch semua halaman dengan progress callback
   const fetchAllLogs = useCallback(
     async (
-      onProgress?: (info: { pagesDone: number; totalPages?: number | null; rowsLoaded: number }) => void,
+      onProgress?: (info: {
+        pagesDone: number;
+        totalPages?: number | null;
+        rowsLoaded: number;
+      }) => void,
     ): Promise<LogEntry[]> => {
       let all: LogEntry[] = [];
       // fetch halaman 1 dulu supaya tahu total
       let p = 1;
       const first = await fetchLogsFromApi(1);
+
       all = all.concat(first.rows ?? []);
       const totalPages =
-        typeof first.total === "number" ? Math.max(1, Math.ceil(first.total / PAGE_SIZE)) : null;
+        typeof first.total === "number"
+          ? Math.max(1, Math.ceil(first.total / PAGE_SIZE))
+          : null;
+
       onProgress?.({ pagesDone: 1, totalPages, rowsLoaded: all.length });
 
       let hasMore = !!first.has_more;
+
       // lanjutkan ke halaman berikutnya
       while (hasMore && (totalPages ? p < totalPages : p < 200)) {
         p += 1;
         const res = await fetchLogsFromApi(p);
+
         all = all.concat(res.rows ?? []);
         hasMore = !!res.has_more;
         const totalPg =
-          typeof res.total === "number" ? Math.max(1, Math.ceil(res.total / PAGE_SIZE)) : totalPages;
-        onProgress?.({ pagesDone: p, totalPages: totalPg, rowsLoaded: all.length });
+          typeof res.total === "number"
+            ? Math.max(1, Math.ceil(res.total / PAGE_SIZE))
+            : totalPages;
+
+        onProgress?.({
+          pagesDone: p,
+          totalPages: totalPg,
+          rowsLoaded: all.length,
+        });
         if (!hasMore) break;
       }
+
       return all;
     },
     [],
@@ -374,18 +433,24 @@ export default function FingerTable() {
       const all = await fetchAllLogs((info) => {
         // hitung persen berdasarkan halaman yang selesai
         const tp = info.totalPages ?? null;
-        const pct = tp && tp > 0 ? Math.min(95, Math.round((info.pagesDone / tp) * 90)) : Math.min(90, info.pagesDone * 5);
+        const pct =
+          tp && tp > 0
+            ? Math.min(95, Math.round((info.pagesDone / tp) * 90))
+            : Math.min(90, info.pagesDone * 5);
+
         setExportProgress(pct);
       });
-       const pad = (n: number) => String(n).padStart(2, "0");
-       const now = new Date();
-       const todayUTC = `${now.getUTCFullYear()}-${pad(now.getUTCMonth() + 1)}-${pad(now.getUTCDate())}`;
-       const todayRows = all.filter((r) => {
-         const { date } = splitDateTime(r.timestamp ?? r.created_at);
-         return date === todayUTC;
-       });
+      const pad = (n: number) => String(n).padStart(2, "0");
+      const now = new Date();
+      const todayUTC = `${now.getUTCFullYear()}-${pad(now.getUTCMonth() + 1)}-${pad(now.getUTCDate())}`;
+      const todayRows = all.filter((r) => {
+        const { date } = splitDateTime(r.timestamp ?? r.created_at);
+
+        return date === todayUTC;
+      });
+
       setExportProgress((p) => Math.max(p, 97));
-       exportToXlsx(todayRows, "today");
+      exportToXlsx(todayRows, "today");
       setExportProgress(100);
     } finally {
       setExporting(false);
@@ -405,6 +470,7 @@ export default function FingerTable() {
           tp && tp > 0
             ? Math.min(95, Math.round((info.pagesDone / tp) * 90))
             : Math.min(90, info.pagesDone * 5);
+
         setExportProgress(pct);
       });
 
@@ -414,13 +480,16 @@ export default function FingerTable() {
         now.getUTCDate(),
       )}`;
       const y = new Date(now);
+
       y.setUTCDate(y.getUTCDate() - 1);
       const yesterdayUTC = `${y.getUTCFullYear()}-${pad(y.getUTCMonth() + 1)}-${pad(
         y.getUTCDate(),
       )}`;
 
       const allow = new Set<string>([yesterdayUTC, todayUTC]);
-      const rows = all.filter((r) => allow.has(splitDateTime(r.timestamp ?? r.created_at).date));
+      const rows = all.filter((r) =>
+        allow.has(splitDateTime(r.timestamp ?? r.created_at).date),
+      );
 
       setExportProgress((p) => Math.max(p, 97));
       exportToXlsx(rows, "yesterday_to_today");
@@ -439,27 +508,36 @@ export default function FingerTable() {
     try {
       const all = await fetchAllLogs((info) => {
         const tp = info.totalPages ?? null;
-        const pct = tp && tp > 0 ? Math.min(95, Math.round((info.pagesDone / tp) * 90)) : Math.min(90, info.pagesDone * 5);
+        const pct =
+          tp && tp > 0
+            ? Math.min(95, Math.round((info.pagesDone / tp) * 90))
+            : Math.min(90, info.pagesDone * 5);
+
         setExportProgress(pct);
       });
- 
+
       const pad = (n: number) => String(n).padStart(2, "0");
       const today = new Date();
       // Kumpulkan string tanggal UTC untuk 7 hari terakhir: [today, today-1, ..., today-6]
       const last7Days = new Set<string>();
+
       for (let i = 0; i < 7; i++) {
         const d = new Date(today);
+
         d.setUTCDate(d.getUTCDate() - i);
         const s = `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(
           d.getUTCDate(),
         )}`;
+
         last7Days.add(s);
       }
       // Filter baris
       const rows = all.filter((r) => {
         const { date } = splitDateTime(r.timestamp ?? r.created_at);
+
         return last7Days.has(date);
       });
+
       setExportProgress((p) => Math.max(p, 97));
       exportToXlsx(rows, "last_7_days");
       setExportProgress(100);
@@ -477,11 +555,16 @@ export default function FingerTable() {
     try {
       const all = await fetchAllLogs((info) => {
         const tp = info.totalPages ?? null;
-        const pct = tp && tp > 0 ? Math.min(95, Math.round((info.pagesDone / tp) * 90)) : Math.min(90, info.pagesDone * 5);
+        const pct =
+          tp && tp > 0
+            ? Math.min(95, Math.round((info.pagesDone / tp) * 90))
+            : Math.min(90, info.pagesDone * 5);
+
         setExportProgress(pct);
       });
+
       setExportProgress((p) => Math.max(p, 97));
-       exportToXlsx(all, "all");
+      exportToXlsx(all, "all");
       setExportProgress(100);
     } finally {
       setExporting(false);
@@ -614,12 +697,12 @@ export default function FingerTable() {
                 <TableColumn className="w-28 text-center text-xs font-medium text-default-600 uppercase tracking-wider select-none">
                   TYPE
                 </TableColumn>
-               <TableColumn className="w-28 text-center text-xs font-medium text-default-600 uppercase tracking-wider select-none">
-                 DATE
-               </TableColumn>
-               <TableColumn className="w-24 text-center text-xs font-medium text-default-600 uppercase tracking-wider select-none">
-                 TIME
-               </TableColumn>
+                <TableColumn className="w-28 text-center text-xs font-medium text-default-600 uppercase tracking-wider select-none">
+                  DATE
+                </TableColumn>
+                <TableColumn className="w-24 text-center text-xs font-medium text-default-600 uppercase tracking-wider select-none">
+                  TIME
+                </TableColumn>
                 <TableColumn className="w-56 text-center text-xs font-medium text-default-600 uppercase tracking-wider select-none">
                   DEVICE SN
                 </TableColumn>
@@ -630,7 +713,8 @@ export default function FingerTable() {
                   const idx = (page - 1) * PAGE_SIZE + index + 1;
                   const resolvedName =
                     item.user_id != null
-                      ? (usersByFid[String(item.user_id)] ?? String(item.user_id))
+                      ? (usersByFid[String(item.user_id)] ??
+                        String(item.user_id))
                       : "-";
                   const resolvedDept =
                     item.user_id != null
@@ -640,12 +724,14 @@ export default function FingerTable() {
                     item.user_id != null
                       ? (usersNikByFid[String(item.user_id)] ?? "-")
                       : "-";
-                 const { date: resolvedDate, time: resolvedTime } = splitDateTime(
-                   item.timestamp ?? item.created_at,
-                 );
+                  const { date: resolvedDate, time: resolvedTime } =
+                    splitDateTime(item.timestamp ?? item.created_at);
 
                   return (
-                    <TableRow key={item.id ?? idx} className="hover:bg-default-50">
+                    <TableRow
+                      key={item.id ?? idx}
+                      className="hover:bg-default-50"
+                    >
                       <TableCell className="text-center align-middle px-6 py-3 text-sm text-default-700">
                         {idx}
                       </TableCell>
@@ -671,12 +757,12 @@ export default function FingerTable() {
                             item.type === 0
                               ? "success"
                               : item.type === 1
-                              ? "danger"
-                              : item.type === 4
-                              ? "primary"
-                              : item.type === 5
-                              ? "warning"
-                              : "default"
+                                ? "danger"
+                                : item.type === 4
+                                  ? "primary"
+                                  : item.type === 5
+                                    ? "warning"
+                                    : "default"
                           }
                           radius="sm"
                           size="sm"
@@ -686,11 +772,11 @@ export default function FingerTable() {
                         </Chip>
                       </TableCell>
                       <TableCell className="text-center align-middle px-6 py-3 text-sm text-default-700 truncate">
-                       <div className="truncate">{resolvedDate}</div>
-                     </TableCell>
-                     <TableCell className="text-center align-middle px-6 py-3 text-sm text-default-700">
-                       {resolvedTime}
-                     </TableCell>
+                        <div className="truncate">{resolvedDate}</div>
+                      </TableCell>
+                      <TableCell className="text-center align-middle px-6 py-3 text-sm text-default-700">
+                        {resolvedTime}
+                      </TableCell>
                       <TableCell className="text-center align-middle px-6 py-3 text-sm text-default-700 truncate">
                         {item.device_sn ?? "-"}
                       </TableCell>
@@ -698,7 +784,7 @@ export default function FingerTable() {
                   );
                 })}
               </TableBody>
-            </Table>  
+            </Table>
           </div>
         </CardBody>
       </Card>
@@ -732,9 +818,9 @@ export default function FingerTable() {
                 </Button> */}
                 <Button
                   color="primary"
-                  variant="flat"
                   isDisabled={exporting}
                   isLoading={exporting && exportingWhich === "today"}
+                  variant="flat"
                   onPress={async () => {
                     await handleExportToday();
                     onClose();
@@ -744,9 +830,9 @@ export default function FingerTable() {
                 </Button>
                 <Button
                   color="secondary"
-                  variant="flat"
                   isDisabled={exporting}
                   isLoading={exporting && exportingWhich === "yesterday"}
+                  variant="flat"
                   onPress={async () => {
                     await handleExportYesterday();
                     onClose();
@@ -756,9 +842,9 @@ export default function FingerTable() {
                 </Button>
                 <Button
                   color="warning"
-                  variant="flat"
                   isDisabled={exporting}
                   isLoading={exporting && exportingWhich === "sevenDaysAgo"}
+                  variant="flat"
                   onPress={async () => {
                     await handleExport7DaysAgo();
                     onClose();
@@ -768,9 +854,9 @@ export default function FingerTable() {
                 </Button>
                 <Button
                   color="success"
-                  variant="flat"
                   isDisabled={exporting}
                   isLoading={exporting && exportingWhich === "all"}
+                  variant="flat"
                   onPress={async () => {
                     await handleExportAll();
                     onClose();
@@ -780,7 +866,7 @@ export default function FingerTable() {
                 </Button>
               </ModalBody>
               <ModalFooter>
-                <Button variant="flat" onPress={onClose} isDisabled={exporting}>
+                <Button isDisabled={exporting} variant="flat" onPress={onClose}>
                   Close
                 </Button>
               </ModalFooter>

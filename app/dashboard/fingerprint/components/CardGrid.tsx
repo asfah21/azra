@@ -1,33 +1,21 @@
 "use client";
 
-import {
-  Card,
-  CardBody,
-  CardHeader,
-  Chip,
-  Divider,
-  Progress,
-} from "@heroui/react";
+import { Card, CardBody, CardHeader, Chip, Divider } from "@heroui/react";
 import {
   Calendar,
   CalendarMinus,
   CalendarPlus,
-  Clock,
   TrendingDown,
   TrendingUp,
-  UserCheck,
   UserMinus,
   UserPlus,
-  UserX,
-  Users,
-  UsersRoundIcon,
 } from "lucide-react";
 
 interface UserStats {
-    type0Today: number;
-    type1Today: number;
-    type0ThisMonth: number;
-    type1ThisMonth: number;
+  type0Today: number;
+  type1Today: number;
+  type0ThisMonth: number;
+  type1ThisMonth: number;
 }
 
 interface UserStatsCardsProps {
@@ -97,7 +85,7 @@ export default function FingerCardGrids({ stats }: UserStatsCardsProps) {
               <span className="text-xl sm:text-2xl font-bold text-danger-700">
                 {stats.type1Today}
               </span>
-               <Chip
+              <Chip
                 color="danger"
                 size="sm"
                 startContent={<TrendingDown className="w-3 h-3" />}
@@ -178,7 +166,9 @@ export default function FingerCardGrids({ stats }: UserStatsCardsProps) {
             <p className="text-sm sm:text-lg font-semibold text-warning-800 truncate">
               Out This Month
             </p>
-            <p className="text-xs sm:text-small text-warning-600">Monthly check-outs</p>
+            <p className="text-xs sm:text-small text-warning-600">
+              Monthly check-outs
+            </p>
           </div>
         </CardHeader>
         <Divider className="bg-warning-200" />

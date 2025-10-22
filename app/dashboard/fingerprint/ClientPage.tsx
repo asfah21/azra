@@ -1,12 +1,15 @@
 "use client";
 
-import { CardGridSkeleton, TableFingerprint, TableSkeleton } from "@/components/ui/skeleton";
-import { Fingerprint, User } from "lucide-react";
-import DashboardFooter from "../components/DashboardFooter";
-import FingerTable from "./components/FingerTable";
-import FingerCardGrids from "./components/CardGrid";
+import { Fingerprint } from "lucide-react";
 import axios from "axios";
 import { useQuery } from "@tanstack/react-query";
+
+import DashboardFooter from "../components/DashboardFooter";
+
+import FingerTable from "./components/FingerTable";
+import FingerCardGrids from "./components/CardGrid";
+
+import { CardGridSkeleton, TableFingerprint } from "@/components/ui/skeleton";
 
 // Tambah helper & tipe
 type LogEntry = {
@@ -22,20 +25,25 @@ const PAGE_SIZE = 200;
 
 function toYMDUTC(d: Date) {
   const pad = (n: number) => String(n).padStart(2, "0");
+
   return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}`;
 }
 
 function ymdFromRowUTC(row: LogEntry): string | null {
   const raw = row.timestamp ?? row.created_at;
+
   if (!raw) return null;
   const d = new Date(raw);
+
   if (Number.isNaN(d.getTime())) return null;
+
   return toYMDUTC(d);
 }
 
 async function fetchLogsPage(page: number) {
   const offset = (page - 1) * PAGE_SIZE;
   const params = new URLSearchParams();
+
   params.set("limit", String(PAGE_SIZE));
   params.set("offset", String(offset));
 
@@ -46,6 +54,7 @@ async function fetchLogsPage(page: number) {
       "Content-Type": "application/json",
     },
   });
+
   // Asumsi response shape: { rows, total, has_more }
   return res.data as { rows: LogEntry[]; total?: number; has_more?: boolean };
 }
@@ -67,11 +76,14 @@ export default function ClientPage() {
       // Fetch halaman pertama untuk tahu total
       const first = await fetchLogsPage(1);
       const total = typeof first.total === "number" ? first.total : undefined;
-      const totalPages = total ? Math.max(1, Math.ceil(total / PAGE_SIZE)) : undefined;
+      const totalPages = total
+        ? Math.max(1, Math.ceil(total / PAGE_SIZE))
+        : undefined;
 
       const consume = (rows: LogEntry[]) => {
         for (const r of rows) {
           const ymd = ymdFromRowUTC(r);
+
           if (!ymd) continue;
 
           // Today
@@ -82,9 +94,12 @@ export default function ClientPage() {
 
           // This month
           const d = new Date(r.timestamp ?? r.created_at ?? "");
+
           if (!Number.isNaN(d.getTime())) {
             const sameMonth =
-              d.getUTCFullYear() === monthYear.y && d.getUTCMonth() === monthYear.m;
+              d.getUTCFullYear() === monthYear.y &&
+              d.getUTCMonth() === monthYear.m;
+
             if (sameMonth) {
               if (r.type === 0) type0ThisMonth++;
               else if (r.type === 1) type1ThisMonth++;
@@ -98,8 +113,10 @@ export default function ClientPage() {
       // Lanjutkan sisa halaman
       if (first.has_more || (totalPages && totalPages > 1)) {
         const lastPage = totalPages ?? 200; // batas aman jika API tidak kirim total
+
         for (let p = 2; p <= lastPage; p++) {
           const pageData = await fetchLogsPage(p);
+
           consume(pageData.rows ?? []);
           if (!pageData.has_more && !totalPages) break;
           if (!pageData.has_more && totalPages) {
@@ -125,13 +142,12 @@ export default function ClientPage() {
   });
 
   // Ambil stats yang baru
-  const userStats =
-    data?.data?.stats ?? {
-      type0Today: 0,
-      type1Today: 0,
-      type0ThisMonth: 0,
-      type1ThisMonth: 0,
-    };
+  const userStats = data?.data?.stats ?? {
+    type0Today: 0,
+    type1Today: 0,
+    type0ThisMonth: 0,
+    type1ThisMonth: 0,
+  };
 
   return (
     <div className="p-0 md:p-5 max-w-7xl mx-auto">
@@ -162,9 +178,7 @@ export default function ClientPage() {
       {isLoading ? (
         <TableFingerprint />
       ) : isError ? (
-        <div className="text-center py-10 text-red-500">
-          Gagal memuat data.
-        </div>
+        <div className="text-center py-10 text-red-500">Gagal memuat data.</div>
       ) : (
         <FingerTable />
       )}
