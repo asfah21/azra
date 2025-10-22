@@ -57,22 +57,44 @@ async function fetchLogsFromApi(
   params.set("limit", String(PAGE_SIZE));
   params.set("offset", String(offset));
 
-  const url = `http://188.245.70.138:8080/api/logs?${params.toString()}`;
+  // ✅ Fetch ke endpoint internal Next.js, bukan IP publik
+  const url = `/api/fingerprint/table?${params.toString()}`;
 
   const res = await fetch(url, {
     method: "GET",
-    headers: {
-      "X-API-Key": "gsi-attendance-key",
-      "Content-Type": "application/json",
-    },
     cache: "no-store",
     signal,
   });
 
-  if (!res.ok) {
-    const text = await res.text();
 
-    throw new Error(`Fetch error (${res.status}): ${text}`);
+// const PAGE_SIZE = 20;
+
+// async function fetchLogsFromApi(
+//   page: number,
+//   signal?: AbortSignal,
+// ): Promise<LogsResponse> {
+//   const offset = (page - 1) * PAGE_SIZE;
+//   const params = new URLSearchParams();
+
+//   params.set("limit", String(PAGE_SIZE));
+//   params.set("offset", String(offset));
+
+//   const url = `http://188.245.70.138:8080/api/logs?${params.toString()}`;
+
+//   const res = await fetch(url, {
+//     method: "GET",
+//     headers: {
+//       "X-API-Key": "gsi-attendance-key",
+//       "Content-Type": "application/json",
+//     },
+//     cache: "no-store",
+//     signal,
+//   });
+
+   if (!res.ok) {
+     const text = await res.text();
+
+     throw new Error(`Fetch error (${res.status}): ${text}`);
   }
 
   const json = await res.json();

@@ -40,6 +40,25 @@ function ymdFromRowUTC(row: LogEntry): string | null {
   return toYMDUTC(d);
 }
 
+// async function fetchLogsPage(page: number) {
+//   const offset = (page - 1) * PAGE_SIZE;
+//   const params = new URLSearchParams();
+
+//   params.set("limit", String(PAGE_SIZE));
+//   params.set("offset", String(offset));
+
+//   const url = `http://188.245.70.138:8080/api/logs?${params.toString()}`;
+//   const res = await axios.get(url, {
+//     headers: {
+//       "X-API-Key": "gsi-attendance-key",
+//       "Content-Type": "application/json",
+//     },
+//   });
+
+//   // Asumsi response shape: { rows, total, has_more }
+//   return res.data as { rows: LogEntry[]; total?: number; has_more?: boolean };
+// }
+
 async function fetchLogsPage(page: number) {
   const offset = (page - 1) * PAGE_SIZE;
   const params = new URLSearchParams();
@@ -47,17 +66,13 @@ async function fetchLogsPage(page: number) {
   params.set("limit", String(PAGE_SIZE));
   params.set("offset", String(offset));
 
-  const url = `http://188.245.70.138:8080/api/logs?${params.toString()}`;
-  const res = await axios.get(url, {
-    headers: {
-      "X-API-Key": "gsi-attendance-key",
-      "Content-Type": "application/json",
-    },
-  });
+  // Arahkan ke route proxy Next.js (bukan IP langsung)
+  const res = await axios.get(`/api/fingerprint/card?${params.toString()}`);
 
-  // Asumsi response shape: { rows, total, has_more }
+  // Bentuk respons tetap sama
   return res.data as { rows: LogEntry[]; total?: number; has_more?: boolean };
 }
+
 
 export default function ClientPage() {
   const { data, isLoading, isError } = useQuery({
