@@ -23,6 +23,7 @@ import {
   ModalFooter,
   useDisclosure,
   User,
+  Skeleton,
 } from "@heroui/react";
 import { Search, Upload, UserRoundCheck } from "lucide-react";
 import * as XLSX from "xlsx";
@@ -194,6 +195,8 @@ export default function FingerTable() {
     "current" | "today" | "yesterday" | "sevenDaysAgo" | "all" | null
   >(null);
   const [exportProgress, setExportProgress] = useState<number>(0);
+  // Tambah state loading untuk data users
+  const [usersLoading, setUsersLoading] = useState<boolean>(true);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -231,6 +234,7 @@ export default function FingerTable() {
 
     async function loadUsers() {
       try {
+        setUsersLoading(true);
         const res = await fetch("/api/dashboard/users", { cache: "no-store" });
 
         if (!res.ok) return;
@@ -269,7 +273,11 @@ export default function FingerTable() {
           setUsersNikByFid(nikMap);
           setUsersPhotoByFid(photoMap);
         }
-      } catch {}
+      } catch {
+        // ignore
+      } finally {
+        if (mounted) setUsersLoading(false);
+      }
     }
     loadUsers();
 
@@ -708,6 +716,7 @@ export default function FingerTable() {
 
           <div className="overflow-x-auto">
             <Table
+              aria-busy={loading}
               aria-label="Fingerprint logs table"
               bottomContent={
                 <div className="flex w-full justify-center py-3">
@@ -716,6 +725,7 @@ export default function FingerTable() {
                     showControls
                     showShadow
                     color="primary"
+                    isDisabled={loading}
                     page={page}
                     total={pages}
                     onChange={(p: number) => setPage(p)}
@@ -759,98 +769,149 @@ export default function FingerTable() {
               </TableHeader>
 
               <TableBody>
-                {filteredRows.map((item: LogEntry, index: number) => {
-                  const idx = (page - 1) * PAGE_SIZE + index + 1;
-                  const resolvedName =
-                    item.user_id != null
-                      ? (usersByFid[String(item.user_id)] ??
-                        String(item.user_id))
-                      : "-";
-                  const resolvedDept =
-                    item.user_id != null
-                      ? (usersDeptByFid[String(item.user_id)] ?? "-")
-                      : "-";
-                  const resolvedNik =
-                    item.user_id != null
-                      ? (usersNikByFid[String(item.user_id)] ?? "-")
-                      : "-";
-                  const resolvedPhoto = resolvePhotoByUserId(item.user_id);
-                  const { date: resolvedDate, time: resolvedTime } =
-                    splitDateTime(item.timestamp ?? item.created_at);
-
-                  return (
-                    <TableRow
-                      key={item.id ?? idx}
-                      className="hover:bg-default-50"
-                    >
-                      {/* <TableCell className="text-center align-middle px-6 py-3 text-sm text-default-700">
-                        {idx}
-                      </TableCell> */}
-                      <TableCell className="text-left align-left px-2 py-3">
-                        <User
-                          avatarProps={{
-                            radius: "lg",
-                            src: resolvedPhoto || undefined,
-                            className:
-                              "w-8 h-8 rounded-full object-cover flex-shrink-0 truncate",
-                          }}
-                          classNames={{
-                            description: "text-default-500 truncate",
-                            name: "font-medium text-default-800 truncate",
-                          }}
-                          description={resolvedNik}
-                          name={resolvedName}
-                        />
-                      </TableCell>
-                      {/* resolved user name (lookup by fid) */}
-                      {/* <TableCell className="text-center align-middle px-6 py-3 text-sm font-semibold text-default-800">
-                        <div className="text-small align-left">
-                          <p className="font-medium truncate">{resolvedName}</p>
-                          <p className="text-xs text-default-500 mt-0.5">
-                            {resolvedNik || "-"}
-                          </p>
-                        </div>
-                      </TableCell> */}
-                      <TableCell className="text-center align-middle px-6 py-3 text-sm text-default-700">
-                        {resolvedDept || "-"}
-                      </TableCell>
-
-                      <TableCell className="text-center align-middle px-6 py-3 text-sm text-default-700 whitespace-pre-line">
-                        <Chip
-                          className="mx-auto"
-                          color={
-                            item.type === 0
-                              ? "success"
-                              : item.type === 1
-                                ? "danger"
-                                : item.type === 4
-                                  ? "primary"
-                                  : item.type === 5
-                                    ? "warning"
-                                    : "default"
-                          }
-                          radius="sm"
-                          size="sm"
-                          variant="flat"
+                {loading
+                  ? Array.from({ length: Math.min(PAGE_SIZE, 10) }).map(
+                      (_, i) => (
+                        <TableRow
+                          key={`skeleton-${i}`}
+                          className="hover:bg-transparent"
                         >
-                          {mapType(item.type)}
-                        </Chip>
-                      </TableCell>
-                      <TableCell className="text-center align-middle px-6 py-3 text-sm text-default-700">
-                        {resolvedTime}
-                      </TableCell>
-                      <TableCell className="text-center align-middle px-6 py-3 text-sm text-default-700 truncate">
-                        <div className="truncate">{resolvedDate}</div>
-                      </TableCell>
-                      <TableCell className="text-center align-middle px-6 py-3 text-sm text-default-700">
-                        {item.user_id ?? "-"}
-                      </TableCell>
-                      <TableCell className="text-center align-middle px-6 py-3 text-sm text-default-700 truncate">
-                        {item.device_sn ?? "-"}
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
+                          <TableCell className="text-left align-left px-2 py-3">
+                            <div className="flex items-center gap-3">
+                              <Skeleton className="w-8 h-8 rounded-full" />
+                              <div className="flex-1 min-w-0">
+                                <Skeleton className="h-3 w-32 rounded mb-1" />
+                                <Skeleton className="h-3 w-20 rounded" />
+                              </div>
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-center align-middle px-6 py-3">
+                            <Skeleton className="h-3 w-24 rounded mx-auto" />
+                          </TableCell>
+                          <TableCell className="text-center align-middle px-6 py-3">
+                            <Skeleton className="h-6 w-20 rounded mx-auto" />
+                          </TableCell>
+                          <TableCell className="text-center align-middle px-6 py-3">
+                            <Skeleton className="h-3 w-16 rounded mx-auto" />
+                          </TableCell>
+                          <TableCell className="text-center align-middle px-6 py-3">
+                            <Skeleton className="h-3 w-20 rounded mx-auto" />
+                          </TableCell>
+                          <TableCell className="text-center align-middle px-6 py-3">
+                            <Skeleton className="h-3 w-14 rounded mx-auto" />
+                          </TableCell>
+                          <TableCell className="text-center align-middle px-6 py-3">
+                            <Skeleton className="h-3 w-32 rounded mx-auto" />
+                          </TableCell>
+                        </TableRow>
+                      ),
+                    )
+                  : filteredRows.map((item: LogEntry, index: number) => {
+                      const idx = (page - 1) * PAGE_SIZE + index + 1;
+                      const resolvedName =
+                        item.user_id != null
+                          ? (usersByFid[String(item.user_id)] ?? "-")
+                          : "-";
+                      const resolvedDept =
+                        item.user_id != null
+                          ? (usersDeptByFid[String(item.user_id)] ?? "-")
+                          : "-";
+                      const resolvedNik =
+                        item.user_id != null
+                          ? (usersNikByFid[String(item.user_id)] ?? "-")
+                          : "-";
+                      const resolvedPhoto = resolvePhotoByUserId(item.user_id);
+                      const { date: resolvedDate, time: resolvedTime } =
+                        splitDateTime(item.timestamp ?? item.created_at);
+
+                      // Mini skeleton aktif saat data users masih loading
+                      const showMiniSkeleton =
+                        usersLoading && item.user_id != null;
+
+                      return (
+                        <TableRow
+                          key={item.id ?? idx}
+                          className="hover:bg-default-50"
+                        >
+                          <TableCell className="text-left align-left px-2 py-3">
+                            {showMiniSkeleton ? (
+                              <div className="flex items-center gap-3">
+                                <Skeleton className="w-8 h-8 rounded-full" />
+                                <div className="flex-1 min-w-0">
+                                  <Skeleton className="h-3 w-32 rounded mb-1" />
+                                  <Skeleton className="h-3 w-20 rounded" />
+                                </div>
+                              </div>
+                            ) : (
+                              <User
+                                avatarProps={{
+                                  radius: "lg",
+                                  src: resolvedPhoto || undefined,
+                                  className:
+                                    "w-8 h-8 rounded-full object-cover flex-shrink-0 truncate",
+                                }}
+                                classNames={{
+                                  description: "text-default-500 truncate",
+                                  name: "font-medium text-default-800 truncate",
+                                }}
+                                description={resolvedNik}
+                                name={resolvedName}
+                              />
+                            )}
+                          </TableCell>
+                          {/* resolved user name (lookup by fid) */}
+                          {/* <TableCell className="text-center align-middle px-6 py-3 text-sm font-semibold text-default-800">
+                            <div className="text-small align-left">
+                              <p className="font-medium truncate">{resolvedName}</p>
+                              <p className="text-xs text-default-500 mt-0.5">
+                                {resolvedNik || "-"}
+                              </p>
+                            </div>
+                          </TableCell> */}
+                          <TableCell className="text-center align-middle px-6 py-3 text-sm text-default-700">
+                            {showMiniSkeleton ? (
+                              <Skeleton className="h-3 w-24 rounded mx-auto" />
+                            ) : (
+                              resolvedDept || "-"
+                            )}
+                          </TableCell>
+
+                          <TableCell className="text-center align-middle px-6 py-3 text-sm text-default-700 whitespace-pre-line">
+                            <Chip
+                              className="mx-auto"
+                              color={
+                                item.type === 0
+                                  ? "success"
+                                  : item.type === 1
+                                    ? "danger"
+                                    : item.type === 4
+                                      ? "primary"
+                                      : item.type === 5
+                                        ? "warning"
+                                        : "default"
+                              }
+                              radius="sm"
+                              size="sm"
+                              variant="flat"
+                            >
+                              {mapType(item.type)}
+                            </Chip>
+                          </TableCell>
+                          <TableCell className="text-center align-middle px-6 py-3 text-sm text-default-700">
+                            {resolvedTime}
+                          </TableCell>
+                          <TableCell className="text-center align-middle px-6 py-3 text-sm text-default-700 truncate">
+                            <div className="truncate">{resolvedDate}</div>
+                          </TableCell>
+                          <TableCell className="text-center align-middle px-6 py-3 text-sm text-default-700">
+                            {item.user_id ?? "-"}
+                          </TableCell>
+                          <TableCell className="text-center align-middle px-6 py-3 text-sm text-default-700 truncate">
+                            {item.device_sn ?? "-"}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
               </TableBody>
             </Table>
           </div>

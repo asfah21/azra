@@ -66,20 +66,20 @@ export function TableFingerprint() {
           <div className="overflow-x-auto">
             <Table aria-label="Work orders table" className="min-w-full">
               <TableHeader>
-                <TableColumn className="rounded-tl-xl">NO</TableColumn>
+                {/* <TableColumn className="rounded-tl-xl">NO</TableColumn> */}
                 <TableColumn>NAME</TableColumn>
                 <TableColumn>DIVISION</TableColumn>
-                <TableColumn>USER ID</TableColumn>
                 <TableColumn>TYPE</TableColumn>
-                <TableColumn>DATE</TableColumn>
                 <TableColumn>TIME</TableColumn>
+                <TableColumn>DATE</TableColumn>
+                <TableColumn>FID</TableColumn>
                 <TableColumn className="rounded-tr-xl">DEVICE SN</TableColumn>
               </TableHeader>
               <TableBody>
                 {[...Array(10)].map((_, rowIdx) => (
                   <TableRow key={rowIdx}>
                     {/* ORDER */}
-                    <TableCell>
+                    {/* <TableCell>
                       <div className="flex flex-col gap-1">
                         <div className="flex items-center gap-2">
                           <Skeleton className="h-4 w-20 rounded" />
@@ -88,7 +88,7 @@ export function TableFingerprint() {
                         <Skeleton className="h-3 w-24 rounded" />
                         <Skeleton className="h-3 w-16 rounded" />
                       </div>
-                    </TableCell>
+                    </TableCell> */}
                     {/* REPORTED BY */}
                     <TableCell>
                       <div className="flex items-center gap-2">
