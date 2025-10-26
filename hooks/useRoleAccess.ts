@@ -15,29 +15,40 @@ export interface RoleAccess {
   role: Role;
 }
 
-export function useRoleAccess() {
+export function useRoleAccess(role?: Role) {
   const [roleAccess, setRoleAccess] = useState<RoleAccess[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    let alive = true;
+
     async function fetchRoleAccess() {
       setLoading(true);
+      setError(null);
       try {
-        const res = await fetch("/api/role-access");
+        const qs = role ? `?role=${encodeURIComponent(role)}` : "";
+        const res = await fetch(`/api/role-access${qs}`, { cache: "no-store" });
 
         if (!res.ok) throw new Error("Failed to fetch role access");
-        const data = await res.json();
+        const data = (await res.json()) as RoleAccess[];
 
-        setRoleAccess(data);
+        if (alive) setRoleAccess(data);
       } catch (err: any) {
-        setError(err.message);
+        if (alive) {
+          setError(err.message ?? "error");
+          setRoleAccess([]);
+        }
       } finally {
-        setLoading(false);
+        if (alive) setLoading(false);
       }
     }
     fetchRoleAccess();
-  }, []);
+
+    return () => {
+      alive = false;
+    };
+  }, [role]);
 
   return { roleAccess, loading, error };
 }

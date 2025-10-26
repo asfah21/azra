@@ -30,6 +30,8 @@ interface User {
   department: string | null;
   createdAt: Date;
   lastActive: Date | null;
+  fid?: string | number | null;
+  nik?: string | number | null;
 }
 
 interface EditUserModalProps {
@@ -106,6 +108,8 @@ export function EditUserModal({
         email: formData.get("email"),
         role: formData.get("role"),
         department: formData.get("department"),
+        fid: formData.get("fid"),
+        nik: formData.get("nik"),
         currentUserRole: formData.get("currentUserRole"),
         hasPassword: !!formData.get("password"),
       });
@@ -179,7 +183,6 @@ export function EditUserModal({
             onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
               e.target.style.outline = "none";
             }}
-            // force value to be the enum value, not label
             onSelectionChange={(key) => setRoleKey(key?.toString() ?? "")}
           >
             {(item) => (
@@ -194,6 +197,44 @@ export function EditUserModal({
           </Autocomplete>
           {/* kirim nilai role ke form */}
           <input name="role" type="hidden" value={roleKey || ""} />
+
+          {/* FID & NIK */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Input
+              defaultValue={
+                user?.fid !== null && user?.fid !== undefined
+                  ? String(user.fid)
+                  : ""
+              }
+              inputMode="numeric"
+              isDisabled={!user}
+              label="FID (Fingerprint ID)"
+              labelPlacement="outside-top"
+              name="fid"
+              pattern="[0-9]*"
+              placeholder="Enter FID (optional)"
+              variant="bordered"
+              onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+                e.target.style.outline = "none";
+              }}
+            />
+            <Input
+              defaultValue={
+                user?.nik !== null && user?.nik !== undefined
+                  ? String(user.nik)
+                  : ""
+              }
+              isDisabled={!user}
+              label="NIK"
+              labelPlacement="outside-top"
+              name="nik"
+              placeholder="Enter NIK (optional)"
+              variant="bordered"
+              onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+                e.target.style.outline = "none";
+              }}
+            />
+          </div>
 
           <Input
             defaultValue={user?.department || ""}

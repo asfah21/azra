@@ -26,7 +26,7 @@ export default function DashboardFooter({
               <p className="bg-gradient-to-r text-sm font-extrabold from-blue-600 to-green-600 bg-clip-text text-transparent font-semibold hover:from-green-600 hover:to-blue-600 transition-all duration-300">
                 AZRA
               </p>
-              <VersiAppSm />
+              <VersiAppSm /> (beta)
             </Link>
           </span>
           {/* <span className="text-xs text-gray-600 dark:text-gray-300">

@@ -90,8 +90,8 @@ export const Sidebar = memo(function Sidebar({
     [key: string]: boolean;
   }>({});
   // Ambil konfigurasi akses dari backend
-  const { roleAccess, loading } = useRoleAccess();
   const userRole = session?.user?.role;
+  const { roleAccess, loading } = useRoleAccess(userRole);
 
   // Filter menu sesuai role user dan konfigurasi akses
   const filteredNavItems = useMemo(() => {

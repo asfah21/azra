@@ -49,7 +49,7 @@ export default function ProfileSetting({ profile }: { profile: any }) {
     setEmail(profile?.email || "");
     setPhone(profile?.phone || "");
     setLocation(profile?.location || "");
-    setPhoto(profile?.photo || "https://i.pravatar.cc/150?img=12");
+    setPhoto(profile?.photo || null);
   }, [profile]);
 
   const handleNotificationChange = (key: string, value: boolean) => {

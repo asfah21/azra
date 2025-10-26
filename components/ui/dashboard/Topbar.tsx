@@ -18,12 +18,13 @@ import {
 } from "@heroui/react";
 import { useRouter } from "next/navigation";
 import { ChevronDown } from "lucide-react";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 
 import { ThemeSwitch } from "@/components/theme-switch";
 import { Logo, SearchIcon } from "@/components/icons";
 import { useProfile } from "@/app/context/ProfileContext";
 import { consolePino } from "@/lib/logger";
+import { useRoleAccess } from "@/hooks/useRoleAccess"; // <— tambah ini
 
 // Import tipe dari Sidebar
 
@@ -65,6 +66,47 @@ export function Topbar({
 
   const { profile } = useProfile();
   // const { profile, isLoading } = useProfile();
+
+  // Ambil akses role untuk filter menu (mobile)
+  const userRole = session?.user?.role as any;
+  const { roleAccess, loading: accessLoading } = useRoleAccess(userRole);
+
+  // Samakan logika filter dengan Sidebar:
+  // - super_admin: semua menu
+  // - selain itu: parent tampil hanya jika parent allowed DAN punya minimal 1 child allowed
+  const filteredMobileNavItems = useMemo(() => {
+    if (!userRole || accessLoading) return [] as Array<SidebarNavItem>;
+    if (userRole === "super_admin") return navItems as Array<SidebarNavItem>;
+
+    const allowed = (id: string) =>
+      roleAccess.some((a) => a.menu === id && a.role === userRole);
+
+    // Filter parent yang allowed
+    const parents = (navItems as Array<SidebarNavItem>).filter((it) =>
+      allowed(it.id),
+    );
+
+    // Untuk parent yang punya children, sisakan hanya child yang allowed; drop parent jika tidak ada child allowed
+    const shaped = parents
+      .map((it) => {
+        if (Array.isArray(it.children) && it.children.length > 0) {
+          const children = it.children.filter((c) => allowed(c.id));
+
+          return { ...it, children };
+        }
+
+        return it;
+      })
+      .filter((it) => {
+        if (Array.isArray(it.children) && it.children.length > 0) {
+          return it.children.length > 0;
+        }
+
+        return true;
+      });
+
+    return shaped;
+  }, [navItems, roleAccess, userRole, accessLoading]);
 
   const searchInput = (
     <Input
@@ -184,15 +226,11 @@ export function Topbar({
 
           <Card className="md:hidden absolute top-16 left-0 right-0 z-[9999] shadow-large rounded-none">
             <CardBody className="p-4 space-y-2">
-              {navItems.map((item) => {
+              {(filteredMobileNavItems as Array<SidebarNavItem>).map((item) => {
                 const isActive = activeTab === item.id;
 
                 // Jika item punya children, tampilkan dengan dropdown
-                if (
-                  "children" in item &&
-                  item.children &&
-                  item.children.length > 0
-                ) {
+                if (Array.isArray(item.children) && item.children.length > 0) {
                   return (
                     <div key={item.id} className="w-full">
                       <Button
@@ -236,7 +274,6 @@ export function Topbar({
                               onPress={() => {
                                 openNewTab(child);
                                 setMenuOpen(false);
-                                // Reset expanded state ketika navigasi
                                 setExpandedMobileMenus({});
                               }}
                             >

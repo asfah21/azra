@@ -22,6 +22,7 @@ export async function GET(req: Request) {
     return NextResponse.json(res.data);
   } catch (error: any) {
     console.error("Proxy error (fingerprint):", error.message);
+
     return NextResponse.json(
       { error: "Failed to fetch fingerprint logs" },
       { status: 500 },

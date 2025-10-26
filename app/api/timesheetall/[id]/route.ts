@@ -1,7 +1,4 @@
-export async function PATCH(
-  request: Request,
-  { params }: any,
-) {
+export async function PATCH(request: Request, { params }: any) {
   try {
     const id = params.id;
 
@@ -31,10 +28,7 @@ import { NextResponse } from "next/server";
 
 import prisma from "@/lib/prisma";
 
-export async function DELETE(
-  request: Request,
-  { params }: any,
-) {
+export async function DELETE(request: Request, { params }: any) {
   try {
     const id = params.id;
 

@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { signIn, useSession } from "next-auth/react";
 import { Alert, Card, CardHeader, CardFooter } from "@heroui/react";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
+
 import { Logo } from "@/components/icons";
 
 function LoginForm() {
@@ -15,24 +16,28 @@ function LoginForm() {
   const [email, setEmail] = useState(() => {
     if (typeof window !== "undefined") {
       const remembered = localStorage.getItem("azra_remember");
+
       if (remembered) {
         try {
           return JSON.parse(remembered).email || "";
         } catch {}
       }
     }
+
     return "";
   });
 
   const [password, setPassword] = useState(() => {
     if (typeof window !== "undefined") {
       const remembered = localStorage.getItem("azra_remember");
+
       if (remembered) {
         try {
           return JSON.parse(remembered).password || "";
         } catch {}
       }
     }
+
     return "";
   });
 
@@ -48,6 +53,7 @@ function LoginForm() {
   useEffect(() => {
     if (status === "authenticated" && session) {
       const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+
       router.push(callbackUrl);
     }
   }, [status, session, router, searchParams]);
@@ -55,6 +61,7 @@ function LoginForm() {
   // Check for error in URL (from NextAuth)
   useEffect(() => {
     const errorParam = searchParams.get("error");
+
     if (errorParam === "CredentialsSignin") {
       setError("Email atau password salah. Silakan coba lagi.");
       setLoginAttempts((prev) => prev + 1);
@@ -67,15 +74,19 @@ function LoginForm() {
   useEffect(() => {
     if (loginAttempts >= 5) {
       const lockTime = new Date();
+
       lockTime.setMinutes(lockTime.getMinutes() + 15);
       setLockUntil(lockTime);
       setIsLocked(true);
 
-      const timer = setTimeout(() => {
-        setIsLocked(false);
-        setLoginAttempts(0);
-        setLockUntil(null);
-      }, 15 * 60 * 1000);
+      const timer = setTimeout(
+        () => {
+          setIsLocked(false);
+          setLoginAttempts(0);
+          setLockUntil(null);
+        },
+        15 * 60 * 1000,
+      );
 
       return () => clearTimeout(timer);
     }
@@ -85,11 +96,13 @@ function LoginForm() {
     e.preventDefault();
     if (isLocked) {
       setError(`Akun terkunci hingga ${lockUntil?.toLocaleTimeString()}`);
+
       return;
     }
 
     if (!email || !password) {
       setError("Email dan password harus diisi");
+
       return;
     }
 
@@ -111,7 +124,10 @@ function LoginForm() {
       } else {
         setLoginAttempts(0);
         if (rememberMe) {
-          localStorage.setItem("azra_remember", JSON.stringify({ email, password }));
+          localStorage.setItem(
+            "azra_remember",
+            JSON.stringify({ email, password }),
+          );
         } else {
           localStorage.removeItem("azra_remember");
         }
@@ -138,11 +154,13 @@ function LoginForm() {
   const getRemainingLockTime = () => {
     if (!lockUntil) return 0;
     const now = new Date();
+
     return Math.max(0, lockUntil.getTime() - now.getTime());
   };
 
   const formatRemainingTime = (ms: number) => {
     const minutes = Math.ceil(ms / (60 * 1000));
+
     return `${minutes} menit`;
   };
 
@@ -174,7 +192,10 @@ function LoginForm() {
           <form className="space-y-5" onSubmit={handleSubmit}>
             {/* Email */}
             <div className="space-y-2">
-              <label htmlFor="email" className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label
+                className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300"
+                htmlFor="email"
+              >
                 Email
               </label>
               <div className="relative">
@@ -190,11 +211,11 @@ function LoginForm() {
                 </div>
                 <input
                   required
-                  id="email"
-                  type="email"
-                  placeholder="email@contoh.com"
-                  disabled={isLocked || loading}
                   className="bg-gray-50 dark:bg-gray-900 block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  disabled={isLocked || loading}
+                  id="email"
+                  placeholder="email@contoh.com"
+                  type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
@@ -203,7 +224,10 @@ function LoginForm() {
 
             {/* Password */}
             <div className="space-y-2">
-              <label htmlFor="password" className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label
+                className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300"
+                htmlFor="password"
+              >
                 Password
               </label>
               <div className="relative">
@@ -222,42 +246,49 @@ function LoginForm() {
                 </div>
                 <input
                   required
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
-                  disabled={isLocked || loading}
                   className="bg-gray-50 dark:bg-gray-900 block w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  disabled={isLocked || loading}
+                  id="password"
+                  placeholder="••••••••"
+                  type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
                 <button
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-500 hover:text-gray-700"
                 >
-                  {showPassword ? <EyeSlashIcon className="h-5 w-5" /> : <EyeIcon className="h-5 w-5" />}
+                  {showPassword ? (
+                    <EyeSlashIcon className="h-5 w-5" />
+                  ) : (
+                    <EyeIcon className="h-5 w-5" />
+                  )}
                 </button>
               </div>
             </div>
 
             <div className="flex items-center">
               <input
+                checked={rememberMe}
+                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
                 id="remember-me"
                 type="checkbox"
-                checked={rememberMe}
                 onChange={() => setRememberMe(!rememberMe)}
-                className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
               />
-              <label htmlFor="remember-me" className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 ml-1">
+              <label
+                className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 ml-1"
+                htmlFor="remember-me"
+              >
                 Remember this device
               </label>
             </div>
 
             <div className="pt-2">
               <button
-                type="submit"
-                disabled={isLocked || loading}
                 className={`w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 ${isLocked ? "opacity-50 cursor-not-allowed" : ""} ${loading ? "opacity-70" : ""}`}
+                disabled={isLocked || loading}
+                type="submit"
               >
                 {loading ? "Processing..." : "Login"}
               </button>
@@ -277,7 +308,7 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className="text-center mt-20">Loading login page...</div>}>
+    <Suspense fallback={<div className="text-center mt-20" />}>
       <LoginForm />
     </Suspense>
   );

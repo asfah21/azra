@@ -36,7 +36,7 @@ export default function FingerCardGrids({ stats }: UserStatsCardsProps) {
               In Today
             </p>
             <p className="text-xs sm:text-small text-success-600">
-              Checked in employees
+              via Fingerprint
             </p>
           </div>
         </CardHeader>
@@ -57,7 +57,7 @@ export default function FingerCardGrids({ stats }: UserStatsCardsProps) {
               </Chip>
             </div>
             <p className="text-xs sm:text-small text-default-600">
-              Present employees
+              Total check-ins
             </p>
           </div>
         </CardBody>
@@ -74,7 +74,7 @@ export default function FingerCardGrids({ stats }: UserStatsCardsProps) {
               Out Today
             </p>
             <p className="text-xs sm:text-small text-danger-600">
-              Checked out employees
+              via Fingerprint
             </p>
           </div>
         </CardHeader>
@@ -126,10 +126,10 @@ export default function FingerCardGrids({ stats }: UserStatsCardsProps) {
           </div>
           <div className="flex flex-col min-w-0">
             <p className="text-sm sm:text-lg font-semibold text-secondary-800 truncate">
-              In This Month
+              Monthly In
             </p>
             <p className="text-xs sm:text-small text-secondary-600">
-              Monthly check-ins
+              via Fingerprint
             </p>
           </div>
         </CardHeader>
@@ -164,10 +164,10 @@ export default function FingerCardGrids({ stats }: UserStatsCardsProps) {
           </div>
           <div className="flex flex-col min-w-0">
             <p className="text-sm sm:text-lg font-semibold text-warning-800 truncate">
-              Out This Month
+              Monthly Out
             </p>
             <p className="text-xs sm:text-small text-warning-600">
-              Monthly check-outs
+              via Fingerprint
             </p>
           </div>
         </CardHeader>

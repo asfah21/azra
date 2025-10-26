@@ -102,16 +102,19 @@ export async function middleware(request: NextRequest) {
       return NextResponse.next();
     }
 
-    // Ambil konfigurasi akses dinamis dari API (database)
-    let dynamicAccess: Record<string, string[]> = {};
+    // Ambil izin akses untuk role ini saja (tanpa fallback ke defaultRoles)
+    const allowedSet = new Set<string>();
 
     try {
-      const apiUrl = new URL("/api/role-access", request.url);
+      const apiUrl = new URL(
+        `/api/role-access?role=${encodeURIComponent(userRole)}`,
+        request.url,
+      );
+
       const res = await fetch(apiUrl.toString(), {
         headers: {
           cookie: request.headers.get("cookie") || "",
         },
-        // Hindari cache agar perubahan cepat berlaku
         cache: "no-store",
       });
 
@@ -120,53 +123,18 @@ export async function middleware(request: NextRequest) {
         const data: Array<{ menu: string; role: string }> = await res.json();
 
         for (const entry of data) {
-          if (!dynamicAccess[entry.menu]) dynamicAccess[entry.menu] = [];
-          dynamicAccess[entry.menu].push(entry.role);
+          if (entry.role === userRole) {
+            allowedSet.add(entry.menu);
+          }
         }
+      } else {
+        // Jika API gagal, treat as no access (fail-closed)
       }
     } catch {
-      // Fail open: jika API gagal, gunakan defaultRoles dari config
+      // Jika fetch error, treat as no access (fail-closed)
     }
 
-    // Jika targetItem adalah child menu, cek akses child saja
-    let isChild = false;
-
-    for (const parent of defaultNavItems) {
-      if ("children" in parent && Array.isArray(parent.children)) {
-        if (parent.children.some((c) => c.id === targetItem.id)) {
-          isChild = true;
-          break;
-        }
-      }
-    }
-
-    let allowedRoles: string[] = [];
-
-    if (isChild) {
-      allowedRoles = dynamicAccess[targetItem.id];
-      // Jika child tidak punya entry di DB dan defaultRoles kosong, akses ditolak
-      if (!allowedRoles || allowedRoles.length === 0) {
-        if (
-          (targetItem as any).defaultRoles &&
-          (targetItem as any).defaultRoles.length > 0
-        ) {
-          allowedRoles = [...(targetItem as any).defaultRoles];
-        } else {
-          // Tidak ada akses sama sekali
-          allowedRoles = [];
-        }
-      }
-    } else {
-      // Parent menu: cek akses parent
-      allowedRoles = dynamicAccess[targetItem.id];
-      if (!allowedRoles || allowedRoles.length === 0) {
-        allowedRoles = (targetItem as any).defaultRoles
-          ? [...(targetItem as any).defaultRoles]
-          : validRoles.filter((r) => r !== "super_admin");
-      }
-    }
-
-    const hasAccess = allowedRoles.includes(userRole);
+    const hasAccess = allowedSet.has((targetItem as any).id);
 
     if (!hasAccess) {
       // Redirect balik ke dashboard (hindari loop jika sudah di dashboard)

@@ -3,9 +3,11 @@
 import bcrypt from "bcrypt";
 import { revalidatePath } from "next/cache";
 import { Role } from "@prisma/client";
+import { getServerSession } from "next-auth";
 
 import prisma from "@/lib/prisma";
 import { consolePino } from "@/lib/logger";
+import { authOptions } from "@/lib/auth";
 
 // Tambahkan tipe return yang sesuai
 export type FormState = {
@@ -23,9 +25,12 @@ export async function addUsers(
     const password = formData.get("password") as string;
     const role = formData.get("role") as Role;
     const department = formData.get("department") as string;
-    const currentUserRole = formData.get("currentUserRole") as string;
+    const fidRaw = (formData.get("fid") as string | null)?.trim() ?? "";
+    const nikRaw = (formData.get("nik") as string | null)?.trim() ?? "";
+    const session = await getServerSession(authOptions);
+    const currentUserRole = session?.user?.role as string | undefined;
 
-    // Validasi role - hanya super_admin yang dapat menambahkan user
+    // Validasi role - hanya super_admin dari session yang dapat menambahkan user
     if (currentUserRole !== "super_admin") {
       return {
         errors: {
@@ -36,23 +41,51 @@ export async function addUsers(
     }
 
     // Validasi
-    if (!name || !email || !password || !role) {
-      return {
-        errors: {
-          general: "Semua field wajib diisi.",
-        },
-      };
+    const allowedRoles = [
+      "super_admin",
+      "admin_heavy",
+      "admin_elec",
+      "pengawas",
+      "mekanik",
+      "guest",
+    ] as const;
+
+    if (
+      !name ||
+      !email ||
+      !password ||
+      !role ||
+      !allowedRoles.includes(role as any)
+    ) {
+      return { errors: { general: "Semua field wajib diisi." } };
     }
 
     // Cek email
     const existingUser = await prisma.user.findUnique({ where: { email } });
 
     if (existingUser) {
-      return {
-        errors: {
-          email: "Email sudah digunakan.",
-        },
-      };
+      return { errors: { email: "Email sudah digunakan." } };
+    }
+
+    // Parse & validasi FID (opsional, numerik)
+    let fidNumber: number | null = null;
+
+    if (fidRaw) {
+      const n = Number(fidRaw);
+
+      if (Number.isNaN(n)) {
+        return { errors: { general: "FID harus berupa angka." } };
+      }
+      fidNumber = n;
+      // Cek duplikat FID
+      const dupFid = await prisma.user.findFirst({
+        where: { fid: n },
+        select: { id: true },
+      });
+
+      if (dupFid) {
+        return { errors: { general: `FID sudah digunakan oleh user lain.` } };
+      }
     }
 
     // Hash password
@@ -66,6 +99,8 @@ export async function addUsers(
         password: hashedPassword,
         role,
         department,
+        fid: fidNumber,
+        nik: nikRaw || null,
       },
     });
 
@@ -74,18 +109,6 @@ export async function addUsers(
     return { message: "User berhasil ditambahkan!" };
   } catch (error: any) {
     consolePino.error("Error adding user:", error);
-
-    // Log detailed error information
-    if (error instanceof Error) {
-      consolePino.error("Error name:", error.name);
-      consolePino.error("Error message:", error.message);
-      if ("code" in error) {
-        consolePino.error("Error code:", error.code);
-      }
-      if ("meta" in error) {
-        consolePino.error("Error meta:", error.meta);
-      }
-    }
 
     return {
       errors: {
@@ -106,9 +129,11 @@ export async function updateUser(
     const password = formData.get("password") as string;
     const role = formData.get("role") as Role;
     const department = formData.get("department") as string;
-    const currentUserRole = formData.get("currentUserRole") as string;
+    const fidRaw = (formData.get("fid") as string | null)?.trim() ?? "";
+    const nikRaw = (formData.get("nik") as string | null)?.trim() ?? "";
+    const session = await getServerSession(authOptions);
+    const currentUserRole = session?.user?.role as string | undefined;
 
-    // Debug logging
     consolePino.info("Update user data:", {
       id,
       name,
@@ -116,10 +141,11 @@ export async function updateUser(
       role,
       department,
       currentUserRole,
+      fid: fidRaw,
+      nik: nikRaw,
       hasPassword: !!password,
     });
 
-    // Validasi role - hanya super_admin yang dapat mengedit user
     if (currentUserRole !== "super_admin") {
       return {
         errors: {
@@ -129,23 +155,30 @@ export async function updateUser(
     }
 
     // Validasi
-    if (!id || !name || !email || !role) {
-      return {
-        errors: {
-          general: "ID, nama, email, dan role wajib diisi.",
-        },
-      };
+    const allowedRoles = [
+      "super_admin",
+      "admin_heavy",
+      "admin_elec",
+      "pengawas",
+      "mekanik",
+      "guest",
+    ] as const;
+
+    if (
+      !id ||
+      !name ||
+      !email ||
+      !role ||
+      !allowedRoles.includes(role as any)
+    ) {
+      return { errors: { general: "ID, nama, email, dan role wajib diisi." } };
     }
 
-    // Cek apakah user exists
+    // Cek user
     const existingUser = await prisma.user.findUnique({ where: { id } });
 
     if (!existingUser) {
-      return {
-        errors: {
-          general: "User tidak ditemukan.",
-        },
-      };
+      return { errors: { general: "User tidak ditemukan." } };
     }
 
     // Cek email jika berubah
@@ -153,28 +186,58 @@ export async function updateUser(
       const emailExists = await prisma.user.findUnique({ where: { email } });
 
       if (emailExists) {
-        return {
-          errors: {
-            email: "Email sudah digunakan.",
-          },
-        };
+        return { errors: { email: "Email sudah digunakan." } };
       }
     }
 
-    // Prepare update data
+    // Parse & validasi FID (opsional, numerik)
+    let fidToSave: number | null = null;
+    let setFidNull = false;
+
+    if (fidRaw === "") {
+      setFidNull = true; // kosongkan FID
+    } else {
+      const n = Number(fidRaw);
+
+      if (!Number.isNaN(n)) {
+        fidToSave = n;
+        // Jika berubah, cek duplikat FID
+        if ((existingUser as any).fid !== n) {
+          const dupFid = await prisma.user.findFirst({
+            where: { fid: n, NOT: { id } },
+            select: { id: true },
+          });
+
+          if (dupFid) {
+            return {
+              errors: { general: `FID sudah digunakan oleh user lain.` },
+            };
+          }
+        }
+      } else {
+        return { errors: { general: "FID harus berupa angka." } };
+      }
+    }
+
+    // Siapkan data update
     const updateData: any = {
       name,
       email,
       role,
       department: department || null,
+      nik: nikRaw ? String(nikRaw) : null,
     };
 
-    // Hash password jika ada
+    if (setFidNull) {
+      updateData.fid = null;
+    } else if (fidToSave !== null) {
+      updateData.fid = fidToSave;
+    }
+
     if (password && password.trim() !== "") {
       updateData.password = await bcrypt.hash(password, 10);
     }
 
-    // Update user
     await prisma.user.update({
       where: { id },
       data: updateData,
@@ -186,17 +249,16 @@ export async function updateUser(
   } catch (error) {
     consolePino.error("Error updating user:", error);
 
-    return {
-      errors: {
-        general: "Terjadi kesalahan saat mengupdate user.",
-      },
-    };
+    return { errors: { general: "Terjadi kesalahan saat mengupdate user." } };
   }
 }
 
-export async function deleteUser(id: string, currentUserRole?: string) {
+export async function deleteUser(id: string, _currentUserRole?: string) {
   try {
-    // Validasi role - hanya super_admin yang dapat menghapus user
+    // Validasi role dari session - hanya super_admin yang dapat menghapus user
+    const session = await getServerSession(authOptions);
+    const currentUserRole = session?.user?.role as string | undefined;
+
     if (currentUserRole !== "super_admin") {
       return {
         success: false,

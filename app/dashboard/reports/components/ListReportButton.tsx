@@ -205,7 +205,7 @@ export default function ListReportButton({
               AZRA
             </span>{" "}
             <VersiAppReport />
-            &nbsp;our MVP release. This is an early version and some features
+            &nbsp;our Beta release. This is an early version and some features
             are still being built, stay tuned for updates!
           </p>
         </div>

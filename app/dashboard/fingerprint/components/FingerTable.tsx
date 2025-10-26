@@ -22,6 +22,7 @@ import {
   ModalBody,
   ModalFooter,
   useDisclosure,
+  User,
 } from "@heroui/react";
 import { Search, Upload, UserRoundCheck } from "lucide-react";
 import * as XLSX from "xlsx";
@@ -66,35 +67,34 @@ async function fetchLogsFromApi(
     signal,
   });
 
+  // const PAGE_SIZE = 20;
 
-// const PAGE_SIZE = 20;
+  // async function fetchLogsFromApi(
+  //   page: number,
+  //   signal?: AbortSignal,
+  // ): Promise<LogsResponse> {
+  //   const offset = (page - 1) * PAGE_SIZE;
+  //   const params = new URLSearchParams();
 
-// async function fetchLogsFromApi(
-//   page: number,
-//   signal?: AbortSignal,
-// ): Promise<LogsResponse> {
-//   const offset = (page - 1) * PAGE_SIZE;
-//   const params = new URLSearchParams();
+  //   params.set("limit", String(PAGE_SIZE));
+  //   params.set("offset", String(offset));
 
-//   params.set("limit", String(PAGE_SIZE));
-//   params.set("offset", String(offset));
+  //   const url = `http://188.245.70.138:8080/api/logs?${params.toString()}`;
 
-//   const url = `http://188.245.70.138:8080/api/logs?${params.toString()}`;
+  //   const res = await fetch(url, {
+  //     method: "GET",
+  //     headers: {
+  //       "X-API-Key": "gsi-attendance-key",
+  //       "Content-Type": "application/json",
+  //     },
+  //     cache: "no-store",
+  //     signal,
+  //   });
 
-//   const res = await fetch(url, {
-//     method: "GET",
-//     headers: {
-//       "X-API-Key": "gsi-attendance-key",
-//       "Content-Type": "application/json",
-//     },
-//     cache: "no-store",
-//     signal,
-//   });
+  if (!res.ok) {
+    const text = await res.text();
 
-   if (!res.ok) {
-     const text = await res.text();
-
-     throw new Error(`Fetch error (${res.status}): ${text}`);
+    throw new Error(`Fetch error (${res.status}): ${text}`);
   }
 
   const json = await res.json();
@@ -174,6 +174,9 @@ export default function FingerTable() {
   const [usersNikByFid, setUsersNikByFid] = useState<Record<string, string>>(
     {},
   );
+  const [usersPhotoByFid, setUsersPhotoByFid] = useState<
+    Record<string, string>
+  >({});
   const [total, setTotal] = useState<number | null>(null);
   const [page, setPage] = useState<number>(1);
   const [loading, setLoading] = useState(false);
@@ -239,6 +242,7 @@ export default function FingerTable() {
         const nameMap: Record<string, string> = {};
         const deptMap: Record<string, string> = {};
         const nikMap: Record<string, string> = {};
+        const photoMap: Record<string, string> = {};
 
         for (const u of usersList) {
           if (u?.fid != null) {
@@ -247,12 +251,23 @@ export default function FingerTable() {
             nameMap[key] = u.name ?? u?.fullName ?? u?.username ?? "";
             deptMap[key] = u?.department ?? "";
             nikMap[key] = u?.nik != null ? String(u.nik) : "";
+            const photoUrl =
+              u?.photo ??
+              u?.avatar ??
+              u?.avatarUrl ??
+              u?.profileImageUrl ??
+              u?.image ??
+              u?.profile?.photoUrl ??
+              "";
+
+            photoMap[key] = photoUrl ? String(photoUrl) : "";
           }
         }
         if (mounted) {
           setUsersByFid(nameMap);
           setUsersDeptByFid(deptMap);
           setUsersNikByFid(nikMap);
+          setUsersPhotoByFid(photoMap);
         }
       } catch {}
     }
@@ -283,6 +298,16 @@ export default function FingerTable() {
       );
     });
   }, [rows, searchQuery]);
+
+  // Helper untuk resolve Photo URL dari user_id (fid)
+  const resolvePhotoByUserId = useCallback(
+    (userId?: string | number) => {
+      if (userId == null) return "";
+
+      return usersPhotoByFid[String(userId)] ?? "";
+    },
+    [usersPhotoByFid],
+  );
 
   // Helper untuk resolve nama dari user_id (fid)
   const resolveNameByUserId = useCallback(
@@ -333,10 +358,10 @@ export default function FingerTable() {
           name,
           nik,
           department,
-          user_id: r.user_id ?? "-",
           type: mapType(r.type),
-          date,
           time,
+          date,
+          user_id: r.user_id ?? "-",
           device_sn: r.device_sn ?? "-",
         };
       });
@@ -346,10 +371,10 @@ export default function FingerTable() {
           "name",
           "nik",
           "department",
-          "user_id",
           "type",
-          "date",
           "time",
+          "date",
+          "user_id",
           "device_sn",
         ],
       });
@@ -701,29 +726,32 @@ export default function FingerTable() {
             >
               <TableHeader>
                 {/* header styling like UserTable: small uppercase, tight spacing */}
-                <TableColumn className="w-12 text-center text-xs font-medium text-default-600 uppercase tracking-wider select-none">
+                {/* <TableColumn className="w-12 text-center text-xs font-medium text-default-600 uppercase tracking-wider select-none">
                   NO
-                </TableColumn>
+                </TableColumn> */}
+                {/* <TableColumn className="w-16 text-center text-xs font-medium text-default-600 uppercase tracking-wider select-none">
+                  PHOTO
+                </TableColumn> */}
                 {/* <TableColumn className="w-28 text-center text-xs font-medium text-default-600 uppercase tracking-wider select-none">
                   NIK
                 </TableColumn> */}
-                <TableColumn className="w-20 text-center text-xs font-medium text-default-600 uppercase tracking-wider select-none">
+                <TableColumn className="w-20 text-center text-xs text-left font-medium text-default-600 uppercase tracking-wider select-none">
                   NAME
                 </TableColumn>
                 <TableColumn className="w-28 text-center text-xs font-medium text-default-600 uppercase tracking-wider select-none">
                   DIVISION
                 </TableColumn>
-                <TableColumn className="w-24 text-center text-xs font-medium text-default-600 uppercase tracking-wider select-none">
-                  USER ID
-                </TableColumn>
                 <TableColumn className="w-28 text-center text-xs font-medium text-default-600 uppercase tracking-wider select-none">
                   TYPE
                 </TableColumn>
                 <TableColumn className="w-28 text-center text-xs font-medium text-default-600 uppercase tracking-wider select-none">
+                  TIME
+                </TableColumn>
+                <TableColumn className="w-24 text-center text-xs font-medium text-default-600 uppercase tracking-wider select-none">
                   DATE
                 </TableColumn>
                 <TableColumn className="w-24 text-center text-xs font-medium text-default-600 uppercase tracking-wider select-none">
-                  TIME
+                  FID
                 </TableColumn>
                 <TableColumn className="w-56 text-center text-xs font-medium text-default-600 uppercase tracking-wider select-none">
                   DEVICE SN
@@ -746,6 +774,7 @@ export default function FingerTable() {
                     item.user_id != null
                       ? (usersNikByFid[String(item.user_id)] ?? "-")
                       : "-";
+                  const resolvedPhoto = resolvePhotoByUserId(item.user_id);
                   const { date: resolvedDate, time: resolvedTime } =
                     splitDateTime(item.timestamp ?? item.created_at);
 
@@ -754,24 +783,38 @@ export default function FingerTable() {
                       key={item.id ?? idx}
                       className="hover:bg-default-50"
                     >
-                      <TableCell className="text-center align-middle px-6 py-3 text-sm text-default-700">
+                      {/* <TableCell className="text-center align-middle px-6 py-3 text-sm text-default-700">
                         {idx}
+                      </TableCell> */}
+                      <TableCell className="text-left align-left px-2 py-3">
+                        <User
+                          avatarProps={{
+                            radius: "lg",
+                            src: resolvedPhoto || undefined,
+                            className:
+                              "w-8 h-8 rounded-full object-cover flex-shrink-0 truncate",
+                          }}
+                          classNames={{
+                            description: "text-default-500 truncate",
+                            name: "font-medium text-default-800 truncate",
+                          }}
+                          description={resolvedNik}
+                          name={resolvedName}
+                        />
                       </TableCell>
                       {/* resolved user name (lookup by fid) */}
-                      <TableCell className="text-center align-middle px-6 py-3 text-sm font-semibold text-default-800">
+                      {/* <TableCell className="text-center align-middle px-6 py-3 text-sm font-semibold text-default-800">
                         <div className="text-small align-left">
                           <p className="font-medium truncate">{resolvedName}</p>
                           <p className="text-xs text-default-500 mt-0.5">
                             {resolvedNik || "-"}
                           </p>
                         </div>
-                      </TableCell>
+                      </TableCell> */}
                       <TableCell className="text-center align-middle px-6 py-3 text-sm text-default-700">
                         {resolvedDept || "-"}
                       </TableCell>
-                      <TableCell className="text-center align-middle px-6 py-3 text-sm text-default-700">
-                        {item.user_id ?? "-"}
-                      </TableCell>
+
                       <TableCell className="text-center align-middle px-6 py-3 text-sm text-default-700 whitespace-pre-line">
                         <Chip
                           className="mx-auto"
@@ -793,11 +836,14 @@ export default function FingerTable() {
                           {mapType(item.type)}
                         </Chip>
                       </TableCell>
+                      <TableCell className="text-center align-middle px-6 py-3 text-sm text-default-700">
+                        {resolvedTime}
+                      </TableCell>
                       <TableCell className="text-center align-middle px-6 py-3 text-sm text-default-700 truncate">
                         <div className="truncate">{resolvedDate}</div>
                       </TableCell>
                       <TableCell className="text-center align-middle px-6 py-3 text-sm text-default-700">
-                        {resolvedTime}
+                        {item.user_id ?? "-"}
                       </TableCell>
                       <TableCell className="text-center align-middle px-6 py-3 text-sm text-default-700 truncate">
                         {item.device_sn ?? "-"}

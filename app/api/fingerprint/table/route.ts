@@ -21,12 +21,14 @@ export async function GET(req: NextRequest) {
 
   if (!res.ok) {
     const text = await res.text();
+
     return NextResponse.json(
       { error: `Fetch error (${res.status}): ${text}` },
-      { status: res.status }
+      { status: res.status },
     );
   }
 
   const data = await res.json();
+
   return NextResponse.json(data);
 }

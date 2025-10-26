@@ -179,60 +179,33 @@ export function AddUserForms({ onClose, onUserAdded }: AddUserFormProps) {
             value={selectedRole || ""}
           />
 
-          {/* <Autocomplete
-            defaultItems={userRoles}
-            defaultSelectedKey="admin_heavy"
-            label="User Roles"
-            name="role"
-            labelPlacement="outside-top"
-            placeholder="Search role"
-            style={{ outline: "none" }}
-            variant="bordered"
-            onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
-  e.target.style.outline = "none";
-}}
-          >
-            {(item) => (
-              <AutocompleteItem key={item.label} variant="flat">
-                {item.key}
-              </AutocompleteItem>
-            )}
-          </Autocomplete> */}
-
-          {/* <Autocomplete
-            defaultItems={userRoles}
-            selectedKey={selectedRole}
-            onSelectionChange={(key) => setSelectedRole(key as string)} // Update saat pilih
-            label="Roles"
-            name="role"
-            labelPlacement="outside-top"
-            placeholder="Search role"
-            style={{ outline: "none" }}
-            variant="bordered"
-            onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
-  e.target.style.outline = "none";
-}}
-          >
-            {(item) => (
-              <AutocompleteItem key={item.show} variant="flat">
-                {item.key}
-              </AutocompleteItem>
-            )}
-          </Autocomplete>
-
-          <input type="hidden" name="role" value={selectedRole || ""} /> */}
-
-          {/* <Select
-            isRequired
-            labelPlacement="outside"
-            items={userRoles}
-            label="Role"
-            name="role"
-            placeholder="Select user role"
-            variant="bordered"
-          >
-            {(userRole) => <SelectItem>{userRole.label}</SelectItem>}
-          </Select> */}
+          {/* FID & NIK */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Input
+              inputMode="numeric"
+              label="FID (Fingerprint ID)"
+              labelPlacement="outside-top"
+              name="fid"
+              pattern="[0-9]*"
+              placeholder="Enter FID (optional)"
+              variant="bordered"
+              onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+                e.target.style.outline = "none";
+              }}
+            />
+            <Input
+              inputMode="numeric"
+              label="NIK"
+              labelPlacement="outside-top"
+              name="nik"
+              pattern="[0-9]*"
+              placeholder="Enter NIK (optional)"
+              variant="bordered"
+              onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+                e.target.style.outline = "none";
+              }}
+            />
+          </div>
 
           <Input
             label="Department"

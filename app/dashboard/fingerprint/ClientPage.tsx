@@ -73,7 +73,6 @@ async function fetchLogsPage(page: number) {
   return res.data as { rows: LogEntry[]; total?: number; has_more?: boolean };
 }
 
-
 export default function ClientPage() {
   const { data, isLoading, isError } = useQuery({
     queryKey: ["logs-counts"],
