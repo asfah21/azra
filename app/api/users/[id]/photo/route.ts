@@ -52,8 +52,8 @@ function parseMinioKeyFromUrl(url: string) {
 
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } },
-) {
+  context: { params: Record<string, string> }
+): Promise<NextResponse> {
   try {
     const session = await getServerSession(authOptions);
     const actorId = session?.user?.id;
@@ -72,7 +72,7 @@ export async function POST(
       );
     }
 
-    const userId = params?.id;
+    const userId = context.params?.id;
 
     if (!userId) {
       return NextResponse.json(
