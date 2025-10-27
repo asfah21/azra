@@ -29,6 +29,8 @@ declare module "next-auth/jwt" {
   interface JWT {
     id: string;
     role: Role;
+    email?: string;
+    name?: string | null;
   }
 }
 
@@ -81,6 +83,8 @@ export const authOptions: NextAuthOptions = {
       if (user) {
         token.id = user.id;
         token.role = user.role;
+        token.email = (user as any).email as string | undefined;
+        token.name = (user as any).name as string | null | undefined;
 
         // Update lastActive saat login
         await prisma.user.update({
