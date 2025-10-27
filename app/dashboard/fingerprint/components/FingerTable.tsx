@@ -47,19 +47,19 @@ type LogsResponse = {
   has_more?: boolean;
 };
 
-const PAGE_SIZE = 20;
+const FETCH_SIZE = 500; // ambil 500 dari API
+const UI_PAGE_SIZE = 20; // tampilkan 20 per halaman UI
 
 async function fetchLogsFromApi(
-  page: number,
+  serverPage: number,
   signal?: AbortSignal,
 ): Promise<LogsResponse> {
-  const offset = (page - 1) * PAGE_SIZE;
+  const offset = (serverPage - 1) * FETCH_SIZE;
   const params = new URLSearchParams();
 
-  params.set("limit", String(PAGE_SIZE));
+  params.set("limit", String(FETCH_SIZE));
   params.set("offset", String(offset));
 
-  // ✅ Fetch ke endpoint internal Next.js, bukan IP publik
   const url = `/api/fingerprint/table?${params.toString()}`;
 
   const res = await fetch(url, {
@@ -68,33 +68,8 @@ async function fetchLogsFromApi(
     signal,
   });
 
-  // const PAGE_SIZE = 20;
-
-  // async function fetchLogsFromApi(
-  //   page: number,
-  //   signal?: AbortSignal,
-  // ): Promise<LogsResponse> {
-  //   const offset = (page - 1) * PAGE_SIZE;
-  //   const params = new URLSearchParams();
-
-  //   params.set("limit", String(PAGE_SIZE));
-  //   params.set("offset", String(offset));
-
-  //   const url = `http://188.245.70.138:8080/api/logs?${params.toString()}`;
-
-  //   const res = await fetch(url, {
-  //     method: "GET",
-  //     headers: {
-  //       "X-API-Key": "gsi-attendance-key",
-  //       "Content-Type": "application/json",
-  //     },
-  //     cache: "no-store",
-  //     signal,
-  //   });
-
   if (!res.ok) {
     const text = await res.text();
-
     throw new Error(`Fetch error (${res.status}): ${text}`);
   }
 
@@ -108,7 +83,6 @@ async function fetchLogsFromApi(
   else rows = [];
 
   let total: number | null | undefined = undefined;
-
   if (typeof json.total === "number") total = json.total;
   else if (typeof json.count === "number") total = json.count;
   else if (rows[0]?.total_rows) total = Number(rows[0].total_rows);
@@ -122,12 +96,12 @@ async function fetchLogsFromApi(
   return {
     rows,
     total: typeof total === "number" ? total : null,
-    limit: Number(json.limit ?? PAGE_SIZE),
+    limit: Number(json.limit ?? FETCH_SIZE),
     offset: Number(json.offset ?? offset),
     has_more:
       typeof json.has_more === "boolean"
         ? json.has_more
-        : rows.length === PAGE_SIZE,
+        : rows.length === FETCH_SIZE,
   };
 }
 
@@ -180,10 +154,16 @@ export default function FingerTable() {
   >({});
   const [total, setTotal] = useState<number | null>(null);
   const [page, setPage] = useState<number>(1);
+  // TAMBAH: state untuk server page yang sedang dimuat (batch 500)
+  const [serverPage, setServerPage] = useState<number>(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState<boolean | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
+
+  // Global search (cari semua data, bukan hanya yang tampil)
+  const [debouncedSearch, setDebouncedSearch] = useState<string>("");
+  const [globalSearchRows, setGlobalSearchRows] = useState<LogEntry[] | null>(null);
 
   const {
     isOpen: isExportOpen,
@@ -199,19 +179,35 @@ export default function FingerTable() {
   const [usersLoading, setUsersLoading] = useState<boolean>(true);
 
   useEffect(() => {
+    const h = setTimeout(() => setDebouncedSearch(searchQuery.trim()), 350);
+    return () => clearTimeout(h);
+  }, [searchQuery]);
+
+  useEffect(() => {
     const controller = new AbortController();
     let mounted = true;
 
+    // Jika ada pencarian global, skip fetch per batch
+    if (debouncedSearch) return;
+
+    // Map halaman UI (20/item) ke server page (500/item)
+    const desiredServerPage =
+      Math.floor(((page - 1) * UI_PAGE_SIZE) / FETCH_SIZE) + 1;
+
     async function load() {
+      // Hindari refetch kalau masih dalam batch yang sama dan data sudah ada
+      if (serverPage === desiredServerPage && rows.length > 0) return;
+
       setLoading(true);
       setError(null);
       try {
-        const res = await fetchLogsFromApi(page, controller.signal);
-
+        const res = await fetchLogsFromApi(desiredServerPage, controller.signal);
         if (!mounted) return;
+
         setRows(res.rows ?? []);
-        setHasMore(res.has_more ?? res.rows.length === PAGE_SIZE);
+        setHasMore(res.has_more ?? (res.rows?.length ?? 0) === FETCH_SIZE);
         setTotal(typeof res.total === "number" ? res.total : null);
+        setServerPage(desiredServerPage);
       } catch (err: any) {
         if (!mounted) return;
         setError(err?.message ?? "Gagal memuat data");
@@ -226,7 +222,7 @@ export default function FingerTable() {
       mounted = false;
       controller.abort();
     };
-  }, [page]);
+  }, [page, debouncedSearch, serverPage, rows.length]);
 
   // load users once and build map by fid -> name & department
   useEffect(() => {
@@ -286,26 +282,99 @@ export default function FingerTable() {
     };
   }, []);
 
-  // filter client-side by user_id or device_sn quickly (UI similarity)
+  // Saat ada query, ambil semua data lalu filter by name/NIK/division/user_id/device_sn
+  useEffect(() => {
+    let cancelled = false;
+
+    async function searchAll() {
+      if (!debouncedSearch) {
+        setGlobalSearchRows(null);
+        return;
+      }
+      setLoading(true);
+      setError(null);
+      try {
+        const all = await fetchAllLogs();
+        const q = debouncedSearch.toLowerCase();
+
+        const filtered = all.filter((r) => {
+          const name =
+            r.user_id != null ? (usersByFid[String(r.user_id)] ?? "") : "";
+          const nik =
+            r.user_id != null ? (usersNikByFid[String(r.user_id)] ?? "") : "";
+          const dept =
+            r.user_id != null
+              ? (usersDeptByFid[String(r.user_id)] ?? "")
+              : "";
+
+        return (
+            name.toLowerCase().includes(q) ||
+            nik.toLowerCase().includes(q) ||
+            dept.toLowerCase().includes(q) ||
+            String(r.user_id ?? "").toLowerCase().includes(q) ||
+            String(r.device_sn ?? "").toLowerCase().includes(q) ||
+            String(r.id ?? "").toLowerCase().includes(q)
+          );
+        });
+
+        if (cancelled) return;
+        setGlobalSearchRows(filtered);
+        setTotal(filtered.length); // total jadi jumlah hasil pencarian
+        setPage(1); // reset ke halaman 1
+      } catch (e: any) {
+        if (cancelled) return;
+        setError(e?.message ?? "Gagal memuat hasil pencarian");
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    }
+
+    searchAll();
+    return () => {
+      cancelled = true;
+    };
+  }, [debouncedSearch, usersByFid, usersNikByFid, usersDeptByFid]);
+
+  // Sumber data untuk tabel: jika globalSearchRows ada, pakai itu; jika tidak, pakai rows (per-page)
   const filteredRows = useMemo(() => {
+    const source = globalSearchRows ?? rows;
     const q = searchQuery.trim().toLowerCase();
+    if (!q) return source;
+    // Jika sudah di-filter global (globalSearchRows), langsung pakai
+    if (globalSearchRows) return source;
 
-    if (!q) return rows;
+    // Fallback: filter di current page saja
+    return source.filter((r) => {
+      const name =
+        r.user_id != null ? (usersByFid[String(r.user_id)] ?? "") : "";
+      const nik =
+        r.user_id != null ? (usersNikByFid[String(r.user_id)] ?? "") : "";
+      const dept =
+        r.user_id != null ? (usersDeptByFid[String(r.user_id)] ?? "") : "";
 
-    return rows.filter((r) => {
       return (
-        String(r.user_id ?? "")
-          .toLowerCase()
-          .includes(q) ||
-        String(r.device_sn ?? "")
-          .toLowerCase()
-          .includes(q) ||
-        String(r.id ?? "")
-          .toLowerCase()
-          .includes(q)
+        name.toLowerCase().includes(q) ||
+        nik.toLowerCase().includes(q) ||
+        dept.toLowerCase().includes(q) ||
+        String(r.user_id ?? "").toLowerCase().includes(q) ||
+        String(r.device_sn ?? "").toLowerCase().includes(q) ||
+        String(r.id ?? "").toLowerCase().includes(q)
       );
     });
-  }, [rows, searchQuery]);
+  }, [rows, searchQuery, usersByFid, usersNikByFid, usersDeptByFid, globalSearchRows]);
+
+  // Pagination client-side untuk hasil pencarian global ATAU batch 500
+  const paginatedRows = useMemo(() => {
+    // Jika global search aktif, slicing terhadap seluruh hasil
+    if (globalSearchRows) {
+      const start = (page - 1) * UI_PAGE_SIZE;
+      return filteredRows.slice(start, start + UI_PAGE_SIZE);
+    }
+    // Jika tidak, slicing relatif terhadap batch 500 yang sedang dimuat
+    const startInBatch =
+      (page - 1) * UI_PAGE_SIZE - (serverPage - 1) * FETCH_SIZE;
+    return filteredRows.slice(startInBatch, startInBatch + UI_PAGE_SIZE);
+  }, [filteredRows, page, serverPage, globalSearchRows]);
 
   // Helper untuk resolve Photo URL dari user_id (fid)
   const resolvePhotoByUserId = useCallback(
@@ -348,9 +417,9 @@ export default function FingerTable() {
   );
 
   const totalPages =
-    typeof total === "number"
-      ? Math.max(1, Math.ceil(total / PAGE_SIZE))
-      : null;
+  typeof total === "number"
+    ? Math.max(1, Math.ceil(total / UI_PAGE_SIZE))
+    : null;
 
   // util: bangun data export dan tulis ke XLSX
   const exportToXlsx = useCallback(
@@ -440,14 +509,13 @@ export default function FingerTable() {
       }) => void,
     ): Promise<LogEntry[]> => {
       let all: LogEntry[] = [];
-      // fetch halaman 1 dulu supaya tahu total
       let p = 1;
       const first = await fetchLogsFromApi(1);
 
       all = all.concat(first.rows ?? []);
       const totalPages =
         typeof first.total === "number"
-          ? Math.max(1, Math.ceil(first.total / PAGE_SIZE))
+          ? Math.max(1, Math.ceil(first.total / FETCH_SIZE))
           : null;
 
       onProgress?.({ pagesDone: 1, totalPages, rowsLoaded: all.length });
@@ -463,7 +531,7 @@ export default function FingerTable() {
         hasMore = !!res.has_more;
         const totalPg =
           typeof res.total === "number"
-            ? Math.max(1, Math.ceil(res.total / PAGE_SIZE))
+            ? Math.max(1, Math.ceil(res.total / FETCH_SIZE))
             : totalPages;
 
         onProgress?.({
@@ -663,7 +731,7 @@ export default function FingerTable() {
           <div className="flex gap-2 w-full sm:w-auto">
             <Input
               className="hidden sm:flex w-64"
-              placeholder="Find by User ID ..."
+              placeholder="Find by Name or User ID ..."
               size="sm"
               startContent={<Search className="w-4 h-4 text-default-400" />}
               value={searchQuery}
@@ -770,44 +838,42 @@ export default function FingerTable() {
 
               <TableBody>
                 {loading
-                  ? Array.from({ length: Math.min(PAGE_SIZE, 10) }).map(
-                      (_, i) => (
-                        <TableRow
-                          key={`skeleton-${i}`}
-                          className="hover:bg-transparent"
-                        >
-                          <TableCell className="text-left align-left px-2 py-3">
-                            <div className="flex items-center gap-3">
-                              <Skeleton className="w-8 h-8 rounded-full" />
-                              <div className="flex-1 min-w-0">
-                                <Skeleton className="h-3 w-32 rounded mb-1" />
-                                <Skeleton className="h-3 w-20 rounded" />
-                              </div>
+                  ? Array.from({ length: Math.min(UI_PAGE_SIZE, 10) }).map((_, i) => (
+                      <TableRow
+                        key={`skeleton-${i}`}
+                        className="hover:bg-transparent"
+                      >
+                        <TableCell className="text-left align-left px-2 py-3">
+                          <div className="flex items-center gap-3">
+                            <Skeleton className="w-8 h-8 rounded-full" />
+                            <div className="flex-1 min-w-0">
+                              <Skeleton className="h-3 w-32 rounded mb-1" />
+                              <Skeleton className="h-3 w-20 rounded" />
                             </div>
-                          </TableCell>
-                          <TableCell className="text-center align-middle px-6 py-3">
-                            <Skeleton className="h-3 w-24 rounded mx-auto" />
-                          </TableCell>
-                          <TableCell className="text-center align-middle px-6 py-3">
-                            <Skeleton className="h-6 w-20 rounded mx-auto" />
-                          </TableCell>
-                          <TableCell className="text-center align-middle px-6 py-3">
-                            <Skeleton className="h-3 w-16 rounded mx-auto" />
-                          </TableCell>
-                          <TableCell className="text-center align-middle px-6 py-3">
-                            <Skeleton className="h-3 w-20 rounded mx-auto" />
-                          </TableCell>
-                          <TableCell className="text-center align-middle px-6 py-3">
-                            <Skeleton className="h-3 w-14 rounded mx-auto" />
-                          </TableCell>
-                          <TableCell className="text-center align-middle px-6 py-3">
-                            <Skeleton className="h-3 w-32 rounded mx-auto" />
-                          </TableCell>
-                        </TableRow>
-                      ),
-                    )
-                  : filteredRows.map((item: LogEntry, index: number) => {
-                      const idx = (page - 1) * PAGE_SIZE + index + 1;
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-center align-middle px-6 py-3">
+                          <Skeleton className="h-3 w-24 rounded mx-auto" />
+                        </TableCell>
+                        <TableCell className="text-center align-middle px-6 py-3">
+                          <Skeleton className="h-6 w-20 rounded mx-auto" />
+                        </TableCell>
+                        <TableCell className="text-center align-middle px-6 py-3">
+                          <Skeleton className="h-3 w-16 rounded mx-auto" />
+                        </TableCell>
+                        <TableCell className="text-center align-middle px-6 py-3">
+                          <Skeleton className="h-3 w-20 rounded mx-auto" />
+                        </TableCell>
+                        <TableCell className="text-center align-middle px-6 py-3">
+                          <Skeleton className="h-3 w-14 rounded mx-auto" />
+                        </TableCell>
+                        <TableCell className="text-center align-middle px-6 py-3">
+                          <Skeleton className="h-3 w-32 rounded mx-auto" />
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  : paginatedRows.map((item: LogEntry, index: number) => {
+                      const idx = (page - 1) * UI_PAGE_SIZE + index + 1;
                       const resolvedName =
                         item.user_id != null
                           ? (usersByFid[String(item.user_id)] ?? "-")
@@ -859,15 +925,6 @@ export default function FingerTable() {
                               />
                             )}
                           </TableCell>
-                          {/* resolved user name (lookup by fid) */}
-                          {/* <TableCell className="text-center align-middle px-6 py-3 text-sm font-semibold text-default-800">
-                            <div className="text-small align-left">
-                              <p className="font-medium truncate">{resolvedName}</p>
-                              <p className="text-xs text-default-500 mt-0.5">
-                                {resolvedNik || "-"}
-                              </p>
-                            </div>
-                          </TableCell> */}
                           <TableCell className="text-center align-middle px-6 py-3 text-sm text-default-700">
                             {showMiniSkeleton ? (
                               <Skeleton className="h-3 w-24 rounded mx-auto" />

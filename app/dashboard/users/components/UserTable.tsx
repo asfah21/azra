@@ -27,6 +27,7 @@ import {
   DropdownTrigger,
   DropdownMenu,
   DropdownItem,
+  Avatar,
 } from "@heroui/react";
 import {
   Users,
@@ -40,6 +41,7 @@ import {
   ChevronDown,
   Upload,
   Download,
+  ImageUp,
 } from "lucide-react";
 import { useState, useMemo, useEffect, useCallback } from "react";
 import * as XLSX from "xlsx";
@@ -49,6 +51,9 @@ import UserDetailModal from "./UserDetailModal";
 import { EditUserModal } from "./EditUserModal";
 import { DeleteConfirmModal } from "./DeleteConfirmModal";
 import { ImportUserModal } from "./ImportUserModal";
+import AdminChangeUserPhotoModal from "./AdminChangeUserPhotoModal";
+import { useUpdateUserPhoto } from "@/hooks/useAdminUsers";
+import { addToast } from "@heroui/react";
 
 interface User {
   id: string;
@@ -84,6 +89,16 @@ export default function UserTables({ usersTable }: UserManagementClientProps) {
     onOpen: onDeleteOpen,
     onOpenChange: onDeleteOpenChange,
   } = useDisclosure();
+  const {
+    isOpen: isImportOpen,
+    onOpen: onImportOpen,
+    onOpenChange: onImportOpenChange,
+  } = useDisclosure();
+  const {
+    isOpen: isAdminPhotoOpen,
+    onOpen: onAdminPhotoOpen,
+    onOpenChange: onAdminPhotoOpenChange,
+  } = useDisclosure();
   const router = useRouter();
   const { data: session } = useSession();
 
@@ -103,6 +118,8 @@ export default function UserTables({ usersTable }: UserManagementClientProps) {
   // State untuk sorting
   const [sortColumn, setSortColumn] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc");
+
+  const updateUserPhotoMutation = useUpdateUserPhoto();
 
   // Effect untuk update realtime setiap detik
   useEffect(() => {
@@ -167,12 +184,6 @@ export default function UserTables({ usersTable }: UserManagementClientProps) {
     router.refresh();
     onDeleteOpenChange();
   };
-
-  const {
-    isOpen: isImportOpen,
-    onOpen: onImportOpen,
-    onOpenChange: onImportOpenChange,
-  } = useDisclosure();
 
   // Filter data berdasarkan search query
   const filteredData = useMemo(() => {
@@ -389,6 +400,43 @@ export default function UserTables({ usersTable }: UserManagementClientProps) {
     // Download file
     XLSX.writeFile(wb, fileName);
   }, [filteredData, usersTable, formatLastActive]);
+
+  const handleAdminUpload = async (file: File) => {
+    if (!selectedUser) return;
+    if (file.size > 1024 * 1024) {
+      addToast({
+        title: "Ukuran gambar terlalu besar",
+        description: "Ukuran gambar maksimal 1MB.",
+        color: "danger",
+      });
+      return;
+    }
+    const res = await updateUserPhotoMutation.mutateAsync({
+      userId: selectedUser.id,
+      photo: file,
+    });
+    if (res?.success) {
+      addToast({
+        title: "Berhasil",
+        description: res.message || "Foto user berhasil diupdate.",
+        color: "success",
+      });
+      router.refresh();
+      onAdminPhotoOpenChange();
+    } else {
+      addToast({
+        title: "Gagal",
+        description: res?.message || "Gagal mengupdate foto user.",
+        color: "danger",
+      });
+    }
+  };
+
+  // Handler untuk membuka modal change photo (admin)
+  const handleChangeUserPhoto = (user: User) => {
+    setSelectedUser(user);
+    onAdminPhotoOpen();
+  };
 
   return (
     <>
@@ -672,13 +720,31 @@ export default function UserTables({ usersTable }: UserManagementClientProps) {
                               View Details
                             </DropdownItem>
                             {session?.user?.role === "super_admin" ? (
-                              <DropdownItem
-                                key="edit"
-                                startContent={<Edit className="w-4 h-4" />}
-                                onPress={() => handleEditUser(user)}
-                              >
-                                Edit User
-                              </DropdownItem>
+                              <>
+                                <DropdownItem
+                                  key="edit"
+                                  startContent={<Edit className="w-4 h-4" />}
+                                  onPress={() => handleEditUser(user)}
+                                >
+                                  Edit User
+                                </DropdownItem>
+                                <DropdownItem
+                                  key="photo"
+                                  className="text-blue-600"
+                                  color="primary"
+                                  startContent={<ImageUp className="w-4 h-4" />}
+                                  // startContent={
+                                  //   <Avatar
+                                  //     src={user.photo || undefined}
+                                  //     radius="full"
+                                  //     className="w-4 h-4"
+                                  //   />
+                                  // }
+                                  onPress={() => handleChangeUserPhoto(user)}
+                                >
+                                  Change Photo
+                                </DropdownItem>
+                              </>
                             ) : null}
                             {/* <DropdownItem
                               key="contact"
@@ -779,6 +845,26 @@ export default function UserTables({ usersTable }: UserManagementClientProps) {
                 }
                 onClose={onClose}
                 onUsersImported={handleUsersImported}
+              />
+            )}
+          </ModalContent>
+        </Modal>
+      </div>
+
+      {/* Modal Change User Photo - always rendered */}
+      <div className="mx-4">
+        <Modal
+          isOpen={isAdminPhotoOpen}
+          placement="top-center"
+          size="md"
+          onOpenChange={onAdminPhotoOpenChange}
+        >
+          <ModalContent>
+            {(onClose) => (
+              <AdminChangeUserPhotoModal
+                user={selectedUser}
+                onClose={onClose}
+                onUpload={handleAdminUpload}
               />
             )}
           </ModalContent>
