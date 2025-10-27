@@ -1,8 +1,8 @@
 // filepath: d:\PAM-PROJECT\azra\app\api\users\[id]\photo\route.ts
 // Admin upload photo for specific user by ID (super_admin only)
+
 import path from "path";
 import fs from "fs";
-
 import {
   S3Client,
   PutObjectCommand,
@@ -43,17 +43,13 @@ function parseMinioKeyFromUrl(url: string) {
     const parts = u.pathname.replace(/^\/+/, "").split("/");
     const bucket = parts.shift() || "";
     const key = parts.join("/");
-
     return { bucket, key };
   } catch {
     return { bucket: "", key: "" };
   }
 }
 
-export async function POST(
-  req: NextRequest,
-  context: { params: Record<string, string> }
-): Promise<NextResponse> {
+export async function POST(req: NextRequest, context: any) {
   try {
     const session = await getServerSession(authOptions);
     const actorId = session?.user?.id;
@@ -65,6 +61,7 @@ export async function POST(
         { status: 401 },
       );
     }
+
     if (actorRole !== "super_admin") {
       return NextResponse.json(
         { success: false, message: "Forbidden" },
@@ -72,7 +69,7 @@ export async function POST(
       );
     }
 
-    const userId = context.params?.id;
+    const userId = context?.params?.id;
 
     if (!userId) {
       return NextResponse.json(
@@ -90,6 +87,7 @@ export async function POST(
         { status: 400 },
       );
     }
+
     if (file.size > 1024 * 1024) {
       return NextResponse.json(
         { success: false, message: "File size too large (max 1MB)" },
@@ -106,7 +104,7 @@ export async function POST(
       );
     }
 
-    // delete old photo (local uploads or MinIO)
+    // Delete old photo (local or MinIO)
     if (user.photo) {
       if (user.photo.startsWith("/uploads/")) {
         const oldPhotoPath = path.join(process.cwd(), "public", user.photo);
@@ -155,6 +153,7 @@ export async function POST(
     const base =
       process.env.MINIO_PUBLIC_BASEURL ||
       `${process.env.MINIO_USE_SSL === "true" ? "https" : "http"}://${process.env.MINIO_ENDPOINT}:${process.env.MINIO_PORT}`;
+
     const photoUrl = `${base.replace(/\/+$/, "")}/${process.env.MINIO_BUCKET}/${encodeURI(objectKey)}`;
 
     const updatedUser = await prisma.user.update({
