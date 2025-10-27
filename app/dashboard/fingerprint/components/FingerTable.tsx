@@ -70,6 +70,7 @@ async function fetchLogsFromApi(
 
   if (!res.ok) {
     const text = await res.text();
+
     throw new Error(`Fetch error (${res.status}): ${text}`);
   }
 
@@ -83,6 +84,7 @@ async function fetchLogsFromApi(
   else rows = [];
 
   let total: number | null | undefined = undefined;
+
   if (typeof json.total === "number") total = json.total;
   else if (typeof json.count === "number") total = json.count;
   else if (rows[0]?.total_rows) total = Number(rows[0].total_rows);
@@ -163,7 +165,9 @@ export default function FingerTable() {
 
   // Global search (cari semua data, bukan hanya yang tampil)
   const [debouncedSearch, setDebouncedSearch] = useState<string>("");
-  const [globalSearchRows, setGlobalSearchRows] = useState<LogEntry[] | null>(null);
+  const [globalSearchRows, setGlobalSearchRows] = useState<LogEntry[] | null>(
+    null,
+  );
 
   const {
     isOpen: isExportOpen,
@@ -180,6 +184,7 @@ export default function FingerTable() {
 
   useEffect(() => {
     const h = setTimeout(() => setDebouncedSearch(searchQuery.trim()), 350);
+
     return () => clearTimeout(h);
   }, [searchQuery]);
 
@@ -201,7 +206,11 @@ export default function FingerTable() {
       setLoading(true);
       setError(null);
       try {
-        const res = await fetchLogsFromApi(desiredServerPage, controller.signal);
+        const res = await fetchLogsFromApi(
+          desiredServerPage,
+          controller.signal,
+        );
+
         if (!mounted) return;
 
         setRows(res.rows ?? []);
@@ -289,6 +298,7 @@ export default function FingerTable() {
     async function searchAll() {
       if (!debouncedSearch) {
         setGlobalSearchRows(null);
+
         return;
       }
       setLoading(true);
@@ -303,17 +313,21 @@ export default function FingerTable() {
           const nik =
             r.user_id != null ? (usersNikByFid[String(r.user_id)] ?? "") : "";
           const dept =
-            r.user_id != null
-              ? (usersDeptByFid[String(r.user_id)] ?? "")
-              : "";
+            r.user_id != null ? (usersDeptByFid[String(r.user_id)] ?? "") : "";
 
-        return (
+          return (
             name.toLowerCase().includes(q) ||
             nik.toLowerCase().includes(q) ||
             dept.toLowerCase().includes(q) ||
-            String(r.user_id ?? "").toLowerCase().includes(q) ||
-            String(r.device_sn ?? "").toLowerCase().includes(q) ||
-            String(r.id ?? "").toLowerCase().includes(q)
+            String(r.user_id ?? "")
+              .toLowerCase()
+              .includes(q) ||
+            String(r.device_sn ?? "")
+              .toLowerCase()
+              .includes(q) ||
+            String(r.id ?? "")
+              .toLowerCase()
+              .includes(q)
           );
         });
 
@@ -330,6 +344,7 @@ export default function FingerTable() {
     }
 
     searchAll();
+
     return () => {
       cancelled = true;
     };
@@ -339,6 +354,7 @@ export default function FingerTable() {
   const filteredRows = useMemo(() => {
     const source = globalSearchRows ?? rows;
     const q = searchQuery.trim().toLowerCase();
+
     if (!q) return source;
     // Jika sudah di-filter global (globalSearchRows), langsung pakai
     if (globalSearchRows) return source;
@@ -356,23 +372,38 @@ export default function FingerTable() {
         name.toLowerCase().includes(q) ||
         nik.toLowerCase().includes(q) ||
         dept.toLowerCase().includes(q) ||
-        String(r.user_id ?? "").toLowerCase().includes(q) ||
-        String(r.device_sn ?? "").toLowerCase().includes(q) ||
-        String(r.id ?? "").toLowerCase().includes(q)
+        String(r.user_id ?? "")
+          .toLowerCase()
+          .includes(q) ||
+        String(r.device_sn ?? "")
+          .toLowerCase()
+          .includes(q) ||
+        String(r.id ?? "")
+          .toLowerCase()
+          .includes(q)
       );
     });
-  }, [rows, searchQuery, usersByFid, usersNikByFid, usersDeptByFid, globalSearchRows]);
+  }, [
+    rows,
+    searchQuery,
+    usersByFid,
+    usersNikByFid,
+    usersDeptByFid,
+    globalSearchRows,
+  ]);
 
   // Pagination client-side untuk hasil pencarian global ATAU batch 500
   const paginatedRows = useMemo(() => {
     // Jika global search aktif, slicing terhadap seluruh hasil
     if (globalSearchRows) {
       const start = (page - 1) * UI_PAGE_SIZE;
+
       return filteredRows.slice(start, start + UI_PAGE_SIZE);
     }
     // Jika tidak, slicing relatif terhadap batch 500 yang sedang dimuat
     const startInBatch =
       (page - 1) * UI_PAGE_SIZE - (serverPage - 1) * FETCH_SIZE;
+
     return filteredRows.slice(startInBatch, startInBatch + UI_PAGE_SIZE);
   }, [filteredRows, page, serverPage, globalSearchRows]);
 
@@ -417,9 +448,9 @@ export default function FingerTable() {
   );
 
   const totalPages =
-  typeof total === "number"
-    ? Math.max(1, Math.ceil(total / UI_PAGE_SIZE))
-    : null;
+    typeof total === "number"
+      ? Math.max(1, Math.ceil(total / UI_PAGE_SIZE))
+      : null;
 
   // util: bangun data export dan tulis ke XLSX
   const exportToXlsx = useCallback(
@@ -838,40 +869,42 @@ export default function FingerTable() {
 
               <TableBody>
                 {loading
-                  ? Array.from({ length: Math.min(UI_PAGE_SIZE, 10) }).map((_, i) => (
-                      <TableRow
-                        key={`skeleton-${i}`}
-                        className="hover:bg-transparent"
-                      >
-                        <TableCell className="text-left align-left px-2 py-3">
-                          <div className="flex items-center gap-3">
-                            <Skeleton className="w-8 h-8 rounded-full" />
-                            <div className="flex-1 min-w-0">
-                              <Skeleton className="h-3 w-32 rounded mb-1" />
-                              <Skeleton className="h-3 w-20 rounded" />
+                  ? Array.from({ length: Math.min(UI_PAGE_SIZE, 10) }).map(
+                      (_, i) => (
+                        <TableRow
+                          key={`skeleton-${i}`}
+                          className="hover:bg-transparent"
+                        >
+                          <TableCell className="text-left align-left px-2 py-3">
+                            <div className="flex items-center gap-3">
+                              <Skeleton className="w-8 h-8 rounded-full" />
+                              <div className="flex-1 min-w-0">
+                                <Skeleton className="h-3 w-32 rounded mb-1" />
+                                <Skeleton className="h-3 w-20 rounded" />
+                              </div>
                             </div>
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-center align-middle px-6 py-3">
-                          <Skeleton className="h-3 w-24 rounded mx-auto" />
-                        </TableCell>
-                        <TableCell className="text-center align-middle px-6 py-3">
-                          <Skeleton className="h-6 w-20 rounded mx-auto" />
-                        </TableCell>
-                        <TableCell className="text-center align-middle px-6 py-3">
-                          <Skeleton className="h-3 w-16 rounded mx-auto" />
-                        </TableCell>
-                        <TableCell className="text-center align-middle px-6 py-3">
-                          <Skeleton className="h-3 w-20 rounded mx-auto" />
-                        </TableCell>
-                        <TableCell className="text-center align-middle px-6 py-3">
-                          <Skeleton className="h-3 w-14 rounded mx-auto" />
-                        </TableCell>
-                        <TableCell className="text-center align-middle px-6 py-3">
-                          <Skeleton className="h-3 w-32 rounded mx-auto" />
-                        </TableCell>
-                      </TableRow>
-                    ))
+                          </TableCell>
+                          <TableCell className="text-center align-middle px-6 py-3">
+                            <Skeleton className="h-3 w-24 rounded mx-auto" />
+                          </TableCell>
+                          <TableCell className="text-center align-middle px-6 py-3">
+                            <Skeleton className="h-6 w-20 rounded mx-auto" />
+                          </TableCell>
+                          <TableCell className="text-center align-middle px-6 py-3">
+                            <Skeleton className="h-3 w-16 rounded mx-auto" />
+                          </TableCell>
+                          <TableCell className="text-center align-middle px-6 py-3">
+                            <Skeleton className="h-3 w-20 rounded mx-auto" />
+                          </TableCell>
+                          <TableCell className="text-center align-middle px-6 py-3">
+                            <Skeleton className="h-3 w-14 rounded mx-auto" />
+                          </TableCell>
+                          <TableCell className="text-center align-middle px-6 py-3">
+                            <Skeleton className="h-3 w-32 rounded mx-auto" />
+                          </TableCell>
+                        </TableRow>
+                      ),
+                    )
                   : paginatedRows.map((item: LogEntry, index: number) => {
                       const idx = (page - 1) * UI_PAGE_SIZE + index + 1;
                       const resolvedName =

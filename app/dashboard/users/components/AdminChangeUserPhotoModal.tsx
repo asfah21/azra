@@ -2,7 +2,16 @@
 "use client";
 
 import { useState } from "react";
-import { ModalHeader, ModalBody, ModalFooter, Button, Spinner, Card, CardBody, addToast } from "@heroui/react";
+import {
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  Button,
+  Spinner,
+  Card,
+  CardBody,
+  addToast,
+} from "@heroui/react";
 import { Image, Upload } from "lucide-react";
 
 // Content-only for parent <Modal><ModalContent>{(onClose)=> <AdminChangeUserPhotoModal .../>}</ModalContent></Modal>
@@ -21,7 +30,11 @@ interface Props {
   onUpload: (file: File) => Promise<void>;
 }
 
-export default function AdminChangeUserPhotoModal({ user, onClose, onUpload }: Props) {
+export default function AdminChangeUserPhotoModal({
+  user,
+  onClose,
+  onUpload,
+}: Props) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [isUploading, setIsUploading] = useState(false);
@@ -29,17 +42,20 @@ export default function AdminChangeUserPhotoModal({ user, onClose, onUpload }: P
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
+
     if (file) {
       if (file.size > 1024 * 1024) {
         setErrorMessage("Ukuran gambar terlalu besar! Maksimal 1MB.");
         setSelectedFile(null);
         setPreview(null);
         e.target.value = "";
+
         return;
       }
       setErrorMessage(null);
       setSelectedFile(file);
       const reader = new FileReader();
+
       reader.onload = (ev) => setPreview(ev.target?.result as string);
       reader.readAsDataURL(file);
     }
@@ -80,18 +96,41 @@ export default function AdminChangeUserPhotoModal({ user, onClose, onUpload }: P
               <div>
                 {preview ? (
                   <div className="text-center mb-4">
-                    <img alt="Preview" className="w-32 h-32 rounded-full mx-auto object-cover border-2 border-primary/30" src={preview} />
+                    <img
+                      alt="Preview"
+                      className="w-32 h-32 rounded-full mx-auto object-cover border-2 border-primary/30"
+                      src={preview}
+                    />
                   </div>
                 ) : null}
               </div>
-              <input accept="image/*" className="hidden" disabled={isUploading} id="adminUserPhotoFile" name="photo" type="file" onChange={handleFileChange} />
-              <Button as="label" color="primary" htmlFor="adminUserPhotoFile" isDisabled={isUploading} startContent={<Upload className="w-4 h-4" />} variant="flat">
+              <input
+                accept="image/*"
+                className="hidden"
+                disabled={isUploading}
+                id="adminUserPhotoFile"
+                name="photo"
+                type="file"
+                onChange={handleFileChange}
+              />
+              <Button
+                as="label"
+                color="primary"
+                htmlFor="adminUserPhotoFile"
+                isDisabled={isUploading}
+                startContent={<Upload className="w-4 h-4" />}
+                variant="flat"
+              >
                 Select Photo
               </Button>
               <div className="text-center space-y-1">
-                <p className="text-xs text-default-500">Format: JPG, PNG. Max 1MB</p>
+                <p className="text-xs text-default-500">
+                  Format: JPG, PNG. Max 1MB
+                </p>
                 {errorMessage && (
-                  <p className="text-xs text-danger-500 font-medium bg-danger-50 px-2 py-1 rounded">⚠️ {errorMessage}</p>
+                  <p className="text-xs text-danger-500 font-medium bg-danger-50 px-2 py-1 rounded">
+                    ⚠️ {errorMessage}
+                  </p>
                 )}
               </div>
             </CardBody>
@@ -99,10 +138,22 @@ export default function AdminChangeUserPhotoModal({ user, onClose, onUpload }: P
         </div>
       </ModalBody>
       <ModalFooter>
-        <Button color="danger" isDisabled={isUploading} variant="light" onPress={handleClose}>
+        <Button
+          color="danger"
+          isDisabled={isUploading}
+          variant="light"
+          onPress={handleClose}
+        >
           Cancel
         </Button>
-        <Button color="primary" isDisabled={!selectedFile || isUploading} startContent={isUploading ? <Spinner size="sm" /> : <Image className="w-4 h-4" />} onPress={handleUpload}>
+        <Button
+          color="primary"
+          isDisabled={!selectedFile || isUploading}
+          startContent={
+            isUploading ? <Spinner size="sm" /> : <Image className="w-4 h-4" />
+          }
+          onPress={handleUpload}
+        >
           {isUploading ? "Processing..." : "Save"}
         </Button>
       </ModalFooter>

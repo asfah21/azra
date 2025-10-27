@@ -47,6 +47,7 @@ export async function GET(req: NextRequest) {
   const url = `${BACKEND_URL}?limit=${encodeURIComponent(limit)}&offset=${encodeURIComponent(offset)}`;
 
   let res: Response;
+
   try {
     res = await fetch(url, {
       // header minimal & tepat untuk GET
@@ -67,6 +68,7 @@ export async function GET(req: NextRequest) {
 
   if (!res.ok) {
     const text = await res.text().catch(() => "");
+
     return NextResponse.json(
       { error: `Fetch error (${res.status}): ${text}` },
       { status: res.status },
@@ -78,6 +80,7 @@ export async function GET(req: NextRequest) {
   const data = await res.json();
   const headers = new Headers();
   const cc = res.headers.get("cache-control");
+
   if (cc) headers.set("cache-control", cc);
 
   return NextResponse.json(data, { headers });

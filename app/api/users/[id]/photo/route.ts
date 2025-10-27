@@ -30,8 +30,10 @@ const s3 = new S3Client({
 
 function getExtFrom(file: File) {
   const fromName = (file.name || "").split(".").pop();
+
   if (fromName && fromName.length <= 5) return "." + fromName.toLowerCase();
   const byMime = mime.getExtension(file.type || "");
+
   return byMime ? "." + byMime : ".bin";
 }
 
@@ -41,6 +43,7 @@ function parseMinioKeyFromUrl(url: string) {
     const parts = u.pathname.replace(/^\/+/, "").split("/");
     const bucket = parts.shift() || "";
     const key = parts.join("/");
+
     return { bucket, key };
   } catch {
     return { bucket: "", key: "" };
@@ -70,6 +73,7 @@ export async function POST(
     }
 
     const userId = params?.id;
+
     if (!userId) {
       return NextResponse.json(
         { success: false, message: "User id is required" },
@@ -94,6 +98,7 @@ export async function POST(
     }
 
     const user = await prisma.user.findUnique({ where: { id: userId } });
+
     if (!user) {
       return NextResponse.json(
         { success: false, message: "User not found" },
@@ -105,6 +110,7 @@ export async function POST(
     if (user.photo) {
       if (user.photo.startsWith("/uploads/")) {
         const oldPhotoPath = path.join(process.cwd(), "public", user.photo);
+
         if (fs.existsSync(oldPhotoPath)) {
           try {
             fs.unlinkSync(oldPhotoPath);
@@ -115,6 +121,7 @@ export async function POST(
       } else if (user.photo.startsWith("http")) {
         const { bucket, key } = parseMinioKeyFromUrl(user.photo);
         const bucketFromEnv = process.env.MINIO_BUCKET || "";
+
         if (bucket && key && bucket === bucketFromEnv) {
           try {
             await s3.send(
@@ -129,9 +136,11 @@ export async function POST(
 
     const ext = getExtFrom(file);
     const objectKey = `users/${userId}/user-${userId}-${Date.now()}${ext}`;
-    const contentType = file.type || mime.getType(ext) || "application/octet-stream";
+    const contentType =
+      file.type || mime.getType(ext) || "application/octet-stream";
 
     const buffer = Buffer.from(await file.arrayBuffer());
+
     await s3.send(
       new PutObjectCommand({
         Bucket: process.env.MINIO_BUCKET!,
@@ -172,6 +181,7 @@ export async function POST(
     });
   } catch (error) {
     consolePino.error("Error updating user photo:", error);
+
     return NextResponse.json(
       { success: false, message: "Failed to update photo" },
       { status: 500 },

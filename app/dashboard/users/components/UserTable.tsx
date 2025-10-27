@@ -27,7 +27,6 @@ import {
   DropdownTrigger,
   DropdownMenu,
   DropdownItem,
-  Avatar,
 } from "@heroui/react";
 import {
   Users,
@@ -45,6 +44,7 @@ import {
 } from "lucide-react";
 import { useState, useMemo, useEffect, useCallback } from "react";
 import * as XLSX from "xlsx";
+import { addToast } from "@heroui/react";
 
 import { AddUserForms } from "./AddUserForm";
 import UserDetailModal from "./UserDetailModal";
@@ -52,8 +52,8 @@ import { EditUserModal } from "./EditUserModal";
 import { DeleteConfirmModal } from "./DeleteConfirmModal";
 import { ImportUserModal } from "./ImportUserModal";
 import AdminChangeUserPhotoModal from "./AdminChangeUserPhotoModal";
+
 import { useUpdateUserPhoto } from "@/hooks/useAdminUsers";
-import { addToast } from "@heroui/react";
 
 interface User {
   id: string;
@@ -409,12 +409,14 @@ export default function UserTables({ usersTable }: UserManagementClientProps) {
         description: "Ukuran gambar maksimal 1MB.",
         color: "danger",
       });
+
       return;
     }
     const res = await updateUserPhotoMutation.mutateAsync({
       userId: selectedUser.id,
       photo: file,
     });
+
     if (res?.success) {
       addToast({
         title: "Berhasil",

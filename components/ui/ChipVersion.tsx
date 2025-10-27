@@ -1,6 +1,6 @@
 import React from "react";
 
-const VERSION = "v0.5.3"; // Update versi aplikasi di sini
+const VERSION = "v0.5.4"; // Update versi aplikasi di sini
 
 export function VersionApp() {
   return (

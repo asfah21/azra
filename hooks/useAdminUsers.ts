@@ -17,12 +17,17 @@ interface UpdateUserPhotoResponse {
 
 export function useUpdateUserPhoto() {
   return useMutation({
-    mutationFn: async ({ userId, photo }: UpdateUserPhotoPayload): Promise<UpdateUserPhotoResponse> => {
+    mutationFn: async ({
+      userId,
+      photo,
+    }: UpdateUserPhotoPayload): Promise<UpdateUserPhotoResponse> => {
       const fd = new FormData();
+
       fd.append("photo", photo);
       const res = await axios.post(`/api/users/${userId}/photo`, fd, {
         headers: { "Content-Type": "multipart/form-data" },
       });
+
       return res.data;
     },
     onError: (error) => {
