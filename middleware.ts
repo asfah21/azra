@@ -102,12 +102,13 @@ export async function middleware(request: NextRequest) {
       return NextResponse.next();
     }
 
-    // Ambil izin akses untuk role ini saja (tanpa fallback ke defaultRoles)
-    const allowedSet = new Set<string>();
+    // Fetch izin akses spesifik untuk menu target, meneruskan cookies
+    const menuId = (targetItem as any).id as string;
+    let hasAccess = false;
 
     try {
       const apiUrl = new URL(
-        `/api/role-access?role=${encodeURIComponent(userRole)}`,
+        `/api/role-access?menu=${encodeURIComponent(menuId)}&skip_rl=1`,
         request.url,
       );
 
@@ -119,22 +120,13 @@ export async function middleware(request: NextRequest) {
       });
 
       if (res.ok) {
-        // Data: array { menu, role }
         const data: Array<{ menu: string; role: string }> = await res.json();
-
-        for (const entry of data) {
-          if (entry.role === userRole) {
-            allowedSet.add(entry.menu);
-          }
-        }
-      } else {
-        // Jika API gagal, treat as no access (fail-closed)
+        hasAccess = Array.isArray(data) && data.length > 0;
       }
+      // Jika API gagal, treat as no access (fail-closed)
     } catch {
       // Jika fetch error, treat as no access (fail-closed)
     }
-
-    const hasAccess = allowedSet.has((targetItem as any).id);
 
     if (!hasAccess) {
       // Redirect balik ke dashboard (hindari loop jika sudah di dashboard)

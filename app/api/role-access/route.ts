@@ -36,12 +36,28 @@ export async function GET(req: Request) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
+  // Rate limiting by user + path + method (GET)
+  const url = new URL(req.url);
+  const userKey = session.user?.email || session.user?.id || "anonymous";
+  const rlKey = `${userKey}:${url.pathname}:GET`;
+  const skipRl = url.searchParams.get("skip_rl") === "1"; // allow skipping RL for trusted internal calls
+  if (!skipRl && hitRateLimit(rlKey, GET_RATE_LIMIT_MAX)) {
+    return new NextResponse(
+      JSON.stringify({ message: "Rate limit exceeded" }),
+      {
+        status: 429,
+        headers: { "Retry-After": String(RETRY_AFTER) },
+      },
+    );
+  }
+
   const meRole = session.user?.role as Role | undefined;
   const isSuper = meRole === "super_admin";
 
-  const { searchParams } = new URL(req.url);
+  const { searchParams } = url;
   const roleParam = searchParams.get("role") as Role | null;
   const rolesParam = searchParams.get("roles");
+  const menuParam = searchParams.get("menu") || undefined; // optional filter by menu
 
   let where: any = undefined;
 
@@ -60,6 +76,10 @@ export async function GET(req: Request) {
     where = { role: meRole };
   }
 
+  if (menuParam) {
+    where = where ? { AND: [where, { menu: menuParam }] } : { menu: menuParam };
+  }
+
   try {
     const data = await prisma.roleAccess.findMany({
       where,
@@ -70,7 +90,6 @@ export async function GET(req: Request) {
     return NextResponse.json(data, {
       status: 200,
       headers: {
-        // cache pendek agar UI tidak terlalu sering hit API
         "Cache-Control": "private, max-age=30, stale-while-revalidate=60",
       },
     });
