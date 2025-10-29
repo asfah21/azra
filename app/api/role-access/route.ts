@@ -58,6 +58,7 @@ export async function GET(req: Request) {
   const roleParam = searchParams.get("role") as Role | null;
   const rolesParam = searchParams.get("roles");
   const menuParam = searchParams.get("menu") || undefined; // optional filter by menu
+  const debug = searchParams.get("debug") === "1";
 
   let where: any = undefined;
 
@@ -87,10 +88,19 @@ export async function GET(req: Request) {
       orderBy: [{ menu: "asc" }, { role: "asc" }],
     });
 
-    return NextResponse.json(data, {
+    const body = debug
+      ? { data, debug: { meRole, isSuper, menuParam: menuParam || null } }
+      : data;
+
+    return new NextResponse(JSON.stringify(body), {
       status: 200,
       headers: {
+        "Content-Type": "application/json",
         "Cache-Control": "private, max-age=30, stale-while-revalidate=60",
+        "x-session-role": String(meRole || ""),
+        "x-is-super": String(isSuper),
+        ...(menuParam ? { "x-where-menu": menuParam } : {}),
+        "x-result-count": String(data.length),
       },
     });
   } catch (error) {

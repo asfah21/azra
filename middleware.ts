@@ -105,6 +105,10 @@ export async function middleware(request: NextRequest) {
     // Fetch izin akses spesifik untuk menu target, meneruskan cookies
     const menuId = (targetItem as any).id as string;
     let hasAccess = false;
+    let apiStatus = "none";
+    let apiLen = 0;
+    let fallbackStatus = "none";
+    let fallbackLen = 0;
 
     try {
       const apiUrl = new URL(
@@ -119,21 +123,66 @@ export async function middleware(request: NextRequest) {
         cache: "no-store",
       });
 
+      apiStatus = String(res.status);
+
       if (res.ok) {
         const data: Array<{ menu: string; role: string }> = await res.json();
-        hasAccess = Array.isArray(data) && data.length > 0;
+        apiLen = Array.isArray(data) ? data.length : 0;
+        // pastikan role dan menu cocok (defensive)
+        hasAccess = Array.isArray(data)
+          ? data.some((d) => d.menu === menuId && d.role === userRole)
+          : false;
       }
-      // Jika API gagal, treat as no access (fail-closed)
+
+      // Fallback: jika kosong, coba fetch by role agar bisa inspeksi daftar menu role tsb
+      if (!hasAccess) {
+        const apiUrl2 = new URL(
+          `/api/role-access?role=${encodeURIComponent(userRole!)}&skip_rl=1`,
+          request.url,
+        );
+        const res2 = await fetch(apiUrl2.toString(), {
+          headers: {
+            cookie: request.headers.get("cookie") || "",
+          },
+          cache: "no-store",
+        });
+        fallbackStatus = String(res2.status);
+        if (res2.ok) {
+          const data2: Array<{ menu: string; role: string }> = await res2.json();
+          fallbackLen = Array.isArray(data2) ? data2.length : 0;
+          hasAccess = Array.isArray(data2)
+            ? data2.some((d) => d.menu === menuId && d.role === userRole)
+            : false;
+        }
+      }
     } catch {
-      // Jika fetch error, treat as no access (fail-closed)
+      // ignore
     }
 
     if (!hasAccess) {
-      // Redirect balik ke dashboard (hindari loop jika sudah di dashboard)
       const redirectUrl = new URL("/dashboard", request.url);
-
-      return NextResponse.redirect(redirectUrl);
+      const resp = NextResponse.redirect(redirectUrl);
+      // Debug headers untuk inspeksi di Network tab
+      resp.headers.set("x-auth-role", userRole || "");
+      resp.headers.set("x-menu-id", menuId);
+      resp.headers.set("x-api-status", apiStatus);
+      resp.headers.set("x-api-len", String(apiLen));
+      resp.headers.set("x-api-fallback-status", fallbackStatus);
+      resp.headers.set("x-api-fallback-len", String(fallbackLen));
+      resp.headers.set("x-access", "deny");
+      return resp;
     }
+
+    const resp = NextResponse.next();
+    // Debug headers untuk inspeksi di Network tab
+    resp.headers.set("x-auth-role", userRole || "");
+    resp.headers.set("x-menu-id", menuId);
+    resp.headers.set("x-api-status", apiStatus);
+    resp.headers.set("x-api-len", String(apiLen));
+    resp.headers.set("x-api-fallback-status", fallbackStatus);
+    resp.headers.set("x-api-fallback-len", String(fallbackLen));
+    resp.headers.set("x-access", "allow");
+    return resp;
   }
 
   return NextResponse.next();
