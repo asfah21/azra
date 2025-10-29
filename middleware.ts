@@ -102,98 +102,85 @@ export async function middleware(request: NextRequest) {
       return NextResponse.next();
     }
 
-    // Fetch izin akses spesifik untuk menu target, meneruskan cookies
-    const menuId = (targetItem as any).id as string;
-    let hasAccess = false;
+    // Ambil konfigurasi akses dinamis dari API (database)
+    let dynamicAccess: Record<string, string[]> = {};
     let apiStatus = "none";
-    let apiLen = 0;
-    let fallbackStatus = "none";
-    let fallbackLen = 0;
 
     try {
-      const apiUrl = new URL(
-        `/api/role-access?menu=${encodeURIComponent(menuId)}&skip_rl=1`,
-        request.url,
-      );
-
+      const apiUrl = new URL("/api/role-access?skip_rl=1", request.url);
       const res = await fetch(apiUrl.toString(), {
         headers: {
           cookie: request.headers.get("cookie") || "",
         },
         cache: "no-store",
       });
-
       apiStatus = String(res.status);
 
       if (res.ok) {
+        // Data: array { menu, role }
         const data: Array<{ menu: string; role: string }> = await res.json();
-        apiLen = Array.isArray(data) ? data.length : 0;
-        // pastikan role dan menu cocok (defensive)
-        hasAccess = Array.isArray(data)
-          ? data.some((d) => d.menu === menuId && d.role === userRole)
-          : false;
-      }
 
-      // Fallback: jika kosong, coba fetch by role agar bisa inspeksi daftar menu role tsb
-      if (!hasAccess) {
-        const apiUrl2 = new URL(
-          `/api/role-access?role=${encodeURIComponent(userRole!)}&skip_rl=1`,
-          request.url,
-        );
-        const res2 = await fetch(apiUrl2.toString(), {
-          headers: {
-            cookie: request.headers.get("cookie") || "",
-          },
-          cache: "no-store",
-        });
-        fallbackStatus = String(res2.status);
-        if (res2.ok) {
-          const data2: Array<{ menu: string; role: string }> = await res2.json();
-          fallbackLen = Array.isArray(data2) ? data2.length : 0;
-          hasAccess = Array.isArray(data2)
-            ? data2.some((d) => d.menu === menuId && d.role === userRole)
-            : false;
+        for (const entry of data) {
+          if (!dynamicAccess[entry.menu]) dynamicAccess[entry.menu] = [];
+          dynamicAccess[entry.menu].push(entry.role);
         }
       }
     } catch {
       apiStatus = "error";
+      // Fail open: jika API gagal, gunakan defaultRoles dari config
     }
 
-    // Fail-open jika API tidak bisa diakses sama sekali (hindari false negative di prod)
-    if (!hasAccess && (apiStatus === "none" || apiStatus === "error") && (fallbackStatus === "none" || fallbackStatus === "error")) {
-      const resp = NextResponse.next();
-      resp.headers.set("x-auth-role", userRole || "");
-      resp.headers.set("x-menu-id", menuId);
-      resp.headers.set("x-api-status", apiStatus);
-      resp.headers.set("x-api-len", String(apiLen));
-      resp.headers.set("x-api-fallback-status", fallbackStatus);
-      resp.headers.set("x-api-fallback-len", String(fallbackLen));
-      resp.headers.set("x-access", "allow_noapi");
-      return resp;
+    // Jika targetItem adalah child menu, cek akses child saja
+    let isChild = false;
+
+    for (const parent of defaultNavItems) {
+      if ("children" in parent && Array.isArray(parent.children)) {
+        if (parent.children.some((c) => c.id === (targetItem as any).id)) {
+          isChild = true;
+          break;
+        }
+      }
     }
+
+    let allowedRoles: string[] = [];
+
+    if (isChild) {
+      allowedRoles = dynamicAccess[(targetItem as any).id] || [];
+      // Jika child tidak punya entry di DB dan defaultRoles kosong, fallback ke defaultRoles (bila ada)
+      if (allowedRoles.length === 0) {
+        allowedRoles = (targetItem as any).defaultRoles
+          ? [...(targetItem as any).defaultRoles]
+          : [];
+      }
+    } else {
+      // Parent menu: cek akses parent
+      allowedRoles = dynamicAccess[(targetItem as any).id] || [];
+      if (allowedRoles.length === 0) {
+        allowedRoles = (targetItem as any).defaultRoles
+          ? [...(targetItem as any).defaultRoles]
+          : validRoles.filter((r) => r !== "super_admin");
+      }
+    }
+
+    const hasAccess = allowedRoles.includes(userRole);
 
     if (!hasAccess) {
+      // Redirect balik ke dashboard (hindari loop jika sudah di dashboard)
       const redirectUrl = new URL("/dashboard", request.url);
       const resp = NextResponse.redirect(redirectUrl);
-      // Debug headers untuk inspeksi di Network tab
       resp.headers.set("x-auth-role", userRole || "");
-      resp.headers.set("x-menu-id", menuId);
+      resp.headers.set("x-menu-id", (targetItem as any).id);
       resp.headers.set("x-api-status", apiStatus);
-      resp.headers.set("x-api-len", String(apiLen));
-      resp.headers.set("x-api-fallback-status", fallbackStatus);
-      resp.headers.set("x-api-fallback-len", String(fallbackLen));
+      resp.headers.set("x-allowed-roles", String(allowedRoles.length));
       resp.headers.set("x-access", "deny");
       return resp;
     }
 
     const resp = NextResponse.next();
-    // Debug headers untuk inspeksi di Network tab
     resp.headers.set("x-auth-role", userRole || "");
-    resp.headers.set("x-menu-id", menuId);
+    resp.headers.set("x-menu-id", (targetItem as any).id);
     resp.headers.set("x-api-status", apiStatus);
-    resp.headers.set("x-api-len", String(apiLen));
-    resp.headers.set("x-api-fallback-status", fallbackStatus);
-    resp.headers.set("x-api-fallback-len", String(fallbackLen));
+    resp.headers.set("x-allowed-roles", String(allowedRoles.length));
     resp.headers.set("x-access", "allow");
     return resp;
   }
