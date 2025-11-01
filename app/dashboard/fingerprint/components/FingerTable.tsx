@@ -155,6 +155,8 @@ export default function FingerTable() {
     Record<string, string>
   >({});
   const [total, setTotal] = useState<number | null>(null);
+  // Keep original server total to restore after clearing search
+  const [serverTotal, setServerTotal] = useState<number | null>(null);
   const [page, setPage] = useState<number>(1);
   // TAMBAH: state untuk server page yang sedang dimuat (batch 500)
   const [serverPage, setServerPage] = useState<number>(1);
@@ -215,7 +217,10 @@ export default function FingerTable() {
 
         setRows(res.rows ?? []);
         setHasMore(res.has_more ?? (res.rows?.length ?? 0) === FETCH_SIZE);
-        setTotal(typeof res.total === "number" ? res.total : null);
+        const t = typeof res.total === "number" ? res.total : null;
+
+        setTotal(t);
+        setServerTotal(t);
         setServerPage(desiredServerPage);
       } catch (err: any) {
         if (!mounted) return;
@@ -298,6 +303,8 @@ export default function FingerTable() {
     async function searchAll() {
       if (!debouncedSearch) {
         setGlobalSearchRows(null);
+        // restore total ke nilai server ketika query dibersihkan
+        setTotal(serverTotal);
 
         return;
       }
@@ -348,7 +355,7 @@ export default function FingerTable() {
     return () => {
       cancelled = true;
     };
-  }, [debouncedSearch, usersByFid, usersNikByFid, usersDeptByFid]);
+  }, [debouncedSearch, usersByFid, usersNikByFid, usersDeptByFid, serverTotal]);
 
   // Sumber data untuk tabel: jika globalSearchRows ada, pakai itu; jika tidak, pakai rows (per-page)
   const filteredRows = useMemo(() => {

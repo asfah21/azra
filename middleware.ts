@@ -114,6 +114,7 @@ export async function middleware(request: NextRequest) {
         },
         cache: "no-store",
       });
+
       apiStatus = String(res.status);
 
       if (res.ok) {
@@ -168,20 +169,24 @@ export async function middleware(request: NextRequest) {
       // Redirect balik ke dashboard (hindari loop jika sudah di dashboard)
       const redirectUrl = new URL("/dashboard", request.url);
       const resp = NextResponse.redirect(redirectUrl);
+
       resp.headers.set("x-auth-role", userRole || "");
       resp.headers.set("x-menu-id", (targetItem as any).id);
       resp.headers.set("x-api-status", apiStatus);
       resp.headers.set("x-allowed-roles", String(allowedRoles.length));
       resp.headers.set("x-access", "deny");
+
       return resp;
     }
 
     const resp = NextResponse.next();
+
     resp.headers.set("x-auth-role", userRole || "");
     resp.headers.set("x-menu-id", (targetItem as any).id);
     resp.headers.set("x-api-status", apiStatus);
     resp.headers.set("x-allowed-roles", String(allowedRoles.length));
     resp.headers.set("x-access", "allow");
+
     return resp;
   }
 

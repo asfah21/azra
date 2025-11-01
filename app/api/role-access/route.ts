@@ -41,6 +41,7 @@ export async function GET(req: Request) {
   const userKey = session.user?.email || session.user?.id || "anonymous";
   const rlKey = `${userKey}:${url.pathname}:GET`;
   const skipRl = url.searchParams.get("skip_rl") === "1"; // allow skipping RL for trusted internal calls
+
   if (!skipRl && hitRateLimit(rlKey, GET_RATE_LIMIT_MAX)) {
     return new NextResponse(
       JSON.stringify({ message: "Rate limit exceeded" }),

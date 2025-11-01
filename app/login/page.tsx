@@ -211,7 +211,7 @@ function LoginForm() {
                 </div>
                 <input
                   required
-                  className="bg-gray-50 dark:bg-gray-900 block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  className="text-xs bg-gray-50 dark:bg-gray-900 block w-full pl-10 pr-3 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                   disabled={isLocked || loading}
                   id="email"
                   placeholder="email@contoh.com"
@@ -225,7 +225,7 @@ function LoginForm() {
             {/* Password */}
             <div className="space-y-2">
               <label
-                className="text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300"
+                className="text-xs sm:text-xs font-medium text-gray-700 dark:text-gray-300"
                 htmlFor="password"
               >
                 Password
@@ -246,7 +246,7 @@ function LoginForm() {
                 </div>
                 <input
                   required
-                  className="bg-gray-50 dark:bg-gray-900 block w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
+                  className="text-xs bg-gray-50 dark:bg-gray-900 block w-full pl-10 pr-10 py-2.5 border border-gray-300 rounded-lg shadow-sm focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
                   disabled={isLocked || loading}
                   id="password"
                   placeholder="••••••••"

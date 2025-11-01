@@ -21,6 +21,8 @@ import { Modal, ModalContent } from "@heroui/react";
 import { Power, Save, Shield } from "lucide-react";
 import FocusLock from "react-focus-lock";
 
+import DashboardFooter from "../components/DashboardFooter";
+
 import { defaultNavItems } from "@/lib/config/navigation";
 import { DEFAULT_ROLES } from "@/lib/utils/roleAccess";
 
@@ -416,6 +418,8 @@ export default function RoleManagement() {
           </div>
         </CardBody>
       </Card>
+
+      <DashboardFooter className="mt-10 mb-[-10px] md:mb-[-30px]" />
 
       {/* Modal sukses simpan perubahan */}
       <Modal

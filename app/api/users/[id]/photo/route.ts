@@ -52,6 +52,7 @@ function parseMinioKeyFromUrl(url: string) {
 
 export async function POST(
   req: NextRequest,
+  // { params }: { params: Promise<{ id: string }> },
   { params }: any,
 ) {
   try {
@@ -72,7 +73,7 @@ export async function POST(
       );
     }
 
-    const userId = params?.id;
+    const { id: userId } = await params; // await params per Next.js requirement
 
     if (!userId) {
       return NextResponse.json(
