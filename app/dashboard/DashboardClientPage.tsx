@@ -6,30 +6,42 @@ import { LayoutDashboardIcon } from "lucide-react";
 
 import DashboardFooter from "./components/DashboardFooter";
 
-import DashboardContent from "@/components/ui/dashboard/DashboardContent";
+import DashboardContent from "@/components/ui/dashboard/heavy/DashboardContent";
+import AdminElecDashboardContent from "@/components/ui/dashboard/elec/AdminElecDashboardContent";
+import GuestDashboardContent from "@/components/ui/dashboard/guest/GuestDashboardContent";
 
 // Simple fetch function
 const fetchDashboard = async () => {
   const [dashboardRes] = await Promise.all([
     axios.get("/api/dashboard"),
-    //axios.get("/api/dashboard/recent-activities")
   ]);
 
   return {
     dashboardData: dashboardRes.data?.data || dashboardRes.data,
-    //recentActivities: activitiesRes.data?.data || activitiesRes.data
   };
 };
 
 export default function DashboardClientPage({ user }: { user: any }) {
+  const role = user?.role as string | undefined;
+  const isSuper = role === "super_admin";
+  const canHeavy = role === "admin_heavy" || isSuper;
+  const canElec = role === "admin_elec" || isSuper;
+  const canGuest = role === "guest" || isSuper;
+
+  // enable query if any dashboard will be shown
+  const enabled = canHeavy || canElec || canGuest;
+
   const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ["dashboard-main"],
+    queryKey: ["dashboard-main", role],
     queryFn: fetchDashboard,
-    refetchInterval: 30000, // Auto refresh setiap 30 detik
-    staleTime: 25000, // Data fresh selama 25 detik
-    retry: 2, // Retry maksimal 2x
+    refetchInterval: 30000,
+    staleTime: 25000,
+    retry: 2,
     refetchOnWindowFocus: false,
+    enabled,
   });
+
+  if (!enabled) return null;
 
   return (
     <div className="p-0 md:p-5 max-w-7xl mx-auto">
@@ -43,15 +55,32 @@ export default function DashboardClientPage({ user }: { user: any }) {
         </h1>
       </div>
 
-      {/* Content */}
-      <DashboardContent
-        dashboardData={data?.dashboardData}
-        error={error?.message}
-        loading={isLoading}
-        // recentActivities={data?.recentActivities}
-        user={user}
-        onRetry={refetch}
-      />
+      {/* Content based on role */}
+      <div className="space-y-8">        
+        {canHeavy && (
+          <DashboardContent
+            dashboardData={data?.dashboardData}
+            error={error?.message}
+            loading={isLoading}
+            user={user}
+            onRetry={refetch}
+          />
+        )}
+
+        {canElec && (
+          <AdminElecDashboardContent
+            dashboardData={data?.dashboardData}
+            user={user}
+          />
+        )}
+
+        {canGuest && (
+          <GuestDashboardContent
+            dashboardData={data?.dashboardData}
+            user={user}
+          />
+        )}
+      </div>
 
       <DashboardFooter className="mt-10 mb-[-10px] md:mb-[-30px]" />
     </div>

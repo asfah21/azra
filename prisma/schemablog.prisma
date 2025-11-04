@@ -1,0 +1,59 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+ 
+}
+
+model Post {
+  id              String    @id @default(cuid())
+  title           String
+  slug            String    @unique
+  description     String?
+  content         String
+  coverImage      String?   // URL atau path ke gambar utama
+  images          String[]  // array gambar tambahan
+  tags            String[]  // misalnya ["Cricut", "DIY", "Crafting"]
+  category        String?   // opsional, misalnya “Design” atau “Tips”
+  published       Boolean   @default(false)
+  publishedAt     DateTime? // waktu publikasi
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  // SEO fields
+  metaTitle       String?   
+  metaDescription String?
+
+  // Relations
+  authorId String?
+  author   User?     @relation(fields: [authorId], references: [id])
+
+  // Optional future feature: comments
+  comments Comment[]
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String
+  postId    String
+  userId    String?
+  createdAt DateTime @default(now())
+
+  post Post @relation(fields: [postId], references: [id])
+  user User? @relation(fields: [userId], references: [id])
+}
+
+// Asumsi kamu sudah punya model User, tapi untuk contoh:
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  avatarUrl String?
+  role      String   @default("user") // admin, author, user
+  posts     Post[]
+  comments  Comment[]
+}
+

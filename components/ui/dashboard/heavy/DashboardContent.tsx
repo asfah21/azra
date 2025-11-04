@@ -16,7 +16,7 @@ import {
   Wrench,
 } from "lucide-react";
 
-import DashboardCharts from "@/components/ui/dashboard/DashboardCharts";
+import DashboardCharts from "@/components/ui/dashboard/heavy/DashboardCharts";
 import { DashboardSkeleton } from "@/components/ui/skeleton";
 import { consolePino } from "@/lib/logger";
 
