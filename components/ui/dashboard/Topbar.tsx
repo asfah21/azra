@@ -155,12 +155,12 @@ export function Topbar({
           {menuOpen ? <FiX size={20} /> : <FiMenu size={20} />}
         </Button>
         <div className="flex items-center gap-2">
-          {/* <div className="w-8 h-8 bg-gradient-to-br from-primary to-success-300 rounded-lg flex items-center justify-center">
-            <span className="text-white font-bold text-sm"> */}
-          <Logo />
-          {/* </span> */}
-          {/* </div> */}
-          {/* <h1 className="text-xl font-bold text-foreground">AZRA</h1> */}
+          <div className="w-8 h-8 bg-gradient-to-br from-primary to-success-300 rounded-lg flex items-center justify-center">
+            <span className="text-white font-bold text-sm">
+              <Logo />
+            </span>
+          </div>
+          <h1 className="text-xl font-bold text-foreground">AZRA</h1>
         </div>
 
         <div className="flex items-center gap-2">

@@ -9,9 +9,9 @@ export const defaultNavItems = [
     defaultRoles: ["admin_heavy", "admin_elec", "pengawas", "mekanik", "guest"],
   },
   {
-    id: "assets",
-    title: "Assets",
-    path: "/dashboard/assets",
+    id: "posts",
+    title: "Posts",
+    path: "/dashboard/posts",
     icon: "package",
     defaultRoles: ["admin_heavy", "admin_elec"],
   },

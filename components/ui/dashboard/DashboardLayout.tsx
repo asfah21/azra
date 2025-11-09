@@ -36,6 +36,7 @@ import { Topbar } from "./Topbar";
 
 import { consolePino } from "@/lib/logger";
 import { defaultNavItems } from "@/lib/config/navigation";
+import { Newspaper } from "lucide-react";
 
 // Key untuk localStorage
 export const ACTIVE_TABS_KEY = "dashboard-active-tabs";
@@ -73,7 +74,7 @@ export default function UIDashboardLayout({
   const iconMap: { [key: string]: React.ReactElement } = {
     dashboard: <LuLayoutDashboard />,
     wrench: <FiTool />,
-    package: <FiPackage />,
+    package: <Newspaper />,
     barChart: <FiBarChart2 />,
     users: <FiUsers />,
     settings: <FiSettings />,

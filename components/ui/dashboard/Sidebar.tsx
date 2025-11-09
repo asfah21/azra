@@ -6,6 +6,7 @@ import { ChevronDown } from "lucide-react";
 
 import { useRoleAccess } from "@/hooks/useRoleAccess";
 import { Logo, LogoGsi } from "@/components/icons";
+import { VersiApp, VersionApp } from "../ChipVersion";
 
 // (Deklarasi interface dihapus, gunakan tipe ekspor di bawah)
 export type SidebarNavItem = {
@@ -143,9 +144,25 @@ export const Sidebar = memo(function Sidebar({
           !sidebarCollapsed ? "justify-between" : "justify-center"
         } px-4 py-5 flex-shrink-0`}
       >
-        <div className="flex items-center gap-2 min-w-0">
+        {/* <div className="flex items-center gap-2 min-w-0">
           {sidebarCollapsed ? <LogoGsi /> : <Logo />}
-        </div>
+        </div> */}
+        <div className="flex items-center gap-2 min-w-0">
+                  <div className="w-8 h-8 bg-gradient-to-br from-primary to-success-300 rounded-lg flex items-center justify-center flex-shrink-0">
+                    <span className="text-white font-bold text-sm">
+                      <Logo />
+                    </span>
+                  </div>
+                  <div
+                    className={`transition-all duration-200 ease-out min-w-0 ${
+                      sidebarCollapsed
+                        ? "opacity-0 w-0 overflow-hidden"
+                        : "opacity-100 w-auto"
+                    }`}
+                  >
+                    {!sidebarCollapsed && <VersionApp />}
+                  </div>
+                </div>
       </div>
 
       <Divider />

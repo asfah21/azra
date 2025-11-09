@@ -10,8 +10,8 @@ export const siteConfig = {
       href: "/",
     },
     {
-      label: "User WO",
-      href: "/userwo",
+      label: "Blog",
+      href: "/blog",
     },
     {
       label: "About",
@@ -24,8 +24,8 @@ export const siteConfig = {
       href: "/",
     },
     {
-      label: "User WO",
-      href: "/userwo",
+      label: "Blog",
+      href: "/blog",
     },
     {
       label: "About",

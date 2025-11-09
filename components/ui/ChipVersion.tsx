@@ -9,7 +9,7 @@ export function VersionApp() {
       <span className="inline-flex items-center ml-1 px-1 py-0 rounded-full text-xs text-default-500 bg-default-400/20 dark:bg-default-500/20">
         {VERSION}
       </span>
-      <p className="text-xs text-default-500">(MVP)</p>
+      {/* <p className="text-xs text-default-500">(MVP)</p> */}
     </div>
   );
 }
