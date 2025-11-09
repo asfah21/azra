@@ -8,216 +8,61 @@ datasource db {
  
 }
 
-model User {
-  id                 String      @id @default(uuid())
-  name               String
-  email              String      @unique
-  fid                Int?        @unique
-  nik                String?        @unique
-  password           String
-  role               Role
-  photo              String?
-  phone              String?
-  location           String?
-  createdAt          DateTime    @default(now())
-  department         String?
-  avatar             String?
-  status             String?
-  lastActive         DateTime?
-  tasksCompleted     Int?
-  joinDate           DateTime?
-  reportedBreakdowns Breakdown[] @relation("ReportedBy")
-  inProgressBreakdowns Breakdown[] @relation("InProgressBy")
-  resolvedRFUs       RFUReport[] @relation("ResolvedBy")
-  assignedUnits      Unit[]      @relation("AssignedTo")
-  createdUnits       Unit[]      @relation("CreatedBy")
-  timeEntries        TimeEntry[]
-}
-
-model Category {
-  id    Int    @id @default(autoincrement())
-  name  String @unique
-  units Unit[]
-}
-
-model Unit {
-  id              String        @id @default(uuid())
-  assetTag        String        @unique
-  name            String
+model Post {
+  id              String    @id @default(cuid())
+  title           String
+  slug            String    @unique
   description     String?
-  categoryId      Int
-  status          String        @default("operational")
-  condition       String?
-  serialNumber    String?
-  location        String
-  department      String?
-  manufacturer    String?
-  installDate     DateTime?
-  warrantyExpiry  DateTime?
-  lastMaintenance DateTime?
-  nextMaintenance DateTime?
-  assetValue      Float?
-  utilizationRate Int?
-  createdAt       DateTime      @default(now())
-  createdById     String
-  assignedToId    String?
-  breakdowns      Breakdown[]
-  assignedTo      User?         @relation("AssignedTo", fields: [assignedToId], references: [id])
-  category        Category      @relation(fields: [categoryId], references: [id])
-  createdBy       User          @relation("CreatedBy", fields: [createdById], references: [id])
-  histories       UnitHistory[]
-}
+  content         String
+  coverImage      String?   // URL atau path ke gambar utama
+  images          String[]  // array gambar tambahan
+  tags            String[]  // misalnya ["Cricut", "DIY", "Crafting"]
+  category        String?   // opsional, misalnya “Design” atau “Tips”
+  published       Boolean   @default(false)
+  publishedAt     DateTime? // waktu publikasi
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 
-model Breakdown {
-  id              String               @id @default(uuid())
-  description     String
-  breakdownTime   DateTime
-  workingHours    Float
-  status          BreakdownStatus      @default(pending)
-  createdAt       DateTime             @default(now())
-  unitId          String
-  reportedById    String
-  breakdownNumber String?
-  priority        String?
-  shift           String?
-  inProgressById  String?
-  inProgressAt    DateTime?
-  photo           String?              
-  reportedBy      User                 @relation("ReportedBy", fields: [reportedById], references: [id])
-  inProgressBy    User?                @relation("InProgressBy", fields: [inProgressById], references: [id])
-  unit            Unit                 @relation(fields: [unitId], references: [id])
-  components      BreakdownComponent[]
-  rfuReport       RFUReport?
-}
+  // SEO fields
+  metaTitle       String?   
+  metaDescription String?
 
-model BreakdownComponent {
-  id           String    @id @default(uuid())
-  component    String
-  subcomponent String
-  breakdownId  String
-  breakdown    Breakdown @relation(fields: [breakdownId], references: [id])
-}
-
-model RFUReport {
-  id           String            @id @default(uuid())
-  solution     String
-  resolvedAt   DateTime          @default(now())
-  breakdownId  String            @unique
-  resolvedById String
-  workDetails  String?
-  breakdown    Breakdown         @relation(fields: [breakdownId], references: [id])
-  resolvedBy   User              @relation("ResolvedBy", fields: [resolvedById], references: [id])
-  actions      RFUReportAction[]
-}
-
-model RFUReportAction {
-  id          String    @id @default(uuid())
-  action      String
-  description String?
-  actionTime  DateTime  @default(now())
-  rfuReportId String
-  rfuReport   RFUReport @relation(fields: [rfuReportId], references: [id])
-}
-
-model UnitHistory {
-  id          String   @id @default(uuid())
-  logType     String
-  referenceId String
-  message     String
-  createdAt   DateTime @default(now())
-  unitId      String
-  unit        Unit     @relation(fields: [unitId], references: [id])
-}
-
-// Legacy enum untuk backward compatibility
-enum Role {
-  super_admin
-  admin_heavy
-  admin_elec
-  pengawas
-  mekanik
-  guest
-}
-
-// New dynamic Role model
-model RoleModel {
-  id          String      @id @default(uuid())
-  code        String      @unique  // 'super_admin', 'op_mining', dll
-  name        String                // 'Super Admin', 'Operator Mining', dll  
-  description String?               // Optional description
-  color       String      @default("default")  // UI color theme
-  isActive    Boolean     @default(true)
-  priority    Int         @default(0)  // For sorting/ordering
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  
   // Relations
-  roleAccess  RoleAccessNew[]
-  
-  @@map("roles")
+  authorId String?
+  author   User?     @relation(fields: [authorId], references: [id])
+
+  // Optional future feature: comments
+  comments Comment[]
 }
 
-// Legacy RoleAccess model (keep for now)
-model RoleAccess {
-  id    String @id @default(uuid())
-  menu  String
-  role  Role
+model Comment {
+  id        String   @id @default(cuid())
+  content   String
+  postId    String
+  userId    String?
+  createdAt DateTime @default(now())
+
+  post Post @relation(fields: [postId], references: [id])
+  user User? @relation(fields: [userId], references: [id])
 }
 
-// New dynamic RoleAccess model
-model RoleAccessNew {
-  id      String    @id @default(uuid())
-  menu    String
-  roleId  String
-  role    RoleModel @relation(fields: [roleId], references: [id], onDelete: Cascade)
-  
-  @@unique([menu, roleId])
-  @@map("role_access_new")
+// Asumsi kamu sudah punya model User, tapi untuk contoh:
+model User {
+  id          String   @id @default(cuid())
+  name        String
+  fid         Int?     @unique
+  nik         String?  @unique
+  email       String   @unique
+  password    String
+  avatar      String?
+  role        String   @default("user") // admin, author, user
+  posts       Post[]
+  comments    Comment[]
+  photo       String?
+  phone       String?
+  location    String?
+  department  String?
+  lastActive  DateTime?
+  createdAt   DateTime    @default(now())
 }
 
-enum BreakdownStatus {
-  pending
-  in_progress
-  rfu
-  overdue
-}
-
-enum ShiftType {
-  DAY
-  NIGHT
-}
-
-model TimeEntry {
-  id           String    @id @default(uuid())
-  userId       String
-  user         User      @relation(fields: [userId], references: [id])
-  shiftDate    DateTime 
-  shiftType    ShiftType
-  assetTag     String?
-  status       String?
-  approvedBy   String?
-  hourMeter        Int?
-  totalProdHour    Float?   @default(0) 
-  totalNonProdHour Float?   @default(0) 
-  activities   TimeActivity[]
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  @@index([userId, shiftDate, shiftType])
-  @@index([shiftDate, shiftType])
-}
-
-model TimeActivity {
-  id           String    @id @default(uuid())
-  timeEntryId  String
-  timeEntry    TimeEntry @relation(fields: [timeEntryId], references: [id], onDelete: Cascade)
-  activity     String
-  activityDesc String?
-  location     String?
-  isProd       String?
-  startTime    DateTime
-  endTime      DateTime
-  durationSec  Int
-  createdAt    DateTime  @default(now())
-
-  @@index([timeEntryId])
-}

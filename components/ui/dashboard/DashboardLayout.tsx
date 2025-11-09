@@ -20,6 +20,8 @@ import {
   FiShield,
   FiClock,
   FiTool,
+  FiFile,
+  FiFileText,
 } from "react-icons/fi";
 import {
   LuFileText,
@@ -74,7 +76,7 @@ export default function UIDashboardLayout({
   const iconMap: { [key: string]: React.ReactElement } = {
     dashboard: <LuLayoutDashboard />,
     wrench: <FiTool />,
-    package: <Newspaper />,
+    package: <FiFileText />,
     barChart: <FiBarChart2 />,
     users: <FiUsers />,
     settings: <FiSettings />,

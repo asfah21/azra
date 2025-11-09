@@ -1,12 +1,12 @@
 import { Metadata } from "next";
 
-import AssetsClientPage from "./AssetsClientPage";
+import PostClientPage from "./PostClientPage";
 
 export const metadata: Metadata = {
-  title: "Asset Management",
-  description: "Manage assets and view statistics",
+  title: "Post Management",
+  description: "Manage posts and view statistics",
 };
 
-export default function AssetsPage() {
-  return <AssetsClientPage />;
+export default function PostPage() {
+  return <PostClientPage />;
 }

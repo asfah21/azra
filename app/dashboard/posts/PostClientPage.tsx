@@ -11,7 +11,7 @@ import TableDatas from "./components/TableData";
 
 import { AssetSkeleton } from "@/components/ui/skeleton";
 
-export default function AssetsClientPage() {
+export default function PostClientPage() {
   const { data, isLoading, isError } = useQuery({
     queryKey: ["assets"],
     queryFn: async () => {
