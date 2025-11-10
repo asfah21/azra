@@ -57,7 +57,7 @@ export default function DashboardClientPage({ user }: { user: any }) {
 
       {/* Content based on role */}
       <div className="space-y-8">        
-        {canHeavy && (
+        {/* {canHeavy && (
           <DashboardContent
             dashboardData={data?.dashboardData}
             error={error?.message}
@@ -72,7 +72,7 @@ export default function DashboardClientPage({ user }: { user: any }) {
             dashboardData={data?.dashboardData}
             user={user}
           />
-        )}
+        )} */}
 
         {canGuest && (
           <GuestDashboardContent

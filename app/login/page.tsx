@@ -7,6 +7,7 @@ import { Alert, Card, CardHeader, CardFooter } from "@heroui/react";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 
 import { Logo } from "@/components/icons";
+import { VersiApp } from "@/components/ui/ChipVersion";
 
 function LoginForm() {
   const searchParams = useSearchParams();
@@ -169,7 +170,14 @@ function LoginForm() {
       <Card className="w-full max-w-md shadow-2xl rounded-xl sm:rounded-2xl overflow-hidden border border-opacity-10 border-white dark:border-gray-700 backdrop-blur-sm bg-white/90 dark:bg-gray-900/30">
         <CardHeader className="flex flex-col gap-3 p-3 sm:p-5 pb-2">
           <div className="flex items-center gap-2">
-            <Logo />
+            <div className="w-8 h-8 bg-gradient-to-br from-primary to-success-300 rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-sm">
+                <Logo />
+              </span>
+            </div>
+            <h1 className="text-xl font-bold text-foreground">
+              AZRA <VersiApp />
+            </h1>
           </div>
           <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
             Please enter your credentials to access your account

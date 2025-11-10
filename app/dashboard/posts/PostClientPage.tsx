@@ -1,36 +1,34 @@
 "use client";
 
-import { Package } from "lucide-react";
+import { FileText } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 
 import DashboardFooter from "../components/DashboardFooter";
 
-import AssetCardGrids from "./components/CardGrid";
-import TableDatas from "./components/TableData";
+import PostCardGrids from "./components/CardGrid";
+import PostsTable from "./components/PostsTable";
 
 import { AssetSkeleton } from "@/components/ui/skeleton";
 
 export default function PostClientPage() {
   const { data, isLoading, isError } = useQuery({
-    queryKey: ["assets"],
+    queryKey: ["posts"],
     queryFn: async () => {
-      const res = await axios.get("/api/dashboard/assets");
-
-      return res.data;
+      const res = await axios.get("/api/dashboard/posts");
+      return res.data as { postStats: any; posts: any[] };
     },
-    refetchInterval: 10000, // polling setiap 10 detik
+    refetchInterval: 10000,
   });
 
-  const assetStats = data?.assetStats || {
+  const postStats = data?.postStats || {
     total: 0,
-    new: 0,
-    active: 0,
-    maintenance: 0,
-    critical: 0,
+    published: 0,
+    drafts: 0,
+    withCover: 0,
+    withMeta: 0,
   };
-  const allAssets = data?.allAssets || [];
-  const users = data?.users || [];
+  const posts = data?.posts || [];
 
   return (
     <div className="p-0 md:p-5 max-w-7xl mx-auto">
@@ -38,11 +36,11 @@ export default function PostClientPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 sm:mb-8">
         <div className="flex items-center gap-3">
           <div className="p-2 bg-gradient-to-br from-primary-100 to-primary-50 rounded-xl">
-            <Package className="w-6 h-6 text-primary-600" />
+            <FileText className="w-6 h-6 text-primary-600" />
           </div>
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-primary-600 to-secondary-600 bg-clip-text text-transparent">
-              Asset Management
+              Post Management
             </h1>
           </div>
         </div>
@@ -52,12 +50,12 @@ export default function PostClientPage() {
         <AssetSkeleton />
       ) : isError ? (
         <div className="text-center py-10 text-red-500">
-          Gagal memuat data asset.
+          Gagal memuat data post.
         </div>
       ) : (
         <>
-          <AssetCardGrids stats={assetStats} />
-          <TableDatas dataTable={allAssets} users={users} />
+          <PostCardGrids stats={postStats} />
+          <PostsTable posts={posts} />
         </>
       )}
       <DashboardFooter className="mt-10 mb-[-10px] md:mb-[-30px]" />
