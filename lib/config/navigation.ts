@@ -15,7 +15,7 @@ export const defaultNavItems = [
     icon: "package",
     defaultRoles: ["admin_heavy", "admin_elec"],
   },
-  
+
   {
     id: "users",
     title: "Users",
@@ -23,7 +23,7 @@ export const defaultNavItems = [
     icon: "users",
     defaultRoles: ["admin_heavy"],
   },
-  
+
   {
     id: "settings",
     title: "Settings",
@@ -31,7 +31,6 @@ export const defaultNavItems = [
     icon: "settings",
     defaultRoles: ["admin_heavy", "admin_elec", "pengawas", "mekanik", "guest"],
   },
-  
 ] as const;
 
 // Hapus fungsi getNavItems dan ekspor navItems. Filtering akses dilakukan di komponen (Sidebar, dsb) dengan data dari backend.

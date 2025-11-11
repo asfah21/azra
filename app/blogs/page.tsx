@@ -1,7 +1,7 @@
+import BlogsClientPage from "./BlogsClientPage";
 
 import { Navbar } from "@/components/navbar";
 import Footer from "@/components/Footer";
-import BlogsClientPage from "./BlogsClientPage";
 
 export const metadata = {
   title: "About PT GSI",

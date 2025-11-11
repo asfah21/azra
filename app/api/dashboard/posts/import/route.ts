@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+
 import { prisma } from "@/lib/prisma";
 
 export async function POST(req: Request) {
@@ -54,6 +55,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: true, count: created.length });
   } catch (e: any) {
     console.error(e);
+
     return NextResponse.json({ error: "Import failed" }, { status: 500 });
   }
 }

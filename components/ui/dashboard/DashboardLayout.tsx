@@ -14,13 +14,11 @@ import {
 } from "react";
 import {
   FiSettings,
-  FiPackage,
   FiBarChart2,
   FiUsers,
   FiShield,
   FiClock,
   FiTool,
-  FiFile,
   FiFileText,
 } from "react-icons/fi";
 import {
@@ -38,7 +36,6 @@ import { Topbar } from "./Topbar";
 
 import { consolePino } from "@/lib/logger";
 import { defaultNavItems } from "@/lib/config/navigation";
-import { Newspaper } from "lucide-react";
 
 // Key untuk localStorage
 export const ACTIVE_TABS_KEY = "dashboard-active-tabs";
@@ -90,6 +87,7 @@ export default function UIDashboardLayout({
 
   const navItems = useMemo(() => {
     const userRole = session?.user?.role;
+
     if (!userRole) return [];
 
     const mapChildrenIcon = (children: readonly SidebarNavChild[] = []) =>
@@ -101,9 +99,11 @@ export default function UIDashboardLayout({
     if (userRole === "super_admin") {
       return defaultNavItems.map((item) => {
         let children: SidebarNavChild[] | undefined;
+
         if ("children" in item && item.children) {
           children = mapChildrenIcon(item.children as SidebarNavChild[]);
         }
+
         return {
           ...item,
           icon: iconMap[item.icon as string] || <FiSettings />,
@@ -119,17 +119,23 @@ export default function UIDashboardLayout({
         defaultNavItems
           .flatMap((nav: any) => ("children" in nav ? nav.children || [] : []))
           .find((child: any) => child.id === menuId);
+
       if (menuConfig && "defaultRoles" in menuConfig) {
         return menuConfig.defaultRoles?.includes(userRole);
       }
+
       return false;
     };
 
     return defaultNavItems
       .map((item: any) => {
         const parentAccess = hasAccess(item.id);
+
         if ("children" in item && item.children?.length) {
-          const accessibleChildren = (item.children as SidebarNavChild[]).filter((child) => hasAccess(child.id));
+          const accessibleChildren = (
+            item.children as SidebarNavChild[]
+          ).filter((child) => hasAccess(child.id));
+
           if (accessibleChildren.length) {
             return {
               ...item,
@@ -147,6 +153,7 @@ export default function UIDashboardLayout({
               children: undefined,
             };
           }
+
           return null;
         }
         if (parentAccess) {
@@ -155,6 +162,7 @@ export default function UIDashboardLayout({
             icon: iconMap[item.icon as string] || <FiSettings />,
           };
         }
+
         return null;
       })
       .filter(Boolean) as (SidebarNavItem | SidebarNavChild)[];
@@ -173,6 +181,7 @@ export default function UIDashboardLayout({
             const childMatch = (item.children as SidebarNavChild[]).find(
               (child) => child.path === path,
             );
+
             if (childMatch) {
               directMatch = childMatch;
               break;
@@ -183,10 +192,14 @@ export default function UIDashboardLayout({
       if (directMatch) return directMatch;
 
       // Prefix match (excluding dashboard for specificity)
-      let prefixMatch: SidebarNavItem | SidebarNavChild | undefined = navItems.find(
-        (item: any) =>
-          "path" in item && item.path && path.startsWith(item.path) && item.path !== "/dashboard",
-      );
+      let prefixMatch: SidebarNavItem | SidebarNavChild | undefined =
+        navItems.find(
+          (item: any) =>
+            "path" in item &&
+            item.path &&
+            path.startsWith(item.path) &&
+            item.path !== "/dashboard",
+        );
 
       if (!prefixMatch) {
         for (const item of navItems) {
@@ -194,6 +207,7 @@ export default function UIDashboardLayout({
             const childPrefix = (item.children as SidebarNavChild[]).find(
               (child) => child.path && path.startsWith(child.path!),
             );
+
             if (childPrefix) {
               prefixMatch = childPrefix;
               break;
@@ -355,7 +369,10 @@ export default function UIDashboardLayout({
         path: "path" in item ? item.path : "no-path",
         children:
           "children" in item
-            ? item.children?.map((c: SidebarNavChild) => ({ id: c.id, path: c.path }))
+            ? item.children?.map((c: SidebarNavChild) => ({
+                id: c.id,
+                path: c.path,
+              }))
             : "no-children",
       })),
     });
@@ -393,9 +410,8 @@ export default function UIDashboardLayout({
       const savedActiveTab = navItems.find(
         (item: any) => item.id === savedData.activeTab,
       );
-      let currentPathTab: SidebarNavItem | SidebarNavChild | undefined = navItems.find(
-        (item: any) => "path" in item && item.path === pathname,
-      );
+      let currentPathTab: SidebarNavItem | SidebarNavChild | undefined =
+        navItems.find((item: any) => "path" in item && item.path === pathname);
 
       if (!currentPathTab) {
         for (const item of navItems) {
@@ -403,6 +419,7 @@ export default function UIDashboardLayout({
             const childTab = (item.children as SidebarNavChild[]).find(
               (child) => child.path === pathname,
             );
+
             if (childTab) {
               currentPathTab = childTab;
               break;
@@ -422,13 +439,20 @@ export default function UIDashboardLayout({
           const savedTabsWithIcons = savedData.tabs
             .map((tab: any) => {
               // Re-attach icons for saved tabs
-              let fullNavItem: SidebarNavItem | SidebarNavChild | undefined = navItems.find((item: any) => item.id === tab.id);
+              let fullNavItem: SidebarNavItem | SidebarNavChild | undefined =
+                navItems.find((item: any) => item.id === tab.id);
 
               if (!fullNavItem) {
                 for (const parent of navItems) {
                   if ("children" in parent && parent.children) {
-                    const child = (parent.children as SidebarNavChild[]).find((c) => c.id === tab.id);
-                    if (child) { fullNavItem = child; break; }
+                    const child = (parent.children as SidebarNavChild[]).find(
+                      (c) => c.id === tab.id,
+                    );
+
+                    if (child) {
+                      fullNavItem = child;
+                      break;
+                    }
                   }
                 }
               }
@@ -440,7 +464,9 @@ export default function UIDashboardLayout({
           const tabExists = savedTabsWithIcons.some(
             (tab: any) => tab.id === currentPathTab!.id,
           );
-          const newTabs = tabExists ? savedTabsWithIcons : [currentPathTab, ...savedTabsWithIcons];
+          const newTabs = tabExists
+            ? savedTabsWithIcons
+            : [currentPathTab, ...savedTabsWithIcons];
 
           saveTabsToStorage(newTabs as any[], currentPathTab!.id);
 
@@ -452,13 +478,20 @@ export default function UIDashboardLayout({
           // Re-attach icons to saved tabs
           const tabsWithIcons = savedData.tabs
             .map((tab: any) => {
-              let fullNavItem: SidebarNavItem | SidebarNavChild | undefined = navItems.find((item: any) => item.id === tab.id);
+              let fullNavItem: SidebarNavItem | SidebarNavChild | undefined =
+                navItems.find((item: any) => item.id === tab.id);
 
               if (!fullNavItem) {
                 for (const parent of navItems) {
                   if ("children" in parent && parent.children) {
-                    const child = (parent.children as SidebarNavChild[]).find((c) => c.id === tab.id);
-                    if (child) { fullNavItem = child; break; }
+                    const child = (parent.children as SidebarNavChild[]).find(
+                      (c) => c.id === tab.id,
+                    );
+
+                    if (child) {
+                      fullNavItem = child;
+                      break;
+                    }
                   }
                 }
               }
@@ -478,7 +511,9 @@ export default function UIDashboardLayout({
       saveTabsToStorage([currentMatchedItem] as any[], currentMatchedItem.id);
     } else {
       // Fallback to dashboard
-      const dashboardTab = navItems.find((item: any) => item.id === "dashboard");
+      const dashboardTab = navItems.find(
+        (item: any) => item.id === "dashboard",
+      );
 
       if (dashboardTab) {
         setActiveTabs([dashboardTab] as any[]);

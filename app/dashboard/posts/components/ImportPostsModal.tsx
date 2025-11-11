@@ -1,6 +1,14 @@
 "use client";
 import React, { useCallback, useMemo, useState } from "react";
-import { Button, Card, CardBody, Chip, Divider, Input, Progress } from "@heroui/react";
+import {
+  Button,
+  Card,
+  CardBody,
+  Chip,
+  Divider,
+  Input,
+  Progress,
+} from "@heroui/react";
 import * as XLSX from "xlsx";
 
 interface ImportPostsModalProps {
@@ -23,7 +31,10 @@ type ParsedRow = {
   authorEmail?: string | null;
 };
 
-export default function ImportPostsModal({ onImported, onClose }: ImportPostsModalProps) {
+export default function ImportPostsModal({
+  onImported,
+  onClose,
+}: ImportPostsModalProps) {
   const [rows, setRows] = useState<ParsedRow[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -81,6 +92,7 @@ export default function ImportPostsModal({ onImported, onClose }: ImportPostsMod
     const wsExamples = XLSX.utils.json_to_sheet(examples);
 
     const wb = XLSX.utils.book_new();
+
     XLSX.utils.book_append_sheet(wb, wsHeader, "Template Posts");
     XLSX.utils.book_append_sheet(wb, wsExamples, "Contoh Data");
 
@@ -91,6 +103,7 @@ export default function ImportPostsModal({ onImported, onClose }: ImportPostsMod
     setError(null);
     if (!file) {
       setRows([]);
+
       return;
     }
     try {
@@ -104,18 +117,31 @@ export default function ImportPostsModal({ onImported, onClose }: ImportPostsMod
         content: r.Content || r.content,
         description: r.Description || r.description || "",
         coverImage: r.CoverImage || r.coverImage || "",
-        tags: typeof r.Tags === "string" ? r.Tags.split(",").map((t: string) => t.trim()).filter(Boolean) : Array.isArray(r.Tags) ? r.Tags : [],
+        tags:
+          typeof r.Tags === "string"
+            ? r.Tags.split(",")
+                .map((t: string) => t.trim())
+                .filter(Boolean)
+            : Array.isArray(r.Tags)
+              ? r.Tags
+              : [],
         category: r.Category || r.category || null,
-        published: typeof r.Published === "string" ? /^(true|1|published|yes)$/i.test(r.Published) : !!r.Published,
+        published:
+          typeof r.Published === "string"
+            ? /^(true|1|published|yes)$/i.test(r.Published)
+            : !!r.Published,
         publishedAt: r.PublishedAt || r["Published At"] || r.publishedAt || "",
         metaTitle: r.MetaTitle || r.metaTitle || null,
         metaDescription: r.MetaDescription || r.metaDescription || null,
         authorEmail: r.AuthorEmail || r.authorEmail || null,
       }));
+
       setRows(mapped);
     } catch (e: any) {
       console.error(e);
-      setError("Failed to parse file. Use .xlsx/.csv with headers: Title, Slug, Content, (optional others)");
+      setError(
+        "Failed to parse file. Use .xlsx/.csv with headers: Title, Slug, Content, (optional others)",
+      );
     }
   }, []);
 
@@ -125,10 +151,12 @@ export default function ImportPostsModal({ onImported, onClose }: ImportPostsMod
     try {
       setLoading(true);
       setError(null);
-      const payload = rows.filter(r => r.title && r.slug && r.content);
+      const payload = rows.filter((r) => r.title && r.slug && r.content);
+
       if (payload.length === 0) {
         setError("No valid rows. Require Title, Slug, Content.");
         setLoading(false);
+
         return;
       }
       const res = await fetch("/api/dashboard/posts/import", {
@@ -136,6 +164,7 @@ export default function ImportPostsModal({ onImported, onClose }: ImportPostsMod
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ posts: payload }),
       });
+
       if (!res.ok) throw new Error(await res.text());
       onImported();
       onClose();
@@ -153,32 +182,64 @@ export default function ImportPostsModal({ onImported, onClose }: ImportPostsMod
         <div className="flex flex-col gap-4">
           <div>
             <p className="text-lg font-semibold">Import Posts</p>
-            <p className="text-sm text-default-500">Upload Excel (.xlsx) with headers: Title, Slug, Content, Description, CoverImage, Tags, Category, Published, PublishedAt, MetaTitle, MetaDescription, AuthorEmail</p>
+            <p className="text-sm text-default-500">
+              Upload Excel (.xlsx) with headers: Title, Slug, Content,
+              Description, CoverImage, Tags, Category, Published, PublishedAt,
+              MetaTitle, MetaDescription, AuthorEmail
+            </p>
           </div>
 
           <Card className="border-primary-200 bg-primary-50">
             <CardBody className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h3 className="text-sm font-medium text-primary-800">Download Template Excel</h3>
-                  <p className="text-xs text-primary-600 mt-1">Download template for correct data format</p>
+                  <h3 className="text-sm font-medium text-primary-800">
+                    Download Template Excel
+                  </h3>
+                  <p className="text-xs text-primary-600 mt-1">
+                    Download template for correct data format
+                  </p>
                 </div>
-                <Button color="primary" size="sm" variant="flat" onPress={downloadTemplate}>Template</Button>
+                <Button
+                  color="primary"
+                  size="sm"
+                  variant="flat"
+                  onPress={downloadTemplate}
+                >
+                  Template
+                </Button>
               </div>
             </CardBody>
           </Card>
 
           <div className="flex gap-2 flex-wrap">
-            <Input type="file" accept=".xlsx,.xls,.csv" onChange={(e) => handleFile(e.target.files?.[0])} className="flex-1" />
+            <Input
+              accept=".xlsx,.xls,.csv"
+              className="flex-1"
+              type="file"
+              onChange={(e) => handleFile(e.target.files?.[0])}
+            />
           </div>
           {error && <p className="text-sm text-danger">{error}</p>}
           <Divider />
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Chip size="sm" variant="flat" color="primary">Rows: {rows.length}</Chip>
-              <Chip size="sm" variant="flat" color="success">Valid: {rows.filter(r=>r.title && r.slug && r.content).length}</Chip>
+              <Chip color="primary" size="sm" variant="flat">
+                Rows: {rows.length}
+              </Chip>
+              <Chip color="success" size="sm" variant="flat">
+                Valid:{" "}
+                {rows.filter((r) => r.title && r.slug && r.content).length}
+              </Chip>
             </div>
-            {loading && <Progress size="sm" isIndeterminate aria-label="Importing" className="w-32" />}
+            {loading && (
+              <Progress
+                isIndeterminate
+                aria-label="Importing"
+                className="w-32"
+                size="sm"
+              />
+            )}
           </div>
           {preview.length > 0 && (
             <div className="text-xs text-default-600">
@@ -193,8 +254,17 @@ export default function ImportPostsModal({ onImported, onClose }: ImportPostsMod
             </div>
           )}
           <div className="flex items-center justify-end gap-2">
-            <Button variant="light" onPress={onClose}>Cancel</Button>
-            <Button color="primary" isDisabled={rows.length === 0} isLoading={loading} onPress={handleImport}>Import</Button>
+            <Button variant="light" onPress={onClose}>
+              Cancel
+            </Button>
+            <Button
+              color="primary"
+              isDisabled={rows.length === 0}
+              isLoading={loading}
+              onPress={handleImport}
+            >
+              Import
+            </Button>
           </div>
         </div>
       </CardBody>

@@ -1,12 +1,20 @@
-import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
-import { Navbar } from "@/components/navbar";
-import Footer from "@/components/Footer";
+
 import ClientPage from "./ClientPage";
 
-export async function generateMetadata({ params }: { params: { slug: string } }) {
+import { prisma } from "@/lib/prisma";
+import { Navbar } from "@/components/navbar";
+import Footer from "@/components/Footer";
+
+export async function generateMetadata({
+  params,
+}: {
+  params: { slug: string };
+}) {
   const post = await prisma.post.findUnique({ where: { slug: params.slug } });
+
   if (!post) return {};
+
   return {
     title: `${post.title} – Azra Blog`,
     description: post.description,
@@ -14,8 +22,13 @@ export async function generateMetadata({ params }: { params: { slug: string } })
   };
 }
 
-export default async function BlogDetail({ params }: { params: { slug: string } }) {
+export default async function BlogDetail({
+  params,
+}: {
+  params: { slug: string };
+}) {
   const post = await prisma.post.findUnique({ where: { slug: params.slug } });
+
   if (!post) return notFound();
 
   return (

@@ -1,6 +1,7 @@
 "use client";
-import Link from "next/link";
 import type { FC } from "react";
+
+import Link from "next/link";
 import { Card, CardHeader, CardBody } from "@heroui/react";
 
 export interface GridCardPost {
@@ -22,19 +23,23 @@ function formatDate(date: Date) {
 export const GridCard: FC<{ posts: GridCardPost[] }> = ({ posts }) => {
   return (
     <div className="max-w-6xl mx-auto px-6 py-12">
-      <h1 className="text-4xl font-bold text-center mb-2">HeroUI Latest Updates</h1>
-      <p className="text-center text-sm text-muted-foreground mb-10">All the latest news about HeroUI.</p>
+      <h1 className="text-4xl font-bold text-center mb-2">
+        HeroUI Latest Updates
+      </h1>
+      <p className="text-center text-sm text-muted-foreground mb-10">
+        All the latest news about HeroUI.
+      </p>
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {posts.map((post) => (
           <Link
             key={post.slug}
-            href={`/blog/${post.slug}`}
             aria-label={`Open ${post.title}`}
             className="group block focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/50 rounded-xl"
+            href={`/blog/${post.slug}`}
           >
             <Card
-              radius="lg"
               className="relative overflow-hidden border border-zinc-200/80 bg-white shadow-md transition-all duration-300 group-hover:shadow-xl dark:border-white/10 dark:bg-[#12141c] dark:shadow-[0_6px_28px_-10px_rgba(0,0,0,0.7)]"
+              radius="lg"
             >
               <CardHeader className="p-5 pb-3">
                 <h3 className="text-xl font-semibold tracking-tight line-clamp-1">
@@ -47,9 +52,9 @@ export const GridCard: FC<{ posts: GridCardPost[] }> = ({ posts }) => {
                   {post.coverImage ? (
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
-                      src={post.coverImage}
                       alt={post.title}
                       className="h-full w-full object-cover object-center group-hover:scale-[1.02] transition-transform"
+                      src={post.coverImage}
                     />
                   ) : (
                     <span className="px-4 text-lg font-semibold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-black to-black/60 dark:from-white dark:to-white/60 text-center">

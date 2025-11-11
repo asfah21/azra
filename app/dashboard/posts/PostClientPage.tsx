@@ -16,6 +16,7 @@ export default function PostClientPage() {
     queryKey: ["posts"],
     queryFn: async () => {
       const res = await axios.get("/api/dashboard/posts");
+
       return res.data as { postStats: any; posts: any[] };
     },
     refetchInterval: 10000,

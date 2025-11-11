@@ -17,8 +17,6 @@ import NextLink from "next/link";
 import clsx from "clsx";
 import { BsFillLayersFill } from "react-icons/bs";
 
-import { VersiApp } from "./ui/ChipVersion";
-
 import { siteConfig } from "@/config/site";
 import { ThemeSwitch } from "@/components/theme-switch";
 import { SearchIcon, Logo } from "@/components/icons";
@@ -56,9 +54,7 @@ export const Navbar = () => {
                   <Logo />
                 </span>
               </div>
-              <h1 className="text-xl font-bold text-foreground">
-                AZRA
-              </h1>
+              <h1 className="text-xl font-bold text-foreground">AZRA</h1>
             </div>
             {/* <Logo />
             <p className="font-bold text-inherit">AZRA</p> */}

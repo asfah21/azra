@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+
 import { prisma } from "@/lib/prisma";
 
 export async function GET() {
@@ -9,10 +10,12 @@ export async function GET() {
     });
 
     const total = posts.length;
-    const published = posts.filter(p => p.published).length;
+    const published = posts.filter((p) => p.published).length;
     const drafts = total - published;
-    const withCover = posts.filter(p => !!p.coverImage).length;
-    const withMeta = posts.filter(p => !!p.metaTitle || !!p.metaDescription).length;
+    const withCover = posts.filter((p) => !!p.coverImage).length;
+    const withMeta = posts.filter(
+      (p) => !!p.metaTitle || !!p.metaDescription,
+    ).length;
 
     return NextResponse.json({
       postStats: {
@@ -26,6 +29,10 @@ export async function GET() {
     });
   } catch (e: any) {
     console.error(e);
-    return NextResponse.json({ error: "Failed to load posts" }, { status: 500 });
+
+    return NextResponse.json(
+      { error: "Failed to load posts" },
+      { status: 500 },
+    );
   }
 }

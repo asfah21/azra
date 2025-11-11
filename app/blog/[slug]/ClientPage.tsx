@@ -1,4 +1,5 @@
 import type { FC } from "react";
+
 import Link from "next/link";
 
 export interface BlogClientArticleProps {
@@ -28,7 +29,10 @@ const ClientPage: FC<BlogClientArticleProps> = ({ post }) => {
     <div className="max-w-3xl mx-auto px-4 py-8">
       {/* Back link */}
       <div className="mb-6">
-        <Link href="/blog" className="text-sm text-foreground/70 hover:text-foreground transition-colors">
+        <Link
+          className="text-sm text-foreground/70 hover:text-foreground transition-colors"
+          href="/blog"
+        >
           ← Back to blog
         </Link>
       </div>
@@ -37,21 +41,27 @@ const ClientPage: FC<BlogClientArticleProps> = ({ post }) => {
       <div className="flex items-center gap-3 text-sm text-foreground/60">
         {post.authorAvatar ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={post.authorAvatar} alt={post.authorName ?? "Author"} className="h-8 w-8 rounded-full" />
+          <img
+            alt={post.authorName ?? "Author"}
+            className="h-8 w-8 rounded-full"
+            src={post.authorAvatar}
+          />
         ) : (
           <div className="h-8 w-8 rounded-full bg-white/10 ring-1 ring-white/15" />
         )}
         <div className="flex flex-col">
-          <span className="font-medium text-foreground/90">{post.authorName ?? ""}</span>
+          <span className="font-medium text-foreground/90">
+            {post.authorName ?? ""}
+          </span>
           <span className="text-xs">{post.authorHandle ?? date}</span>
         </div>
-        {!post.authorHandle && (
-          <span className="ml-auto text-xs">{date}</span>
-        )}
+        {!post.authorHandle && <span className="ml-auto text-xs">{date}</span>}
       </div>
 
       {/* Title */}
-      <h1 className="mt-4 text-3xl md:text-4xl font-bold tracking-tight">{post.title}</h1>
+      <h1 className="mt-4 text-3xl md:text-4xl font-bold tracking-tight">
+        {post.title}
+      </h1>
 
       {/* Hero image */}
       <div className="mt-6 rounded-xl overflow-hidden bg-gradient-to-br from-[#0D0F16] via-[#141724] to-[#1A1D2B] border border-white/10">
@@ -59,15 +69,17 @@ const ClientPage: FC<BlogClientArticleProps> = ({ post }) => {
           {post.coverImage ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img
-              src={post.coverImage}
               alt={post.title}
               className="h-full w-full object-cover object-center"
+              src={post.coverImage}
             />
           ) : (
             <div className="p-6 text-center">
               <div className="mx-auto max-w-lg">
                 <p className="text-2xl font-semibold">UI HeroUI</p>
-                <p className="text-sm text-foreground/70 mt-2">A beautiful, modern UI experience.</p>
+                <p className="text-sm text-foreground/70 mt-2">
+                  A beautiful, modern UI experience.
+                </p>
               </div>
             </div>
           )}

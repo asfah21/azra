@@ -1,5 +1,6 @@
-import { prisma } from "@/lib/prisma";
 import GridCard from "./components/GridCard";
+
+import { prisma } from "@/lib/prisma";
 
 export default async function BlogClientPage() {
   const posts = await prisma.post.findMany({

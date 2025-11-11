@@ -104,8 +104,10 @@ export async function middleware(request: NextRequest) {
 
     // Ambil konfigurasi akses dinamis dari API (database)
     let dynamicAccess: Record<string, string[]> = {};
-    let apiStatus = "none";
+    let apiStatus = "disabled"; // dynamic role-access fetch disabled
 
+    /*
+    // Dynamic role-access fetch disabled per request
     try {
       const apiUrl = new URL("/api/role-access?skip_rl=1", request.url);
       const res = await fetch(apiUrl.toString(), {
@@ -118,9 +120,7 @@ export async function middleware(request: NextRequest) {
       apiStatus = String(res.status);
 
       if (res.ok) {
-        // Data: array { menu, role }
         const data: Array<{ menu: string; role: string }> = await res.json();
-
         for (const entry of data) {
           if (!dynamicAccess[entry.menu]) dynamicAccess[entry.menu] = [];
           dynamicAccess[entry.menu].push(entry.role);
@@ -128,8 +128,8 @@ export async function middleware(request: NextRequest) {
       }
     } catch {
       apiStatus = "error";
-      // Fail open: jika API gagal, gunakan defaultRoles dari config
     }
+    */
 
     // Jika targetItem adalah child menu, cek akses child saja
     let isChild = false;

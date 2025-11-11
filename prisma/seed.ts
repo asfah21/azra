@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import bcrypt from "bcrypt";
+
 import { consolePino } from "@/lib/logger";
 
 const prisma = new PrismaClient();
@@ -56,7 +57,8 @@ async function main() {
       {
         title: "Mengenal Dunia Alat Berat",
         slug: "mengenal-dunia-alat-berat",
-        description: "Artikel pengantar mengenai berbagai jenis alat berat di dunia industri pertambangan.",
+        description:
+          "Artikel pengantar mengenai berbagai jenis alat berat di dunia industri pertambangan.",
         content:
           "Alat berat merupakan mesin berukuran besar yang digunakan untuk membantu pekerjaan konstruksi dan pertambangan. Contohnya adalah excavator, bulldozer, dan dump truck.",
         coverImage: "https://picsum.photos/seed/alat-berat/800/400",
@@ -69,13 +71,15 @@ async function main() {
         published: true,
         publishedAt: new Date(),
         metaTitle: "Mengenal Dunia Alat Berat",
-        metaDescription: "Penjelasan singkat tentang alat berat dan fungsinya dalam pertambangan.",
+        metaDescription:
+          "Penjelasan singkat tentang alat berat dan fungsinya dalam pertambangan.",
         authorId: superAdmin.id,
       },
       {
         title: "Tips Merawat Elektronik di Area Tambang",
         slug: "tips-merawat-elektronik-di-area-tambang",
-        description: "Cara menjaga perangkat elektronik agar tahan lama di lingkungan kerja ekstrem.",
+        description:
+          "Cara menjaga perangkat elektronik agar tahan lama di lingkungan kerja ekstrem.",
         content:
           "Lingkungan tambang penuh debu dan suhu tinggi. Perangkat elektronik seperti laptop dan radio komunikasi harus dibersihkan secara rutin dan disimpan dengan benar.",
         coverImage: "https://picsum.photos/seed/elektronik/800/400",
@@ -88,13 +92,15 @@ async function main() {
         published: true,
         publishedAt: new Date(),
         metaTitle: "Tips Merawat Elektronik di Area Tambang",
-        metaDescription: "Langkah-langkah menjaga elektronik agar awet di lokasi kerja ekstrem.",
+        metaDescription:
+          "Langkah-langkah menjaga elektronik agar awet di lokasi kerja ekstrem.",
         authorId: superAdmin.id,
       },
       {
         title: "Desain Dashboard Monitoring Sederhana",
         slug: "desain-dashboard-monitoring-sederhana",
-        description: "Konsep dasar pembuatan dashboard untuk memantau performa alat berat.",
+        description:
+          "Konsep dasar pembuatan dashboard untuk memantau performa alat berat.",
         content:
           "Dashboard monitoring digunakan untuk memantau status dan performa alat berat secara real-time menggunakan data sensor dan sistem IoT.",
         coverImage: "https://picsum.photos/seed/dashboard/800/400",
@@ -106,7 +112,8 @@ async function main() {
         category: "Teknologi",
         published: false,
         metaTitle: "Desain Dashboard Monitoring Sederhana",
-        metaDescription: "Konsep UI dan fungsionalitas dasar untuk dashboard alat berat.",
+        metaDescription:
+          "Konsep UI dan fungsionalitas dasar untuk dashboard alat berat.",
         authorId: superAdmin.id,
       },
     ],
