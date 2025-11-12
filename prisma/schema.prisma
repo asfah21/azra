@@ -13,6 +13,7 @@ model Post {
   title           String
   slug            String    @unique
   description     String?
+  link            String?   // external reference link (optional)
   content         String
   coverImage      String?   // URL atau path ke gambar utama
   images          String[]  // array gambar tambahan

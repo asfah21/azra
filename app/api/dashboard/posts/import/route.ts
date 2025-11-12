@@ -18,6 +18,8 @@ export async function POST(req: Request) {
         ? await prisma.user.findUnique({ where: { email: p.authorEmail } })
         : null;
 
+      const images: string[] = Array.isArray(p.images) ? p.images : [];
+
       const createdPost = await prisma.post.upsert({
         where: { slug: p.slug },
         update: {
@@ -25,6 +27,8 @@ export async function POST(req: Request) {
           content: p.content,
           description: p.description ?? null,
           coverImage: p.coverImage ?? null,
+          link: p.link ?? null,
+          images,
           tags: Array.isArray(p.tags) ? p.tags : [],
           category: p.category ?? null,
           published: !!p.published,
@@ -39,6 +43,8 @@ export async function POST(req: Request) {
           content: p.content,
           description: p.description ?? null,
           coverImage: p.coverImage ?? null,
+          link: p.link ?? null,
+          images,
           tags: Array.isArray(p.tags) ? p.tags : [],
           category: p.category ?? null,
           published: !!p.published,

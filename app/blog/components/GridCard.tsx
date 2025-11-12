@@ -24,10 +24,10 @@ export const GridCard: FC<{ posts: GridCardPost[] }> = ({ posts }) => {
   return (
     <div className="max-w-6xl mx-auto px-6 py-12">
       <h1 className="text-4xl font-bold text-center mb-2">
-        HeroUI Latest Updates
+        Latest Font Updates
       </h1>
       <p className="text-center text-sm text-muted-foreground mb-10">
-        All the latest news about HeroUI.
+        All the latest news about our platform.
       </p>
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {posts.map((post) => (

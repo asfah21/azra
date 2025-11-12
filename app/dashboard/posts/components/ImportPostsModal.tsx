@@ -22,8 +22,10 @@ type ParsedRow = {
   content?: string;
   description?: string;
   coverImage?: string;
+  images?: string[];
   tags?: string[];
   category?: string | null;
+  link?: string | null;
   published?: boolean;
   publishedAt?: string | null;
   metaTitle?: string | null;
@@ -47,8 +49,10 @@ export default function ImportPostsModal({
         Content: "Your content here...",
         Description: "Short description (optional)",
         CoverImage: "https://example.com/cover.jpg",
+        Images: "https://example.com/img1.jpg, https://example.com/img2.jpg",
         Tags: "news,intro,update",
         Category: "Announcements",
+        Link: "https://example.com/read-more",
         Published: "true/false",
         PublishedAt: "2025-01-10T08:00:00Z",
         MetaTitle: "SEO Title (optional)",
@@ -64,8 +68,10 @@ export default function ImportPostsModal({
         Content: "This is the first post content.",
         Description: "Introductory post",
         CoverImage: "https://example.com/cover1.jpg",
+        Images: "https://example.com/imgA.jpg\nhttps://example.com/imgB.jpg",
         Tags: "news,intro,update",
         Category: "Announcements",
+        Link: "https://example.com/welcome",
         Published: true,
         PublishedAt: "2025-01-10T08:00:00Z",
         MetaTitle: "Welcome | My Blog",
@@ -78,8 +84,10 @@ export default function ImportPostsModal({
         Content: "Step-by-step guide for Cricut beginners.",
         Description: "Learn Cricut basics",
         CoverImage: "",
+        Images: "",
         Tags: "Cricut,DIY,Crafting",
         Category: "Tutorials",
+        Link: "",
         Published: false,
         PublishedAt: "",
         MetaTitle: "Cricut Guide for Beginners",
@@ -92,7 +100,6 @@ export default function ImportPostsModal({
     const wsExamples = XLSX.utils.json_to_sheet(examples);
 
     const wb = XLSX.utils.book_new();
-
     XLSX.utils.book_append_sheet(wb, wsHeader, "Template Posts");
     XLSX.utils.book_append_sheet(wb, wsExamples, "Contoh Data");
 
@@ -111,30 +118,43 @@ export default function ImportPostsModal({
       const wb = XLSX.read(buf, { type: "array" });
       const ws = wb.Sheets[wb.SheetNames[0]];
       const json: any[] = XLSX.utils.sheet_to_json(ws, { defval: "" });
-      const mapped: ParsedRow[] = json.map((r) => ({
-        title: r.Title || r.title,
-        slug: r.Slug || r.slug,
-        content: r.Content || r.content,
-        description: r.Description || r.description || "",
-        coverImage: r.CoverImage || r.coverImage || "",
-        tags:
+      const mapped: ParsedRow[] = json.map((r) => {
+        const tags =
           typeof r.Tags === "string"
-            ? r.Tags.split(",")
+            ? r.Tags.split(/[\n,]/)
                 .map((t: string) => t.trim())
                 .filter(Boolean)
             : Array.isArray(r.Tags)
-              ? r.Tags
-              : [],
-        category: r.Category || r.category || null,
-        published:
-          typeof r.Published === "string"
-            ? /^(true|1|published|yes)$/i.test(r.Published)
-            : !!r.Published,
-        publishedAt: r.PublishedAt || r["Published At"] || r.publishedAt || "",
-        metaTitle: r.MetaTitle || r.metaTitle || null,
-        metaDescription: r.MetaDescription || r.metaDescription || null,
-        authorEmail: r.AuthorEmail || r.authorEmail || null,
-      }));
+            ? r.Tags
+            : [];
+        const images =
+          typeof r.Images === "string"
+            ? r.Images.split(/[\n,]/)
+                .map((t: string) => t.trim())
+                .filter(Boolean)
+            : Array.isArray(r.Images)
+            ? r.Images
+            : [];
+        return {
+          title: r.Title || r.title,
+          slug: r.Slug || r.slug,
+          content: r.Content || r.content,
+          description: r.Description || r.description || "",
+          coverImage: r.CoverImage || r.coverImage || "",
+          images,
+          tags,
+          category: r.Category || r.category || null,
+          link: r.Link || r.link || null,
+          published:
+            typeof r.Published === "string"
+              ? /^(true|1|published|yes)$/i.test(r.Published)
+              : !!r.Published,
+          publishedAt: r.PublishedAt || r["Published At"] || r.publishedAt || "",
+          metaTitle: r.MetaTitle || r.metaTitle || null,
+          metaDescription: r.MetaDescription || r.metaDescription || null,
+          authorEmail: r.AuthorEmail || r.authorEmail || null,
+        };
+      });
 
       setRows(mapped);
     } catch (e: any) {
@@ -184,8 +204,8 @@ export default function ImportPostsModal({
             <p className="text-lg font-semibold">Import Posts</p>
             <p className="text-sm text-default-500">
               Upload Excel (.xlsx) with headers: Title, Slug, Content,
-              Description, CoverImage, Tags, Category, Published, PublishedAt,
-              MetaTitle, MetaDescription, AuthorEmail
+              Description, CoverImage, Images, Tags, Category, Link, Published,
+              PublishedAt, MetaTitle, MetaDescription, AuthorEmail
             </p>
           </div>
 
@@ -224,10 +244,10 @@ export default function ImportPostsModal({
           <Divider />
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Chip color="primary" size="sm" variant="flat">
+              <Chip size="sm" variant="flat" color="primary">
                 Rows: {rows.length}
               </Chip>
-              <Chip color="success" size="sm" variant="flat">
+              <Chip size="sm" variant="flat" color="success">
                 Valid:{" "}
                 {rows.filter((r) => r.title && r.slug && r.content).length}
               </Chip>

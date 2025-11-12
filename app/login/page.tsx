@@ -176,7 +176,7 @@ function LoginForm() {
               </span>
             </div>
             <h1 className="text-xl font-bold text-foreground">
-              AZRA <VersiApp />
+              AZRA 
             </h1>
           </div>
           <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
