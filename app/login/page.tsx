@@ -7,7 +7,6 @@ import { Alert, Card, CardHeader, CardFooter } from "@heroui/react";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 
 import { Logo } from "@/components/icons";
-import { VersiApp } from "@/components/ui/ChipVersion";
 
 function LoginForm() {
   const searchParams = useSearchParams();
@@ -175,9 +174,7 @@ function LoginForm() {
                 <Logo />
               </span>
             </div>
-            <h1 className="text-xl font-bold text-foreground">
-              AZRA 
-            </h1>
+            <h1 className="text-xl font-bold text-foreground">AZRA</h1>
           </div>
           <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400">
             Please enter your credentials to access your account

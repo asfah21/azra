@@ -100,6 +100,7 @@ export default function ImportPostsModal({
     const wsExamples = XLSX.utils.json_to_sheet(examples);
 
     const wb = XLSX.utils.book_new();
+
     XLSX.utils.book_append_sheet(wb, wsHeader, "Template Posts");
     XLSX.utils.book_append_sheet(wb, wsExamples, "Contoh Data");
 
@@ -125,16 +126,17 @@ export default function ImportPostsModal({
                 .map((t: string) => t.trim())
                 .filter(Boolean)
             : Array.isArray(r.Tags)
-            ? r.Tags
-            : [];
+              ? r.Tags
+              : [];
         const images =
           typeof r.Images === "string"
             ? r.Images.split(/[\n,]/)
                 .map((t: string) => t.trim())
                 .filter(Boolean)
             : Array.isArray(r.Images)
-            ? r.Images
-            : [];
+              ? r.Images
+              : [];
+
         return {
           title: r.Title || r.title,
           slug: r.Slug || r.slug,
@@ -149,7 +151,8 @@ export default function ImportPostsModal({
             typeof r.Published === "string"
               ? /^(true|1|published|yes)$/i.test(r.Published)
               : !!r.Published,
-          publishedAt: r.PublishedAt || r["Published At"] || r.publishedAt || "",
+          publishedAt:
+            r.PublishedAt || r["Published At"] || r.publishedAt || "",
           metaTitle: r.MetaTitle || r.metaTitle || null,
           metaDescription: r.MetaDescription || r.metaDescription || null,
           authorEmail: r.AuthorEmail || r.authorEmail || null,
@@ -244,10 +247,10 @@ export default function ImportPostsModal({
           <Divider />
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Chip size="sm" variant="flat" color="primary">
+              <Chip color="primary" size="sm" variant="flat">
                 Rows: {rows.length}
               </Chip>
-              <Chip size="sm" variant="flat" color="success">
+              <Chip color="success" size="sm" variant="flat">
                 Valid:{" "}
                 {rows.filter((r) => r.title && r.slug && r.content).length}
               </Chip>
