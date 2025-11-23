@@ -65,9 +65,10 @@ export const GridCard: FC<{ posts: GridCardPost[] }> = ({ posts }) => {
               </div>
 
               <CardBody className="p-5">
-                <p className="text-sm text-muted-foreground leading-relaxed mb-6 min-h-[3rem]">
+                <p className="text-sm text-muted-foreground leading-relaxed mb-6 line-clamp-2">
                   {post.description || "No description available."}
                 </p>
+
                 <div className="mt-auto flex items-center justify-between text-xs text-muted-foreground">
                   <span>{formatDate(post.createdAt)}</span>
                   <span className="pointer-events-none h-8 w-8 rounded-full border border-zinc-200/80 bg-zinc-50 text-zinc-600 flex items-center justify-center shadow-sm dark:border-white/10 dark:bg-white/5 dark:text-white/80">

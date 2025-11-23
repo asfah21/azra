@@ -6,12 +6,18 @@ import { prisma } from "@/lib/prisma";
 import { Navbar } from "@/components/navbar";
 import Footer from "@/components/Footer";
 
+// --- METADATA ---
 export async function generateMetadata({
   params,
 }: {
   params: { slug: string };
 }) {
-  const post = await prisma.post.findUnique({ where: { slug: params.slug } });
+  // HARUS await params (Next.js 15/16 rule)
+  const { slug } = await params;
+
+  const post = await prisma.post.findUnique({
+    where: { slug },
+  });
 
   if (!post) return {};
 
@@ -22,21 +28,24 @@ export async function generateMetadata({
   };
 }
 
+// --- PAGE ---
 export default async function BlogDetail({
   params,
 }: {
   params: { slug: string };
 }) {
-  const post = await prisma.post.findUnique({ where: { slug: params.slug } });
+  // HARUS await params
+  const { slug } = await params;
+
+  const post = await prisma.post.findUnique({
+    where: { slug },
+  });
 
   if (!post) return notFound();
 
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
-      {/* <main className="flex-1">
-            <BlogClientPage />
-          </main> */}
       <ClientPage post={post} />
       <Footer />
     </div>

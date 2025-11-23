@@ -84,9 +84,9 @@ export const Navbar = () => {
               </NavbarItem>
             ))}
           </ul>
-          <Link isExternal aria-label="Github" href={siteConfig.links.formine}>
+          {/* <Link isExternal aria-label="Github" href={siteConfig.links.formine}>
             <BsFillLayersFill className="text-default-500" size={21} />
-          </Link>
+          </Link> */}
           <ThemeSwitch />
         </NavbarItem>
         <NavbarItem className="hidden lg:flex">{searchInput}</NavbarItem>
@@ -108,7 +108,7 @@ export const Navbar = () => {
 
       <NavbarContent className="sm:hidden basis-1 pl-4" justify="end">
         <Link isExternal aria-label="Github" href={siteConfig.links.formine}>
-          <BsFillLayersFill className="text-default-500" size={21} />
+          {/* <BsFillLayersFill className="text-default-500" size={21} /> */}
         </Link>
         <ThemeSwitch />
         <NavbarMenuToggle />
