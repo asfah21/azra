@@ -159,14 +159,14 @@ const ClientPage: FC<BlogClientArticleProps> = ({ post }) => {
             Digital designers value how effectively it works on screens,
             guaranteeing readability while preserving artistic quality in
             anything from social media photos to website banners. Even lengthy
-            phrases are enjoyable to read thanks to the typeface's lively and
-            captivating rhythm.
+            phrases are enjoyable to read thanks to the typeface&apos;s lively
+            and captivating rhythm.
           </p>
 
           <p>
             <strong>{post.title}</strong> Font provides a distinct, handcrafted
-            liveliness to every project, whether you're designing an expressive
-            title or a basic logo. It is one of the best{" "}
+            liveliness to every project, whether you&apos;re designing an
+            expressive title or a basic logo. It is one of the best{" "}
             <strong>free font downloads</strong> for print and digital projects
             due to its versatility and readability.
           </p>
@@ -186,7 +186,7 @@ const ClientPage: FC<BlogClientArticleProps> = ({ post }) => {
           </h2>
           <p>
             {" "}
-            It's easy to get the <strong>{post.title} Font</strong>, and
+            It&apos;s easy to get the <strong>{post.title} Font</strong>, and
             depending on the distributor, it can be free for personal use or
             include a commercial license option. While some websites may include
             it as part of a paid font bundle, others may offer it for free.
@@ -295,8 +295,8 @@ const ClientPage: FC<BlogClientArticleProps> = ({ post }) => {
               free, others charge a nominal price for commercial use.
             </p>
             <p className="mt-1.5">
-              Either way, you'll get a professional-grade font with outstanding
-              kerning, flowing vectors, and consistent baseline
+              Either way, you&apos;ll get a professional-grade font with
+              outstanding kerning, flowing vectors, and consistent baseline
               alignment—perfect for projects like product packaging, digital
               ads, and printed materials for both you and your clients.
             </p>
