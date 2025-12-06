@@ -178,7 +178,7 @@ export default function FingerTable() {
   } = useDisclosure();
   const [exporting, setExporting] = useState(false);
   const [exportingWhich, setExportingWhich] = useState<
-    "current" | "today" | "yesterday" | "sevenDaysAgo" | "all" | null
+    "current" | "today" | "yesterday" | "sevenDaysAgo" | "thirtyDaysAgo" | "all" | null
   >(null);
   const [exportProgress, setExportProgress] = useState<number>(0);
   // Tambah state loading untuk data users
@@ -604,11 +604,39 @@ export default function FingerTable() {
       const pad = (n: number) => String(n).padStart(2, "0");
       const now = new Date();
       const todayUTC = `${now.getUTCFullYear()}-${pad(now.getUTCMonth() + 1)}-${pad(now.getUTCDate())}`;
+
+      // Filter hanya hari ini
       const todayRows = all.filter((r) => {
         const { date } = splitDateTime(r.timestamp ?? r.created_at);
-
         return date === todayUTC;
       });
+      
+      // Sort data: nama → department → tanggal/waktu
+       const sortedTodayRows = [...todayRows].sort((a, b) => {
+      // helper untuk string
+      const s = (v: unknown) =>
+        (v ?? "").toString().toLowerCase();
+
+      const nameA = s(a.name);
+      const nameB = s(b.name);
+
+      if (nameA !== nameB) {
+        return nameA.localeCompare(nameB);
+      }
+
+      const deptA = s(a.department ?? a.dept ?? a.departemen);
+      const deptB = s(b.department ?? b.dept ?? b.departemen);
+
+      if (deptA !== deptB) {
+        return deptA.localeCompare(deptB);
+      }
+
+      // kalau nama & department sama, urutkan berdasarkan timestamp
+      const tA = new Date(a.timestamp ?? a.created_at ?? 0).getTime();
+      const tB = new Date(b.timestamp ?? b.created_at ?? 0).getTime();
+
+      return tA - tB; // ascending (lebih awal duluan)
+    });
 
       setExportProgress((p) => Math.max(p, 97));
       exportToXlsx(todayRows, "today");
@@ -701,6 +729,82 @@ export default function FingerTable() {
 
       setExportProgress((p) => Math.max(p, 97));
       exportToXlsx(rows, "last_7_days");
+      setExportProgress(100);
+    } finally {
+      setExporting(false);
+      setExportingWhich(null);
+    }
+  }, [fetchAllLogs, exportToXlsx]);
+
+  // export: 30 hari terakhir (UTC) — termasuk hari ini sampai H-29
+  const handleExport30DaysAgo = useCallback(async () => {
+    setExporting(true);
+    setExportingWhich("thirtyDaysAgo");
+    setExportProgress(0);
+    try {
+      const all = await fetchAllLogs((info) => {
+        const tp = info.totalPages ?? null;
+        const pct =
+          tp && tp > 0
+            ? Math.min(95, Math.round((info.pagesDone / tp) * 90))
+            : Math.min(90, info.pagesDone * 5);
+
+        setExportProgress(pct);
+      });
+
+      const pad = (n: number) => String(n).padStart(2, "0");
+      const today = new Date();
+      // Kumpulkan string tanggal UTC untuk 30 hari terakhir: [today, today-1, ..., today-29]
+      const last30Days = new Set<string>();
+
+      for (let i = 0; i < 30; i++) {
+        const d = new Date(today);
+
+        d.setUTCDate(d.getUTCDate() - i);
+        const s = `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(
+          d.getUTCDate(),
+        )}`;
+
+        last30Days.add(s);
+      }
+      // Filter baris
+      const filteredRows = all.filter((r) => {
+        const { date } = splitDateTime(r.timestamp ?? r.created_at);
+
+        return last30Days.has(date);
+      });
+
+      // Sort data: department → nama utama, ambil record terbaru per dept+nama
+      const sortedRows = [...filteredRows].sort((a, b) => {
+        // helper untuk string
+        const s = (v: unknown) =>
+          (v ?? "").toString().toLowerCase();
+
+        // Resolve department dari user_id
+        const deptA = s(a.user_id != null ? (usersDeptByFid[String(a.user_id)] ?? "") : "");
+        const deptB = s(b.user_id != null ? (usersDeptByFid[String(b.user_id)] ?? "") : "");
+
+        if (deptA !== deptB) {
+          return deptA.localeCompare(deptB);
+        }
+
+        // Resolve nama dari user_id
+        const nameA = s(a.user_id != null ? (usersByFid[String(a.user_id)] ?? "") : "");
+        const nameB = s(b.user_id != null ? (usersByFid[String(b.user_id)] ?? "") : "");
+
+        if (nameA !== nameB) {
+          return nameA.localeCompare(nameB);
+        }
+
+        // kalau department & nama sama, urutkan berdasarkan timestamp (terbaru duluan)
+        const tA = new Date(a.timestamp ?? a.created_at ?? 0).getTime();
+        const tB = new Date(b.timestamp ?? b.created_at ?? 0).getTime();
+
+        return tB - tA; // descending (terbaru duluan)
+      });
+
+      setExportProgress((p) => Math.max(p, 97));
+      exportToXlsx(sortedRows, "last_30_days");
       setExportProgress(100);
     } finally {
       setExporting(false);
@@ -1077,6 +1181,18 @@ export default function FingerTable() {
                   }}
                 >
                   Export last 7 days
+                </Button>
+                <Button
+                  color="danger"
+                  isDisabled={exporting}
+                  isLoading={exporting && exportingWhich === "thirtyDaysAgo"}
+                  variant="flat"
+                  onPress={async () => {
+                    await handleExport30DaysAgo();
+                    onClose();
+                  }}
+                >
+                  Export last 30 days
                 </Button>
                 <Button
                   color="success"
