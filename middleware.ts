@@ -1,47 +1,37 @@
 import type { NextRequest } from "next/server";
-
 import { NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 
-import { defaultNavItems } from "@/lib/config/navigation"; // static mapping path<->menu id
+import { defaultNavItems } from "@/lib/config/navigation";
 
-// Helper: find nav item by pathname
 function findNavItem(pathname: string) {
-  // Exact match child first
   for (const parent of defaultNavItems) {
     if ("children" in parent && Array.isArray(parent.children)) {
       const child = parent.children.find((c) => c.path === pathname);
-
       if (child) return child;
     }
   }
 
-  // Exact match parent
   let item = defaultNavItems.find((n) => "path" in n && n.path === pathname);
-
   if (item) return item;
 
-  // Prefix match child first
   for (const parent of defaultNavItems) {
     if ("children" in parent && Array.isArray(parent.children)) {
       const child = parent.children.find(
-        (c) => c.path && pathname.startsWith(c.path + "/"),
+        (c) => c.path && pathname.startsWith(c.path + "/")
       );
-
       if (child) return child;
     }
   }
 
-  // Prefix match parent
   item = defaultNavItems.find(
     (n) =>
       "path" in n &&
       n.path !== "/dashboard" &&
-      pathname.startsWith(n.path + "/"),
+      pathname.startsWith(n.path + "/")
   );
   if (item) return item;
 
-  // Fallback dashboard root
   if (pathname.startsWith("/dashboard")) {
     return defaultNavItems.find((n) => n.id === "dashboard");
   }
@@ -52,26 +42,55 @@ function findNavItem(pathname: string) {
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Proteksi route dashboard hanya validasi session dan role dari token
-  if (pathname.startsWith("/dashboard")) {
+  // Proteksi SEMUA API yang sensitif
+  const protectedAPIs = [
+    "/api/dashboard",
+    "/api/fingerprint",
+    "/api/user",
+    "/api/roles",
+    "/api/role-access",
+    "/api/settings",
+    "/api/timentry",
+    "/api/timesheet",
+    "/api/timesheetall",
+  ];
+
+  const isProtectedAPI = protectedAPIs.some((p) =>
+    pathname === p || pathname.startsWith(p + "/")
+  );
+
+  if (isProtectedAPI) {
     const token = await getToken({
       req: request,
       secret: process.env.NEXTAUTH_SECRET,
     });
 
-    // Tidak ada session => redirect login
+    if (!token) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    return NextResponse.next();
+  }
+
+  
+  // Proteksi halaman dashboard (kode asli)
+  const isDashboard = pathname.startsWith("/dashboard");
+
+  if (isDashboard) {
+    const token = await getToken({
+      req: request,
+      secret: process.env.NEXTAUTH_SECRET,
+    });
+
     if (!token) {
       const url = new URL("/login", request.url);
-
       url.searchParams.set("callbackUrl", pathname);
-
       return NextResponse.redirect(url);
     }
 
     const userRole = token.role as string | undefined;
     const isSuperAdmin = userRole === "super_admin";
 
-    // Role dasar valid?
     const validRoles = [
       "super_admin",
       "admin_heavy",
@@ -85,40 +104,28 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL("/login", request.url));
     }
 
-    // Dashboard root selalu boleh diakses jika role valid
     if (pathname === "/dashboard" || pathname === "/dashboard/") {
       return NextResponse.next();
     }
 
-    // Identifikasi nav item target
     const targetItem = findNavItem(pathname);
 
-    if (!targetItem) {
-      // Path tidak dikenali => izinkan (atau bisa redirect 404)
-      return NextResponse.next();
-    }
+    if (!targetItem) return NextResponse.next();
+    if (isSuperAdmin) return NextResponse.next();
 
-    if (isSuperAdmin) {
-      return NextResponse.next();
-    }
-
-    // Ambil konfigurasi akses dinamis dari API (database)
     let dynamicAccess: Record<string, string[]> = {};
     let apiStatus = "none";
 
     try {
       const apiUrl = new URL("/api/role-access?skip_rl=1", request.url);
       const res = await fetch(apiUrl.toString(), {
-        headers: {
-          cookie: request.headers.get("cookie") || "",
-        },
+        headers: { cookie: request.headers.get("cookie") || "" },
         cache: "no-store",
       });
 
       apiStatus = String(res.status);
 
       if (res.ok) {
-        // Data: array { menu, role }
         const data: Array<{ menu: string; role: string }> = await res.json();
 
         for (const entry of data) {
@@ -128,10 +135,8 @@ export async function middleware(request: NextRequest) {
       }
     } catch {
       apiStatus = "error";
-      // Fail open: jika API gagal, gunakan defaultRoles dari config
     }
 
-    // Jika targetItem adalah child menu, cek akses child saja
     let isChild = false;
 
     for (const parent of defaultNavItems) {
@@ -147,26 +152,22 @@ export async function middleware(request: NextRequest) {
 
     if (isChild) {
       allowedRoles = dynamicAccess[(targetItem as any).id] || [];
-      // Jika child tidak punya entry di DB dan defaultRoles kosong, fallback ke defaultRoles (bila ada)
       if (allowedRoles.length === 0) {
-        allowedRoles = (targetItem as any).defaultRoles
-          ? [...(targetItem as any).defaultRoles]
-          : [];
+        allowedRoles =
+          (targetItem as any).defaultRoles?.length > 0
+            ? [...(targetItem as any).defaultRoles]
+            : [];
       }
     } else {
-      // Parent menu: cek akses parent
       allowedRoles = dynamicAccess[(targetItem as any).id] || [];
       if (allowedRoles.length === 0) {
-        allowedRoles = (targetItem as any).defaultRoles
-          ? [...(targetItem as any).defaultRoles]
-          : validRoles.filter((r) => r !== "super_admin");
+        allowedRoles =
+          (targetItem as any).defaultRoles ||
+          validRoles.filter((r) => r !== "super_admin");
       }
     }
 
-    const hasAccess = allowedRoles.includes(userRole);
-
-    if (!hasAccess) {
-      // Redirect balik ke dashboard (hindari loop jika sudah di dashboard)
+    if (!allowedRoles.includes(userRole)) {
       const redirectUrl = new URL("/dashboard", request.url);
       const resp = NextResponse.redirect(redirectUrl);
 
@@ -180,7 +181,6 @@ export async function middleware(request: NextRequest) {
     }
 
     const resp = NextResponse.next();
-
     resp.headers.set("x-auth-role", userRole || "");
     resp.headers.set("x-menu-id", (targetItem as any).id);
     resp.headers.set("x-api-status", apiStatus);
@@ -193,6 +193,22 @@ export async function middleware(request: NextRequest) {
   return NextResponse.next();
 }
 
+// Matcher untuk menangkap semua API fingerprint/*
 export const config = {
-  matcher: ["/dashboard/:path*"],
+  matcher: [
+    "/dashboard/:path*",
+
+    // API proteksi lengkap
+    "/api/dashboard/:path*",
+    "/api/fingerprint",
+    "/api/fingerprint/:path*",
+    "/api/fingerprint/(.*)",     // ← fix penting
+    "/api/user/:path*",
+    "/api/roles/:path*",
+    "/api/role-access/:path*",
+    "/api/settings/:path*",
+    "/api/timentry/:path*",
+    "/api/timesheet/:path*",
+    "/api/timesheetall/:path*",
+  ],
 };

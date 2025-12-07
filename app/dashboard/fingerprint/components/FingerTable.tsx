@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useMemo, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import {
   Card,
   CardHeader,
@@ -26,7 +26,8 @@ import {
   Skeleton,
 } from "@heroui/react";
 import { Search, Upload, UserRoundCheck } from "lucide-react";
-import * as XLSX from "xlsx";
+import { useFingerprintLogs } from "@/hooks/fingerprint/useFingerprintLogs";
+import { useExportFingerprint } from "@/hooks/fingerprint/useExportFingerprint";
 
 type LogEntry = {
   id: number | string;
@@ -35,76 +36,16 @@ type LogEntry = {
   device_sn?: string;
   timestamp?: string;
   created_at?: string;
-  total_rows?: number;
   [key: string]: any;
 };
 
-type LogsResponse = {
-  total?: number | null;
-  rows: LogEntry[];
-  limit?: number;
-  offset?: number;
-  has_more?: boolean;
-};
+function mapType(t?: number) {
+  if (t === 0) return "Masuk";
+  if (t === 1) return "Pulang";
+  if (t === 4) return "Lembur Masuk";
+  if (t === 5) return "Lembur Pulang";
 
-const FETCH_SIZE = 500; // ambil 500 dari API
-const UI_PAGE_SIZE = 20; // tampilkan 20 per halaman UI
-
-async function fetchLogsFromApi(
-  serverPage: number,
-  signal?: AbortSignal,
-): Promise<LogsResponse> {
-  const offset = (serverPage - 1) * FETCH_SIZE;
-  const params = new URLSearchParams();
-
-  params.set("limit", String(FETCH_SIZE));
-  params.set("offset", String(offset));
-
-  const url = `/api/fingerprint/table?${params.toString()}`;
-
-  const res = await fetch(url, {
-    method: "GET",
-    cache: "no-store",
-    signal,
-  });
-
-  if (!res.ok) {
-    const text = await res.text();
-
-    throw new Error(`Fetch error (${res.status}): ${text}`);
-  }
-
-  const json = await res.json();
-
-  let rows: LogEntry[] = [];
-
-  if (json && Array.isArray(json.rows)) rows = json.rows;
-  else if (json && Array.isArray(json.data)) rows = json.data;
-  else if (Array.isArray(json)) rows = json;
-  else rows = [];
-
-  let total: number | null | undefined = undefined;
-
-  if (typeof json.total === "number") total = json.total;
-  else if (typeof json.count === "number") total = json.count;
-  else if (rows[0]?.total_rows) total = Number(rows[0].total_rows);
-  else if (typeof json.total_rows === "number") total = json.total_rows;
-  else if (typeof json.total_rows === "string") total = Number(json.total_rows);
-
-  if (typeof json.has_more === "boolean" && json.has_more === false) {
-    total = (offset || 0) + rows.length;
-  }
-
-  return {
-    rows,
-    total: typeof total === "number" ? total : null,
-    limit: Number(json.limit ?? FETCH_SIZE),
-    offset: Number(json.offset ?? offset),
-    has_more:
-      typeof json.has_more === "boolean"
-        ? json.has_more
-        : rows.length === FETCH_SIZE,
-  };
+  return String(t ?? "System");
 }
 
 function formatDate(iso?: string) {
@@ -133,727 +74,52 @@ function splitDateTime(iso?: string) {
   return { date: date ?? "-", time: time ?? "-" };
 }
 
-function mapType(t?: number) {
-  if (t === 0) return "Masuk";
-  if (t === 1) return "Pulang";
-  if (t === 4) return "Lembur Masuk";
-  if (t === 5) return "Lembur Pulang";
-
-  return String(t ?? "-");
-}
-
 export default function FingerTable() {
-  const [rows, setRows] = useState<LogEntry[]>([]);
-  const [usersByFid, setUsersByFid] = useState<Record<string, string>>({});
-  const [usersDeptByFid, setUsersDeptByFid] = useState<Record<string, string>>(
-    {},
-  );
-  const [usersNikByFid, setUsersNikByFid] = useState<Record<string, string>>(
-    {},
-  );
-  const [usersPhotoByFid, setUsersPhotoByFid] = useState<
-    Record<string, string>
-  >({});
-  const [total, setTotal] = useState<number | null>(null);
-  // Keep original server total to restore after clearing search
-  const [serverTotal, setServerTotal] = useState<number | null>(null);
   const [page, setPage] = useState<number>(1);
-  // TAMBAH: state untuk server page yang sedang dimuat (batch 500)
-  const [serverPage, setServerPage] = useState<number>(1);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [hasMore, setHasMore] = useState<boolean | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [exportingWhich, setExportingWhich] = useState<"today" | "yesterday" | "last7" | "last30" | "all" | null>(null);
 
-  // Global search (cari semua data, bukan hanya yang tampil)
-  const [debouncedSearch, setDebouncedSearch] = useState<string>("");
-  const [globalSearchRows, setGlobalSearchRows] = useState<LogEntry[] | null>(
-    null,
-  );
-
+  // Fetch logs from backend with pagination+search already applied and users joined
   const {
-    isOpen: isExportOpen,
-    onOpen: onOpenExport,
-    onOpenChange: onExportOpenChange,
-  } = useDisclosure();
-  const [exporting, setExporting] = useState(false);
-  const [exportingWhich, setExportingWhich] = useState<
-    | "current"
-    | "today"
-    | "yesterday"
-    | "sevenDaysAgo"
-    | "thirtyDaysAgo"
-    | "all"
-    | null
-  >(null);
-  const [exportProgress, setExportProgress] = useState<number>(0);
-  // Tambah state loading untuk data users
-  const [usersLoading, setUsersLoading] = useState<boolean>(true);
-
-  useEffect(() => {
-    const h = setTimeout(() => setDebouncedSearch(searchQuery.trim()), 350);
-
-    return () => clearTimeout(h);
-  }, [searchQuery]);
-
-  useEffect(() => {
-    const controller = new AbortController();
-    let mounted = true;
-
-    // Jika ada pencarian global, skip fetch per batch
-    if (debouncedSearch) return;
-
-    // Map halaman UI (20/item) ke server page (500/item)
-    const desiredServerPage =
-      Math.floor(((page - 1) * UI_PAGE_SIZE) / FETCH_SIZE) + 1;
-
-    async function load() {
-      // Hindari refetch kalau masih dalam batch yang sama dan data sudah ada
-      if (serverPage === desiredServerPage && rows.length > 0) return;
-
-      setLoading(true);
-      setError(null);
-      try {
-        const res = await fetchLogsFromApi(
-          desiredServerPage,
-          controller.signal,
-        );
-
-        if (!mounted) return;
-
-        setRows(res.rows ?? []);
-        setHasMore(res.has_more ?? (res.rows?.length ?? 0) === FETCH_SIZE);
-        const t = typeof res.total === "number" ? res.total : null;
-
-        setTotal(t);
-        setServerTotal(t);
-        setServerPage(desiredServerPage);
-      } catch (err: any) {
-        if (!mounted) return;
-        setError(err?.message ?? "Gagal memuat data");
-      } finally {
-        if (mounted) setLoading(false);
-      }
-    }
-
-    load();
-
-    return () => {
-      mounted = false;
-      controller.abort();
-    };
-  }, [page, debouncedSearch, serverPage, rows.length]);
-
-  // load users once and build map by fid -> name & department
-  useEffect(() => {
-    let mounted = true;
-
-    async function loadUsers() {
-      try {
-        setUsersLoading(true);
-        const res = await fetch("/api/dashboard/users", { cache: "no-store" });
-
-        if (!res.ok) return;
-
-        const json = await res.json();
-        const usersList: any[] =
-          json?.data?.users ?? json?.users ?? (Array.isArray(json) ? json : []);
-
-        const nameMap: Record<string, string> = {};
-        const deptMap: Record<string, string> = {};
-        const nikMap: Record<string, string> = {};
-        const photoMap: Record<string, string> = {};
-
-        for (const u of usersList) {
-          if (u?.fid != null) {
-            const key = String(u.fid);
-
-            nameMap[key] = u.name ?? u?.fullName ?? u?.username ?? "";
-            deptMap[key] = u?.department ?? "";
-            nikMap[key] = u?.nik != null ? String(u.nik) : "";
-            const photoUrl =
-              u?.photo ??
-              u?.avatar ??
-              u?.avatarUrl ??
-              u?.profileImageUrl ??
-              u?.image ??
-              u?.profile?.photoUrl ??
-              "";
-
-            photoMap[key] = photoUrl ? String(photoUrl) : "";
-          }
-        }
-        if (mounted) {
-          setUsersByFid(nameMap);
-          setUsersDeptByFid(deptMap);
-          setUsersNikByFid(nikMap);
-          setUsersPhotoByFid(photoMap);
-        }
-      } catch {
-        // ignore
-      } finally {
-        if (mounted) setUsersLoading(false);
-      }
-    }
-    loadUsers();
-
-    return () => {
-      mounted = false;
-    };
-  }, []);
-
-  // Saat ada query, ambil semua data lalu filter by name/NIK/division/user_id/device_sn
-  useEffect(() => {
-    let cancelled = false;
-
-    async function searchAll() {
-      if (!debouncedSearch) {
-        setGlobalSearchRows(null);
-        // restore total ke nilai server ketika query dibersihkan
-        setTotal(serverTotal);
-
-        return;
-      }
-      setLoading(true);
-      setError(null);
-      try {
-        const all = await fetchAllLogs();
-        const q = debouncedSearch.toLowerCase();
-
-        const filtered = all.filter((r) => {
-          const name =
-            r.user_id != null ? (usersByFid[String(r.user_id)] ?? "") : "";
-          const nik =
-            r.user_id != null ? (usersNikByFid[String(r.user_id)] ?? "") : "";
-          const dept =
-            r.user_id != null ? (usersDeptByFid[String(r.user_id)] ?? "") : "";
-
-          return (
-            name.toLowerCase().includes(q) ||
-            nik.toLowerCase().includes(q) ||
-            dept.toLowerCase().includes(q) ||
-            String(r.user_id ?? "")
-              .toLowerCase()
-              .includes(q) ||
-            String(r.device_sn ?? "")
-              .toLowerCase()
-              .includes(q) ||
-            String(r.id ?? "")
-              .toLowerCase()
-              .includes(q)
-          );
-        });
-
-        if (cancelled) return;
-        setGlobalSearchRows(filtered);
-        setTotal(filtered.length); // total jadi jumlah hasil pencarian
-        setPage(1); // reset ke halaman 1
-      } catch (e: any) {
-        if (cancelled) return;
-        setError(e?.message ?? "Gagal memuat hasil pencarian");
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    }
-
-    searchAll();
-
-    return () => {
-      cancelled = true;
-    };
-  }, [debouncedSearch, usersByFid, usersNikByFid, usersDeptByFid, serverTotal]);
-
-  // Sumber data untuk tabel: jika globalSearchRows ada, pakai itu; jika tidak, pakai rows (per-page)
-  const filteredRows = useMemo(() => {
-    const source = globalSearchRows ?? rows;
-    const q = searchQuery.trim().toLowerCase();
-
-    if (!q) return source;
-    // Jika sudah di-filter global (globalSearchRows), langsung pakai
-    if (globalSearchRows) return source;
-
-    // Fallback: filter di current page saja
-    return source.filter((r) => {
-      const name =
-        r.user_id != null ? (usersByFid[String(r.user_id)] ?? "") : "";
-      const nik =
-        r.user_id != null ? (usersNikByFid[String(r.user_id)] ?? "") : "";
-      const dept =
-        r.user_id != null ? (usersDeptByFid[String(r.user_id)] ?? "") : "";
-
-      return (
-        name.toLowerCase().includes(q) ||
-        nik.toLowerCase().includes(q) ||
-        dept.toLowerCase().includes(q) ||
-        String(r.user_id ?? "")
-          .toLowerCase()
-          .includes(q) ||
-        String(r.device_sn ?? "")
-          .toLowerCase()
-          .includes(q) ||
-        String(r.id ?? "")
-          .toLowerCase()
-          .includes(q)
-      );
-    });
-  }, [
-    rows,
-    searchQuery,
+    data,
+    isLoading,
+    isFetching,
+    error,
     usersByFid,
-    usersNikByFid,
     usersDeptByFid,
-    globalSearchRows,
-  ]);
-
-  // Pagination client-side untuk hasil pencarian global ATAU batch 500
-  const paginatedRows = useMemo(() => {
-    // Jika global search aktif, slicing terhadap seluruh hasil
-    if (globalSearchRows) {
-      const start = (page - 1) * UI_PAGE_SIZE;
-
-      return filteredRows.slice(start, start + UI_PAGE_SIZE);
-    }
-    // Jika tidak, slicing relatif terhadap batch 500 yang sedang dimuat
-    const startInBatch =
-      (page - 1) * UI_PAGE_SIZE - (serverPage - 1) * FETCH_SIZE;
-
-    return filteredRows.slice(startInBatch, startInBatch + UI_PAGE_SIZE);
-  }, [filteredRows, page, serverPage, globalSearchRows]);
-
-  // Helper untuk resolve Photo URL dari user_id (fid)
-  const resolvePhotoByUserId = useCallback(
-    (userId?: string | number) => {
-      if (userId == null) return "";
-
-      return usersPhotoByFid[String(userId)] ?? "";
-    },
-    [usersPhotoByFid],
-  );
-
-  // Helper untuk resolve nama dari user_id (fid)
-  const resolveNameByUserId = useCallback(
-    (userId?: string | number) => {
-      if (userId == null) return "-";
-
-      return usersByFid[String(userId)] ?? String(userId);
-    },
-    [usersByFid],
-  );
-
-  // Helper untuk resolve NIK dari user_id (fid)
-  const resolveNikByUserId = useCallback(
-    (userId?: string | number) => {
-      if (userId == null) return "-";
-
-      return usersNikByFid[String(userId)] ?? "-";
-    },
-    [usersNikByFid],
-  );
-
-  // Helper untuk resolve Department dari user_id (fid)
-  const resolveDeptByUserId = useCallback(
-    (userId?: string | number) => {
-      if (userId == null) return "-";
-
-      return usersDeptByFid[String(userId)] ?? "-";
-    },
-    [usersDeptByFid],
-  );
-
-  const totalPages =
-    typeof total === "number"
-      ? Math.max(1, Math.ceil(total / UI_PAGE_SIZE))
-      : null;
-
-  // util: bangun data export dan tulis ke XLSX
-  const exportToXlsx = useCallback(
-    (source: LogEntry[], filenameSuffix: string) => {
-      const exportData = source.map((r, i) => {
-        const { date, time } = splitDateTime(r.timestamp ?? r.created_at);
-        const name = resolveNameByUserId(r.user_id);
-        const nik = resolveNikByUserId(r.user_id);
-        const department = resolveDeptByUserId(r.user_id);
-
-        return {
-          No: i + 1,
-          name,
-          nik,
-          department,
-          type: mapType(r.type),
-          time,
-          date,
-          user_id: r.user_id ?? "-",
-          device_sn: r.device_sn ?? "-",
-        };
-      });
-      const ws = XLSX.utils.json_to_sheet(exportData, {
-        header: [
-          "No",
-          "name",
-          "nik",
-          "department",
-          "type",
-          "time",
-          "date",
-          "user_id",
-          "device_sn",
-        ],
-      });
-
-      ws["!cols"] = [
-        { wch: 6 },
-        { wch: 24 },
-        { wch: 14 },
-        { wch: 16 },
-        { wch: 12 },
-        { wch: 14 },
-        { wch: 12 },
-        { wch: 10 },
-        { wch: 18 },
-      ];
-      const wb = XLSX.utils.book_new();
-
-      XLSX.utils.book_append_sheet(wb, ws, "logs");
-      const ts = new Date().toISOString().slice(0, 19).replace(/:/g, "-");
-
-      XLSX.writeFile(wb, `fingerprint_logs_${filenameSuffix}_${ts}.xlsx`);
-    },
-    [resolveNameByUserId, resolveNikByUserId, resolveDeptByUserId],
-  );
-
-  // export: halaman saat ini (sesuai perilaku lama)
-  const handleExportCurrent = useCallback(async () => {
-    setExporting(true);
-    setExportingWhich("current");
-    setExportProgress(0);
-    const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
-
-    try {
-      const source = filteredRows.length ? filteredRows : rows;
-
-      // simulasi progres singkat (data sudah ada di client)
-      setExportProgress(40);
-      await sleep(50);
-      setExportProgress(75);
-      exportToXlsx(source, "current_page");
-      setExportProgress(100);
-    } finally {
-      setExporting(false);
-      setExportingWhich(null);
-    }
-  }, [filteredRows, rows, exportToXlsx]);
-
-  // Fetch semua halaman dengan progress callback
-  const fetchAllLogs = useCallback(
-    async (
-      onProgress?: (info: {
-        pagesDone: number;
-        totalPages?: number | null;
-        rowsLoaded: number;
-      }) => void,
-    ): Promise<LogEntry[]> => {
-      let all: LogEntry[] = [];
-      let p = 1;
-      const first = await fetchLogsFromApi(1);
-
-      all = all.concat(first.rows ?? []);
-      const totalPages =
-        typeof first.total === "number"
-          ? Math.max(1, Math.ceil(first.total / FETCH_SIZE))
-          : null;
-
-      onProgress?.({ pagesDone: 1, totalPages, rowsLoaded: all.length });
-
-      let hasMore = !!first.has_more;
-
-      // lanjutkan ke halaman berikutnya
-      while (hasMore && (totalPages ? p < totalPages : p < 200)) {
-        p += 1;
-        const res = await fetchLogsFromApi(p);
-
-        all = all.concat(res.rows ?? []);
-        hasMore = !!res.has_more;
-        const totalPg =
-          typeof res.total === "number"
-            ? Math.max(1, Math.ceil(res.total / FETCH_SIZE))
-            : totalPages;
-
-        onProgress?.({
-          pagesDone: p,
-          totalPages: totalPg,
-          rowsLoaded: all.length,
-        });
-        if (!hasMore) break;
-      }
-
-      return all;
-    },
-    [],
-  );
-
-  // export: semua data "hari ini" (UTC, konsisten dengan formatDate)
-  const handleExportToday = useCallback(async () => {
-    setExporting(true);
-    setExportingWhich("today");
-    setExportProgress(0);
-    try {
-      const all = await fetchAllLogs((info) => {
-        // hitung persen berdasarkan halaman yang selesai
-        const tp = info.totalPages ?? null;
-        const pct =
-          tp && tp > 0
-            ? Math.min(95, Math.round((info.pagesDone / tp) * 90))
-            : Math.min(90, info.pagesDone * 5);
-
-        setExportProgress(pct);
-      });
-      const pad = (n: number) => String(n).padStart(2, "0");
-      const now = new Date();
-      const todayUTC = `${now.getUTCFullYear()}-${pad(now.getUTCMonth() + 1)}-${pad(now.getUTCDate())}`;
-
-      // Filter hanya hari ini
-      const todayRows = all.filter((r) => {
-        const { date } = splitDateTime(r.timestamp ?? r.created_at);
-
-        return date === todayUTC;
-      });
-
-      // Sort data: nama → department → tanggal/waktu
-      const sortedTodayRows = [...todayRows].sort((a, b) => {
-        // helper untuk string
-        const s = (v: unknown) => (v ?? "").toString().toLowerCase();
-
-        const nameA = s(a.name);
-        const nameB = s(b.name);
-
-        if (nameA !== nameB) {
-          return nameA.localeCompare(nameB);
-        }
-
-        const deptA = s(a.department ?? a.dept ?? a.departemen);
-        const deptB = s(b.department ?? b.dept ?? b.departemen);
-
-        if (deptA !== deptB) {
-          return deptA.localeCompare(deptB);
-        }
-
-        // kalau nama & department sama, urutkan berdasarkan timestamp
-        const tA = new Date(a.timestamp ?? a.created_at ?? 0).getTime();
-        const tB = new Date(b.timestamp ?? b.created_at ?? 0).getTime();
-
-        return tA - tB; // ascending (lebih awal duluan)
-      });
-
-      setExportProgress((p) => Math.max(p, 97));
-      exportToXlsx(todayRows, "today");
-      setExportProgress(100);
-    } finally {
-      setExporting(false);
-      setExportingWhich(null);
-    }
-  }, [fetchAllLogs, exportToXlsx]);
-
-  // export: kemarin s/d hari ini (UTC, 2 hari termasuk hari ini)
-  const handleExportYesterday = useCallback(async () => {
-    setExporting(true);
-    setExportingWhich("yesterday");
-    setExportProgress(0);
-    try {
-      const all = await fetchAllLogs((info) => {
-        const tp = info.totalPages ?? null;
-        const pct =
-          tp && tp > 0
-            ? Math.min(95, Math.round((info.pagesDone / tp) * 90))
-            : Math.min(90, info.pagesDone * 5);
-
-        setExportProgress(pct);
-      });
-
-      const pad = (n: number) => String(n).padStart(2, "0");
-      const now = new Date();
-      const todayUTC = `${now.getUTCFullYear()}-${pad(now.getUTCMonth() + 1)}-${pad(
-        now.getUTCDate(),
-      )}`;
-      const y = new Date(now);
-
-      y.setUTCDate(y.getUTCDate() - 1);
-      const yesterdayUTC = `${y.getUTCFullYear()}-${pad(y.getUTCMonth() + 1)}-${pad(
-        y.getUTCDate(),
-      )}`;
-
-      const allow = new Set<string>([yesterdayUTC, todayUTC]);
-      const rows = all.filter((r) =>
-        allow.has(splitDateTime(r.timestamp ?? r.created_at).date),
-      );
-
-      setExportProgress((p) => Math.max(p, 97));
-      exportToXlsx(rows, "yesterday_to_today");
-      setExportProgress(100);
-    } finally {
-      setExporting(false);
-      setExportingWhich(null);
-    }
-  }, [fetchAllLogs, exportToXlsx]);
-
-  // export: 7 hari terakhir (UTC) — termasuk hari ini sampai H-6
-  const handleExport7DaysAgo = useCallback(async () => {
-    setExporting(true);
-    setExportingWhich("sevenDaysAgo");
-    setExportProgress(0);
-    try {
-      const all = await fetchAllLogs((info) => {
-        const tp = info.totalPages ?? null;
-        const pct =
-          tp && tp > 0
-            ? Math.min(95, Math.round((info.pagesDone / tp) * 90))
-            : Math.min(90, info.pagesDone * 5);
-
-        setExportProgress(pct);
-      });
-
-      const pad = (n: number) => String(n).padStart(2, "0");
-      const today = new Date();
-      // Kumpulkan string tanggal UTC untuk 7 hari terakhir: [today, today-1, ..., today-6]
-      const last7Days = new Set<string>();
-
-      for (let i = 0; i < 7; i++) {
-        const d = new Date(today);
-
-        d.setUTCDate(d.getUTCDate() - i);
-        const s = `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(
-          d.getUTCDate(),
-        )}`;
-
-        last7Days.add(s);
-      }
-      // Filter baris
-      const rows = all.filter((r) => {
-        const { date } = splitDateTime(r.timestamp ?? r.created_at);
-
-        return last7Days.has(date);
-      });
-
-      setExportProgress((p) => Math.max(p, 97));
-      exportToXlsx(rows, "last_7_days");
-      setExportProgress(100);
-    } finally {
-      setExporting(false);
-      setExportingWhich(null);
-    }
-  }, [fetchAllLogs, exportToXlsx]);
-
-  // export: 30 hari terakhir (UTC) — termasuk hari ini sampai H-29
-  const handleExport30DaysAgo = useCallback(async () => {
-    setExporting(true);
-    setExportingWhich("thirtyDaysAgo");
-    setExportProgress(0);
-    try {
-      const all = await fetchAllLogs((info) => {
-        const tp = info.totalPages ?? null;
-        const pct =
-          tp && tp > 0
-            ? Math.min(95, Math.round((info.pagesDone / tp) * 90))
-            : Math.min(90, info.pagesDone * 5);
-
-        setExportProgress(pct);
-      });
-
-      const pad = (n: number) => String(n).padStart(2, "0");
-      const today = new Date();
-      // Kumpulkan string tanggal UTC untuk 30 hari terakhir: [today, today-1, ..., today-29]
-      const last30Days = new Set<string>();
-
-      for (let i = 0; i < 30; i++) {
-        const d = new Date(today);
-
-        d.setUTCDate(d.getUTCDate() - i);
-        const s = `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(
-          d.getUTCDate(),
-        )}`;
-
-        last30Days.add(s);
-      }
-      // Filter baris
-      const filteredRows = all.filter((r) => {
-        const { date } = splitDateTime(r.timestamp ?? r.created_at);
-
-        return last30Days.has(date);
-      });
-
-      // Sort data: department → nama utama, ambil record terbaru per dept+nama
-      const sortedRows = [...filteredRows].sort((a, b) => {
-        // helper untuk string
-        const s = (v: unknown) => (v ?? "").toString().toLowerCase();
-
-        // Resolve department dari user_id
-        const deptA = s(
-          a.user_id != null ? (usersDeptByFid[String(a.user_id)] ?? "") : "",
-        );
-        const deptB = s(
-          b.user_id != null ? (usersDeptByFid[String(b.user_id)] ?? "") : "",
-        );
-
-        if (deptA !== deptB) {
-          return deptA.localeCompare(deptB);
-        }
-
-        // Resolve nama dari user_id
-        const nameA = s(
-          a.user_id != null ? (usersByFid[String(a.user_id)] ?? "") : "",
-        );
-        const nameB = s(
-          b.user_id != null ? (usersByFid[String(b.user_id)] ?? "") : "",
-        );
-
-        if (nameA !== nameB) {
-          return nameA.localeCompare(nameB);
-        }
-
-        // kalau department & nama sama, urutkan berdasarkan timestamp (terbaru duluan)
-        const tA = new Date(a.timestamp ?? a.created_at ?? 0).getTime();
-        const tB = new Date(b.timestamp ?? b.created_at ?? 0).getTime();
-
-        return tB - tA; // descending (terbaru duluan)
-      });
-
-      setExportProgress((p) => Math.max(p, 97));
-      exportToXlsx(sortedRows, "last_30_days");
-      setExportProgress(100);
-    } finally {
-      setExporting(false);
-      setExportingWhich(null);
-    }
-  }, [fetchAllLogs, exportToXlsx]);
-
-  // export: semua data (semua halaman)
-  const handleExportAll = useCallback(async () => {
-    setExporting(true);
-    setExportingWhich("all");
-    setExportProgress(0);
-    try {
-      const all = await fetchAllLogs((info) => {
-        const tp = info.totalPages ?? null;
-        const pct =
-          tp && tp > 0
-            ? Math.min(95, Math.round((info.pagesDone / tp) * 90))
-            : Math.min(90, info.pagesDone * 5);
-
-        setExportProgress(pct);
-      });
-
-      setExportProgress((p) => Math.max(p, 97));
-      exportToXlsx(all, "all");
-      setExportProgress(100);
-    } finally {
-      setExporting(false);
-      setExportingWhich(null);
-    }
-  }, [fetchAllLogs, exportToXlsx]);
-
+    usersNikByFid,
+    usersPhotoByFid,
+    pageSize,
+  } = useFingerprintLogs({ page, search: searchQuery });
+
+  const rows: LogEntry[] = data?.rows ?? [];
+  const total: number | null = typeof data?.total === "number" ? data!.total : null;
+  const totalPages = total != null ? Math.max(1, Math.ceil(total / (pageSize || 20))) : null;
   const pages = totalPages ?? Math.max(1, page);
 
+  const resolvePhotoByUserId = useCallback(
+    (userId?: string | number) => (userId == null ? "" : usersPhotoByFid[String(userId)] ?? ""),
+    [usersPhotoByFid]
+  );
+  const resolveNameByUserId = useCallback(
+    (userId?: string | number) => (userId == null ? "-" : usersByFid[String(userId)] ?? String(userId)),
+    [usersByFid]
+  );
+  const resolveNikByUserId = useCallback(
+    (userId?: string | number) => (userId == null ? "-" : usersNikByFid[String(userId)] ?? "-"),
+    [usersNikByFid]
+  );
+  const resolveDeptByUserId = useCallback(
+    (userId?: string | number) => (userId == null ? "-" : usersDeptByFid[String(userId)] ?? "-"),
+    [usersDeptByFid]
+  );
+
+  const { isOpen: isExportOpen, onOpen: onOpenExport, onOpenChange: onExportOpenChange } = useDisclosure();
+  const { exporting, exportProgress, exportData } = useExportFingerprint();
+
+  const loading = isLoading || isFetching;
+
   return (
-    // <div className="p-0 md:p-6">
     <div>
       <Card>
         <CardHeader className="flex flex-col gap-3 sm:flex-row">
@@ -863,23 +129,12 @@ export default function FingerTable() {
             </div>
             <div className="flex flex-col flex-1 min-w-0">
               <div className="flex items-baseline gap-2">
-                <h2 className="text-xl font-semibold text-default-800">
-                  Attendance
-                </h2>
-                <Chip
-                  className="text-sm font-bold"
-                  color="success"
-                  radius="sm"
-                  size="sm"
-                  variant="flat"
-                >
+                <h2 className="text-xl font-semibold text-default-800">Attendance</h2>
+                <Chip className="text-sm font-bold" color="success" radius="sm" size="sm" variant="flat">
                   {typeof total === "number" ? total : 0}
                 </Chip>
               </div>
-
-              <p className="text-xs sm:text-small text-default-600">
-                Attendance by fingerprint
-              </p>
+              <p className="text-xs sm:text-small text-default-600">Attendance by fingerprint</p>
             </div>
           </div>
 
@@ -900,20 +155,9 @@ export default function FingerTable() {
               }}
             />
 
-            <Button
-              className="flex-1 sm:flex-none"
-              color="primary"
-              size="sm"
-              startContent={<Upload className="w-4 h-4" />}
-              variant="flat"
-              onPress={onOpenExport}
-            >
+            <Button className="flex-1 sm:flex-none" color="primary" size="sm" startContent={<Upload className="w-4 h-4" />} variant="flat" onPress={onOpenExport}>
               Export
             </Button>
-
-            {/* <Button className="flex-1 sm:flex-none" color="primary" size="sm" startContent={<Download className="w-4 h-4" />} variant="flat" onPress={() => {  }}>
-              Import
-            </Button> */}
           </div>
         </CardHeader>
 
@@ -943,16 +187,7 @@ export default function FingerTable() {
               aria-label="Fingerprint logs table"
               bottomContent={
                 <div className="flex w-full justify-center py-3">
-                  <Pagination
-                    isCompact
-                    showControls
-                    showShadow
-                    color="primary"
-                    isDisabled={loading}
-                    page={page}
-                    total={pages}
-                    onChange={(p: number) => setPage(p)}
-                  />
+                  <Pagination isCompact showControls showShadow color="primary" isDisabled={loading} page={page} total={pages} onChange={(p: number) => setPage(p)} />
                 </div>
               }
               className="min-w-full"
@@ -968,161 +203,83 @@ export default function FingerTable() {
                 {/* <TableColumn className="w-28 text-center text-xs font-medium text-default-600 uppercase tracking-wider select-none">
                   NIK
                 </TableColumn> */}
-                <TableColumn className="w-20 text-center text-xs text-left font-medium text-default-600 uppercase tracking-wider select-none">
-                  NAME
-                </TableColumn>
-                <TableColumn className="w-28 text-center text-xs font-medium text-default-600 uppercase tracking-wider select-none">
-                  DIVISION
-                </TableColumn>
-                <TableColumn className="w-28 text-center text-xs font-medium text-default-600 uppercase tracking-wider select-none">
-                  TYPE
-                </TableColumn>
-                <TableColumn className="w-28 text-center text-xs font-medium text-default-600 uppercase tracking-wider select-none">
-                  TIME
-                </TableColumn>
-                <TableColumn className="w-24 text-center text-xs font-medium text-default-600 uppercase tracking-wider select-none">
-                  DATE
-                </TableColumn>
-                <TableColumn className="w-24 text-center text-xs font-medium text-default-600 uppercase tracking-wider select-none">
-                  FID
-                </TableColumn>
-                <TableColumn className="w-56 text-center text-xs font-medium text-default-600 uppercase tracking-wider select-none">
-                  DEVICE SN
-                </TableColumn>
+                <TableColumn className="w-20 text-center text-xs text-left font-medium text-default-600 uppercase tracking-wider select-none">NAME</TableColumn>
+                <TableColumn className="w-28 text-center text-xs font-medium text-default-600 uppercase tracking-wider select-none">DIVISION</TableColumn>
+                <TableColumn className="w-28 text-center text-xs font-medium text-default-600 uppercase tracking-wider select-none">TYPE</TableColumn>
+                <TableColumn className="w-28 text-center text-xs font-medium text-default-600 uppercase tracking-wider select-none">TIME</TableColumn>
+                <TableColumn className="w-24 text-center text-xs font-medium text-default-600 uppercase tracking-wider select-none">DATE</TableColumn>
+                <TableColumn className="w-24 text-center text-xs font-medium text-default-600 uppercase tracking-wider select-none">FID</TableColumn>
+                <TableColumn className="w-56 text-center text-xs font-medium text-default-600 uppercase tracking-wider select-none">DEVICE SN</TableColumn>
               </TableHeader>
 
               <TableBody>
                 {loading
-                  ? Array.from({ length: Math.min(UI_PAGE_SIZE, 10) }).map(
-                      (_, i) => (
-                        <TableRow
-                          key={`skeleton-${i}`}
-                          className="hover:bg-transparent"
-                        >
-                          <TableCell className="text-left align-left px-2 py-3">
-                            <div className="flex items-center gap-3">
-                              <Skeleton className="w-8 h-8 rounded-full" />
-                              <div className="flex-1 min-w-0">
-                                <Skeleton className="h-3 w-32 rounded mb-1" />
-                                <Skeleton className="h-3 w-20 rounded" />
-                              </div>
+                  ? Array.from({ length: 10 }).map((_, i) => (
+                      <TableRow key={`skeleton-${i}`} className="hover:bg-transparent">
+                        <TableCell className="text-left align-left px-2 py-3">
+                          <div className="flex items-center gap-3">
+                            <Skeleton className="w-8 h-8 rounded-full" />
+                            <div className="flex-1 min-w-0">
+                              <Skeleton className="h-3 w-32 rounded mb-1" />
+                              <Skeleton className="h-3 w-20 rounded" />
                             </div>
-                          </TableCell>
-                          <TableCell className="text-center align-middle px-6 py-3">
-                            <Skeleton className="h-3 w-24 rounded mx-auto" />
-                          </TableCell>
-                          <TableCell className="text-center align-middle px-6 py-3">
-                            <Skeleton className="h-6 w-20 rounded mx-auto" />
-                          </TableCell>
-                          <TableCell className="text-center align-middle px-6 py-3">
-                            <Skeleton className="h-3 w-16 rounded mx-auto" />
-                          </TableCell>
-                          <TableCell className="text-center align-middle px-6 py-3">
-                            <Skeleton className="h-3 w-20 rounded mx-auto" />
-                          </TableCell>
-                          <TableCell className="text-center align-middle px-6 py-3">
-                            <Skeleton className="h-3 w-14 rounded mx-auto" />
-                          </TableCell>
-                          <TableCell className="text-center align-middle px-6 py-3">
-                            <Skeleton className="h-3 w-32 rounded mx-auto" />
-                          </TableCell>
-                        </TableRow>
-                      ),
-                    )
-                  : paginatedRows.map((item: LogEntry, index: number) => {
-                      const idx = (page - 1) * UI_PAGE_SIZE + index + 1;
-                      const resolvedName =
-                        item.user_id != null
-                          ? (usersByFid[String(item.user_id)] ?? "-")
-                          : "-";
-                      const resolvedDept =
-                        item.user_id != null
-                          ? (usersDeptByFid[String(item.user_id)] ?? "-")
-                          : "-";
-                      const resolvedNik =
-                        item.user_id != null
-                          ? (usersNikByFid[String(item.user_id)] ?? "-")
-                          : "-";
-                      const resolvedPhoto = resolvePhotoByUserId(item.user_id);
-                      const { date: resolvedDate, time: resolvedTime } =
-                        splitDateTime(item.timestamp ?? item.created_at);
-
-                      // Mini skeleton aktif saat data users masih loading
-                      const showMiniSkeleton =
-                        usersLoading && item.user_id != null;
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-center align-middle px-6 py-3">
+                          <Skeleton className="h-3 w-24 rounded mx-auto" />
+                        </TableCell>
+                        <TableCell className="text-center align-middle px-6 py-3">
+                          <Skeleton className="h-6 w-20 rounded mx-auto" />
+                        </TableCell>
+                        <TableCell className="text-center align-middle px-6 py-3">
+                          <Skeleton className="h-3 w-16 rounded mx-auto" />
+                        </TableCell>
+                        <TableCell className="text-center align-middle px-6 py-3">
+                          <Skeleton className="h-3 w-20 rounded mx-auto" />
+                        </TableCell>
+                        <TableCell className="text-center align-middle px-6 py-3">
+                          <Skeleton className="h-3 w-14 rounded mx-auto" />
+                        </TableCell>
+                        <TableCell className="text-center align-middle px-6 py-3">
+                          <Skeleton className="h-3 w-32 rounded mx-auto" />
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  : rows.map((item: LogEntry, index: number) => {
+                      const idx = (page - 1) * (pageSize || 20) + index + 1;
+                      const nameFromUser = (item as any).user?.name as string | undefined;
+                      const deptFromUser = (item as any).user?.department as string | undefined;
+                      const nikFromUser = (item as any).user?.nik as string | undefined;
+                      const photoFromUser = (item as any).user?.photo as string | undefined;
+                      const fidFromUser = (item as any).user?.fid as string | number | undefined;
+                      const resolvedName = nameFromUser ?? resolveNameByUserId(item.user_id);
+                      const resolvedDept = deptFromUser ?? resolveDeptByUserId(item.user_id);
+                      const resolvedNik = nikFromUser ?? resolveNikByUserId(item.user_id);
+                      const resolvedPhoto = photoFromUser ?? resolvePhotoByUserId(item.user_id);
+                      const { date: resolvedDate, time: resolvedTime } = splitDateTime(item.timestamp ?? item.created_at);
 
                       return (
-                        <TableRow
-                          key={item.id ?? idx}
-                          className="hover:bg-default-50"
-                        >
+                        <TableRow key={item.id ?? idx} className="hover:bg-default-50">
                           <TableCell className="text-left align-left px-2 py-3">
-                            {showMiniSkeleton ? (
-                              <div className="flex items-center gap-3">
-                                <Skeleton className="w-8 h-8 rounded-full" />
-                                <div className="flex-1 min-w-0">
-                                  <Skeleton className="h-3 w-32 rounded mb-1" />
-                                  <Skeleton className="h-3 w-20 rounded" />
-                                </div>
-                              </div>
-                            ) : (
-                              <User
-                                avatarProps={{
-                                  radius: "lg",
-                                  src: resolvedPhoto || undefined,
-                                  className:
-                                    "w-8 h-8 rounded-full object-cover flex-shrink-0 truncate",
-                                }}
-                                classNames={{
-                                  description: "text-default-500 truncate",
-                                  name: "font-medium text-default-800 truncate",
-                                }}
-                                description={resolvedNik}
-                                name={resolvedName}
-                              />
-                            )}
+                            <User
+                              avatarProps={{ radius: "lg", src: resolvedPhoto || undefined, className: "w-8 h-8 rounded-full object-cover flex-shrink-0 truncate" }}
+                              classNames={{ description: "text-default-500 truncate", name: "font-medium text-default-800 truncate" }}
+                              description={resolvedNik}
+                              name={resolvedName}
+                            />
                           </TableCell>
-                          <TableCell className="text-center align-middle px-6 py-3 text-sm text-default-700">
-                            {showMiniSkeleton ? (
-                              <Skeleton className="h-3 w-24 rounded mx-auto" />
-                            ) : (
-                              resolvedDept || "-"
-                            )}
-                          </TableCell>
-
+                          <TableCell className="text-center align-middle px-6 py-3 text-sm text-default-700">{resolvedDept || "-"}</TableCell>
                           <TableCell className="text-center align-middle px-6 py-3 text-sm text-default-700 whitespace-pre-line">
-                            <Chip
-                              className="mx-auto"
-                              color={
-                                item.type === 0
-                                  ? "success"
-                                  : item.type === 1
-                                    ? "danger"
-                                    : item.type === 4
-                                      ? "primary"
-                                      : item.type === 5
-                                        ? "warning"
-                                        : "default"
-                              }
-                              radius="sm"
-                              size="sm"
-                              variant="flat"
-                            >
+                            <Chip className="mx-auto" color={item.type === 0 ? "success" : item.type === 1 ? "danger" : item.type === 4 ? "primary" : item.type === 5 ? "warning" : "default"} radius="sm" size="sm" variant="flat">
                               {mapType(item.type)}
                             </Chip>
                           </TableCell>
-                          <TableCell className="text-center align-middle px-6 py-3 text-sm text-default-700">
-                            {resolvedTime}
-                          </TableCell>
+                          <TableCell className="text-center align-middle px-6 py-3 text-sm text-default-700">{resolvedTime}</TableCell>
                           <TableCell className="text-center align-middle px-6 py-3 text-sm text-default-700 truncate">
                             <div className="truncate">{resolvedDate}</div>
                           </TableCell>
-                          <TableCell className="text-center align-middle px-6 py-3 text-sm text-default-700">
-                            {item.user_id ?? "-"}
-                          </TableCell>
-                          <TableCell className="text-center align-middle px-6 py-3 text-sm text-default-700 truncate">
-                            {item.device_sn ?? "-"}
-                          </TableCell>
+                          <TableCell className="text-center align-middle px-6 py-3 text-sm text-default-700">{fidFromUser ?? item.user_id ?? "-"}</TableCell>
+                          <TableCell className="text-center align-middle px-6 py-3 text-sm text-default-700 truncate">{item.device_sn ?? "-"}</TableCell>
                         </TableRow>
                       );
                     })}
@@ -1140,90 +297,29 @@ export default function FingerTable() {
               <ModalHeader className="text-base flex items-center gap-2">
                 Export data
                 {exporting ? (
-                  <span className="ml-2 text-green-500 text-xs flex items-center gap-1">
-                    {/* <Spinner size="sm" /> */}
-                    Processing.. {exportProgress}%
-                  </span>
+                  <span className="ml-2 text-green-500 text-xs flex items-center gap-1">Processing.. {exportProgress}%</span>
                 ) : null}
               </ModalHeader>
               <ModalBody className="gap-2">
-                {/* <Button
-                  color="warning"
-                  variant="flat"
-                  isDisabled={exporting}
-                  isLoading={exporting && exportingWhich === "current"}
-                  onPress={async () => {
-                    await handleExportCurrent();
-                    onClose();
-                  }}
-                >
-                  Export current
-                </Button> */}
-                <Button
-                  color="primary"
-                  isDisabled={exporting}
-                  isLoading={exporting && exportingWhich === "today"}
-                  variant="flat"
-                  onPress={async () => {
-                    await handleExportToday();
-                    onClose();
-                  }}
-                >
+                {/* Keep buttons, wire to server-side export */}
+                <Button color="primary" isDisabled={exporting} isLoading={exporting && exportingWhich === "today"} variant="flat" onPress={async () => { setExportingWhich("today"); await exportData({ range: "today", search: searchQuery, join: "user" }); setExportingWhich(null); onClose(); }}>
                   Export today
                 </Button>
-                <Button
-                  color="secondary"
-                  isDisabled={exporting}
-                  isLoading={exporting && exportingWhich === "yesterday"}
-                  variant="flat"
-                  onPress={async () => {
-                    await handleExportYesterday();
-                    onClose();
-                  }}
-                >
+                <Button color="secondary" isDisabled={exporting} isLoading={exporting && exportingWhich === "yesterday"} variant="flat" onPress={async () => { setExportingWhich("yesterday"); await exportData({ range: "yesterday", search: searchQuery, join: "user" }); setExportingWhich(null); onClose(); }}>
                   Export yesterday
                 </Button>
-                <Button
-                  color="warning"
-                  isDisabled={exporting}
-                  isLoading={exporting && exportingWhich === "sevenDaysAgo"}
-                  variant="flat"
-                  onPress={async () => {
-                    await handleExport7DaysAgo();
-                    onClose();
-                  }}
-                >
+                <Button color="warning" isDisabled={exporting} isLoading={exporting && exportingWhich === "last7"} variant="flat" onPress={async () => { setExportingWhich("last7"); await exportData({ range: "last7", search: searchQuery, join: "user" }); setExportingWhich(null); onClose(); }}>
                   Export last 7 days
                 </Button>
-                <Button
-                  color="danger"
-                  isDisabled={exporting}
-                  isLoading={exporting && exportingWhich === "thirtyDaysAgo"}
-                  variant="flat"
-                  onPress={async () => {
-                    await handleExport30DaysAgo();
-                    onClose();
-                  }}
-                >
+                <Button color="danger" isDisabled={exporting} isLoading={exporting && exportingWhich === "last30"} variant="flat" onPress={async () => { setExportingWhich("last30"); await exportData({ range: "last30", search: searchQuery, join: "user" }); setExportingWhich(null); onClose(); }}>
                   Export last 30 days
                 </Button>
-                <Button
-                  color="success"
-                  isDisabled={exporting}
-                  isLoading={exporting && exportingWhich === "all"}
-                  variant="flat"
-                  onPress={async () => {
-                    await handleExportAll();
-                    onClose();
-                  }}
-                >
+                <Button color="success" isDisabled={exporting} isLoading={exporting && exportingWhich === "all"} variant="flat" onPress={async () => { setExportingWhich("all"); await exportData({ range: "all", search: searchQuery, join: "user" }); setExportingWhich(null); onClose(); }}>
                   Export all data
                 </Button>
               </ModalBody>
               <ModalFooter>
-                <Button isDisabled={exporting} variant="flat" onPress={onClose}>
-                  Close
-                </Button>
+                <Button isDisabled={exporting} variant="flat" onPress={onClose}>Close</Button>
               </ModalFooter>
             </>
           )}
@@ -1231,26 +327,13 @@ export default function FingerTable() {
       </Modal>
 
       <div className="mt-4 flex items-center justify-between">
-        {/* {totalPages ? (
-          <Pagination isCompact showControls showShadow color="primary" page={page} total={pages} onChange={(p: number) => setPage(p)} />
-        ) : (
-          // keep small fallback controls if total unknown
-          <div className="flex gap-2 items-center">
-            <Button size="sm" variant="light" onPress={() => setPage((s) => Math.max(1, s - 1))} disabled={page <= 1}>Prev</Button>
-            <div className="text-sm text-default-600 px-3">Hal {page}</div>
-            <Button size="sm" variant="light" onPress={() => setPage((s) => s + 1)} disabled={!hasMore}>Next</Button>
-          </div>
-        )} */}
-
         <div className="text-sm text-gray-500">
           Total: {total ?? (rows.length > 0 ? "?" : 0)}
-          {totalPages
-            ? ` — Halaman ${page} dari ${totalPages}`
-            : ` — Halaman ${page}`}
+          {totalPages ? ` — Halaman ${page} dari ${totalPages}` : ` — Halaman ${page}`}
         </div>
       </div>
 
-      {error ? <div className="mt-3 text-sm text-danger">{error}</div> : null}
+      {error ? <div className="mt-3 text-sm text-danger">{String(error)}</div> : null}
     </div>
   );
 }
