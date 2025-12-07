@@ -103,11 +103,19 @@ export async function GET(req: NextRequest) {
           (Array.isArray(usersJson) ? usersJson : []) ||
           [];
 
+        console.log("[fingerprint/table] Users fetched:", users.length);
+        if (users.length > 0) {
+          console.log("[fingerprint/table] First user sample:", users[0]);
+        }
+
         const userMap: Record<string, any> = {};
 
         for (const u of users) {
-          if (!u?.fid) continue;
-          const key = String(u.fid);
+          if (!u?.fid) {
+            console.warn("[fingerprint/table] User missing fid:", u);
+            continue;
+          }
+          const key = String(u.fid).trim();
 
           userMap[key] = {
             fid: key,
@@ -118,15 +126,26 @@ export async function GET(req: NextRequest) {
           };
         }
 
+        console.log("[fingerprint/table] UserMap keys:", Object.keys(userMap).slice(0, 5));
+
         rows = rows.map((r) => {
           const fid = r.user_id || r.fid || r.userId || r.uid || null;
+          const key = fid !== null ? String(fid).trim() : null;
 
-          const key = fid !== null ? String(fid) : null;
+          if (key && !userMap[key]) {
+            console.warn("[fingerprint/table] User not found for fid:", key, "available keys:", Object.keys(userMap).slice(0, 5));
+          }
 
-          return { ...r, user: key ? userMap[key] : null };
+          return { ...r, user: key ? userMap[key] || null : null };
         });
+
+        console.log("[fingerprint/table] After join, first row user:", rows[0]?.user);
+      } else {
+        console.error("[fingerprint/table] Failed to fetch users:", usersRes.status);
       }
-    } catch {}
+    } catch (err) {
+      console.error("[fingerprint/table] Error joining users:", err);
+    }
   }
 
   // LOCAL SEARCH FILTERING
