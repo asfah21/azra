@@ -8,7 +8,7 @@ const API_KEY = "gsi-attendance-key";
 const INTERNAL_KEY = process.env.INTERNAL_FP_API_KEY;
 
 export async function GET(req: NextRequest) {
-  // --- Internal Security Check ---  
+  // --- Internal Security Check ---
   const reqKey = req.headers.get("x-internal-key");
 
   if (!reqKey || reqKey !== INTERNAL_KEY) {

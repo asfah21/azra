@@ -49,8 +49,10 @@ export function useExportFingerprint() {
           join,
         }),
       });
+
       if (!res.ok) {
         const text = await res.text();
+
         throw new Error(`Export error (${res.status}): ${text}`);
       }
 
@@ -63,28 +65,39 @@ export function useExportFingerprint() {
       const duration = 600; // ms
       const steps = 20;
       let i = 0;
-      const finalTimer = setInterval(() => {
-        i += 1;
-        const t = i / steps;
-        // ease-out cubic
-        const eased = 1 - Math.pow(1 - t, 3);
-        const value = Math.min(100, Math.round(start + (100 - start) * eased));
-        setExportProgress(value);
-        if (i >= steps) clearInterval(finalTimer);
-      }, Math.max(20, Math.floor(duration / steps)));
+      const finalTimer = setInterval(
+        () => {
+          i += 1;
+          const t = i / steps;
+          // ease-out cubic
+          const eased = 1 - Math.pow(1 - t, 3);
+          const value = Math.min(
+            100,
+            Math.round(start + (100 - start) * eased),
+          );
+
+          setExportProgress(value);
+          if (i >= steps) clearInterval(finalTimer);
+        },
+        Math.max(20, Math.floor(duration / steps)),
+      );
 
       const contentType = res.headers.get("Content-Type") || "";
+
       if (contentType.includes("application/json")) {
         const json = await res.json();
         const url: string | undefined = json?.url ?? json?.downloadUrl;
         const filename = json?.filename ?? "fingerprint_export.xlsx";
+
         if (!url) throw new Error("No download URL returned by server");
         const a = document.createElement("a");
+
         a.href = url;
         a.download = filename;
         document.body.appendChild(a);
         a.click();
         a.remove();
+
         return;
       }
 
@@ -94,10 +107,12 @@ export function useExportFingerprint() {
       const cd = res.headers.get("Content-Disposition") || "";
       let filename = "fingerprint_export.xlsx";
       const match = cd.match(/filename=([^;]+)/i);
+
       if (match && match[1]) {
         filename = match[1].replace(/\"/g, "").trim();
       }
       const a = document.createElement("a");
+
       a.href = url;
       a.download = filename;
       document.body.appendChild(a);

@@ -1,4 +1,5 @@
 import type { NextRequest } from "next/server";
+
 import { NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 
@@ -8,18 +9,21 @@ function findNavItem(pathname: string) {
   for (const parent of defaultNavItems) {
     if ("children" in parent && Array.isArray(parent.children)) {
       const child = parent.children.find((c) => c.path === pathname);
+
       if (child) return child;
     }
   }
 
   let item = defaultNavItems.find((n) => "path" in n && n.path === pathname);
+
   if (item) return item;
 
   for (const parent of defaultNavItems) {
     if ("children" in parent && Array.isArray(parent.children)) {
       const child = parent.children.find(
-        (c) => c.path && pathname.startsWith(c.path + "/")
+        (c) => c.path && pathname.startsWith(c.path + "/"),
       );
+
       if (child) return child;
     }
   }
@@ -28,7 +32,7 @@ function findNavItem(pathname: string) {
     (n) =>
       "path" in n &&
       n.path !== "/dashboard" &&
-      pathname.startsWith(n.path + "/")
+      pathname.startsWith(n.path + "/"),
   );
   if (item) return item;
 
@@ -55,8 +59,8 @@ export async function middleware(request: NextRequest) {
     "/api/timesheetall",
   ];
 
-  const isProtectedAPI = protectedAPIs.some((p) =>
-    pathname === p || pathname.startsWith(p + "/")
+  const isProtectedAPI = protectedAPIs.some(
+    (p) => pathname === p || pathname.startsWith(p + "/"),
   );
 
   if (isProtectedAPI) {
@@ -72,7 +76,6 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  
   // Proteksi halaman dashboard (kode asli)
   const isDashboard = pathname.startsWith("/dashboard");
 
@@ -84,7 +87,9 @@ export async function middleware(request: NextRequest) {
 
     if (!token) {
       const url = new URL("/login", request.url);
+
       url.searchParams.set("callbackUrl", pathname);
+
       return NextResponse.redirect(url);
     }
 
@@ -181,6 +186,7 @@ export async function middleware(request: NextRequest) {
     }
 
     const resp = NextResponse.next();
+
     resp.headers.set("x-auth-role", userRole || "");
     resp.headers.set("x-menu-id", (targetItem as any).id);
     resp.headers.set("x-api-status", apiStatus);
@@ -202,7 +208,7 @@ export const config = {
     "/api/dashboard/:path*",
     "/api/fingerprint",
     "/api/fingerprint/:path*",
-    "/api/fingerprint/(.*)",     // ← fix penting
+    "/api/fingerprint/(.*)", // ← fix penting
     "/api/user/:path*",
     "/api/roles/:path*",
     "/api/role-access/:path*",

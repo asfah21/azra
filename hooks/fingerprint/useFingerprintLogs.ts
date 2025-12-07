@@ -24,20 +24,31 @@ export type FingerprintResponse = {
   pageSize?: number;
 };
 
-export function useFingerprintLogs({ page, search }: { page: number; search: string }) {
+export function useFingerprintLogs({
+  page,
+  search,
+}: {
+  page: number;
+  search: string;
+}) {
   const queryKey = ["fingerprintLogs", { page, search }];
 
   const query = useQuery<FingerprintResponse>({
     queryKey,
     queryFn: async () => {
       const params = new URLSearchParams();
+
       params.set("page", String(page));
       params.set("join", "user");
       if (search && search.trim()) params.set("search", search.trim());
 
-      const res = await fetch(`/api/fingerprint/table?${params.toString()}`, { cache: "no-store" });
+      const res = await fetch(`/api/fingerprint/table?${params.toString()}`, {
+        cache: "no-store",
+      });
+
       if (!res.ok) {
         const text = await res.text();
+
         throw new Error(`Fetch error (${res.status}): ${text}`);
       }
       const json = await res.json();
@@ -50,8 +61,10 @@ export function useFingerprintLogs({ page, search }: { page: number; search: str
             ? json
             : [];
 
-      const total: number | null = typeof json?.total === "number" ? json.total : null;
-      const pageSize: number | undefined = typeof json?.pageSize === "number" ? json.pageSize : undefined;
+      const total: number | null =
+        typeof json?.total === "number" ? json.total : null;
+      const pageSize: number | undefined =
+        typeof json?.pageSize === "number" ? json.pageSize : undefined;
 
       const usersByFid: Record<string, string> = {};
       const usersDeptByFid: Record<string, string> = {};
@@ -59,12 +72,36 @@ export function useFingerprintLogs({ page, search }: { page: number; search: str
       const usersPhotoByFid: Record<string, string> = {};
 
       for (const r of rows) {
-        const fidKey = r.user?.fid != null ? String(r.user.fid) : r.user_id != null ? String(r.user_id) : undefined;
+        const fidKey =
+          r.user?.fid != null
+            ? String(r.user.fid)
+            : r.user_id != null
+              ? String(r.user_id)
+              : undefined;
+
         if (!fidKey) continue;
-        const name = r.user?.name ?? (typeof (r as any)["name"] === "string" ? (r as any)["name"] : undefined);
-        const dept = r.user?.department ?? (typeof (r as any)["department"] === "string" ? (r as any)["department"] : undefined);
-        const nikVal = r.user?.nik ?? (typeof (r as any)["nik"] === "string" || typeof (r as any)["nik"] === "number" ? (r as any)["nik"] : undefined);
-        const photo = r.user?.photo ?? (typeof (r as any)["photo"] === "string" ? (r as any)["photo"] : undefined);
+        const name =
+          r.user?.name ??
+          (typeof (r as any)["name"] === "string"
+            ? (r as any)["name"]
+            : undefined);
+        const dept =
+          r.user?.department ??
+          (typeof (r as any)["department"] === "string"
+            ? (r as any)["department"]
+            : undefined);
+        const nikVal =
+          r.user?.nik ??
+          (typeof (r as any)["nik"] === "string" ||
+          typeof (r as any)["nik"] === "number"
+            ? (r as any)["nik"]
+            : undefined);
+        const photo =
+          r.user?.photo ??
+          (typeof (r as any)["photo"] === "string"
+            ? (r as any)["photo"]
+            : undefined);
+
         if (name != null) usersByFid[fidKey] = String(name);
         if (dept != null) usersDeptByFid[fidKey] = String(dept);
         if (nikVal != null) usersNikByFid[fidKey] = String(nikVal);
@@ -92,12 +129,14 @@ export function useFingerprintLogs({ page, search }: { page: number; search: str
   });
 
   return {
-    data: query.data as (FingerprintResponse & {
-      usersByFid: Record<string, string>;
-      usersDeptByFid: Record<string, string>;
-      usersNikByFid: Record<string, string>;
-      usersPhotoByFid: Record<string, string>;
-    }) | undefined,
+    data: query.data as
+      | (FingerprintResponse & {
+          usersByFid: Record<string, string>;
+          usersDeptByFid: Record<string, string>;
+          usersNikByFid: Record<string, string>;
+          usersPhotoByFid: Record<string, string>;
+        })
+      | undefined,
     isLoading: query.isLoading,
     isFetching: query.isFetching,
     error: query.error,

@@ -1,11 +1,14 @@
 "use client";
 
 import { Fingerprint } from "lucide-react";
+
 import DashboardFooter from "../components/DashboardFooter";
+
 import FingerTable from "./components/FingerTable";
 import FingerCardGrids from "./components/CardGrid";
+
 import { CardGridSkeleton, TableFingerprint } from "@/components/ui/skeleton";
-import { useFingerprintStats } from "@/hooks/fingerprint/useCardFingerprints"; 
+import { useFingerprintStats } from "@/hooks/fingerprint/useCardFingerprints";
 
 // ---------------- Main Component ----------------
 export default function ClientPage() {
