@@ -4,6 +4,7 @@ import { Fingerprint } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 
 import DashboardFooter from "../components/DashboardFooter";
+
 import FingerTable from "./components/FingerTable";
 import FingerCardGrids from "./components/CardGrid";
 
@@ -28,14 +29,16 @@ const pad = (n: number) => String(n).padStart(2, "0");
 
 function toYMDUTC(d: Date) {
   return `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(
-    d.getUTCDate()
+    d.getUTCDate(),
   )}`;
 }
 
 function ymdFromRowUTC(row: LogEntry): string | null {
   const raw = row.timestamp ?? row.created_at;
+
   if (!raw) return null;
   const d = new Date(raw);
+
   return Number.isNaN(d.getTime()) ? null : toYMDUTC(d);
 }
 
@@ -68,8 +71,13 @@ async function fetchLogsPage(page: number, signal?: AbortSignal) {
   }>;
 }
 
-function withTimeout<T>(p: Promise<T>, ms: number, controller: AbortController) {
+function withTimeout<T>(
+  p: Promise<T>,
+  ms: number,
+  controller: AbortController,
+) {
   const t = setTimeout(() => controller.abort(), ms);
+
   return p.finally(() => clearTimeout(t));
 }
 
@@ -98,7 +106,11 @@ export default function ClientPage() {
 
       // Fetch first page with timeout
       const c1 = new AbortController();
-      const first = await withTimeout(fetchLogsPage(1, c1.signal), FETCH_TIMEOUT_MS, c1);
+      const first = await withTimeout(
+        fetchLogsPage(1, c1.signal),
+        FETCH_TIMEOUT_MS,
+        c1,
+      );
 
       const totalPages = first.total
         ? Math.ceil((first.total as number) / PAGE_SIZE)
@@ -106,14 +118,17 @@ export default function ClientPage() {
 
       const processRows = (rows: LogEntry[]) => {
         let oldestYMD: string | null = null;
+
         for (const r of rows) {
           const ymd = ymdFromRowUTC(r);
+
           if (!ymd) continue;
 
           // track oldest (min) YMD in this batch for early stop
           if (!oldestYMD || ymd < oldestYMD) oldestYMD = ymd;
 
           const d = new Date(r.timestamp ?? r.created_at ?? "");
+
           if (Number.isNaN(d.getTime())) continue;
 
           // Today
@@ -124,12 +139,15 @@ export default function ClientPage() {
 
           // This month
           const sameMonth =
-            d.getUTCFullYear() === monthYear.y && d.getUTCMonth() === monthYear.m;
+            d.getUTCFullYear() === monthYear.y &&
+            d.getUTCMonth() === monthYear.m;
+
           if (sameMonth) {
             r.type === 0 && stats.type0ThisMonth++;
             r.type === 1 && stats.type1ThisMonth++;
           }
         }
+
         return oldestYMD;
       };
 
@@ -143,9 +161,14 @@ export default function ClientPage() {
 
       // Process next pages with early-exit
       const last = Math.min(totalPages ?? MAX_PAGES, MAX_PAGES);
+
       for (let p = 2; p <= last; p++) {
         const c = new AbortController();
-        const next = await withTimeout(fetchLogsPage(p, c.signal), FETCH_TIMEOUT_MS, c);
+        const next = await withTimeout(
+          fetchLogsPage(p, c.signal),
+          FETCH_TIMEOUT_MS,
+          c,
+        );
         const pageOldest = processRows(next.rows || []);
 
         // If this page's oldest record is before the first day of month, break

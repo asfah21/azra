@@ -55,6 +55,7 @@ const INTERNAL_KEY = process.env.INTERNAL_FP_API_KEY;
 export async function GET(req: NextRequest) {
   // --- Internal Security Check ---
   const reqKey = req.headers.get("x-internal-key");
+
   if (!reqKey || reqKey !== INTERNAL_KEY) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
@@ -63,8 +64,7 @@ export async function GET(req: NextRequest) {
   const limit = req.nextUrl.searchParams.get("limit") ?? "500";
   const offset = req.nextUrl.searchParams.get("offset") ?? "0";
 
-  const url =
-    `${BACKEND_URL}?limit=${encodeURIComponent(limit)}&offset=${encodeURIComponent(offset)}`;
+  const url = `${BACKEND_URL}?limit=${encodeURIComponent(limit)}&offset=${encodeURIComponent(offset)}`;
 
   try {
     // Fetch backend (tanpa axios)
@@ -79,22 +79,22 @@ export async function GET(req: NextRequest) {
 
     if (!backendRes.ok) {
       const text = await backendRes.text().catch(() => "");
+
       return NextResponse.json(
         { error: `Backend error (${backendRes.status}): ${text}` },
-        { status: backendRes.status }
+        { status: backendRes.status },
       );
     }
 
     const data = await backendRes.json();
-    return NextResponse.json(data);
 
+    return NextResponse.json(data);
   } catch (err: any) {
     console.error("Fingerprint proxy error:", err);
 
     return NextResponse.json(
       { error: "Failed to fetch fingerprint logs" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }
-

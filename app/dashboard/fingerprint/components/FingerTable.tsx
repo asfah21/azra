@@ -178,7 +178,13 @@ export default function FingerTable() {
   } = useDisclosure();
   const [exporting, setExporting] = useState(false);
   const [exportingWhich, setExportingWhich] = useState<
-    "current" | "today" | "yesterday" | "sevenDaysAgo" | "thirtyDaysAgo" | "all" | null
+    | "current"
+    | "today"
+    | "yesterday"
+    | "sevenDaysAgo"
+    | "thirtyDaysAgo"
+    | "all"
+    | null
   >(null);
   const [exportProgress, setExportProgress] = useState<number>(0);
   // Tambah state loading untuk data users
@@ -608,35 +614,35 @@ export default function FingerTable() {
       // Filter hanya hari ini
       const todayRows = all.filter((r) => {
         const { date } = splitDateTime(r.timestamp ?? r.created_at);
+
         return date === todayUTC;
       });
-      
+
       // Sort data: nama → department → tanggal/waktu
-       const sortedTodayRows = [...todayRows].sort((a, b) => {
-      // helper untuk string
-      const s = (v: unknown) =>
-        (v ?? "").toString().toLowerCase();
+      const sortedTodayRows = [...todayRows].sort((a, b) => {
+        // helper untuk string
+        const s = (v: unknown) => (v ?? "").toString().toLowerCase();
 
-      const nameA = s(a.name);
-      const nameB = s(b.name);
+        const nameA = s(a.name);
+        const nameB = s(b.name);
 
-      if (nameA !== nameB) {
-        return nameA.localeCompare(nameB);
-      }
+        if (nameA !== nameB) {
+          return nameA.localeCompare(nameB);
+        }
 
-      const deptA = s(a.department ?? a.dept ?? a.departemen);
-      const deptB = s(b.department ?? b.dept ?? b.departemen);
+        const deptA = s(a.department ?? a.dept ?? a.departemen);
+        const deptB = s(b.department ?? b.dept ?? b.departemen);
 
-      if (deptA !== deptB) {
-        return deptA.localeCompare(deptB);
-      }
+        if (deptA !== deptB) {
+          return deptA.localeCompare(deptB);
+        }
 
-      // kalau nama & department sama, urutkan berdasarkan timestamp
-      const tA = new Date(a.timestamp ?? a.created_at ?? 0).getTime();
-      const tB = new Date(b.timestamp ?? b.created_at ?? 0).getTime();
+        // kalau nama & department sama, urutkan berdasarkan timestamp
+        const tA = new Date(a.timestamp ?? a.created_at ?? 0).getTime();
+        const tB = new Date(b.timestamp ?? b.created_at ?? 0).getTime();
 
-      return tA - tB; // ascending (lebih awal duluan)
-    });
+        return tA - tB; // ascending (lebih awal duluan)
+      });
 
       setExportProgress((p) => Math.max(p, 97));
       exportToXlsx(todayRows, "today");
@@ -777,20 +783,27 @@ export default function FingerTable() {
       // Sort data: department → nama utama, ambil record terbaru per dept+nama
       const sortedRows = [...filteredRows].sort((a, b) => {
         // helper untuk string
-        const s = (v: unknown) =>
-          (v ?? "").toString().toLowerCase();
+        const s = (v: unknown) => (v ?? "").toString().toLowerCase();
 
         // Resolve department dari user_id
-        const deptA = s(a.user_id != null ? (usersDeptByFid[String(a.user_id)] ?? "") : "");
-        const deptB = s(b.user_id != null ? (usersDeptByFid[String(b.user_id)] ?? "") : "");
+        const deptA = s(
+          a.user_id != null ? (usersDeptByFid[String(a.user_id)] ?? "") : "",
+        );
+        const deptB = s(
+          b.user_id != null ? (usersDeptByFid[String(b.user_id)] ?? "") : "",
+        );
 
         if (deptA !== deptB) {
           return deptA.localeCompare(deptB);
         }
 
         // Resolve nama dari user_id
-        const nameA = s(a.user_id != null ? (usersByFid[String(a.user_id)] ?? "") : "");
-        const nameB = s(b.user_id != null ? (usersByFid[String(b.user_id)] ?? "") : "");
+        const nameA = s(
+          a.user_id != null ? (usersByFid[String(a.user_id)] ?? "") : "",
+        );
+        const nameB = s(
+          b.user_id != null ? (usersByFid[String(b.user_id)] ?? "") : "",
+        );
 
         if (nameA !== nameB) {
           return nameA.localeCompare(nameB);

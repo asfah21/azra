@@ -12,9 +12,7 @@ import GuestDashboardContent from "@/components/ui/dashboard/guest/GuestDashboar
 
 // Simple fetch function
 const fetchDashboard = async () => {
-  const [dashboardRes] = await Promise.all([
-    axios.get("/api/dashboard"),
-  ]);
+  const [dashboardRes] = await Promise.all([axios.get("/api/dashboard")]);
 
   return {
     dashboardData: dashboardRes.data?.data || dashboardRes.data,
@@ -56,7 +54,7 @@ export default function DashboardClientPage({ user }: { user: any }) {
       </div>
 
       {/* Content based on role */}
-      <div className="space-y-8">        
+      <div className="space-y-8">
         {canHeavy && (
           <DashboardContent
             dashboardData={data?.dashboardData}

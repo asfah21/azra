@@ -1,4 +1,3 @@
-
 // Seed untuk Blog
 // prisma/seed.ts
 // import { PrismaClient } from "@prisma/client";
