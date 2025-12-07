@@ -1,5 +1,15 @@
 // "use client"
-
+export default function FormPage() {
+  return (
+    <>
+      <h1>FORM PAGE GSI</h1>
+      <p>
+        Silakan gunakan Postman atau alat serupa untuk mengirim permintaan POST
+        ke endpoint ini.
+      </p>
+    </>
+  );
+}
 // import { useState } from "react";
 
 // export default function FormPage(){
@@ -31,62 +41,62 @@
 //     )
 // }
 
-"use client";
+// "use client";
 
-import { useState } from "react";
+// import { useState } from "react";
 
-export default function FormPage() {
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [hp, setHp] = useState("");
-  const [result, setResult] = useState({
-    name: "",
-    email: "",
-    hp: "",
-  });
+// export default function FormPage() {
+//   const [name, setName] = useState("");
+//   const [email, setEmail] = useState("");
+//   const [hp, setHp] = useState("");
+//   const [result, setResult] = useState({
+//     name: "",
+//     email: "",
+//     hp: "",
+//   });
 
-  const aturSubmit = (e: any) => {
-    e.preventDefault();
-    setResult({ name, email, hp });
-  };
+//   const aturSubmit = (e: any) => {
+//     e.preventDefault();
+//     setResult({ name, email, hp });
+//   };
 
-  return (
-    <>
-      <h1>FORM PAGE GSI</h1>
+//   return (
+//     <>
+//       <h1>FORM PAGE GSI</h1>
 
-      <form onSubmit={aturSubmit}>
-        <label htmlFor="name">Name:</label>
-        <input
-          id="name"
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-        />
-        <label htmlFor="email"> Email:</label>
-        <input
-          id="email"
-          type="text"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-        <label htmlFor="hp"> HP:</label>
-        <input
-          id="hp"
-          type="text"
-          value={hp}
-          onChange={(e) => setHp(e.target.value)}
-        />
-        <button className="border p-1 m-2 rounded-md" type="submit">
-          {" "}
-          Kirim Data
-        </button>
-      </form>
+//       <form onSubmit={aturSubmit}>
+//         <label htmlFor="name">Name:</label>
+//         <input
+//           id="name"
+//           type="text"
+//           value={name}
+//           onChange={(e) => setName(e.target.value)}
+//         />
+//         <label htmlFor="email"> Email:</label>
+//         <input
+//           id="email"
+//           type="text"
+//           value={email}
+//           onChange={(e) => setEmail(e.target.value)}
+//         />
+//         <label htmlFor="hp"> HP:</label>
+//         <input
+//           id="hp"
+//           type="text"
+//           value={hp}
+//           onChange={(e) => setHp(e.target.value)}
+//         />
+//         <button className="border p-1 m-2 rounded-md" type="submit">
+//           {" "}
+//           Kirim Data
+//         </button>
+//       </form>
 
-      {/* {result && <p> Result : {result} </p>} */}
-      {/* {result.length > 0 && <p>Result : {result.join(" | ")}</p>} */}
-      <p>{result.name}</p>
-      <p>{result.email}</p>
-      <p>{result.hp}</p>
-    </>
-  );
-}
+//       {/* {result && <p> Result : {result} </p>} */}
+//       {/* {result.length > 0 && <p>Result : {result.join(" | ")}</p>} */}
+//       <p>{result.name}</p>
+//       <p>{result.email}</p>
+//       <p>{result.hp}</p>
+//     </>
+//   );
+// }

@@ -1,5 +1,17 @@
 // "use client";
 
+export default function apiPostPage() {
+  return (
+    <>
+      <h1>Latihan API Post</h1>
+      <p>
+        Silakan gunakan Postman atau alat serupa untuk mengirim permintaan POST
+        ke endpoint ini.
+      </p>
+    </>
+  );
+}
+
 // import { useState } from "react";
 
 // export default function apiPostPage() {
