@@ -1,29 +1,26 @@
 import type { NextRequest } from "next/server";
-
 import { NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 
 import { defaultNavItems } from "@/lib/config/navigation";
 
+// ---------------- Helper ----------------
 function findNavItem(pathname: string) {
   for (const parent of defaultNavItems) {
     if ("children" in parent && Array.isArray(parent.children)) {
       const child = parent.children.find((c) => c.path === pathname);
-
       if (child) return child;
     }
   }
 
   let item = defaultNavItems.find((n) => "path" in n && n.path === pathname);
-
   if (item) return item;
 
   for (const parent of defaultNavItems) {
     if ("children" in parent && Array.isArray(parent.children)) {
       const child = parent.children.find(
-        (c) => c.path && pathname.startsWith(c.path + "/"),
+        (c) => c.path && pathname.startsWith(c.path + "/")
       );
-
       if (child) return child;
     }
   }
@@ -32,7 +29,7 @@ function findNavItem(pathname: string) {
     (n) =>
       "path" in n &&
       n.path !== "/dashboard" &&
-      pathname.startsWith(n.path + "/"),
+      pathname.startsWith(n.path + "/")
   );
   if (item) return item;
 
@@ -43,10 +40,11 @@ function findNavItem(pathname: string) {
   return null;
 }
 
+// ---------------- Middleware ----------------
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Proteksi SEMUA API yang sensitif
+  // Proteksi API yang sensitif
   const protectedAPIs = [
     "/api/dashboard",
     "/api/fingerprint",
@@ -60,13 +58,14 @@ export async function middleware(request: NextRequest) {
   ];
 
   const isProtectedAPI = protectedAPIs.some(
-    (p) => pathname === p || pathname.startsWith(p + "/"),
+    (p) => pathname === p || pathname.startsWith(p + "/")
   );
 
   if (isProtectedAPI) {
     const token = await getToken({
       req: request,
       secret: process.env.NEXTAUTH_SECRET,
+      secureCookie: process.env.NODE_ENV === "production",
     });
 
     if (!token) {
@@ -76,20 +75,19 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Proteksi halaman dashboard (kode asli)
+  // Proteksi halaman dashboard
   const isDashboard = pathname.startsWith("/dashboard");
 
   if (isDashboard) {
     const token = await getToken({
       req: request,
       secret: process.env.NEXTAUTH_SECRET,
+      secureCookie: process.env.NODE_ENV === "production",
     });
 
     if (!token) {
       const url = new URL("/login", request.url);
-
       url.searchParams.set("callbackUrl", pathname);
-
       return NextResponse.redirect(url);
     }
 
@@ -114,10 +112,10 @@ export async function middleware(request: NextRequest) {
     }
 
     const targetItem = findNavItem(pathname);
-
     if (!targetItem) return NextResponse.next();
     if (isSuperAdmin) return NextResponse.next();
 
+    // Ambil dynamic role access dari API
     let dynamicAccess: Record<string, string[]> = {};
     let apiStatus = "none";
 
@@ -132,7 +130,6 @@ export async function middleware(request: NextRequest) {
 
       if (res.ok) {
         const data: Array<{ menu: string; role: string }> = await res.json();
-
         for (const entry of data) {
           if (!dynamicAccess[entry.menu]) dynamicAccess[entry.menu] = [];
           dynamicAccess[entry.menu].push(entry.role);
@@ -143,7 +140,6 @@ export async function middleware(request: NextRequest) {
     }
 
     let isChild = false;
-
     for (const parent of defaultNavItems) {
       if ("children" in parent && Array.isArray(parent.children)) {
         if (parent.children.some((c) => c.id === (targetItem as any).id)) {
@@ -154,7 +150,6 @@ export async function middleware(request: NextRequest) {
     }
 
     let allowedRoles: string[] = [];
-
     if (isChild) {
       allowedRoles = dynamicAccess[(targetItem as any).id] || [];
       if (allowedRoles.length === 0) {
@@ -186,7 +181,6 @@ export async function middleware(request: NextRequest) {
     }
 
     const resp = NextResponse.next();
-
     resp.headers.set("x-auth-role", userRole || "");
     resp.headers.set("x-menu-id", (targetItem as any).id);
     resp.headers.set("x-api-status", apiStatus);
@@ -199,22 +193,10 @@ export async function middleware(request: NextRequest) {
   return NextResponse.next();
 }
 
-// Matcher untuk menangkap semua API fingerprint/*
+// ---------------- Matcher ----------------
 export const config = {
   matcher: [
     "/dashboard/:path*",
-
-    // API proteksi lengkap
-    "/api/dashboard/:path*",
-    "/api/fingerprint",
-    "/api/fingerprint/:path*",
-    "/api/fingerprint/(.*)", // ← fix penting
-    "/api/user/:path*",
-    "/api/roles/:path*",
-    "/api/role-access/:path*",
-    "/api/settings/:path*",
-    "/api/timentry/:path*",
-    "/api/timesheet/:path*",
-    "/api/timesheetall/:path*",
+    "/api/:path*",
   ],
 };
