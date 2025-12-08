@@ -89,7 +89,8 @@ export async function GET(req: NextRequest) {
   if (join === "user") {
     try {
       const cookie = req.headers.get("cookie") || "";
-      const usersRes = await fetch(`${inUrl.origin}/api/dashboard/users`, {
+      // const usersRes = await fetch(`${inUrl.origin}/api/dashboard/users`, { // jangan pakai ini utuk internal API
+      const usersRes = await fetch("/api/dashboard/users", {
         headers: { Cookie: cookie, Accept: "application/json" },
         cache: "no-store",
       });
@@ -126,22 +127,36 @@ export async function GET(req: NextRequest) {
           };
         }
 
-        console.log("[fingerprint/table] UserMap keys:", Object.keys(userMap).slice(0, 5));
+        console.log(
+          "[fingerprint/table] UserMap keys:",
+          Object.keys(userMap).slice(0, 5),
+        );
 
         rows = rows.map((r) => {
           const fid = r.user_id || r.fid || r.userId || r.uid || null;
           const key = fid !== null ? String(fid).trim() : null;
 
           if (key && !userMap[key]) {
-            console.warn("[fingerprint/table] User not found for fid:", key, "available keys:", Object.keys(userMap).slice(0, 5));
+            console.warn(
+              "[fingerprint/table] User not found for fid:",
+              key,
+              "available keys:",
+              Object.keys(userMap).slice(0, 5),
+            );
           }
 
           return { ...r, user: key ? userMap[key] || null : null };
         });
 
-        console.log("[fingerprint/table] After join, first row user:", rows[0]?.user);
+        console.log(
+          "[fingerprint/table] After join, first row user:",
+          rows[0]?.user,
+        );
       } else {
-        console.error("[fingerprint/table] Failed to fetch users:", usersRes.status);
+        console.error(
+          "[fingerprint/table] Failed to fetch users:",
+          usersRes.status,
+        );
       }
     } catch (err) {
       console.error("[fingerprint/table] Error joining users:", err);

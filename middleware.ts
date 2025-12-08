@@ -1,4 +1,5 @@
 import type { NextRequest } from "next/server";
+
 import { NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 
@@ -9,18 +10,21 @@ function findNavItem(pathname: string) {
   for (const parent of defaultNavItems) {
     if ("children" in parent && Array.isArray(parent.children)) {
       const child = parent.children.find((c) => c.path === pathname);
+
       if (child) return child;
     }
   }
 
   let item = defaultNavItems.find((n) => "path" in n && n.path === pathname);
+
   if (item) return item;
 
   for (const parent of defaultNavItems) {
     if ("children" in parent && Array.isArray(parent.children)) {
       const child = parent.children.find(
-        (c) => c.path && pathname.startsWith(c.path + "/")
+        (c) => c.path && pathname.startsWith(c.path + "/"),
       );
+
       if (child) return child;
     }
   }
@@ -29,7 +33,7 @@ function findNavItem(pathname: string) {
     (n) =>
       "path" in n &&
       n.path !== "/dashboard" &&
-      pathname.startsWith(n.path + "/")
+      pathname.startsWith(n.path + "/"),
   );
   if (item) return item;
 
@@ -58,7 +62,7 @@ export async function middleware(request: NextRequest) {
   ];
 
   const isProtectedAPI = protectedAPIs.some(
-    (p) => pathname === p || pathname.startsWith(p + "/")
+    (p) => pathname === p || pathname.startsWith(p + "/"),
   );
 
   if (isProtectedAPI) {
@@ -87,7 +91,9 @@ export async function middleware(request: NextRequest) {
 
     if (!token) {
       const url = new URL("/login", request.url);
+
       url.searchParams.set("callbackUrl", pathname);
+
       return NextResponse.redirect(url);
     }
 
@@ -112,6 +118,7 @@ export async function middleware(request: NextRequest) {
     }
 
     const targetItem = findNavItem(pathname);
+
     if (!targetItem) return NextResponse.next();
     if (isSuperAdmin) return NextResponse.next();
 
@@ -130,6 +137,7 @@ export async function middleware(request: NextRequest) {
 
       if (res.ok) {
         const data: Array<{ menu: string; role: string }> = await res.json();
+
         for (const entry of data) {
           if (!dynamicAccess[entry.menu]) dynamicAccess[entry.menu] = [];
           dynamicAccess[entry.menu].push(entry.role);
@@ -140,6 +148,7 @@ export async function middleware(request: NextRequest) {
     }
 
     let isChild = false;
+
     for (const parent of defaultNavItems) {
       if ("children" in parent && Array.isArray(parent.children)) {
         if (parent.children.some((c) => c.id === (targetItem as any).id)) {
@@ -150,6 +159,7 @@ export async function middleware(request: NextRequest) {
     }
 
     let allowedRoles: string[] = [];
+
     if (isChild) {
       allowedRoles = dynamicAccess[(targetItem as any).id] || [];
       if (allowedRoles.length === 0) {
@@ -181,6 +191,7 @@ export async function middleware(request: NextRequest) {
     }
 
     const resp = NextResponse.next();
+
     resp.headers.set("x-auth-role", userRole || "");
     resp.headers.set("x-menu-id", (targetItem as any).id);
     resp.headers.set("x-api-status", apiStatus);
@@ -195,8 +206,5 @@ export async function middleware(request: NextRequest) {
 
 // ---------------- Matcher ----------------
 export const config = {
-  matcher: [
-    "/dashboard/:path*",
-    "/api/:path*",
-  ],
+  matcher: ["/dashboard/:path*", "/api/:path*"],
 };
