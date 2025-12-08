@@ -1,6 +1,7 @@
 // app/api/fingerprint/table/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt"; // ← jwt from middleware.ts
+import { getUsers } from "@/actions/users";
 
 const BACKEND_URL = "http://188.245.70.138:8080/api/logs";
 const API_KEY = "gsi-attendance-key";
@@ -88,76 +89,56 @@ export async function GET(req: NextRequest) {
   // JOIN USERS
   if (join === "user") {
     try {
-      const cookie = req.headers.get("cookie") || "";
-      // const usersRes = await fetch(`${inUrl.origin}/api/dashboard/users`, { // jangan pakai ini utuk internal API
-      const usersRes = await fetch("/api/dashboard/users", {
-        headers: { Cookie: cookie, Accept: "application/json" },
-        cache: "no-store",
+      const users = await getUsers();
+
+      // console.log("[fingerprint/table] Users fetched:", users.length);
+      // if (users.length > 0) {
+      //   console.log("[fingerprint/table] First user sample:", users[0]);
+      // }
+
+      const userMap: Record<string, any> = {};
+
+      for (const u of users) {
+        if (!u?.fid) {
+          // console.warn("[fingerprint/table] User missing fid:", u);
+          continue;
+        }
+        const key = String(u.fid).trim();
+
+        userMap[key] = {
+          fid: key,
+          name: u.name || "",
+          nik: u.nik || "",
+          department: u.department || "",
+          photo: u.photo || "",
+        };
+      }
+
+      // console.log(
+      //   "[fingerprint/table] UserMap keys:",
+      //   Object.keys(userMap).slice(0, 5),
+      // );
+
+      rows = rows.map((r) => {
+        const fid = r.user_id || r.fid || r.userId || r.uid || null;
+        const key = fid !== null ? String(fid).trim() : null;
+
+        // if (key && !userMap[key]) {
+        //   console.warn(
+        //     "[fingerprint/table] User not found for fid:",
+        //     key,
+        //     "available keys:",
+        //     Object.keys(userMap).slice(0, 5),
+        //   );
+        // }
+
+        return { ...r, user: key ? userMap[key] || null : null };
       });
 
-      if (usersRes.ok) {
-        const usersJson = await usersRes.json();
-
-        const users =
-          usersJson?.data?.users ||
-          usersJson?.users ||
-          (Array.isArray(usersJson) ? usersJson : []) ||
-          [];
-
-        console.log("[fingerprint/table] Users fetched:", users.length);
-        if (users.length > 0) {
-          console.log("[fingerprint/table] First user sample:", users[0]);
-        }
-
-        const userMap: Record<string, any> = {};
-
-        for (const u of users) {
-          if (!u?.fid) {
-            console.warn("[fingerprint/table] User missing fid:", u);
-            continue;
-          }
-          const key = String(u.fid).trim();
-
-          userMap[key] = {
-            fid: key,
-            name: u.name || u.fullName || "",
-            nik: u.nik || "",
-            department: u.department || "",
-            photo: u.photo || u.avatar || u.profileImageUrl || u.image || "",
-          };
-        }
-
-        console.log(
-          "[fingerprint/table] UserMap keys:",
-          Object.keys(userMap).slice(0, 5),
-        );
-
-        rows = rows.map((r) => {
-          const fid = r.user_id || r.fid || r.userId || r.uid || null;
-          const key = fid !== null ? String(fid).trim() : null;
-
-          if (key && !userMap[key]) {
-            console.warn(
-              "[fingerprint/table] User not found for fid:",
-              key,
-              "available keys:",
-              Object.keys(userMap).slice(0, 5),
-            );
-          }
-
-          return { ...r, user: key ? userMap[key] || null : null };
-        });
-
-        console.log(
-          "[fingerprint/table] After join, first row user:",
-          rows[0]?.user,
-        );
-      } else {
-        console.error(
-          "[fingerprint/table] Failed to fetch users:",
-          usersRes.status,
-        );
-      }
+      // console.log(
+      //   "[fingerprint/table] After join, first row user:",
+      //   rows[0]?.user,
+      // );
     } catch (err) {
       console.error("[fingerprint/table] Error joining users:", err);
     }
