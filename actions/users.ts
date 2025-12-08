@@ -1,10 +1,11 @@
 import { getServerSession } from "next-auth";
+
 import prisma from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
 
 export async function getUsers() {
   const session = await getServerSession(authOptions);
-  
+
   if (!session) {
     throw new Error("Unauthorized");
   }
@@ -29,6 +30,7 @@ export async function getUsers() {
     return allUsers;
   } catch (error) {
     console.error("Error fetching users:", error);
+
     return [];
   }
 }

@@ -3,6 +3,8 @@ export const dynamic = "force-dynamic";
 import { NextRequest } from "next/server";
 import * as XLSX from "xlsx";
 
+import { getUsers } from "@/actions/users";
+
 const BACKEND_URL = "http://188.245.70.138:8080/api/logs";
 const API_KEY = "gsi-attendance-key";
 
@@ -65,61 +67,38 @@ export async function POST(req: NextRequest) {
   // Join users if requested
   if (join === "user") {
     try {
-      const cookie = req.headers.get("cookie") || "";
-      const usersRes = await fetch(
-        `${new URL(req.url).origin}/api/dashboard/users`,
-        {
-          cache: "no-store",
-          headers: { Cookie: cookie, Accept: "application/json" },
-        },
-      );
+      const usersList = await getUsers();
+      const nameMap: Record<string, string> = {};
+      const deptMap: Record<string, string> = {};
+      const nikMap: Record<string, string> = {};
+      const photoMap: Record<string, string> = {};
 
-      if (usersRes.ok) {
-        const usersJson = await usersRes.json();
-        const usersList: any[] =
-          usersJson?.data?.users ??
-          usersJson?.users ??
-          (Array.isArray(usersJson) ? usersJson : []);
-        const nameMap: Record<string, string> = {};
-        const deptMap: Record<string, string> = {};
-        const nikMap: Record<string, string> = {};
-        const photoMap: Record<string, string> = {};
+      for (const u of usersList) {
+        if (u?.fid != null) {
+          const key = String(u.fid);
 
-        for (const u of usersList) {
-          if (u?.fid != null) {
-            const key = String(u.fid);
-
-            nameMap[key] = u.name ?? u?.fullName ?? u?.username ?? "";
-            deptMap[key] = u?.department ?? "";
-            nikMap[key] = u?.nik != null ? String(u.nik) : "";
-            const photoUrl =
-              u?.photo ??
-              u?.avatar ??
-              u?.avatarUrl ??
-              u?.profileImageUrl ??
-              u?.image ??
-              u?.profile?.photoUrl ??
-              "";
-
-            photoMap[key] = photoUrl ? String(photoUrl) : "";
-          }
+          nameMap[key] = u.name ?? "";
+          deptMap[key] = u?.department ?? "";
+          nikMap[key] = u?.nik != null ? String(u.nik) : "";
+          photoMap[key] = u?.photo ?? "";
         }
-        all = all.map((r: any) => {
-          const rawFid = r?.user_id ?? r?.fid ?? r?.userId ?? r?.uid;
-          const fidKey = rawFid != null ? String(rawFid) : undefined;
-          const user = fidKey
-            ? {
-                fid: fidKey,
-                name: nameMap[fidKey] ?? undefined,
-                nik: nikMap[fidKey] ?? undefined,
-                department: deptMap[fidKey] ?? undefined,
-                photo: photoMap[fidKey] ?? undefined,
-              }
-            : undefined;
-
-          return { ...r, user };
-        });
       }
+
+      all = all.map((r: any) => {
+        const rawFid = r?.user_id ?? r?.fid ?? r?.userId ?? r?.uid;
+        const fidKey = rawFid != null ? String(rawFid) : undefined;
+        const user = fidKey
+          ? {
+              fid: fidKey,
+              name: nameMap[fidKey] ?? undefined,
+              nik: nikMap[fidKey] ?? undefined,
+              department: deptMap[fidKey] ?? undefined,
+              photo: photoMap[fidKey] ?? undefined,
+            }
+          : undefined;
+
+        return { ...r, user };
+      });
     } catch {}
   }
 

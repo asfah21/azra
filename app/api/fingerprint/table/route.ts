@@ -1,6 +1,7 @@
 // app/api/fingerprint/table/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt"; // ← jwt from middleware.ts
+
 import { getUsers } from "@/actions/users";
 
 const BACKEND_URL = "http://188.245.70.138:8080/api/logs";
