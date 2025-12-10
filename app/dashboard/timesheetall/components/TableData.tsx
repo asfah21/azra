@@ -27,6 +27,7 @@ import Link from "next/link";
 import Activity from "./Activity";
 
 import { useSessionUser } from "@/hooks/useSessionUser";
+import { consolePino } from "@/lib/logger";
 
 interface TimesheetEntry {
   id: string;
@@ -108,10 +109,10 @@ export default function TableDatas({
           ),
         );
       } else {
-        console.error("Approve failed:", await response.text());
+        consolePino.error("Approve failed:", await response.text());
       }
     } catch (err) {
-      console.error("Error approving:", err);
+      consolePino.error("Error approving:", err);
     }
   };
   const [selectedRow, setSelectedRow] = React.useState<string | null>(null);
@@ -128,7 +129,7 @@ export default function TableDatas({
     const timeEntryId = entry.timeEntryId ? entry.timeEntryId : entry.id;
     const deleteUrl = `/api/timesheetall/${timeEntryId}`;
 
-    console.log("DELETE URL:", deleteUrl); // Log the constructed URL
+    consolePino.info("DELETE URL:", deleteUrl); // Log the constructed URL
     setDeletingId(timeEntryId);
     try {
       const response = await fetch(deleteUrl, { method: "DELETE" });
@@ -140,11 +141,11 @@ export default function TableDatas({
         );
         setDeletingId(null);
       } else {
-        console.error("Delete failed:", await response.text());
+        consolePino.error("Delete failed:", await response.text());
         setDeletingId(null);
       }
     } catch (err) {
-      console.error("Error deleting:", err);
+      consolePino.error("Error deleting:", err);
       setDeletingId(null);
     }
   };
@@ -688,7 +689,10 @@ export default function TableDatas({
                                                     );
                                                     setShowDeleteModal(false);
                                                   } catch (err) {
-                                                    // Optionally show error
+                                                    consolePino.error(
+                                                      "Error deleting activity:",
+                                                      err,
+                                                    );
                                                   } finally {
                                                     setDeletingActivityId(null);
                                                   }

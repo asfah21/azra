@@ -7,6 +7,7 @@ import { Alert, Card, CardHeader, CardFooter } from "@heroui/react";
 import { EyeIcon, EyeSlashIcon } from "@heroicons/react/24/outline";
 
 import { Logo } from "@/components/icons";
+import { consolePino } from "@/lib/logger";
 
 function LoginForm() {
   const searchParams = useSearchParams();
@@ -133,7 +134,7 @@ function LoginForm() {
         }
       }
     } catch (error) {
-      console.error("Login error:", error);
+      consolePino.error("Login error:", error);
       setError("Terjadi kesalahan saat login. Silakan coba lagi.");
     } finally {
       setLoading(false);

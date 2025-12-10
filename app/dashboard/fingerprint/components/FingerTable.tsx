@@ -1,5 +1,7 @@
 "use client";
 
+import type { FingerprintLog, AttendanceTypeConfig } from "@/types";
+
 import React, { useState, useCallback, useEffect } from "react";
 import {
   Card,
@@ -29,7 +31,6 @@ import { Search, Upload, UserRoundCheck } from "lucide-react";
 
 import { useFingerprintLogs } from "@/hooks/fingerprint/useFingerprintLogs";
 import { useExportFingerprint } from "@/hooks/fingerprint/useExportFingerprint";
-import type { FingerprintLog, AttendanceType, ExportParams, AttendanceTypeConfig } from "@/types";
 
 const ATTENDANCE_TYPES: AttendanceTypeConfig = {
   0: { label: "Masuk", color: "success" },
@@ -42,13 +43,17 @@ function mapType(t?: number) {
   if (t != null && ATTENDANCE_TYPES[t]) {
     return ATTENDANCE_TYPES[t].label;
   }
+
   return String(t ?? "System");
 }
 
-function getTypeColor(t?: number): 'success' | 'danger' | 'primary' | 'warning' | 'default' {
+function getTypeColor(
+  t?: number,
+): "success" | "danger" | "primary" | "warning" | "default" {
   if (t != null && ATTENDANCE_TYPES[t]) {
     return ATTENDANCE_TYPES[t].color;
   }
+
   return "default";
 }
 
@@ -260,7 +265,7 @@ export default function FingerTable() {
                 {/* <TableColumn className="w-16 text-center text-xs font-medium text-default-600 uppercase tracking-wider select-none">
                   PHOTO
                 </TableColumn> */}
-                
+
                 <TableColumn className="w-35 text-center text-xs text-left font-medium text-default-600 uppercase tracking-wider select-none">
                   NAME
                 </TableColumn>
@@ -330,11 +335,20 @@ export default function FingerTable() {
                       const idx = (page - 1) * (pageSize || 20) + index + 1;
                       const userData = (item as any).user || {};
                       const nameFromUser = userData.name as string | undefined;
-                      const deptFromUser = userData.department as string | undefined;
-                      const jabatanFromUser = userData.jabatan as string | undefined;
+                      const deptFromUser = userData.department as
+                        | string
+                        | undefined;
+                      const jabatanFromUser = userData.jabatan as
+                        | string
+                        | undefined;
                       const nikFromUser = userData.nik as string | undefined;
-                      const photoFromUser = userData.photo as string | undefined;
-                      const fidFromUser = userData.fid as string | number | undefined;
+                      const photoFromUser = userData.photo as
+                        | string
+                        | undefined;
+                      const fidFromUser = userData.fid as
+                        | string
+                        | number
+                        | undefined;
                       const resolvedName =
                         nameFromUser ?? resolveNameByUserId(item.user_id);
                       const resolvedDept =

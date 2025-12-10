@@ -1,3 +1,4 @@
+import { consolePino } from "@/lib/logger";
 import { useQuery } from "@tanstack/react-query";
 
 type LogEntry = {
@@ -78,7 +79,7 @@ async function fetchLogsPage(page: number, signal?: AbortSignal) {
   const internalKey = process.env.NEXT_PUBLIC_INTERNAL_FP_API_KEY ?? "";
 
   if (!internalKey) {
-    console.error("NEXT_PUBLIC_INTERNAL_FP_API_KEY is missing!");
+    consolePino.error("NEXT_PUBLIC_INTERNAL_FP_API_KEY is missing!");
     throw new Error("Missing API Internal Key.");
   }
 
@@ -204,13 +205,13 @@ async function fetchStats(): Promise<FingerprintStats> {
 
         if (!next.has_more && !totalPages) break;
       } catch (e) {
-        console.warn(`Warning: Failed to fetch page ${p}. Skipping.`, e);
+        consolePino.warn(`Warning: Failed to fetch page ${p}. Skipping.`, e);
       }
     }
 
     return stats;
   } catch (e) {
-    console.error("Fatal error during stats fetching:", e);
+    consolePino.error("Fatal error during stats fetching:", e);
     throw e;
   }
 }

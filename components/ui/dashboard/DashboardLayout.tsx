@@ -1,7 +1,5 @@
 "use client";
 
-import type { SidebarNavItem, SidebarNavChild } from "./Sidebar";
-
 import { useSession, signOut } from "next-auth/react";
 import { useRouter, usePathname } from "next/navigation";
 import {
@@ -11,6 +9,7 @@ import {
   useMemo,
   useRef,
   useTransition,
+  memo,
 } from "react";
 import {
   FiSettings,
@@ -38,249 +37,251 @@ import { consolePino } from "@/lib/logger";
 import { defaultNavItems } from "@/lib/config/navigation";
 import { useRoleAccess } from "@/hooks/useRoleAccess";
 
-// Key untuk localStorage
+// Storage keys
 export const ACTIVE_TABS_KEY = "dashboard-active-tabs";
 export const ACTIVE_TAB_KEY = "dashboard-active-tab";
 
-// Function to clear tab state from localStorage
-export const clearTabState = () => {
-  try {
-    localStorage.removeItem(ACTIVE_TABS_KEY);
-    localStorage.removeItem(ACTIVE_TAB_KEY);
-  } catch (error) {
-    consolePino.error({ err: error }, "Error clearing tab state");
-  }
+// Optimized storage operations with error boundaries
+const storageManager = {
+  get: (key: string): string | null => {
+    if (typeof window === "undefined") return null;
+    try {
+      return localStorage.getItem(key);
+    } catch (error) {
+      consolePino.error(
+        { err: error },
+        `Error reading from localStorage: ${key}`,
+      );
+
+      return null;
+    }
+  },
+
+  set: (key: string, value: string): boolean => {
+    if (typeof window === "undefined") return false;
+    try {
+      localStorage.setItem(key, value);
+
+      return true;
+    } catch (error) {
+      consolePino.error(
+        { err: error },
+        `Error writing to localStorage: ${key}`,
+      );
+
+      return false;
+    }
+  },
+
+  remove: (key: string): boolean => {
+    if (typeof window === "undefined") return false;
+    try {
+      localStorage.removeItem(key);
+
+      return true;
+    } catch (error) {
+      consolePino.error(
+        { err: error },
+        `Error removing from localStorage: ${key}`,
+      );
+
+      return false;
+    }
+  },
 };
 
-export default function UIDashboardLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export const clearTabState = () => {
+  storageManager.remove(ACTIVE_TABS_KEY);
+  storageManager.remove(ACTIVE_TAB_KEY);
+};
+
+// Memoized icon map - dibuat di luar component untuk menghindari re-creation
+const ICON_MAP: { [key: string]: React.ReactElement } = {
+  dashboard: <LuLayoutDashboard />,
+  wrench: <FiTool />,
+  package: <FiPackage />,
+  barChart: <FiBarChart2 />,
+  users: <FiUsers />,
+  settings: <FiSettings />,
+  shield: <FiShield />,
+  clock: <FiClock />,
+  fileInput: <LuFileText />,
+  luList: <LuList />,
+  ListAll: <LuFileType2 />,
+  fingerprint: <LuFingerprint />,
+};
+
+function UIDashboardLayout({ children }: { children: React.ReactNode }) {
   const { data: session, status } = useSession();
   const router = useRouter();
   const pathname = usePathname();
+
+  // UI States
   const [menuOpen, setMenuOpen] = useState(false);
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+
+  // Tab States
   const [activeTabs, setActiveTabs] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState("");
   const [isInitialized, setIsInitialized] = useState(false);
 
-  // Ref untuk tracking navigation state
+  // Navigation States
+  const [pendingNavigation, setPendingNavigation] = useState<{
+    path: string;
+    tabId: string;
+  } | null>(null);
+  const [isPending, startTransition] = useTransition();
+
+  // Refs untuk optimization
   const isNavigatingRef = useRef(false);
   const lastPathnameRef = useRef(pathname);
+  const saveTimeoutRef = useRef<NodeJS.Timeout>();
 
-  //ubah icon sidebar disini
-  const iconMap: { [key: string]: React.ReactElement } = {
-    dashboard: <LuLayoutDashboard />,
-    wrench: <FiTool />,
-    package: <FiPackage />,
-    barChart: <FiBarChart2 />,
-    users: <FiUsers />,
-    settings: <FiSettings />,
-    shield: <FiShield />,
-    clock: <FiClock />,
-    fileInput: <LuFileText />,
-    luList: <LuList />,
-    ListAll: <LuFileType2 />,
-    fingerprint: <LuFingerprint />,
-  };
-
-  // Ambil role access dari backend
+  // Ambil role access dengan loading state
   const { roleAccess, loading: loadingRoleAccess } = useRoleAccess();
+  const userRole = session?.user?.role;
 
+  // Helper functions untuk icon mapping
+  const mapChildrenIcon = useCallback((children: readonly any[]) => {
+    return Array.from(children ?? []).map((child) => ({
+      ...child,
+      icon: ICON_MAP[child.icon] || <FiSettings />,
+    }));
+  }, []);
+
+  const attachIcon = useCallback(
+    (item: any) => ({
+      ...item,
+      icon: ICON_MAP[item.icon] || <FiSettings />,
+    }),
+    [],
+  );
+
+  // Optimized navItems computation
   const navItems = useMemo(() => {
-    const userRole = session?.user?.role;
+    if (!userRole || loadingRoleAccess) return [];
 
-    if (!userRole || loadingRoleAccess) {
-      return [];
-    }
+    // Helper untuk check access
+    const hasAccess = (menuId: string) => {
+      const hasAPIAccess = roleAccess.some(
+        (access) => access.menu === menuId && access.role === userRole,
+      );
 
-    // Helper untuk konversi icon pada children
-    const mapChildrenIcon = (children: readonly any[]) =>
-      Array.from(children ?? []).map((child) => ({
-        ...child,
-        icon: iconMap[child.icon] || <FiSettings />,
-      }));
+      if (hasAPIAccess) return true;
 
-    // Jika user adalah super_admin, kembalikan semua menu (akses penuh)
+      const menuConfig =
+        defaultNavItems.find((nav) => nav.id === menuId) ||
+        defaultNavItems
+          .flatMap((nav) => ("children" in nav ? nav.children || [] : []))
+          .find((child) => child.id === menuId);
+
+      return menuConfig && "defaultRoles" in menuConfig
+        ? (menuConfig as any).defaultRoles.includes(userRole)
+        : false;
+    };
+
+    // Super admin mendapat akses penuh
     if (userRole === "super_admin") {
       return defaultNavItems.map((item) => {
-        let children;
+        const baseItem = {
+          ...item,
+          icon: ICON_MAP[item.icon] || <FiSettings />,
+        };
 
         if ("children" in item && item.children) {
-          children = mapChildrenIcon(item.children);
+          return {
+            ...baseItem,
+            children: mapChildrenIcon(item.children),
+          };
         }
 
-        return {
-          ...item,
-          icon: iconMap[item.icon] || <FiSettings />,
-          children,
-        };
+        return baseItem;
       });
     }
 
-    // Untuk role lain, filter menu berdasarkan hasil API role access
-    const filteredItems = defaultNavItems
+    // Filter untuk role lain
+    return defaultNavItems
       .map((item) => {
-        // Helper function to check user access
-        const hasAccess = (menuId: string) => {
-          // Check from roleAccess API data first
-          const hasAPIAccess = roleAccess.some(
-            (access) => access.menu === menuId && access.role === userRole,
-          );
-
-          if (hasAPIAccess) return true;
-
-          // Fallback to defaultRoles if no API configuration
-          const menuConfig =
-            defaultNavItems.find((nav) => nav.id === menuId) ||
-            defaultNavItems
-              .flatMap((nav) => ("children" in nav ? nav.children || [] : []))
-              .find((child) => child.id === menuId);
-
-          if (menuConfig && "defaultRoles" in menuConfig) {
-            return (menuConfig as any).defaultRoles.includes(userRole);
-          }
-
-          return false;
-        };
-
-        // Check if user has access to this menu item
         const hasParentAccess = hasAccess(item.id);
 
-        // For parent menus with children
         if ("children" in item && item.children) {
-          const accessibleChildren = item.children.filter((child) =>
-            hasAccess(child.id),
-          );
+          const accessibleChildren = item.children
+            .filter((child) => hasAccess(child.id))
+            .map((child) => ({
+              ...child,
+              icon: ICON_MAP[child.icon] || <FiSettings />,
+            }));
 
-          // If user has access to any children, include the parent
           if (accessibleChildren.length > 0) {
             return {
               ...item,
-              icon: iconMap[item.icon] || <FiSettings />,
-              children: accessibleChildren.map((child) => ({
-                ...child,
-                icon: iconMap[child.icon] || <FiSettings />,
-              })),
+              icon: ICON_MAP[item.icon] || <FiSettings />,
+              children: accessibleChildren,
             };
           }
 
-          // If parent has direct access but no accessible children, include without children
           if (hasParentAccess) {
             return {
               ...item,
-              icon: iconMap[item.icon] || <FiSettings />,
+              icon: ICON_MAP[item.icon] || <FiSettings />,
               children: undefined,
             };
           }
 
-          return null; // No access to parent or children
+          return null;
         }
 
-        // For regular menu items with direct path
         if (hasParentAccess) {
           return {
             ...item,
-            icon: iconMap[item.icon] || <FiSettings />,
+            icon: ICON_MAP[item.icon] || <FiSettings />,
           };
         }
 
-        return null; // No access
+        return null;
       })
       .filter((item): item is NonNullable<typeof item> => item !== null);
+  }, [userRole, roleAccess, loadingRoleAccess, mapChildrenIcon]);
 
-    return filteredItems;
-  }, [session?.user?.role, roleAccess, loadingRoleAccess]);
-
-  // Optimized pathname matcher
+  // Optimized getMatchedItem dengan early returns
   const getMatchedItem = useCallback(
     (path: string) => {
-      // Direct match first (most common case)
-      let directMatch: SidebarNavItem | SidebarNavChild | undefined =
-        navItems.find((item) => "path" in item && item.path === path);
+      // Direct match di parent
+      let match = navItems.find((item) => "path" in item && item.path === path);
 
-      if (!directMatch) {
-        for (const item of navItems) {
-          if ("children" in item && item.children) {
-            const childMatch = item.children.find(
-              (child) => child.path === path,
-            );
+      if (match) return match;
 
-            if (childMatch) {
-              directMatch = {
-                ...childMatch,
-                icon: iconMap[childMatch.icon as string] || <FiSettings />,
-              };
-              break;
-            }
-          }
-        }
-      }
-      if (!directMatch) {
-        // Cari pada children jika parent tidak punya path
-        for (const item of navItems) {
-          if ("children" in item && item.children) {
-            const childMatch = item.children.find(
-              (child) => child.path === path,
-            );
+      // Direct match di children
+      for (const item of navItems) {
+        if ("children" in item && item.children) {
+          const childMatch = item.children.find((child) => child.path === path);
 
-            if (childMatch) {
-              directMatch = childMatch;
-              break;
-            }
-          }
+          if (childMatch) return childMatch;
         }
       }
 
-      if (directMatch) return directMatch;
+      // Prefix match (exclude dashboard untuk specificity)
+      match = navItems.find(
+        (item) =>
+          "path" in item &&
+          item.path &&
+          path.startsWith(item.path) &&
+          item.path !== "/dashboard",
+      );
+      if (match) return match;
 
-      // Prefix match (excluding dashboard for specificity)
-      let prefixMatch: SidebarNavItem | SidebarNavChild | undefined =
-        navItems.find(
-          (item) =>
-            "path" in item &&
-            item.path &&
-            path.startsWith(item.path) &&
-            item.path !== "/dashboard",
-        );
+      // Prefix match di children
+      for (const item of navItems) {
+        if ("children" in item && item.children) {
+          const childPrefix = item.children.find(
+            (child) => child.path && path.startsWith(child.path),
+          );
 
-      if (!prefixMatch) {
-        for (const item of navItems) {
-          if ("children" in item && item.children) {
-            const childPrefix = item.children.find(
-              (child) => child.path && path.startsWith(child.path),
-            );
-
-            if (childPrefix) {
-              prefixMatch = {
-                ...childPrefix,
-                icon: iconMap[childPrefix.icon as string] || <FiSettings />,
-              };
-              break;
-            }
-          }
-        }
-      }
-      if (!prefixMatch) {
-        for (const item of navItems) {
-          if ("children" in item && item.children) {
-            const childPrefix = item.children.find(
-              (child: any) => child.path && path.startsWith(child.path),
-            );
-
-            if (childPrefix) {
-              prefixMatch = childPrefix;
-              break;
-            }
-          }
+          if (childPrefix) return childPrefix;
         }
       }
 
-      if (prefixMatch) return prefixMatch;
-
-      // Dashboard fallback for any /dashboard/* path
+      // Dashboard fallback
       if (path.startsWith("/dashboard")) {
         return navItems.find((item) => item.id === "dashboard");
       }
@@ -290,128 +291,97 @@ export default function UIDashboardLayout({
     [navItems],
   );
 
-  // Optimized storage operations dengan batching
+  // Debounced storage save untuk mengurangi I/O
   const saveTabsToStorage = useCallback(
     (tabs: any[], currentActiveTab: string) => {
-      // Batch storage operations
-      requestAnimationFrame(() => {
-        try {
-          const tabsForStorage = tabs.map(({ icon: _icon, ...tab }) => tab);
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
 
-          localStorage.setItem(ACTIVE_TABS_KEY, JSON.stringify(tabsForStorage));
-          localStorage.setItem(ACTIVE_TAB_KEY, currentActiveTab);
-        } catch (error) {
-          consolePino.error({ err: error }, "Error saving tabs to storage");
-        }
-      });
+      saveTimeoutRef.current = setTimeout(() => {
+        const tabsForStorage = tabs.map(({ icon: _icon, ...tab }) => tab);
+
+        storageManager.set(ACTIVE_TABS_KEY, JSON.stringify(tabsForStorage));
+        storageManager.set(ACTIVE_TAB_KEY, currentActiveTab);
+      }, 100);
     },
     [],
   );
 
+  // Optimized loadTabsFromStorage
   const loadTabsFromStorage = useCallback(() => {
+    const savedTabs = storageManager.get(ACTIVE_TABS_KEY);
+    const savedActiveTab = storageManager.get(ACTIVE_TAB_KEY);
+
+    if (!savedTabs || !savedActiveTab) return null;
+
     try {
-      const savedTabs = localStorage.getItem(ACTIVE_TABS_KEY);
-      const savedActiveTab = localStorage.getItem(ACTIVE_TAB_KEY);
+      const parsedTabs = JSON.parse(savedTabs);
+      const validTabs = parsedTabs
+        .map((tab: any) => {
+          // Cari di parent
+          let navItem = navItems.find((item) => item.id === tab.id);
 
-      if (savedTabs && savedActiveTab) {
-        const parsedTabs = JSON.parse(savedTabs);
-        const validTabs = parsedTabs
-          .map((tab: any) => {
-            // Cari di parent
-            let navItem = navItems.find((item) => item.id === tab.id);
+          // Cari di children jika tidak ditemukan
+          if (!navItem) {
+            for (const parent of navItems) {
+              if ("children" in parent && parent.children) {
+                const child = parent.children.find((c: any) => c.id === tab.id);
 
-            if (!navItem) {
-              // Cari di children
-              for (const parent of navItems) {
-                if ("children" in parent && parent.children) {
-                  const child = parent.children.find(
-                    (c: any) => c.id === tab.id,
-                  );
-
-                  if (child) {
-                    navItem = child;
-                    break;
-                  }
+                if (child) {
+                  navItem = child;
+                  break;
                 }
               }
             }
+          }
 
-            return navItem ? { ...navItem } : null;
-          })
-          .filter(Boolean);
+          return navItem || null;
+        })
+        .filter(Boolean);
 
-        if (validTabs.length > 0) {
-          const isValidActiveTab = validTabs.some(
-            (tab: any) => tab.id === savedActiveTab,
-          );
+      if (validTabs.length === 0) return null;
 
-          return {
-            tabs: validTabs,
-            activeTab: isValidActiveTab ? savedActiveTab : validTabs[0].id,
-          };
-        }
-      }
+      const isValidActiveTab = validTabs.some(
+        (tab: any) => tab.id === savedActiveTab,
+      );
+
+      return {
+        tabs: validTabs,
+        activeTab: isValidActiveTab ? savedActiveTab : validTabs[0].id,
+      };
     } catch (error) {
-      consolePino.error({ err: error }, "Error loading tabs from storage");
-    }
+      consolePino.error({ err: error }, "Error parsing tabs from storage");
 
-    return null;
+      return null;
+    }
   }, [navItems]);
 
-  // Handle session redirect & dynamic access (berdasarkan hasil filtering navItems)
+  // Session & Access Control Effect
   useEffect(() => {
-    console.log("🔍 DEBUG: Access check triggered", {
-      status,
-      pathname,
-      userRole: session?.user?.role,
-      navItemsLength: navItems.length,
-      loadingRoleAccess,
-    });
-
     if (status === "loading") return;
+
     if (!session) {
-      console.log("❌ No session, redirecting to login");
       router.push("/login");
 
       return;
     }
 
-    // super_admin bebas
-    if (session.user?.role === "super_admin") {
-      console.log("✅ Super admin access granted");
-
-      return;
-    }
+    // Super admin bypass
+    if (userRole === "super_admin") return;
 
     // Root dashboard selalu aman
-    if (pathname === "/dashboard" || pathname === "/dashboard/") {
-      console.log("✅ Dashboard root access granted");
+    if (pathname === "/dashboard" || pathname === "/dashboard/") return;
 
-      return;
-    }
+    // Wait for navItems
+    if (loadingRoleAccess || navItems.length === 0) return;
 
-    // Temporary: Allow timesheet access for debugging
-    if (pathname.startsWith("/dashboard/timentry")) {
-      console.log("✅ Temporary timesheet access granted for debugging");
-
-      return;
-    }
-
-    // Wait for navItems to be loaded before checking access
-    if (loadingRoleAccess || navItems.length === 0) {
-      console.log("⏳ Waiting for role access data to load...");
-
-      return;
-    }
-
-    // Jika path sekarang tidak ada di navItems yang difilter => tidak punya akses
+    // Check access
     const pathAllowed = navItems.some((item) => {
-      if (
-        "path" in item &&
-        item.path &&
-        (pathname === item.path || pathname.startsWith(item.path + "/"))
-      ) {
-        return true;
+      if ("path" in item && item.path) {
+        if (pathname === item.path || pathname.startsWith(item.path + "/")) {
+          return true;
+        }
       }
       if ("children" in item && item.children) {
         return item.children.some(
@@ -424,155 +394,62 @@ export default function UIDashboardLayout({
       return false;
     });
 
-    console.log("🔐 Path access check:", {
-      pathname,
-      pathAllowed,
-      availableNavItems: navItems.map((item) => ({
-        id: item.id,
-        title: item.title,
-        path: "path" in item ? item.path : "no-path",
-        children:
-          "children" in item
-            ? item.children?.map((c) => ({ id: c.id, path: c.path }))
-            : "no-children",
-      })),
-    });
-
     if (!pathAllowed) {
-      console.error(
-        `❌ Access denied for user role ${session.user?.role} to path ${pathname}`,
-      );
       consolePino.warn(
-        `Access denied for user role ${session.user?.role} to path ${pathname}. Available paths:`,
-        navItems.map((item) =>
-          "path" in item ? item.path : `${item.title} (parent menu)`,
-        ),
+        `Access denied for role ${userRole} to path ${pathname}`,
       );
       router.replace("/dashboard");
     }
-  }, [status, session, router, pathname, navItems, loadingRoleAccess]);
+  }, [
+    status,
+    session,
+    router,
+    pathname,
+    navItems,
+    loadingRoleAccess,
+    userRole,
+  ]);
 
-  // Single initialization effect
+  // Tab Initialization Effect
   useEffect(() => {
-    if (status === "loading" || !session || navItems.length === 0) return;
+    if (
+      status === "loading" ||
+      !session ||
+      navItems.length === 0 ||
+      isInitialized
+    ) {
+      return;
+    }
 
     const currentMatchedItem = getMatchedItem(pathname);
     const savedData = loadTabsFromStorage();
 
-    console.log("🔄 Tab initialization:", {
-      pathname,
-      currentMatchedItem: currentMatchedItem?.id,
-      savedActiveTab: savedData?.activeTab,
-      savedTabsCount: savedData?.tabs?.length || 0,
-    });
-
     if (savedData) {
-      // Check if current path matches the active tab
-      const savedActiveTab = navItems.find(
-        (item) => item.id === savedData.activeTab,
-      );
-      let currentPathTab: SidebarNavItem | SidebarNavChild | undefined =
-        navItems.find((item) => "path" in item && item.path === pathname);
+      const currentPathTab = getMatchedItem(pathname);
 
-      if (!currentPathTab) {
-        for (const item of navItems) {
-          if ("children" in item && item.children) {
-            const childTab = item.children.find(
-              (child) => child.path === pathname,
-            );
-
-            if (childTab) {
-              currentPathTab = {
-                ...childTab,
-                icon: iconMap[childTab.icon as string] || <FiSettings />,
-              };
-              break;
-            }
-          }
-        }
-      }
-
-      if (
-        currentPathTab &&
-        (!savedActiveTab || currentPathTab.id !== savedData.activeTab)
-      ) {
-        // If current path doesn't match saved active tab, add current tab to existing tabs
+      if (currentPathTab && currentPathTab.id !== savedData.activeTab) {
         setActiveTab(currentPathTab.id);
-        setActiveTabs((prevTabs) => {
-          // Start with saved tabs, then add current tab if not exists
-          const savedTabsWithIcons = savedData.tabs
-            .map((tab: any) => {
-              // Re-attach icons for saved tabs
-              let fullNavItem = navItems.find((item) => item.id === tab.id);
-
-              if (!fullNavItem) {
-                for (const parent of navItems) {
-                  if ("children" in parent && parent.children) {
-                    const child = parent.children.find(
-                      (c: any) => c.id === tab.id,
-                    );
-
-                    if (child) {
-                      fullNavItem = child;
-                      break;
-                    }
-                  }
-                }
-              }
-
-              return fullNavItem || tab;
-            })
-            .filter(Boolean);
-
-          const tabExists = savedTabsWithIcons.some(
+        setActiveTabs((prev) => {
+          const tabExists = savedData.tabs.some(
             (tab: any) => tab.id === currentPathTab.id,
           );
           const newTabs = tabExists
-            ? savedTabsWithIcons
-            : [currentPathTab, ...savedTabsWithIcons];
+            ? savedData.tabs
+            : [currentPathTab, ...savedData.tabs];
 
           saveTabsToStorage(newTabs, currentPathTab.id);
 
           return newTabs;
         });
       } else {
-        // Use saved data - current path matches saved active tab
-        setActiveTabs(() => {
-          // Re-attach icons to saved tabs
-          const tabsWithIcons = savedData.tabs
-            .map((tab: any) => {
-              let fullNavItem = navItems.find((item) => item.id === tab.id);
-
-              if (!fullNavItem) {
-                for (const parent of navItems) {
-                  if ("children" in parent && parent.children) {
-                    const child = parent.children.find(
-                      (c: any) => c.id === tab.id,
-                    );
-
-                    if (child) {
-                      fullNavItem = child;
-                      break;
-                    }
-                  }
-                }
-              }
-
-              return fullNavItem || tab;
-            })
-            .filter(Boolean);
-
-          return tabsWithIcons;
-        });
+        setActiveTabs(savedData.tabs);
         setActiveTab(savedData.activeTab);
       }
     } else if (currentMatchedItem) {
-      // No saved data, initialize with current path
       setActiveTabs([currentMatchedItem]);
       setActiveTab(currentMatchedItem.id);
       saveTabsToStorage([currentMatchedItem], currentMatchedItem.id);
     } else {
-      // Fallback to dashboard
       const dashboardTab = navItems.find((item) => item.id === "dashboard");
 
       if (dashboardTab) {
@@ -583,85 +460,71 @@ export default function UIDashboardLayout({
     }
 
     setIsInitialized(true);
-
-    setIsInitialized(true);
   }, [
     status,
     session,
+    navItems,
     pathname,
     getMatchedItem,
     loadTabsFromStorage,
     saveTabsToStorage,
-    navItems,
     isInitialized,
   ]);
 
-  // Optimized pathname sync dengan debouncing
+  // Pathname Sync Effect
   useEffect(() => {
-    if (!isInitialized || isNavigatingRef.current) return;
+    if (
+      !isInitialized ||
+      isNavigatingRef.current ||
+      lastPathnameRef.current === pathname
+    ) {
+      return;
+    }
 
-    // Skip jika pathname tidak berubah
-    if (lastPathnameRef.current === pathname) return;
     lastPathnameRef.current = pathname;
-
     const currentMatchedItem = getMatchedItem(pathname);
 
     if (!currentMatchedItem) return;
 
-    // Batch state updates
-    const updateTabs = () => {
-      setActiveTabs((prevTabs) => {
-        const existingTab = prevTabs.find(
-          (tab) => tab.id === currentMatchedItem.id,
-        );
+    setActiveTabs((prevTabs) => {
+      const existingTab = prevTabs.find(
+        (tab) => tab.id === currentMatchedItem.id,
+      );
 
-        if (existingTab) {
-          if (activeTab !== currentMatchedItem.id) {
-            setActiveTab(currentMatchedItem.id);
-            saveTabsToStorage(prevTabs, currentMatchedItem.id);
-          }
-
-          return prevTabs;
-        } else {
-          // Jangan hapus tab lain, hanya tambahkan tab baru di belakang
-          const newTabs = [currentMatchedItem, ...prevTabs];
-
+      if (existingTab) {
+        if (activeTab !== currentMatchedItem.id) {
           setActiveTab(currentMatchedItem.id);
-          saveTabsToStorage(newTabs, currentMatchedItem.id);
-
-          return newTabs;
+          saveTabsToStorage(prevTabs, currentMatchedItem.id);
         }
-      });
-    };
 
-    // Use requestAnimationFrame untuk smooth updates
-    requestAnimationFrame(updateTabs);
+        return prevTabs;
+      }
+
+      const newTabs = [currentMatchedItem, ...prevTabs];
+
+      setActiveTab(currentMatchedItem.id);
+      saveTabsToStorage(newTabs, currentMatchedItem.id);
+
+      return newTabs;
+    });
   }, [pathname, isInitialized, getMatchedItem, saveTabsToStorage, activeTab]);
 
-  // Navigation state
-  const [pendingNavigation, setPendingNavigation] = useState<{
-    path: string;
-    tabId: string;
-  } | null>(null);
-  const [isPending, startTransition] = useTransition();
-
-  // Handle navigation after state updates
+  // Pending Navigation Effect
   useEffect(() => {
-    if (pendingNavigation) {
-      isNavigatingRef.current = true;
+    if (!pendingNavigation) return;
 
-      startTransition(() => {
-        router.push(pendingNavigation.path);
-        // Reset flag after navigation
-        setTimeout(() => {
-          isNavigatingRef.current = false;
-        }, 100);
-      });
+    isNavigatingRef.current = true;
+    startTransition(() => {
+      router.push(pendingNavigation.path);
+      setTimeout(() => {
+        isNavigatingRef.current = false;
+      }, 100);
+    });
 
-      setPendingNavigation(null);
-    }
+    setPendingNavigation(null);
   }, [pendingNavigation, router]);
 
+  // Tab Handlers
   const handleTabClick = useCallback(
     (tab: any) => {
       if (activeTab === tab.id) return;
@@ -731,14 +594,21 @@ export default function UIDashboardLayout({
     [activeTab, saveTabsToStorage, navItems],
   );
 
-  // Handle sign out with tab state cleanup
   const handleSignOut = useCallback(() => {
     clearTabState();
-    // signOut({ callbackUrl: "/" });
     signOut();
   }, []);
 
-  // Show loading hanya saat benar-benar loading
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (saveTimeoutRef.current) {
+        clearTimeout(saveTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // Loading state
   if (status === "loading" || !isInitialized) {
     return <LoadingSpinner />;
   }
@@ -785,3 +655,5 @@ export default function UIDashboardLayout({
     </div>
   );
 }
+
+export default memo(UIDashboardLayout);

@@ -1,5 +1,6 @@
-import { useQuery } from "@tanstack/react-query";
 import type { FingerprintLog, FingerprintLogsResponse } from "@/types";
+
+import { useQuery } from "@tanstack/react-query";
 
 export function useFingerprintLogs({
   page,
@@ -14,22 +15,27 @@ export function useFingerprintLogs({
     queryKey,
     queryFn: async () => {
       let res: Response;
-      
+
       if (search && search.trim().length >= 2) {
         // Use search endpoint
         const searchParams = new URLSearchParams({
           q: search.trim(),
           page: String(page),
         });
-        res = await fetch(`/api/fingerprint/search?${searchParams.toString()}`, {
-          cache: "no-store",
-        });
+
+        res = await fetch(
+          `/api/fingerprint/search?${searchParams.toString()}`,
+          {
+            cache: "no-store",
+          },
+        );
       } else {
         // Use regular table endpoint
         const params = new URLSearchParams();
+
         params.set("page", String(page));
         params.set("join", "user");
-        
+
         res = await fetch(`/api/fingerprint/table?${params.toString()}`, {
           cache: "no-store",
         });
