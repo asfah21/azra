@@ -312,21 +312,21 @@ export async function importUsersFromExcel(prevState: any, formData: FormData) {
     const excelDataJson = formData.get("excelData") as string | null;
     const createdById = formData.get("createdById") as string | null;
 
-    console.log("importUsersFromExcel called, createdById:", createdById);
+    consolePino.info("importUsersFromExcel called, createdById:", createdById);
     if (excelDataJson) {
       try {
         const preview = JSON.parse(excelDataJson);
 
-        console.log(
+        consolePino.info(
           "Received excel rows:",
           Array.isArray(preview) ? preview.length : "not-array",
         );
-        console.log("First row preview:", preview[0]);
+        consolePino.info("First row preview:", preview[0]);
       } catch (e) {
-        console.log("excelDataJson parse error", e);
+        consolePino.error("excelDataJson parse error", e);
       }
     } else {
-      console.log("No excelData provided in formData");
+      consolePino.warn("No excelData provided in formData");
     }
 
     if (!excelDataJson || !createdById) {

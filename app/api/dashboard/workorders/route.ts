@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
+import { consolePino } from "@/lib/logger";
 
 export async function GET(req: NextRequest) {
   // const session = await getServerSession(authOptions); //Proteksi API
@@ -170,7 +171,7 @@ export async function GET(req: NextRequest) {
       { status: 500 },
     );
   } catch (error) {
-    console.error("[workorders] Error:", error);
+    consolePino.error("[workorders] Error:", error);
 
     return NextResponse.json(
       {

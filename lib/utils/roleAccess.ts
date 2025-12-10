@@ -1,5 +1,7 @@
 // lib/utils/roleAccess.ts
 
+import { consolePino } from "../logger";
+
 type NavItemID = string;
 type Role =
   | "super_admin"
@@ -28,7 +30,7 @@ export function getRoleAccess(): Record<NavItemID, Role[]> {
     try {
       return JSON.parse(saved);
     } catch (e) {
-      console.error("Failed to parse roleAccess from localStorage", e);
+      consolePino.error("Failed to parse roleAccess from localStorage", e);
     }
   }
 
@@ -42,7 +44,7 @@ export function saveRoleAccess(access: Record<NavItemID, Role[]>): void {
   try {
     localStorage.setItem("roleAccess", JSON.stringify(access));
   } catch (e) {
-    console.error("Failed to save roleAccess to localStorage", e);
+    consolePino.error("Failed to save roleAccess to localStorage", e);
   }
 }
 

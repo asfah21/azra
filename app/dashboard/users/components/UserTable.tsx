@@ -61,6 +61,7 @@ interface User {
   email: string;
   role: string;
   department: string | null;
+  jabatan?: string | null;
   createdAt: Date;
   lastActive: Date | null;
   photo?: string;
@@ -368,11 +369,14 @@ export default function UserTables({ usersTable }: UserManagementClientProps) {
     const exportData = filteredData.map((user, index) => ({
       No: index + 1, // Menambahkan nomor urut mulai dari 1
       // "User ID": user.id,
+      NIK: Number(user.nik),
       Name: user.name,
       Email: user.email,
       Role: user.role,
       Department: user.department,
-      "Last Active": formatLastActive(user.lastActive).text,
+      Jabatan: user.jabatan,
+      FID: Number(user.fid),
+      // "Last Active": formatLastActive(user.lastActive).text,
       // "Photo": user.photo,
     }));
 
@@ -380,11 +384,13 @@ export default function UserTables({ usersTable }: UserManagementClientProps) {
 
     const columnWidths = [
       { wch: 5 }, // No
-      { wch: 20 }, // Name
+      { wch: 9 }, // NIK
+      { wch: 30 }, // Name
       { wch: 25 }, // Email
       { wch: 15 }, // Role
       { wch: 12 }, // Department
-      { wch: 12 }, // Last Active
+      { wch: 12 }, // Jabatan
+      { wch: 12 }, // FID
     ];
 
     ws["!cols"] = columnWidths;

@@ -1,28 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-
-export type FingerprintLog = {
-  id: number | string;
-  user_id?: number | string;
-  type?: number;
-  device_sn?: string;
-  timestamp?: string;
-  created_at?: string;
-  // Optional embedded user info from backend join
-  user?: {
-    fid?: string | number;
-    name?: string;
-    department?: string;
-    nik?: string | number;
-    photo?: string;
-  } | null;
-  [key: string]: any;
-};
-
-export type FingerprintResponse = {
-  rows: FingerprintLog[];
-  total?: number | null;
-  pageSize?: number;
-};
+import type { FingerprintLog, FingerprintLogsResponse } from "@/types";
 
 export function useFingerprintLogs({
   page,
@@ -33,18 +10,30 @@ export function useFingerprintLogs({
 }) {
   const queryKey = ["fingerprintLogs", { page, search }];
 
-  const query = useQuery<FingerprintResponse>({
+  const query = useQuery<FingerprintLogsResponse>({
     queryKey,
     queryFn: async () => {
-      const params = new URLSearchParams();
-
-      params.set("page", String(page));
-      params.set("join", "user");
-      if (search && search.trim()) params.set("search", search.trim());
-
-      const res = await fetch(`/api/fingerprint/table?${params.toString()}`, {
-        cache: "no-store",
-      });
+      let res: Response;
+      
+      if (search && search.trim().length >= 2) {
+        // Use search endpoint
+        const searchParams = new URLSearchParams({
+          q: search.trim(),
+          page: String(page),
+        });
+        res = await fetch(`/api/fingerprint/search?${searchParams.toString()}`, {
+          cache: "no-store",
+        });
+      } else {
+        // Use regular table endpoint
+        const params = new URLSearchParams();
+        params.set("page", String(page));
+        params.set("join", "user");
+        
+        res = await fetch(`/api/fingerprint/table?${params.toString()}`, {
+          cache: "no-store",
+        });
+      }
 
       if (!res.ok) {
         const text = await res.text();
@@ -68,6 +57,7 @@ export function useFingerprintLogs({
 
       const usersByFid: Record<string, string> = {};
       const usersDeptByFid: Record<string, string> = {};
+      const usersJabatanByFid: Record<string, string> = {};
       const usersNikByFid: Record<string, string> = {};
       const usersPhotoByFid: Record<string, string> = {};
 
@@ -90,6 +80,11 @@ export function useFingerprintLogs({
           (typeof (r as any)["department"] === "string"
             ? (r as any)["department"]
             : undefined);
+        const jabatan =
+          r.user?.jabatan ??
+          (typeof (r as any)["jabatan"] === "string"
+            ? (r as any)["jabatan"]
+            : undefined);
         const nikVal =
           r.user?.nik ??
           (typeof (r as any)["nik"] === "string" ||
@@ -104,6 +99,7 @@ export function useFingerprintLogs({
 
         if (name != null) usersByFid[fidKey] = String(name);
         if (dept != null) usersDeptByFid[fidKey] = String(dept);
+        if (jabatan != null) usersJabatanByFid[fidKey] = String(jabatan);
         if (nikVal != null) usersNikByFid[fidKey] = String(nikVal);
         if (photo != null) usersPhotoByFid[fidKey] = String(photo);
       }
@@ -111,14 +107,17 @@ export function useFingerprintLogs({
       return {
         rows,
         total,
+        page,
         pageSize,
         usersByFid,
         usersDeptByFid,
+        usersJabatanByFid,
         usersNikByFid,
         usersPhotoByFid,
-      } as FingerprintResponse & {
+      } as FingerprintLogsResponse & {
         usersByFid: Record<string, string>;
         usersDeptByFid: Record<string, string>;
+        usersJabatanByFid: Record<string, string>;
         usersNikByFid: Record<string, string>;
         usersPhotoByFid: Record<string, string>;
       };
@@ -130,9 +129,10 @@ export function useFingerprintLogs({
 
   return {
     data: query.data as
-      | (FingerprintResponse & {
+      | (FingerprintLogsResponse & {
           usersByFid: Record<string, string>;
           usersDeptByFid: Record<string, string>;
+          usersJabatanByFid: Record<string, string>;
           usersNikByFid: Record<string, string>;
           usersPhotoByFid: Record<string, string>;
         })
@@ -142,6 +142,7 @@ export function useFingerprintLogs({
     error: query.error,
     usersByFid: (query.data as any)?.usersByFid ?? {},
     usersDeptByFid: (query.data as any)?.usersDeptByFid ?? {},
+    usersJabatanByFid: (query.data as any)?.usersJabatanByFid ?? {},
     usersNikByFid: (query.data as any)?.usersNikByFid ?? {},
     usersPhotoByFid: (query.data as any)?.usersPhotoByFid ?? {},
     pageSize: (query.data as any)?.pageSize ?? 20,

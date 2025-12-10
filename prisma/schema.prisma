@@ -21,6 +21,7 @@ model User {
   location           String?
   createdAt          DateTime    @default(now())
   department         String?
+  jabatan            String?
   avatar             String?
   status             String?
   lastActive         DateTime?

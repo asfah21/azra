@@ -1,12 +1,62 @@
 // app/api/fingerprint/table/route.ts
 import { NextRequest, NextResponse } from "next/server";
-import { getToken } from "next-auth/jwt"; // ← jwt from middleware.ts
+import { getToken } from "next-auth/jwt";
 
 import { getUsers } from "@/actions/users";
+import { mapDeviceSN } from "@/lib/device-mapping";
+import { consolePino } from "@/lib/logger";
 
-const BACKEND_URL = "http://188.245.70.138:8080/api/logs";
-const API_KEY = "gsi-attendance-key";
+const BACKEND_URL =
+  process.env.BACKEND_URL ?? "http://188.245.70.138:8080/api/logs";
+const API_KEY = process.env.ATT_KEY ?? "gsi-attendance-key";
 
+// Cache TTL 5 menit (disarankan pindah Redis kalau traffic besar)
+const CACHE_TTL = 5 * 60 * 1000;
+
+// In-memory cache (per instance)
+const cache = new Map<string, { data: any; timestamp: number }>();
+
+const getCached = <T>(key: string): T | null => {
+  const cached = cache.get(key);
+
+  if (!cached) return null;
+
+  if (Date.now() - cached.timestamp > CACHE_TTL) {
+    cache.delete(key);
+
+    return null;
+  }
+
+  return cached.data as T;
+};
+
+const setCache = (key: string, data: any) => {
+  cache.set(key, { data, timestamp: Date.now() });
+};
+
+// Basic rate limiter (per instance)
+const requestCounts = new Map<string, { count: number; resetTime: number }>();
+
+const checkRateLimit = (ip: string, max = 30): boolean => {
+  const now = Date.now();
+  const window = 60 * 1000;
+
+  const record = requestCounts.get(ip);
+
+  if (!record || now > record.resetTime) {
+    requestCounts.set(ip, { count: 1, resetTime: now + window });
+
+    return true;
+  }
+
+  if (record.count >= max) return false;
+
+  record.count++;
+
+  return true;
+};
+
+// Fetch backend logs
 async function fetchBackend(limit: number, offset: number) {
   const url = new URL(BACKEND_URL);
 
@@ -14,21 +64,23 @@ async function fetchBackend(limit: number, offset: number) {
   url.searchParams.set("offset", String(offset));
 
   const res = await fetch(url, {
-    headers: { "X-API-Key": API_KEY, Accept: "application/json" },
+    headers: {
+      "X-API-Key": API_KEY,
+      Accept: "application/json",
+    },
+    next: { revalidate: 0 },
+    // **Timeout important for production**
+    signal: AbortSignal.timeout(7000),
   });
 
-  if (!res.ok) throw new Error(`Upstream error ${res.status}`);
+  if (!res.ok) {
+    throw new Error(`Backend error: ${res.status}`);
+  }
 
   const json = await res.json().catch(() => ({}));
 
-  const rows =
-    json?.rows || json?.data || (Array.isArray(json) ? json : []) || [];
-
-  const total =
-    json?.total ??
-    json?.count ??
-    json?.total_rows ??
-    (rows[0]?.total_rows || null);
+  const rows = json?.rows || json?.data || (Array.isArray(json) ? json : []);
+  const total = json?.total ?? json?.count ?? json?.total_rows ?? null;
 
   return {
     rows: Array.isArray(rows) ? rows : [],
@@ -36,150 +88,151 @@ async function fetchBackend(limit: number, offset: number) {
   };
 }
 
+// ===================================
+//              MAIN
+// ===================================
 export async function GET(req: NextRequest) {
-  // JWT PROTECTION — hanya user login yang boleh akses
-  const token = await getToken({
-    req,
-    secret: process.env.NEXTAUTH_SECRET,
-  });
+  try {
+    // 1. Rate Limit
+    const ip =
+      req.headers.get("x-real-ip") ||
+      req.headers.get("x-forwarded-for") ||
+      "anonymous";
 
-  if (!token) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  // --- kode asli tetap utuh ---
-  const inUrl = new URL(req.url);
-
-  const page = Math.max(Number(inUrl.searchParams.get("page") || 1), 1);
-  const search = (inUrl.searchParams.get("search") || "").trim().toLowerCase();
-  const join = (inUrl.searchParams.get("join") || "").toLowerCase();
-
-  const pageSize = 20;
-
-  let rows: any[] = [];
-  let total: number | null = null;
-
-  // FETCH DATA
-  if (search) {
-    const batch = 500;
-    let offset = 0;
-
-    const first = await fetchBackend(batch, offset);
-
-    rows = [...first.rows];
-    total = first.total;
-
-    const totalPages = Math.ceil((total || first.rows.length) / batch);
-
-    for (let p = 2; p <= totalPages; p++) {
-      offset = (p - 1) * batch;
-      const next = await fetchBackend(batch, offset);
-
-      rows.push(...next.rows);
-
-      if (next.rows.length < batch) break;
+    if (!checkRateLimit(ip)) {
+      return NextResponse.json({ error: "Too many requests" }, { status: 429 });
     }
-  } else {
+
+    // 2. Auth
+    const token = await getToken({
+      req,
+      secret: process.env.NEXTAUTH_SECRET,
+    });
+
+    if (!token) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // 3. Params
+    const url = new URL(req.url);
+    const page = Math.max(Number(url.searchParams.get("page") || 1), 1);
+    const search = url.searchParams.get("search")?.trim().toLowerCase() || "";
+    const join = url.searchParams.get("join")?.toLowerCase() || "";
+    const pageSize = 20;
+
+    // 4. Redirect search
+    if (search) {
+      const redirectUrl = `/api/fingerprint/search?q=${encodeURIComponent(
+        search,
+      )}&page=${page}`;
+
+      return NextResponse.json(
+        {
+          message: "Use the search endpoint",
+          searchEndpoint: redirectUrl,
+        },
+        {
+          status: 400,
+          headers: {
+            "X-Search-Endpoint": redirectUrl,
+          },
+        },
+      );
+    }
+
+    // 5. Cache Hit (non-search only)
+    const cacheKey = `fp_${page}_${pageSize}_${join}`;
+    const cached = getCached<{ rows: any[]; total: number }>(cacheKey);
+
+    if (cached) {
+      return NextResponse.json(
+        {
+          ...cached,
+          page,
+          pageSize,
+          totalPages: Math.ceil(cached.total / pageSize),
+          cached: true,
+        },
+        {
+          status: 200,
+          headers: {
+            "Cache-Control": "public, max-age=60",
+          },
+        },
+      );
+    }
+
+    // 6. Fetch backend
     const offset = (page - 1) * pageSize;
     const data = await fetchBackend(pageSize, offset);
 
-    rows = data.rows;
-    total = data.total;
-  }
+    let rows = data.rows;
+    let total = data.total;
 
-  // JOIN USERS
-  if (join === "user") {
-    try {
-      const users = await getUsers();
+    // 7. Join user data (cached)
+    if (join === "user") {
+      let users = getCached<any[]>("users");
 
-      // console.log("[fingerprint/table] Users fetched:", users.length);
-      // if (users.length > 0) {
-      //   console.log("[fingerprint/table] First user sample:", users[0]);
-      // }
+      if (!users) {
+        users = await getUsers();
+        setCache("users", users);
+      }
 
       const userMap: Record<string, any> = {};
 
       for (const u of users) {
-        if (!u?.fid) {
-          // console.warn("[fingerprint/table] User missing fid:", u);
-          continue;
-        }
-        const key = String(u.fid).trim();
-
-        userMap[key] = {
-          fid: key,
-          name: u.name || "",
-          nik: u.nik || "",
-          department: u.department || "",
-          photo: u.photo || "",
-        };
+        if (!u?.fid) continue;
+        userMap[String(u.fid).trim()] = u;
       }
 
-      // console.log(
-      //   "[fingerprint/table] UserMap keys:",
-      //   Object.keys(userMap).slice(0, 5),
-      // );
-
       rows = rows.map((r) => {
-        const fid = r.user_id || r.fid || r.userId || r.uid || null;
-        const key = fid !== null ? String(fid).trim() : null;
+        const fid = r.user_id || r.fid || r.userId || r.uid || "";
+        const key = String(fid).trim();
 
-        // if (key && !userMap[key]) {
-        //   console.warn(
-        //     "[fingerprint/table] User not found for fid:",
-        //     key,
-        //     "available keys:",
-        //     Object.keys(userMap).slice(0, 5),
-        //   );
-        // }
-
-        return { ...r, user: key ? userMap[key] || null : null };
+        return {
+          ...r,
+          user: userMap[key] || null,
+        };
       });
-
-      // console.log(
-      //   "[fingerprint/table] After join, first row user:",
-      //   rows[0]?.user,
-      // );
-    } catch (err) {
-      console.error("[fingerprint/table] Error joining users:", err);
     }
+
+    // 7.5. Apply device mapping (always)
+    rows = rows.map((r) => ({
+      ...r,
+      device_sn: mapDeviceSN(r.device_sn),
+    }));
+
+    // 8. Cache result
+    if (rows && total !== null) {
+      setCache(cacheKey, { rows, total });
+    }
+
+    // 9. Return
+    return NextResponse.json(
+      {
+        rows,
+        total,
+        page,
+        pageSize,
+        totalPages: total ? Math.ceil(total / pageSize) : null,
+        cached: false,
+      },
+      {
+        status: 200,
+        headers: {
+          "Cache-Control": "public, max-age=30", // safe caching
+        },
+      },
+    );
+  } catch (err) {
+    consolePino.error("[fingerprint/table] ERROR:", err);
+
+    return NextResponse.json(
+      {
+        error: "Internal server error",
+        message: err instanceof Error ? err.message : "Unknown error",
+      },
+      { status: 500 },
+    );
   }
-
-  // LOCAL SEARCH FILTERING
-  if (search) {
-    rows = rows.filter((r) => {
-      const u = r.user || {};
-
-      return (
-        String(r.device_sn || "")
-          .toLowerCase()
-          .includes(search) ||
-        String(r.user_id || "")
-          .toLowerCase()
-          .includes(search) ||
-        String(u.name || "")
-          .toLowerCase()
-          .includes(search) ||
-        String(u.nik || "")
-          .toLowerCase()
-          .includes(search) ||
-        String(u.department || "")
-          .toLowerCase()
-          .includes(search) ||
-        String(u.fid || "")
-          .toLowerCase()
-          .includes(search)
-      );
-    });
-
-    total = rows.length;
-  }
-
-  const start = (page - 1) * pageSize;
-  const paginated = search ? rows.slice(start, start + pageSize) : rows;
-
-  return NextResponse.json(
-    { rows: paginated, total, pageSize },
-    { status: 200 },
-  );
 }

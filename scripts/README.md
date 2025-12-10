@@ -1,30 +1,17 @@
-Migration steps: TimeEntry -> TimeActivity
+# SCRIPTS DOCUMENTATION
 
-1. Ensure you have DB backup.
-2. Update Prisma schema (already done in `prisma/schema.prisma`).
-3. Generate Prisma Client:
+## Available Scripts
 
-   npm run prisma:generate
-   # or
-   npx prisma generate
+### updateJabatan.js
+Script untuk mengupdate field jabatan pada user database.
 
-4. Create migration in Prisma (this will create migration files):
+**Cara menjalankan:**
 
-   npx prisma migrate dev --name add-time-activity
+```bash
+node scripts/updateJabatan.js
+```
 
-   or for production:
-
-   npx prisma migrate deploy
-
-5. Run migration script (paginated, idempotent):
-
-   node --loader ts-node/esm scripts/migrate-timeentry-to-activities.ts
-
-   Or compile script to JS and run with node:
-
-   npx tsx scripts/migrate-timeentry-to-activities.ts
-
-Notes:
-- The migration script will skip entries that already have a TimeActivity.
-- For large datasets, consider running in batches and monitoring DB load.
-- After verifying data and updating API, consider removing old columns from `TimeEntry` in a later migration.
+**Fungsi:**
+- Mengupdate data jabatan user
+- Migrasi data jabatan dari sumber lain
+- Memperbaiki data jabatan yang kosong

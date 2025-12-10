@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import {
   Card,
   CardHeader,
@@ -29,24 +29,27 @@ import { Search, Upload, UserRoundCheck } from "lucide-react";
 
 import { useFingerprintLogs } from "@/hooks/fingerprint/useFingerprintLogs";
 import { useExportFingerprint } from "@/hooks/fingerprint/useExportFingerprint";
+import type { FingerprintLog, AttendanceType, ExportParams, AttendanceTypeConfig } from "@/types";
 
-type LogEntry = {
-  id: number | string;
-  user_id?: number | string;
-  type?: number;
-  device_sn?: string;
-  timestamp?: string;
-  created_at?: string;
-  [key: string]: any;
+const ATTENDANCE_TYPES: AttendanceTypeConfig = {
+  0: { label: "Masuk", color: "success" },
+  1: { label: "Pulang", color: "danger" },
+  4: { label: "Lembur Masuk", color: "primary" },
+  5: { label: "Lembur Pulang", color: "warning" },
 };
 
 function mapType(t?: number) {
-  if (t === 0) return "Masuk";
-  if (t === 1) return "Pulang";
-  if (t === 4) return "Lembur Masuk";
-  if (t === 5) return "Lembur Pulang";
-
+  if (t != null && ATTENDANCE_TYPES[t]) {
+    return ATTENDANCE_TYPES[t].label;
+  }
   return String(t ?? "System");
+}
+
+function getTypeColor(t?: number): 'success' | 'danger' | 'primary' | 'warning' | 'default' {
+  if (t != null && ATTENDANCE_TYPES[t]) {
+    return ATTENDANCE_TYPES[t].color;
+  }
+  return "default";
 }
 
 function formatDate(iso?: string) {
@@ -78,9 +81,22 @@ function splitDateTime(iso?: string) {
 export default function FingerTable() {
   const [page, setPage] = useState<number>(1);
   const [searchQuery, setSearchQuery] = useState<string>("");
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState<string>("");
   const [exportingWhich, setExportingWhich] = useState<
     "today" | "yesterday" | "last7" | "last30" | "all" | null
   >(null);
+
+  // Debounce search query
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+      if (searchQuery !== debouncedSearchQuery) {
+        setPage(1);
+      }
+    }, 500); // 500ms delay
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
 
   // Fetch logs from backend with pagination+search already applied and users joined
   const {
@@ -90,12 +106,13 @@ export default function FingerTable() {
     error,
     usersByFid,
     usersDeptByFid,
+    usersJabatanByFid,
     usersNikByFid,
     usersPhotoByFid,
     pageSize,
-  } = useFingerprintLogs({ page, search: searchQuery });
+  } = useFingerprintLogs({ page, search: debouncedSearchQuery });
 
-  const rows: LogEntry[] = data?.rows ?? [];
+  const rows = (data?.rows ?? []) as FingerprintLog[];
   const total: number | null =
     typeof data?.total === "number" ? data!.total : null;
   const totalPages =
@@ -121,6 +138,12 @@ export default function FingerTable() {
     (userId?: string | number) =>
       userId == null ? "-" : (usersDeptByFid[String(userId)] ?? "-"),
     [usersDeptByFid],
+  );
+
+  const resolveJabatanByUserId = useCallback(
+    (userId?: string | number) =>
+      userId == null ? "-" : (usersJabatanByFid[String(userId)] ?? "-"),
+    [usersJabatanByFid],
   );
 
   const {
@@ -174,7 +197,6 @@ export default function FingerTable() {
               }}
               onValueChange={(v: string) => {
                 setSearchQuery(v);
-                setPage(1);
               }}
             />
 
@@ -206,7 +228,6 @@ export default function FingerTable() {
               }}
               onValueChange={(v: string) => {
                 setSearchQuery(v);
-                setPage(1);
               }}
             />
           </div>
@@ -239,14 +260,15 @@ export default function FingerTable() {
                 {/* <TableColumn className="w-16 text-center text-xs font-medium text-default-600 uppercase tracking-wider select-none">
                   PHOTO
                 </TableColumn> */}
-                {/* <TableColumn className="w-28 text-center text-xs font-medium text-default-600 uppercase tracking-wider select-none">
-                  NIK
-                </TableColumn> */}
-                <TableColumn className="w-20 text-center text-xs text-left font-medium text-default-600 uppercase tracking-wider select-none">
+                
+                <TableColumn className="w-35 text-center text-xs text-left font-medium text-default-600 uppercase tracking-wider select-none">
                   NAME
                 </TableColumn>
-                <TableColumn className="w-28 text-center text-xs font-medium text-default-600 uppercase tracking-wider select-none">
+                <TableColumn className="w-24 text-center text-xs font-medium text-default-600 uppercase tracking-wider select-none">
                   DIVISION
+                </TableColumn>
+                <TableColumn className="w-30 text-center text-xs font-medium text-default-600 uppercase tracking-wider select-none">
+                  JABATAN
                 </TableColumn>
                 <TableColumn className="w-28 text-center text-xs font-medium text-default-600 uppercase tracking-wider select-none">
                   TYPE
@@ -257,11 +279,11 @@ export default function FingerTable() {
                 <TableColumn className="w-24 text-center text-xs font-medium text-default-600 uppercase tracking-wider select-none">
                   DATE
                 </TableColumn>
-                <TableColumn className="w-24 text-center text-xs font-medium text-default-600 uppercase tracking-wider select-none">
+                <TableColumn className="w-20 text-center text-xs font-medium text-default-600 uppercase tracking-wider select-none">
                   FID
                 </TableColumn>
-                <TableColumn className="w-56 text-center text-xs font-medium text-default-600 uppercase tracking-wider select-none">
-                  DEVICE SN
+                <TableColumn className="w-28 text-center text-xs font-medium text-default-600 uppercase tracking-wider select-none">
+                  LOKASI
                 </TableColumn>
               </TableHeader>
 
@@ -288,6 +310,9 @@ export default function FingerTable() {
                           <Skeleton className="h-6 w-20 rounded mx-auto" />
                         </TableCell>
                         <TableCell className="text-center align-middle px-6 py-3">
+                          <Skeleton className="h-6 w-20 rounded mx-auto" />
+                        </TableCell>
+                        <TableCell className="text-center align-middle px-6 py-3">
                           <Skeleton className="h-3 w-16 rounded mx-auto" />
                         </TableCell>
                         <TableCell className="text-center align-middle px-6 py-3">
@@ -301,28 +326,21 @@ export default function FingerTable() {
                         </TableCell>
                       </TableRow>
                     ))
-                  : rows.map((item: LogEntry, index: number) => {
+                  : rows.map((item: FingerprintLog, index: number) => {
                       const idx = (page - 1) * (pageSize || 20) + index + 1;
-                      const nameFromUser = (item as any).user?.name as
-                        | string
-                        | undefined;
-                      const deptFromUser = (item as any).user?.department as
-                        | string
-                        | undefined;
-                      const nikFromUser = (item as any).user?.nik as
-                        | string
-                        | undefined;
-                      const photoFromUser = (item as any).user?.photo as
-                        | string
-                        | undefined;
-                      const fidFromUser = (item as any).user?.fid as
-                        | string
-                        | number
-                        | undefined;
+                      const userData = (item as any).user || {};
+                      const nameFromUser = userData.name as string | undefined;
+                      const deptFromUser = userData.department as string | undefined;
+                      const jabatanFromUser = userData.jabatan as string | undefined;
+                      const nikFromUser = userData.nik as string | undefined;
+                      const photoFromUser = userData.photo as string | undefined;
+                      const fidFromUser = userData.fid as string | number | undefined;
                       const resolvedName =
                         nameFromUser ?? resolveNameByUserId(item.user_id);
                       const resolvedDept =
                         deptFromUser ?? resolveDeptByUserId(item.user_id);
+                      const resolvedJabatan =
+                        jabatanFromUser ?? resolveJabatanByUserId(item.user_id);
                       const resolvedNik =
                         nikFromUser ?? resolveNikByUserId(item.user_id);
                       const resolvedPhoto =
@@ -354,20 +372,13 @@ export default function FingerTable() {
                           <TableCell className="text-center align-middle px-6 py-3 text-sm text-default-700">
                             {resolvedDept || "-"}
                           </TableCell>
+                          <TableCell className="text-center align-middle px-6 py-3 text-sm text-default-700">
+                            {resolvedJabatan || "-"}
+                          </TableCell>
                           <TableCell className="text-center align-middle px-6 py-3 text-sm text-default-700 whitespace-pre-line">
                             <Chip
                               className="mx-auto"
-                              color={
-                                item.type === 0
-                                  ? "success"
-                                  : item.type === 1
-                                    ? "danger"
-                                    : item.type === 4
-                                      ? "primary"
-                                      : item.type === 5
-                                        ? "warning"
-                                        : "default"
-                              }
+                              color={getTypeColor(item.type)}
                               radius="sm"
                               size="sm"
                               variant="flat"

@@ -2,6 +2,7 @@ import { getServerSession } from "next-auth";
 
 import prisma from "@/lib/prisma";
 import { authOptions } from "@/lib/auth";
+import { consolePino } from "@/lib/logger";
 
 export async function getUsers() {
   const session = await getServerSession(authOptions);
@@ -18,6 +19,7 @@ export async function getUsers() {
         email: true,
         role: true,
         department: true,
+        jabatan: true,
         createdAt: true,
         lastActive: true,
         photo: true,
@@ -29,7 +31,7 @@ export async function getUsers() {
 
     return allUsers;
   } catch (error) {
-    console.error("Error fetching users:", error);
+    consolePino.error("Error fetching users:", error);
 
     return [];
   }
