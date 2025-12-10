@@ -28,6 +28,7 @@ interface User {
   email: string;
   role: string;
   department: string | null;
+  jabatan?: string | null;
   createdAt: Date;
   lastActive: Date | null;
   fid?: string | number | null;
@@ -243,6 +244,19 @@ export function EditUserModal({
             labelPlacement="outside-top"
             name="department"
             placeholder="Enter department (optional)"
+            variant="bordered"
+            onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
+              e.target.style.outline = "none";
+            }}
+          />
+
+          <Input
+            defaultValue={user?.jabatan || ""}
+            isDisabled={!user}
+            label="Jabatan"
+            labelPlacement="outside-top"
+            name="jabatan"
+            placeholder="Enter jabatan (optional)"
             variant="bordered"
             onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
               e.target.style.outline = "none";

@@ -8,7 +8,7 @@ Script untuk mengupdate field jabatan pada user database.
 **Cara menjalankan:**
 
 ```bash
-node scripts/updateJabatan.js
+node scripts/updateJabatan.mjs
 ```
 
 **Fungsi:**

@@ -35,6 +35,8 @@ export default function UsersClientPage() {
     ...user,
     createdAt: new Date(user.createdAt),
     lastActive: user.lastActive ? new Date(user.lastActive) : null,
+    // Pastikan field jabatan diteruskan
+    jabatan: user.jabatan ?? null,
     // Pastikan fid & nik diteruskan; jangan ubah tipe kecuali perlu.
     // Jika fid di DB Int, biarkan number; nanti komponen tampilkan String fallback.
     // fid: user.fid ?? null,

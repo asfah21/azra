@@ -120,7 +120,8 @@ export async function GET(req: NextRequest) {
     const join = url.searchParams.get("join")?.toLowerCase() || "";
     const pageSize = 20;
 
-    // 4. Redirect search
+    // 4. Redirect search - hapus validasi yang terlalu ketat
+    // Biarkan search lewat jika memang diperlukan untuk backward compatibility
     if (search) {
       const redirectUrl = `/api/fingerprint/search?q=${encodeURIComponent(
         search,

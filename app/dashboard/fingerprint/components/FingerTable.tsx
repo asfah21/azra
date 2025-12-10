@@ -272,7 +272,7 @@ export default function FingerTable() {
                 <TableColumn className="w-24 text-center text-xs font-medium text-default-600 uppercase tracking-wider select-none">
                   DIVISION
                 </TableColumn>
-                <TableColumn className="w-30 text-center text-xs font-medium text-default-600 uppercase tracking-wider select-none">
+                <TableColumn className="w-30 text-center text-xs font-medium text-default-600 uppercase tracking-wider select-none whitespace-nowrap">
                   JABATAN
                 </TableColumn>
                 <TableColumn className="w-28 text-center text-xs font-medium text-default-600 uppercase tracking-wider select-none">
@@ -287,7 +287,7 @@ export default function FingerTable() {
                 <TableColumn className="w-20 text-center text-xs font-medium text-default-600 uppercase tracking-wider select-none">
                   FID
                 </TableColumn>
-                <TableColumn className="w-28 text-center text-xs font-medium text-default-600 uppercase tracking-wider select-none">
+                <TableColumn className="w-28 text-center text-xs font-medium text-default-600 uppercase tracking-wider select-none whitespace-nowrap">
                   LOKASI
                 </TableColumn>
               </TableHeader>
@@ -386,7 +386,7 @@ export default function FingerTable() {
                           <TableCell className="text-center align-middle px-6 py-3 text-sm text-default-700">
                             {resolvedDept || "-"}
                           </TableCell>
-                          <TableCell className="text-center align-middle px-6 py-3 text-sm text-default-700">
+                          <TableCell className="text-center align-middle px-6 py-3 text-sm text-default-700 whitespace-nowrap">
                             {resolvedJabatan || "-"}
                           </TableCell>
                           <TableCell className="text-center align-middle px-6 py-3 text-sm text-default-700 whitespace-pre-line">
@@ -409,7 +409,7 @@ export default function FingerTable() {
                           <TableCell className="text-center align-middle px-6 py-3 text-sm text-default-700">
                             {fidFromUser ?? item.user_id ?? "-"}
                           </TableCell>
-                          <TableCell className="text-center align-middle px-6 py-3 text-sm text-default-700 truncate">
+                          <TableCell className="text-center align-middle px-6 py-3 text-sm text-default-700 truncate whitespace-nowrap">
                             {item.device_sn ?? "-"}
                           </TableCell>
                         </TableRow>

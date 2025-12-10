@@ -129,6 +129,7 @@ export async function updateUser(
     const password = formData.get("password") as string;
     const role = formData.get("role") as Role;
     const department = formData.get("department") as string;
+    const jabatan = formData.get("jabatan") as string;
     const fidRaw = (formData.get("fid") as string | null)?.trim() ?? "";
     const nikRaw = (formData.get("nik") as string | null)?.trim() ?? "";
     const session = await getServerSession(authOptions);
@@ -140,6 +141,7 @@ export async function updateUser(
       email,
       role,
       department,
+      jabatan,
       currentUserRole,
       fid: fidRaw,
       nik: nikRaw,
@@ -225,6 +227,7 @@ export async function updateUser(
       email,
       role,
       department: department || null,
+      jabatan: jabatan || null,
       nik: nikRaw ? String(nikRaw) : null,
     };
 
@@ -512,6 +515,7 @@ export async function getUsersData() {
         email: true,
         role: true,
         department: true,
+        jabatan: true,
         createdAt: true,
         lastActive: true,
         // tambahkan fid & nik agar dikirim ke client

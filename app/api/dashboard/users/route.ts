@@ -20,6 +20,7 @@ export async function GET(req: NextRequest) {
         email: true,
         role: true,
         department: true,
+        jabatan: true,
         createdAt: true,
         lastActive: true,
         photo: true, //tambahanku
