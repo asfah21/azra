@@ -1,24 +1,21 @@
-import type { FC } from "react";
-
+import { notFound } from "next/navigation";
 import Link from "next/link";
-import {
-  ArrowLeft,
-  Calendar,
-  User2,
-  Tag,
-  Download,
-  PackageOpen,
-  ListChecks,
-} from "lucide-react";
+import Image from "next/image";
+import { prisma } from "@/lib/prisma";
+import { ArrowLeft, Calendar, User2, Tag } from "lucide-react";
+import HowToGet from "./components/HowToGet";
+import ImageSlider from "./components/ImageSlider";
 
 export interface BlogClientArticleProps {
   post: {
+    id: string;
     title: string;
     createdAt: Date;
     category?: string | null;
     description?: string | null;
     content: string;
     coverImage?: string | null;
+    images?: string[] | null;
     authorName?: string | null;
     authorHandle?: string | null;
     authorAvatar?: string | null;
@@ -34,8 +31,54 @@ function formatDate(date: Date) {
   });
 }
 
-const ClientPage: FC<BlogClientArticleProps> = ({ post }) => {
+type Props = { params: { slug: string } }
+
+const sectionImports = [
+  () => import("./sections/SectionA"),
+  () => import("./sections/SectionB"),
+  () => import("./sections/SectionC"),
+  // () => import("./sections/SectionD"),
+]
+
+function getLastDigitFromid(id: string): number | null {
+  for (let i = id.length - 1; i >= 0; i--) {
+    const ch = id[i];
+    if (ch >= "0" && ch <= "9") {
+      return Number(ch);
+    }
+  }
+  return null;
+}
+
+function fallbackDigitFromString(id: string): number | null {
+  let sum = 0;
+  for (let i = 0; i < id.length; i++) sum += id.charCodeAt(i);
+  return sum % 10;
+}
+
+export default async function ClientPage({ params }: Props) {
+  const { slug } = await params;
+  const post = await prisma.post.findUnique({
+    where: { slug },
+    include: { author: true },
+  });
+
+  if (!post) {
+    return notFound();
+  }
   const date = formatDate(post.createdAt);
+
+  const rawId = String(post.id ?? "");
+  if (!rawId) {
+    return notFound();
+  }
+
+  const len = sectionImports.length;
+  const digit = getLastDigitFromid(rawId) ?? fallbackDigitFromString(rawId) ?? 0;
+  const index = ((digit - 1) % len + len) % len;
+
+  const mod = await sectionImports[index]();
+  const SectionComponent = mod?.default;
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8 text-neutral-800 dark:text-foreground">
@@ -52,12 +95,12 @@ const ClientPage: FC<BlogClientArticleProps> = ({ post }) => {
 
       {/* Meta */}
       <div className="flex items-center gap-3 text-sm text-foreground/70">
-        {post.authorAvatar ? (
+        {post.author?.avatar ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            alt={post.authorName ?? "Author"}
+            alt={post.author?.name ?? "Author"}
             className="h-9 w-9 rounded-full ring-1 ring-neutral-300 dark:ring-white/15 object-cover"
-            src={post.authorAvatar}
+            src={post.author?.avatar}
           />
         ) : (
           <div className="h-9 w-9 rounded-full bg-neutral-200 dark:bg-white/10 ring-1 ring-neutral-300 dark:ring-white/15" />
@@ -65,7 +108,7 @@ const ClientPage: FC<BlogClientArticleProps> = ({ post }) => {
         <div className="flex flex-col">
           <span className="font-medium text-foreground/90 inline-flex items-center gap-1">
             <User2 className="w-3.5 h-3.5 opacity-70" />{" "}
-            {post.authorName ?? "Creative Font"}
+            {post.author?.name ?? "Creative Font"}
           </span>
           <div className="flex flex-wrap items-center gap-2 mt-0.5">
             <span className="inline-flex items-center gap-1.5 text-xs px-2 py-0.5 rounded-md bg-neutral-50 dark:bg-white/5 border border-neutral-200 dark:border-white/10">
@@ -84,13 +127,8 @@ const ClientPage: FC<BlogClientArticleProps> = ({ post }) => {
 
       {/* Title */}
       <h1 className="mt-5 text-3xl md:text-4xl font-extrabold tracking-tight leading-tight bg-gradient-to-r from-neutral-900 via-neutral-800 to-neutral-600 dark:from-white dark:via-white dark:to-white/70 bg-clip-text text-transparent">
-        {post.title}
+        {post.title} ID {index}
       </h1>
-      {/* {post.description && (
-        <p className="mt-3 text-base md:text-lg text-foreground/70 font-light italic border-l-4 pl-4 border-primary/40">
-          {post.description}
-        </p>
-      )} */}
 
       {/* Hero image */}
       <div className="mt-6 rounded-xl overflow-hidden border border-neutral-300 dark:border-white/10 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.15)] dark:shadow-[0_10px_30px_-10px_rgba(0,0,0,0.35)]">
@@ -124,53 +162,10 @@ const ClientPage: FC<BlogClientArticleProps> = ({ post }) => {
           className="text-justify prose max-w-none"
         />
 
-        {/* Structured sections */}
-        {/* <section className="space-y-6 !mt-0">
-          <h2 className="inline-flex items-center gap-2">
-            <PackageOpen className="w-5 h-5 opacity-80" /> Innovative Applications
-          </h2> */}
+        {/* Structured sections dynamic */}
+        <SectionComponent post={post} />
 
-        <section className="space-y-6 !mt-0">
-          <h2 className="inline-flex items-center gap-2">
-            <PackageOpen className="w-5 h-5 opacity-80" /> Innovative
-            Applications
-          </h2>
-
-          <p>
-            The finely crafted <strong>{post.title}</strong> / typeface is
-            suitable for both creative and commercial use. It is one of the most
-            popular choices for anybody seeking for a{" "}
-            <strong>free {post.category} font</strong> that yet appears
-            high-end, as designers like its balance of authenticity and beauty.
-          </p>
-
-          <p>
-            <strong>{post.title}</strong> is commonly used by artists for
-            branding and logos to create a homey, friendly, and distinctive
-            image. Its flowing lines make it ideal for invitations and greeting
-            cards, where authenticity and feeling are essential. This display
-            script font provides T-shirt printing and apparel logos a
-            sophisticated, individualized look in the fashion business. It
-            provides a noticeable personal touch to posters, quotations, and
-            product packaging, drawing attention straight away.
-          </p>
-
-          <p>
-            Digital designers value how effectively it works on screens,
-            guaranteeing readability while preserving artistic quality in
-            anything from social media photos to website banners. Even lengthy
-            phrases are enjoyable to read thanks to the typeface&apos;s lively
-            and captivating rhythm.
-          </p>
-
-          <p>
-            <strong>{post.title}</strong> Font provides a distinct, handcrafted
-            liveliness to every project, whether you&apos;re designing an
-            expressive title or a basic logo. It is one of the best{" "}
-            <strong>free font downloads</strong> for print and digital projects
-            due to its versatility and readability.
-          </p>
-        </section>
+        <ImageSlider images={post.images ?? []} />
 
         {post.description && (
           <section>
@@ -180,131 +175,11 @@ const ClientPage: FC<BlogClientArticleProps> = ({ post }) => {
           </section>
         )}
 
-        <section className="space-y-4 !mt-0">
-          <h2 className="inline-flex items-center gap-2">
-            <Download className="w-5 h-5 opacity-80" /> How to Get It
-          </h2>
-          <p>
-            {" "}
-            It&apos;s easy to get the <strong>{post.title} Font</strong>, and
-            depending on the distributor, it can be free for personal use or
-            include a commercial license option. While some websites may include
-            it as part of a paid font bundle, others may offer it for free.
-          </p>
+        <HowToGet post={post} />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-            <div className="rounded-lg border border-neutral-300 dark:border-white/10 bg-neutral-50/80 dark:bg-white/[0.06] backdrop-blur p-4 shadow-sm text-sm leading-relaxed">
-              <h3 className="text-base md:text-lg font-semibold inline-flex items-center gap-2 !mt-0">
-                <PackageOpen className="w-4 h-4 opacity-80" /> Get the Package
-                Details
-              </h3>
-              <ul className="mt-2 space-y-1.5 list-disc pl-4">
-                <li>File types: OTF, TTF, RAR/ZIP archive</li>
-                <li>
-                  License: Personal or Full Commercial License (varies by
-                  source)
-                </li>
-              </ul>
-            </div>
-
-            <div className="rounded-lg border border-neutral-300 dark:border-white/10 bg-neutral-50/80 dark:bg-white/[0.06] backdrop-blur p-4 shadow-sm text-sm leading-relaxed">
-              <h3 className="text-base md:text-lg font-semibold inline-flex items-center gap-2 !mt-0">
-                <ListChecks className="w-4 h-4 opacity-80" /> Steps for
-                Installation
-              </h3>
-              <ol className="mt-2 space-y-1.5 list-decimal pl-4">
-                <li>Unzip the font package after downloading it.</li>
-                <li>
-                  Choose Install when you right-click the .otf or.ttf file on
-                  Windows.
-                </li>
-                <li>
-                  Double-click the font file on a Mac, then select Install Font.
-                </li>
-              </ol>
-            </div>
-          </div>
-
-          <p>
-            Following installation, creative programs such as Adobe Photoshop,
-            Illustrator, Figma, Canva, and even Microsoft Word will
-            automatically display the <strong>{post.title}</strong>
-          </p>
-
-          <div className="mt-6 text-center">
-            <a
-              className="btn inline-flex items-center gap-2 px-3 py-2 text-sm font-semibold rounded-xl bg-primary text-white hover:bg-primary/90 transition-colors shadow-sm ring-1 ring-neutral-200 dark:ring-white/20"
-              href={post.link ?? "#"}
-              rel="noopener noreferrer"
-              target="_blank"
-            >
-              <Download className="w-4 h-4" />
-              <span>Download {post.title} </span>
-            </a>
-          </div>
-
-          <p>It is simple to embed for use on the web by:</p>
-          <ul className="list-none mt-1 space-y-1.5 ml-2 text-sm leading-relaxed">
-            <li className="flex gap-3 items-start">
-              <span className="mt-0.5 h-4.5 w-4.5 shrink-0 rounded-full bg-primary/15 text-primary/80 dark:bg-primary/20 flex items-center justify-center text-[10px] font-semibold">
-                1
-              </span>
-              <p className="m-0">
-                For fast global loading, include a{" "}
-                <code className="px-1.5 py-0.5 rounded bg-black/30 border border-white/10">
-                  &lt;tag&gt;
-                </code>{" "}
-                in your HTML head.
-              </p>
-            </li>
-            <li className="flex gap-3 items-start">
-              <span className="mt-0.5 h-4.5 w-4.5 shrink-0 rounded-full bg-primary/15 text-primary/80 dark:bg-primary/20 flex items-center justify-center text-[10px] font-semibold">
-                2
-              </span>
-              <p className="m-0">
-                For optimal performance, place{" "}
-                <code className="px-1.5 py-0.5 rounded bg-black/30 border border-white/10">
-                  @import
-                </code>{" "}
-                @at the top of your CSS.
-              </p>
-            </li>
-            <li className="flex gap-3 items-start">
-              <span className="mt-0.5 h-4.5 w-4.5 shrink-0 rounded-full bg-primary/15 text-primary/80 dark:bg-primary/20 flex items-center justify-center text-[10px] font-semibold">
-                3
-              </span>
-              <p className="m-0">
-                Define a unique{" "}
-                <code className="px-1.5 py-0.5 rounded bg-black/30 border border-white/10">
-                  @font-face
-                </code>{" "}
-                for font-display control, fallbacks, and formats.
-              </p>
-            </li>
-          </ul>
-
-          <div className="rounded-lg border border-neutral-300 dark:border-white/10 bg-neutral-50/80 dark:bg-white/[0.04] p-4 text-sm leading-relaxed">
-            <h3 className="text-base md:text-lg font-semibold !mt-0">
-              Details of the License{" "}
-            </h3>
-            <p className="mt-2">
-              Although <strong>{post.title}</strong> typeface is frequently
-              offered as a free {post.category} typeface, before using it for
-              commercial purposes, make sure to review the license terms from
-              the source. While some websites offer the complete license for
-              free, others charge a nominal price for commercial use.
-            </p>
-            <p className="mt-1.5">
-              Either way, you&apos;ll get a professional-grade font with
-              outstanding kerning, flowing vectors, and consistent baseline
-              alignment—perfect for projects like product packaging, digital
-              ads, and printed materials for both you and your clients.
-            </p>
-          </div>
-        </section>
       </article>
     </div>
   );
-};
+}
 
-export default ClientPage;
+

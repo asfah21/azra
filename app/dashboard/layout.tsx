@@ -2,7 +2,7 @@ import { Metadata } from "next";
 
 import { siteConfig } from "@/config/site";
 import UIDashboardLayout from "@/components/ui/dashboard/DashboardLayout";
-import { ProfileProvider } from "@/app/context/ProfileContext";
+import { ProfileProvider } from "@/hooks/useProfileContext";
 
 export const metadata: Metadata = {
   title: {

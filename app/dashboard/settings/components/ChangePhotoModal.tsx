@@ -15,7 +15,7 @@ import {
 import { Image, Upload } from "lucide-react";
 import { useState } from "react";
 
-import { useProfile } from "@/app/context/ProfileContext"; // refresh setelah upload
+import { useProfile } from "@/hooks/useProfileContext"; // refresh setelah upload
 
 interface ChangePhotoModalProps {
   isOpen: boolean;

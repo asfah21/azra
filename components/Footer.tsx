@@ -12,8 +12,7 @@ export default function Footer() {
         underline="none"
       >
         <span className="text-center">
-          &copy; {new Date().getFullYear()} Copyright by PT Gunung Samudera
-          Internasional
+          &copy; {new Date().getFullYear()} Copyright by Azra
         </span>
         {/* <span className="bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent font-semibold hover:from-green-600 hover:to-blue-600 transition-all duration-300">
           Azvan

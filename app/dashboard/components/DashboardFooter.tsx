@@ -33,7 +33,7 @@ export default function DashboardFooter({
               Created by Azvan IT
             </span> */}
           <span className="text-xs text-gray-600 dark:text-gray-300">
-            © 2025 - PT Gunung Samudera Internasional
+            © 2025 - Azra
           </span>
         </div>
       </div>

@@ -20,7 +20,7 @@ function LoginForm() {
       if (remembered) {
         try {
           return JSON.parse(remembered).email || "";
-        } catch {}
+        } catch { }
       }
     }
 
@@ -34,7 +34,7 @@ function LoginForm() {
       if (remembered) {
         try {
           return JSON.parse(remembered).password || "";
-        } catch {}
+        } catch { }
       }
     }
 
@@ -303,7 +303,7 @@ function LoginForm() {
 
         <CardFooter className="mt-2 flex justify-center py-3 sm:py-6 bg-gray-50 dark:bg-gray-900/50 rounded-b-xl sm:rounded-b-2xl">
           <p className="text-xs text-center text-gray-500">
-            {new Date().getFullYear()} © PT Gunung Samudera Internasional
+            {new Date().getFullYear()} © Azra
           </p>
         </CardFooter>
       </Card>

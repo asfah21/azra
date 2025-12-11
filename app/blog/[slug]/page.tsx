@@ -29,24 +29,15 @@ export async function generateMetadata({
 }
 
 // --- PAGE ---
-export default async function BlogDetail({
-  params,
-}: {
-  params: { slug: string };
+export default async function BlogDetail(props: {
+  params: Promise<{ slug: string }>;
 }) {
-  // HARUS await params
-  const { slug } = await params;
-
-  const post = await prisma.post.findUnique({
-    where: { slug },
-  });
-
-  if (!post) return notFound();
+  const params = await props.params;
 
   return (
     <div className="flex flex-col min-h-screen">
       <Navbar />
-      <ClientPage post={post} />
+      <ClientPage params={params} />
       <Footer />
     </div>
   );

@@ -75,7 +75,7 @@ export default function Hero() {
             maintenance, breakdown), and export complete records to Excel.
             Efficient, reliable, and built exclusively for{" "}
             <span className="text-[#FEC72C] font-semibold truncate">
-              PT Gunung Samudera Internasional
+              Azra
             </span>
           </motion.p>
 
