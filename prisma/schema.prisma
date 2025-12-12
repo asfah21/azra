@@ -17,8 +17,8 @@ model Post {
   content         String
   coverImage      String?   // URL atau path ke gambar utama
   images          String[]  // array gambar tambahan
-  tags            String[]  // misalnya ["Cricut", "DIY", "Crafting"]
-  category        String?   // opsional, misalnya “Design” atau “Tips”
+  tags            String[]   @default([]) // ini opsional default null
+  category        String
   published       Boolean   @default(false)
   publishedAt     DateTime? // waktu publikasi
   createdAt       DateTime  @default(now())
