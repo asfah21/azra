@@ -22,9 +22,6 @@ export default async function CategoryPage() {
     const categoryMap = new Map<string, { count: number; image: string | null }>();
 
     posts.forEach((post) => {
-        // Skip posts without category
-        if (!post.category) return;
-
         const existing = categoryMap.get(post.category);
         if (existing) {
             existing.count++;

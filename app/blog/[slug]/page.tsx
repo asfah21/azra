@@ -10,7 +10,7 @@ import Footer from "@/components/Footer";
 export async function generateMetadata({
   params,
 }: {
-  params: { slug: string };
+  params: Promise<{ slug: string }>;
 }) {
   // HARUS await params (Next.js 15/16 rule)
   const { slug } = await params;

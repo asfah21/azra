@@ -47,6 +47,7 @@ export const ThemeSwitch: FC<ThemeSwitchProps> = ({
           classNames?.base,
         ),
       })}
+      suppressHydrationWarning
     >
       <VisuallyHidden>
         <input {...getInputProps()} />
