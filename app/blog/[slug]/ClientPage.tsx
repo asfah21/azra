@@ -1,10 +1,10 @@
 import { notFound } from "next/navigation";
-import Link from "next/link";
 import Image from "next/image";
 import { prisma } from "@/lib/prisma";
-import { ArrowLeft, Calendar, User2, Tag } from "lucide-react";
+import { Calendar, User2, Tag } from "lucide-react";
 import HowToGet from "./components/HowToGet";
 import ImageSlider from "./components/ImageSlider";
+import BackButton from "./components/BackButton";
 
 export interface BlogClientArticleProps {
   post: {
@@ -84,13 +84,7 @@ export default async function ClientPage({ params }: Props) {
     <div className="max-w-3xl mx-auto px-4 py-8 text-neutral-800 dark:text-foreground">
       {/* Back link */}
       <div className="mb-6">
-        <Link
-          className="inline-flex items-center gap-2 text-sm text-foreground/70 hover:text-foreground transition-colors px-3 py-1.5 rounded-full bg-neutral-50 dark:bg-white/5 border border-neutral-200 dark:border-white/10 hover:bg-neutral-100 dark:hover:bg-white/10"
-          href="/blog"
-        >
-          <ArrowLeft className="w-4 h-4" />
-          <span>Back to blog</span>
-        </Link>
+        <BackButton />
       </div>
 
       {/* Meta */}
@@ -181,5 +175,3 @@ export default async function ClientPage({ params }: Props) {
     </div>
   );
 }
-
-
