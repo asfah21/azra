@@ -50,7 +50,7 @@ export const ThemeSwitch: FC<ThemeSwitchProps> = ({
       suppressHydrationWarning
     >
       <VisuallyHidden>
-        <input {...getInputProps()} />
+        <input {...getInputProps()} suppressHydrationWarning />
       </VisuallyHidden>
       <div
         {...getWrapperProps()}
