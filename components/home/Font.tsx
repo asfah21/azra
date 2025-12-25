@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { Card, Input, Button, Tooltip } from "@heroui/react";
-import { MagnifyingGlassIcon, ArrowDownTrayIcon, ArrowPathIcon } from "@heroicons/react/24/outline";
+import { MagnifyingGlassIcon, ArrowDownTrayIcon, ArrowPathIcon, ShareIcon } from "@heroicons/react/24/outline";
 
 type FontVariant = {
     name: string;
@@ -31,10 +31,36 @@ export default function Fonts() {
     const [textColor, setTextColor] = useState("#000000");
     const [backgroundColor, setBackgroundColor] = useState("#ffffff");
 
-    // Initialize colors based on system preference or default
+    // Initialize colors based on theme
     useEffect(() => {
-        // You might want to use useTheme from next-themes here if available
-        // to detect current theme for defaults, but keeping simple for now
+        // Function to update colors based on theme
+        const updateColors = (isDark: boolean) => {
+            if (isDark) {
+                setBackgroundColor("#303846"); // rgb(48, 56, 70) converted to hex
+                setTextColor("#ffffff");
+            } else {
+                setBackgroundColor("#ffffff");
+                setTextColor("#000000");
+            }
+        };
+
+        // Check initial theme
+        const isDark = document.documentElement.classList.contains("dark");
+        updateColors(isDark);
+
+        // Observer for theme changes
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.attributeName === "class") {
+                    const isDarkNow = document.documentElement.classList.contains("dark");
+                    updateColors(isDarkNow);
+                }
+            });
+        });
+
+        observer.observe(document.documentElement, { attributes: true });
+
+        return () => observer.disconnect();
     }, []);
 
     useEffect(() => {
@@ -54,8 +80,14 @@ export default function Fonts() {
     const resetSettings = () => {
         setFontSize(55);
         setPreviewText("");
-        setTextColor("#000000");
-        setBackgroundColor("#ffffff");
+        const isDark = document.documentElement.classList.contains("dark");
+        if (isDark) {
+            setBackgroundColor("#303846");
+            setTextColor("#ffffff");
+        } else {
+            setBackgroundColor("#ffffff");
+            setTextColor("#000000");
+        }
     };
 
     return (
@@ -69,46 +101,47 @@ export default function Fonts() {
         >
             <div className="w-full max-w-screen-2xl">
                 <Card
-                    className="w-full bg-background/60 dark:bg-default-100/50 backdrop-blur-lg border border-white/20 p-2 md:p-5"
-                    radius="md"
+                    className="w-full bg-background/60 dark:bg-default-100/50 backdrop-blur-lg border border-none p-2 md:p-5"
+                    radius="lg"
                     shadow="sm"
                 >
-                    <div className="flex flex-col gap-8">
+                    <div className="flex flex-col gap-6">
                         {/* Toolbar */}
-                        <div className="flex flex-col md:flex-row gap-4 items-center justify-between bg-default-100/50 p-4 rounded-xl border border-default-200/50">
-                            <div className="flex-grow w-full md:w-auto">
+                        <div className="flex flex-wrap md:flex-nowrap gap-4 items-center bg-default-100/50 p-2 md:p-3 rounded-xl justify-between">
+                            <div className="w-full md:w-64 lg:w-80">
                                 <Input
-                                    placeholder="Type something to preview..."
+                                    placeholder="Type your own text..."
                                     value={previewText}
                                     onValueChange={setPreviewText}
                                     classNames={{
-                                        inputWrapper: "bg-default-200/50",
+                                        inputWrapper: "bg-default-200/50 shadow-none",
                                     }}
-                                    startContent={<MagnifyingGlassIcon className="w-4 h-4 text-default-400" />}
-                                    size="lg"
+                                    startContent={<MagnifyingGlassIcon className="w-4 h-3 text-default-400" />}
+                                    size="md"
                                     onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
                                         e.target.style.outline = "none";
                                     }}
                                 />
                             </div>
 
-                            <div className="flex flex-wrap items-center gap-4 w-full md:w-auto justify-center md:justify-end">
-                                <div className="flex items-center gap-2 w-60">
-                                    <span className="text-small text-default-500">Size</span>
+                            <div className="flex-1 flex justify-center px-4 min-w-[30%]">
+                                <div className="flex items-center gap-3 w-full max-w-[150px]">
+                                    {/* <span className="hidden sm:inline">Size</span> */}
                                     <input
                                         type="range"
                                         min={20}
-                                        max={150}
+                                        max={200}
                                         value={fontSize}
                                         onChange={(e) => setFontSize(Number(e.target.value))}
-                                        className="w-full h-2 bg-default-300 rounded-lg appearance-none cursor-pointer accent-primary"
+                                        className="w-full h-1.5 bg-default-300 rounded-lg appearance-none cursor-pointer accent-primary"
                                     />
                                 </div>
+                            </div>
 
-                                <div className="flex items-center gap-2 border-l border-default-300 pl-4">
+                            <div className="flex items-center gap-4 md:gap-6 flex-none justify-end">
+                                <div className="flex items-center gap-3">
                                     <div className="flex flex-col gap-1 items-center">
-                                        <label className="text-[10px] uppercase text-default-500 font-bold">Text</label>
-                                        <div className="relative overflow-hidden w-8 h-8 rounded-full border border-default-300 cursor-pointer shadow-sm hover:scale-105 transition-transform">
+                                        <div className="relative overflow-hidden w-6 h-6 rounded-md border border-default-300 cursor-pointer shadow-sm hover:scale-105 transition-transform bg-white">
                                             <input
                                                 type="color"
                                                 value={textColor}
@@ -118,8 +151,7 @@ export default function Fonts() {
                                         </div>
                                     </div>
                                     <div className="flex flex-col gap-1 items-center">
-                                        <label className="text-[10px] uppercase text-default-500 font-bold">Bg</label>
-                                        <div className="relative overflow-hidden w-8 h-8 rounded-full border border-default-300 cursor-pointer shadow-sm hover:scale-105 transition-transform">
+                                        <div className="relative overflow-hidden w-6 h-6 rounded-md border border-default-300 cursor-pointer shadow-sm hover:scale-105 transition-transform bg-black">
                                             <input
                                                 type="color"
                                                 value={backgroundColor}
@@ -130,16 +162,29 @@ export default function Fonts() {
                                     </div>
                                 </div>
 
-                                <Tooltip content="Reset Settings">
-                                    <Button
-                                        isIconOnly
-                                        variant="light"
-                                        color="danger"
-                                        onPress={resetSettings}
-                                    >
-                                        <ArrowPathIcon className="w-5 h-5" />
-                                    </Button>
-                                </Tooltip>
+                                <div className="h-6 w-px bg-default-300 hidden md:block"></div>
+
+                                <div className="flex items-center gap-1">
+                                    <Tooltip content="Reset Settings">
+                                        <Button
+                                            isIconOnly
+                                            variant="light"
+                                            size="sm"
+                                            onPress={resetSettings}
+                                        >
+                                            <ArrowPathIcon className="w-5 h-5 text-default-500" />
+                                        </Button>
+                                    </Tooltip>
+                                    <Tooltip content="Share">
+                                        <Button
+                                            isIconOnly
+                                            variant="light"
+                                            size="sm"
+                                        >
+                                            <ShareIcon className="w-5 h-5 text-default-500" />
+                                        </Button>
+                                    </Tooltip>
+                                </div>
                             </div>
                         </div>
 
@@ -171,9 +216,9 @@ export default function Fonts() {
                                                     <span className="px-2 py-1 bg-default-100 rounded-md text-xs font-medium text-default-600 border border-default-200">
                                                         {font.name}
                                                     </span>
-                                                    <span className="px-2 py-1 bg-primary/10 text-primary rounded-md text-xs font-medium border border-primary/20">
+                                                    {/* <span className="px-2 py-1 bg-primary/10 text-primary rounded-md text-xs font-medium border border-primary/20">
                                                         Premium
-                                                    </span>
+                                                    </span> */}
                                                 </div>
 
                                                 <Button
@@ -195,7 +240,7 @@ export default function Fonts() {
                                             </div>
 
                                             <div
-                                                className="w-full overflow-hidden text-ellipsis whitespace-nowrap py-8 px-4 rounded-lg transition-colors border border-dashed border-default-300"
+                                                className="w-full overflow-hidden text-ellipsis whitespace-nowrap py-4 px-4 rounded-lg transition-colors border border-dashed border-default-300"
                                                 style={{
                                                     fontFamily: font.variants[0].name,
                                                     fontSize: `${fontSize}px`,

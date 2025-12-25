@@ -16,14 +16,27 @@ import {
 import NextLink from "next/link";
 import clsx from "clsx";
 import { BsFillLayersFill } from "react-icons/bs";
+import { useEffect, useState } from "react";
 
 import { siteConfig } from "@/config/site";
 import { ThemeSwitch } from "@/components/theme-switch";
 import { SearchIcon, Logo } from "@/components/icons";
 
+const SearchInput = (props: any) => {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+
+  if (!mounted) return <div className="w-full h-10 bg-default-100 rounded-xl" />;
+
+  return (
+    <Input
+      {...props}
+      suppressHydrationWarning
+    />
+  );
+};
+
 export const Navbar = () => {
-
-
   return (
     <HeroUINavbar className="px-0 md:px-12" maxWidth="2xl" position="sticky">
       <NavbarContent className="basis-1/5 sm:basis-full" justify="start">
@@ -53,7 +66,7 @@ export const Navbar = () => {
               <NavbarItem key={item.href}>
                 <NextLink
                   className={clsx(
-                    "text-sm", // ← Tambahkan ini di sini
+                    "text-sm",
                     linkStyles({ color: "foreground" }),
                     "data-[active=true]:text-primary data-[active=true]:font-medium",
                   )}
@@ -71,7 +84,7 @@ export const Navbar = () => {
           <ThemeSwitch />
         </NavbarItem>
         <NavbarItem className="hidden lg:flex">
-          <Input
+          <SearchInput
             id="search-desktop"
             aria-label="Search"
             classNames={{
@@ -92,7 +105,6 @@ export const Navbar = () => {
             onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
               e.target.style.outline = "none";
             }}
-            suppressHydrationWarning
           />
         </NavbarItem>
         <NavbarItem className="hidden md:flex">
@@ -120,7 +132,7 @@ export const Navbar = () => {
       </NavbarContent>
 
       <NavbarMenu>
-        <Input
+        <SearchInput
           id="search-mobile"
           aria-label="Search"
           classNames={{
@@ -141,7 +153,6 @@ export const Navbar = () => {
           onFocus={(e: React.FocusEvent<HTMLInputElement>) => {
             e.target.style.outline = "none";
           }}
-          suppressHydrationWarning
         />
         <div className="mx-4 mt-2 flex flex-col gap-2">
           {siteConfig.navMenuItems.map((item, index) => (
