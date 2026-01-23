@@ -174,6 +174,15 @@ export async function POST(
     const buffer = Buffer.from(await file.arrayBuffer());
 
     try {
+      consolePino.info("Attempting S3 upload", {
+        bucket: MINIO_BUCKET,
+        key: objectKey,
+        endpoint: MINIO_ENDPOINT,
+        port: MINIO_PORT,
+        useSSL: MINIO_USE_SSL,
+        fileSize: buffer.length,
+      });
+
       await s3.send(
         new PutObjectCommand({
           Bucket: MINIO_BUCKET!,
@@ -185,17 +194,27 @@ export async function POST(
           CacheControl: "public, max-age=31536000, immutable",
         }),
       );
+
+      consolePino.info("S3 upload successful", { objectKey });
     } catch (e: any) {
       consolePino.error("PutObject failed", {
         name: e?.name,
         message: e?.message,
         code: e?.Code || e?.code,
+        stack: e?.stack,
+        endpoint: MINIO_ENDPOINT,
+        port: MINIO_PORT,
+        bucket: MINIO_BUCKET,
       });
 
       return NextResponse.json(
         {
           success: false,
-          message: `Upload failed: ${e?.message || "S3 error"}`,
+          message: `Upload failed: ${e?.message || e?.code || "S3 error"}. Check server logs for details.`,
+          error: {
+            code: e?.Code || e?.code,
+            name: e?.name,
+          },
         },
         { status: 500 },
       );
@@ -228,11 +247,22 @@ export async function POST(
       photoUrl,
       profile: updatedUser,
     });
-  } catch (error) {
-    consolePino.error("Error updating user photo:", error);
+  } catch (error: any) {
+    consolePino.error("Error updating user photo:", {
+      error: error?.message,
+      stack: error?.stack,
+      name: error?.name,
+    });
 
     return NextResponse.json(
-      { success: false, message: "Failed to update photo" },
+      { 
+        success: false, 
+        message: `Failed to update photo: ${error?.message || "Unknown error"}`,
+        error: {
+          name: error?.name,
+          message: error?.message,
+        }
+      },
       { status: 500 },
     );
   }
