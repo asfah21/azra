@@ -5,7 +5,8 @@ async function updateMultipleJabatan() {
   try {
     // Mapping FID ke Jabatan baru
     const updates = [
-      { fid: 626, jabatan: 'Inventory Control' },
+      { fid: 630, jabatan: 'SPV IT' },
+      { fid: 631, jabatan: 'Supt. SCM' },
       // { fid: 265, jabatan: 'PJO' },
       // Tambahkan FID lain di sini...
     ];
