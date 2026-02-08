@@ -362,8 +362,15 @@ export async function POST(req: NextRequest) {
         return tB - tA; // newest first
       });
 
-      // 8. Build export data
-      const exportData = sorted.map((r: any, i: number) => {
+      // 8. Filter only valid attendance types (0, 1, 4, 5) for export
+      const finalFiltered = sorted.filter((r: any) => {
+        const t = Number(r.type);
+
+        return [0, 1, 4, 5].includes(t);
+      });
+
+      // 9. Build export data
+      const exportData = finalFiltered.map((r: any, i: number) => {
         const ts = String(r.timestamp || r.created_at || "");
         const date = ts.slice(0, 10);
         const time = ts.slice(11, 19);
@@ -375,7 +382,7 @@ export async function POST(req: NextRequest) {
           if (t === 4) return "Lembur Masuk";
           if (t === 5) return "Lembur Pulang";
 
-          return "System";
+          return "-";
         })();
 
         return {

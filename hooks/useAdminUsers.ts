@@ -25,12 +25,12 @@ export function useUpdateUserPhoto() {
         const fd = new FormData();
 
         fd.append("photo", photo);
-        
-        consolePino.info("Uploading photo", { 
-          userId, 
-          fileName: photo.name, 
+
+        consolePino.info("Uploading photo", {
+          userId,
+          fileName: photo.name,
           fileSize: photo.size,
-          fileType: photo.type 
+          fileType: photo.type,
         });
 
         const res = await axios.post(`/api/users/${userId}/photo`, fd, {
@@ -47,12 +47,12 @@ export function useUpdateUserPhoto() {
           response: error?.response?.data,
           status: error?.response?.status,
         });
-        
+
         // Re-throw with better error message
         throw new Error(
-          error?.response?.data?.message || 
-          error?.message || 
-          "Failed to upload photo"
+          error?.response?.data?.message ||
+            error?.message ||
+            "Failed to upload photo",
         );
       }
     },

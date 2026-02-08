@@ -1,5 +1,6 @@
-import { consolePino } from "@/lib/logger";
 import { useQuery } from "@tanstack/react-query";
+
+import { consolePino } from "@/lib/logger";
 
 type LogEntry = {
   id: number | string;

@@ -44,7 +44,7 @@ function mapType(t?: number) {
     return ATTENDANCE_TYPES[t].label;
   }
 
-  return String(t ?? "System");
+  return "-";
 }
 
 function getTypeColor(
@@ -117,7 +117,9 @@ export default function FingerTable() {
     pageSize,
   } = useFingerprintLogs({ page, search: debouncedSearchQuery });
 
-  const rows = (data?.rows ?? []) as FingerprintLog[];
+  const rows = ((data?.rows ?? []) as FingerprintLog[]).filter(
+    (item) => item.type != null && ATTENDANCE_TYPES[item.type] !== undefined,
+  );
   const total: number | null =
     typeof data?.total === "number" ? data!.total : null;
   const totalPages =

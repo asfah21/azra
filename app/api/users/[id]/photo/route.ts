@@ -255,13 +255,13 @@ export async function POST(
     });
 
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         message: `Failed to update photo: ${error?.message || "Unknown error"}`,
         error: {
           name: error?.name,
           message: error?.message,
-        }
+        },
       },
       { status: 500 },
     );
