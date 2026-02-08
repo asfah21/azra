@@ -250,13 +250,13 @@ export async function POST(req: NextRequest) {
             const fidKey = rawFid != null ? String(rawFid) : undefined;
             const user = fidKey
               ? {
-                  fid: fidKey,
-                  name: nameMap[fidKey] ?? undefined,
-                  nik: nikMap[fidKey] ?? undefined,
-                  department: deptMap[fidKey] ?? undefined,
-                  jabatan: jabatanMap[fidKey] ?? undefined,
-                  photo: photoMap[fidKey] ?? undefined,
-                }
+                fid: fidKey,
+                name: nameMap[fidKey] ?? undefined,
+                nik: nikMap[fidKey] ?? undefined,
+                department: deptMap[fidKey] ?? undefined,
+                jabatan: jabatanMap[fidKey] ?? undefined,
+                photo: photoMap[fidKey] ?? undefined,
+              }
               : undefined;
 
             return { ...r, user };
@@ -363,7 +363,10 @@ export async function POST(req: NextRequest) {
       });
 
       // 8. Filter only valid attendance types (0, 1, 4, 5) for export
+      // Strict check: if type is missing or null, it's a "System" log which we want to hide.
       const finalFiltered = sorted.filter((r: any) => {
+        if (r.type === null || r.type === undefined || r.type === "")
+          return false;
         const t = Number(r.type);
 
         return [0, 1, 4, 5].includes(t);
@@ -375,6 +378,8 @@ export async function POST(req: NextRequest) {
         const date = ts.slice(0, 10);
         const time = ts.slice(11, 19);
         const typeLabel = ((): string => {
+          if (r.type === null || r.type === undefined || r.type === "")
+            return "-";
           const t = Number(r.type);
 
           if (t === 0) return "Masuk";
