@@ -3,10 +3,10 @@
 import React from "react";
 
 export default function GuestDashboardContent({
-  dashboardData,
+  _dashboardData,
   user,
 }: {
-  dashboardData?: any;
+  _dashboardData?: any;
   user: any;
 }) {
   return (

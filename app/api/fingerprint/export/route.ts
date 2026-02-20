@@ -250,13 +250,13 @@ export async function POST(req: NextRequest) {
             const fidKey = rawFid != null ? String(rawFid) : undefined;
             const user = fidKey
               ? {
-                fid: fidKey,
-                name: nameMap[fidKey] ?? undefined,
-                nik: nikMap[fidKey] ?? undefined,
-                department: deptMap[fidKey] ?? undefined,
-                jabatan: jabatanMap[fidKey] ?? undefined,
-                photo: photoMap[fidKey] ?? undefined,
-              }
+                  fid: fidKey,
+                  name: nameMap[fidKey] ?? undefined,
+                  nik: nikMap[fidKey] ?? undefined,
+                  department: deptMap[fidKey] ?? undefined,
+                  jabatan: jabatanMap[fidKey] ?? undefined,
+                  photo: photoMap[fidKey] ?? undefined,
+                }
               : undefined;
 
             return { ...r, user };

@@ -18,16 +18,22 @@
 # misc
 .DS_Store
 *.pem
+Thumbs.db
 
 # debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+.pnpm-debug.log*
 
 # local env files
 .env
 .env.*
 *.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
 # vercel
 .vercel
@@ -36,6 +42,30 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-.vercel
-
+# prisma generated client
 /app/generated/prisma
+
+# IDE / Editor
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# OS generated
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V8
+.Trashes
+ehthumbs.db
+
+# temporary / local scripts
+temp_migration.sql
+check-db.js
+
+# logs
+logs/
+*.log

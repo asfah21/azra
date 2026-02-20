@@ -17,10 +17,13 @@ export const consolePino = pino({
 
           // Print error/warn/log with message if available, fallback to object
           if (method === "error") {
+            // eslint-disable-next-line no-console
             console.error(o.msg || o);
           } else if (method === "warn") {
+            // eslint-disable-next-line no-console
             console.warn(o.msg || o);
           } else {
+            // eslint-disable-next-line no-console
             console.log(o.msg || o);
           }
         },

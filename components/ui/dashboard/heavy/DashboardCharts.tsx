@@ -167,18 +167,18 @@ export default function DashboardCharts({
   };
 
   // Maintenance Performance (Horizontal Bar)
-  const maintenancePerformanceData = {
-    labels: maintenancePerformance.map((item) => item.department),
-    datasets: [
-      {
-        label: "Completion Rate (%)",
-        data: maintenancePerformance.map((item) => item.completionRate),
-        backgroundColor: "rgba(34, 197, 94, 0.8)",
-        borderColor: "rgba(34, 197, 94, 1)",
-        borderWidth: 1,
-      },
-    ],
-  };
+  // const maintenancePerformanceData = {
+  //   labels: maintenancePerformance.map((item) => item.department),
+  //   datasets: [
+  //     {
+  //       label: "Completion Rate (%)",
+  //       data: maintenancePerformance.map((item) => item.completionRate),
+  //       backgroundColor: "rgba(34, 197, 94, 0.8)",
+  //       borderColor: "rgba(34, 197, 94, 1)",
+  //       borderWidth: 1,
+  //     },
+  //   ],
+  // };
 
   const chartOptions = {
     responsive: true,
@@ -203,16 +203,16 @@ export default function DashboardCharts({
     },
   };
 
-  const horizontalBarOptions = {
-    ...chartOptions,
-    indexAxis: "y" as const,
-    scales: {
-      x: {
-        beginAtZero: true,
-        max: 100,
-      },
-    },
-  };
+  // const horizontalBarOptions = {
+  //   ...chartOptions,
+  //   indexAxis: "y" as const,
+  //   scales: {
+  //     x: {
+  //       beginAtZero: true,
+  //       max: 100,
+  //     },
+  //   },
+  // };
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
